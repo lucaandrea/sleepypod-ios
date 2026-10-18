@@ -334,6 +334,27 @@ final class MockClient: SleepypodProtocol, @unchecked Sendable {
         return records
     }
 
+    // MARK: - Sleep Stages
+
+    /// Stands in for the core's classifier with the on-device rules it was ported from, so demo nights have pod stages.
+    func getSleepStages(side: Side, sleepRecordId: Int) async throws -> PodSleepStages {
+        guard let record = try await getSleepRecords(side: side).first(where: { $0.id == sleepRecordId }) else {
+            return PodSleepStages(blocks: [], sleepRecordId: nil)
+        }
+        let vitals = try await getVitals(side: side, start: record.enteredBedDate, end: record.leftBedDate)
+            .filter { $0.date >= record.enteredBedDate && $0.date < record.leftBedDate }
+        let movement = try await getMovement(side: side, start: record.enteredBedDate, end: record.leftBedDate)
+        let blocks = await MainActor.run {
+            let analyzer = SleepAnalyzer()
+            analyzer.analyze(vitals: vitals, movement: movement)
+            return SleepStagesTimelineView.segments(analyzer.stages).map { segment in
+                PodSleepStages.Block(start: segment.start.timeIntervalSince1970 * 1000, end: segment.end.timeIntervalSince1970 * 1000,
+                                     stage: segment.stage.rawValue.lowercased())
+            }
+        }
+        return PodSleepStages(blocks: blocks, sleepRecordId: record.id)
+    }
+
     // MARK: - Actions (no-ops)
 
     func triggerAlarm(_ alarm: AlarmJob) async throws {

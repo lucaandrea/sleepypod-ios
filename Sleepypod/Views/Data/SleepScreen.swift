@@ -14,6 +14,7 @@ struct SleepScreen: View {
     @State private var agreement: Double?
     @State private var nightlyAgreement: [Date: Double] = [:]
     @State private var showWatch = false
+    @State private var showStages = false
     @State private var monthRecords: [SleepRecord] = []
 
     private var calendar: Calendar { .current }
@@ -93,6 +94,9 @@ struct SleepScreen: View {
             .navigationDestination(isPresented: $showWatch) {
                 if let record { WatchComparisonView(record: record, epochs: analyzer.stages, vitals: filteredVitals) }
             }
+            .navigationDestination(isPresented: $showStages) {
+                if let record { StageComparisonView(record: record, side: metrics.selectedSide) }
+            }
         }
     }
 
@@ -142,7 +146,10 @@ struct SleepScreen: View {
             if health.hasWriteAuthorization && metrics.selectedSide == profile.defaultSide && !isDemo {
                 healthReceipt(record)
             }
-            if canCompareWatch { watchRow }
+            if canCompareWatch {
+                watchRow
+                stagesRow
+            }
         } else if metrics.isLoading {
             ProgressView().frame(maxWidth: .infinity).padding(.top, 40)
         } else {
@@ -232,6 +239,20 @@ struct SleepScreen: View {
         .buttonStyle(.plain)
         .accessibilityIdentifier("compareWatch")
         .accessibilityHint("Shows stages and vitals beside the Watch's")
+    }
+
+    private var stagesRow: some View {
+        Button {
+            Haptics.tap()
+            showStages = true
+        } label: {
+            SettingsRow("Compare stage models", subtitle: "Experimental", icon: "chart.bar.doc.horizontal", chevron: true,
+                        height: 52, titleFont: .subheadline)
+                .cardSurface(radius: 18)
+        }
+        .buttonStyle(.plain)
+        .accessibilityIdentifier("compareStageModels")
+        .accessibilityHint("Shows the Watch, the pod's rules and an experimental model side by side")
     }
 
     // MARK: Week
@@ -443,5 +464,6 @@ struct SleepScreen: View {
             entries.max { $0.0.sleepPeriodSeconds < $1.0.sleepPeriodSeconds }?.1
         }
         if DebugRoute.current == "watch", record != nil, !showWatch { showWatch = true }
+        if DebugRoute.current == "stages", record != nil, !showStages { showStages = true }
     }
 }
