@@ -80,7 +80,13 @@ struct StageComparisonView: View {
         .task { await loadNights() }
         .task(id: record.id) {
             selection = nil
-            if comparisons[record.id] == nil { comparisons[record.id] = await loader.load(record) }
+            // Capture the night before awaiting: switching nights cancels this
+            // task, and a late result must not be cached, or cached under the new night.
+            let night = record
+            guard comparisons[night.id] == nil else { return }
+            let comparison = await loader.load(night)
+            guard !Task.isCancelled else { return }
+            comparisons[night.id] = comparison
         }
     }
 
