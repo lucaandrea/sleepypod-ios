@@ -333,10 +333,21 @@ struct AnalysisInventoryView: View {
                     GroupedCard {
                         SettingsRow("Stage model", icon: "cpu", tile: true) { RowValue("rule-based", mono: true) }
                         SettingsRow("Runs", icon: "iphone", tile: true) { RowValue("On device") }
+                        SettingsRow("Challenger model", subtitle: "Experimental, for comparison only", icon: "flask", tile: true, height: 56) {
+                            RowValue(StageChallenger.bundled.version.map { "v\($0)" } ?? "not bundled", mono: true)
+                        }
                     }
                 }
-                Text("Sleep stages are estimated on this iPhone from the pod's vitals and movement. No trained Core ML stage model is installed yet.")
+                Text("Sleep stages are estimated on this iPhone from the pod's vitals and movement. The challenger model only appears on the stage comparison page; it never changes the stages written to Health.")
                     .font(.footnote).foregroundStyle(Theme.text2).padding(.horizontal, 16)
+                GroupedSection("ACKNOWLEDGEMENTS") {
+                    VStack(alignment: .leading, spacing: 10) {
+                        ForEach(StageChallenger.acknowledgements, id: \.self) { Text($0) }
+                    }
+                    .font(.footnote).foregroundStyle(Theme.text2)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .cardStyle()
+                }
             }
             .padding(.horizontal, 16).padding(.top, 8)
         }

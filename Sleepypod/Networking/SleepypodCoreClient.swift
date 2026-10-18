@@ -380,6 +380,10 @@ final class SleepypodCoreClient: SleepypodProtocol, @unchecked Sendable {
         return try await query("biometrics.getMovement", input: input, dateKeys: dateKeys)
     }
 
+    func getSleepStages(side: Side, sleepRecordId: Int) async throws -> PodSleepStages {
+        try await query("biometrics.getSleepStages", input: ["side": side.rawValue, "sleepRecordId": sleepRecordId])
+    }
+
     // MARK: - Actions
 
     func triggerAlarm(_ alarm: AlarmJob) async throws {

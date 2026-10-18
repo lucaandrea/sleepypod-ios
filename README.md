@@ -230,6 +230,8 @@ Need help? Join the [Discord](https://discord.gg/UMmv5R6MXa) or [open an issue](
 
 **App Store exception.** The copyright holder (Jonathan Ng) also distributes compiled builds of sleepypod through Apple's App Store and TestFlight under Apple's terms, which the Free Software Foundation considers incompatible with the AGPL. This is permitted because the copyright holder grants it; it does not change the licence of the source, and it does not extend to anyone else's App Store builds. Contributors agree to the same grant for their changes — see [CONTRIBUTING.md](CONTRIBUTING.md).
 
-The bundled IBM Plex Mono fonts are under the [SIL Open Font License 1.1](Sleepypod/Resources/Fonts/OFL.txt). There are no other third-party components.
+The bundled IBM Plex Mono fonts are under the [SIL Open Font License 1.1](Sleepypod/Resources/Fonts/OFL.txt).
+
+The experimental sleep-stage model (`Sleepypod/Resources/StageModel/`) was trained on "Motion and heart rate from a wrist-worn wearable and labeled sleep from polysomnography" (Walch, 2019, PhysioNet, [doi:10.13026/hmhs-py35](https://doi.org/10.13026/hmhs-py35)) under the [Open Data Commons Attribution License 1.0](https://opendatacommons.org/licenses/by/1-0/). Its method follows [ojwalch/sleep_classifiers](https://github.com/ojwalch/sleep_classifiers) (MIT); no code from it is included. There are no other third-party components.
 
 sleepypod is an independent project, not affiliated with, endorsed by, or sponsored by Eight Sleep, Inc. Eight Sleep and Pod are trademarks of Eight Sleep, Inc., named only to identify compatible hardware.
