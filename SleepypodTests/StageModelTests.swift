@@ -101,6 +101,20 @@ struct StageModelTests {
         #expect(enough.labeledEpochs == 300)
     }
 
+    @Test func trainingRefusesAFoldWithASingleClass() async throws {
+        func night(_ id: Int, _ label: SleepAnalyzer.SleepStage) -> StageDataset.Night {
+            .init(id: id, enteredBed: t0, leftBed: t0.addingTimeInterval(3600), watch: [], rows: (0..<70).map { row(Double($0), label) },
+                  rules: [], challenger: [])
+        }
+        // Five nights, all light but one; holding out the deep night leaves one class.
+        let dataset = StageDataset(contract: .challenger, nights: [night(1, .light), night(2, .light), night(3, .deep), night(4, .light), night(5, .light)])
+        #expect(dataset.isTrainable)
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent("stage-train-\(UUID().uuidString)")
+        await #expect(throws: StageTrainer.TrainingError.self) {
+            _ = try await StageTrainer.train(dataset: dataset, kind: .logistic, into: directory) { _ in }
+        }
+    }
+
     @Test func longestRecordPerDayIsTheNight() throws {
         func record(_ id: Int, enteredMinute: Int, sleepSeconds: Int) throws -> SleepRecord {
             let json = """

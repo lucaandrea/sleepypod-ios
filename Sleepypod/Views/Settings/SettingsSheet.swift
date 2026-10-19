@@ -342,14 +342,10 @@ struct AnalysisInventoryView: View {
                 GroupedSection("SLEEP STAGES FROM") {
                     GroupedCard {
                         Menu {
+                            // A menu picker ignores disabled rows, so ineligible models are left out of it.
                             Picker("Sleep stages from", selection: $stageModels.source) {
-                                ForEach(StageModelStore.Source.allCases) { source in
-                                    if let kind = source.kind {
-                                        Label(source.title, systemImage: source.symbol).tag(source)
-                                            .disabled(!stageModels.isEligible(kind))
-                                    } else {
-                                        Label("Rules", systemImage: source.symbol).tag(source)
-                                    }
+                                ForEach(StageModelStore.Source.allCases.filter { $0.kind.map(stageModels.isEligible) ?? true }) { source in
+                                    Label(source.title, systemImage: source.symbol).tag(source)
                                 }
                             }
                         } label: {

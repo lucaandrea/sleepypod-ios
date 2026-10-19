@@ -91,6 +91,7 @@ struct SleepScreen: View {
                 if period == .month { await fetchMonth() }
             }
             .onChange(of: metrics.selectedSide) { Task { await refresh() } }
+            .onChange(of: stageModels.activeVersion) { Task { await refresh() } }
             .refreshable { await refresh(); if period == .month { await fetchMonth() } }
             .navigationDestination(isPresented: $showWatch) {
                 if let record { WatchComparisonView(record: record, epochs: analyzer.stages, vitals: filteredVitals) }

@@ -8,6 +8,7 @@ struct StageComparisonView: View {
     @Environment(StageModelStore.self) private var stageModels
     let side: Side
     @State private var confirmDelete: StageModelKind?
+    @State private var debugTrainingStarted = false
     @State private var record: SleepRecord
     @State private var nights: [SleepRecord] = []
     @State private var comparisons: [Int: StageComparison] = [:]
@@ -95,7 +96,9 @@ struct StageComparisonView: View {
         } message: { Text(stageModels.trainingError ?? "") }
         .task { await loadNights() }
         .task {
-            if let kind = DebugRoute.trainStageModel, !isDemo, !stageModels.isTraining { await stageModels.train(kind, builder: builder) }
+            guard let kind = DebugRoute.trainStageModel, !isDemo, !stageModels.isTraining, !debugTrainingStarted else { return }
+            debugTrainingStarted = true
+            await stageModels.train(kind, builder: builder)
         }
         .onChange(of: personalVersions) { comparisons = [:] }
         .confirmationDialog("Delete this model?", isPresented: Binding(get: { confirmDelete != nil }, set: { if !$0 { confirmDelete = nil } }),

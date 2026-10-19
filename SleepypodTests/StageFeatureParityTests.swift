@@ -42,14 +42,17 @@ struct StageFeatureParityTests {
 
     @Test func swiftFeaturesMatchThePythonPortOnARealNight() throws {
         let fixture = try load()
-        let vitals = fixture.vitals.enumerated().map { index, v in
+        let allVitals = fixture.vitals.enumerated().map { index, v in
             VitalsRecord(id: index, heartRate: v.hr, hrv: v.hrv, breathingRate: v.br, date: Date(timeIntervalSince1970: Double(v.ts)))
         }
-        let movement = fixture.movement.enumerated().map { index, m in
+        let allMovement = fixture.movement.enumerated().map { index, m in
             MovementRecord(id: index, totalMovement: Int(m.total), date: Date(timeIntervalSince1970: Double(m.ts)))
         }
         let enteredBed = Date(timeIntervalSince1970: Double(fixture.enteredBed))
         let leftBed = Date(timeIntervalSince1970: Double(fixture.leftBed))
+        // The app hands the feature code only the record window's rows; the fixture carries the padding too.
+        let vitals = allVitals.filter { $0.date >= enteredBed && $0.date < leftBed }
+        let movement = allMovement.filter { $0.date >= enteredBed && $0.date < leftBed }
         #expect(!fixture.contractA.isEmpty)
         compare(StageFeatures.rows(contract: .challenger, enteredBed: enteredBed, leftBed: leftBed, vitals: vitals, movement: movement),
                 to: fixture.contractA, columns: StageFeatures.Contract.challenger.columns)

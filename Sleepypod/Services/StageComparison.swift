@@ -345,7 +345,10 @@ struct StageComparisonLoader {
         var signalsError: String?
         if challenger.classifier != nil || !personal.isEmpty {
             do {
-                vitals = try await api.getVitals(side: side, start: enteredBed, end: leftBed).filter { $0.side == side.rawValue }
+                // Outlier-filtered, as the dataset builder trains on and the analyzer infers on; a spike would
+                // otherwise shift every z-scored feature and the lane would not reproduce the card's κ.
+                vitals = SleepAnalyzer().filterOutliers(vitals: try await api.getVitals(side: side, start: enteredBed, end: leftBed)
+                    .filter { $0.side == side.rawValue })
                 movement = try await api.getMovement(side: side, start: enteredBed, end: leftBed).filter { $0.side == side.rawValue }
             } catch {
                 signalsError = error.localizedDescription

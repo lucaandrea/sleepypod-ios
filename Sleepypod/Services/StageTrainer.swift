@@ -105,6 +105,10 @@ enum StageTrainer {
         let columns = dataset.contract.columns
         let folds = dataset.leaveOneNightOut()
         guard folds.allSatisfy({ !$0.training.isEmpty }) else { throw TrainingError.emptyFold }
+        // A classifier cannot be fitted on one class; with few nights, holding one out can leave exactly that.
+        if let fold = folds.first(where: { Set($0.training.map(\.label)).count < 2 }) {
+            throw TrainingError.notEnoughData("Holding out \(fold.heldOut.enteredBed.formatted(.dateTime.month(.abbreviated).day())) leaves a single stage to learn from; more Watch nights are needed.")
+        }
         // A Create ML fit runs on one core and a 200-tree forest takes about two minutes on an iPhone, so the
         // folds run a few at a time; results are collected in fold order.
         let foldBlocks = try foldPredictions(folds, columns: columns, kind: kind, progress: progress)
@@ -168,7 +172,10 @@ enum StageTrainer {
                 defer { limit.signal(); group.leave() }
                 let started = Date()
                 let result = Result { () throws -> [StageDataset.Block] in
-                    let classifier = try fit(rows: StageDataset.oversampled(fold.training), columns: columns, kind: kind)
+                    let compiled = try compile(rows: StageDataset.oversampled(fold.training), columns: columns, kind: kind)
+                    // Core ML may map the compiled files lazily, so the directory outlives the predictions.
+                    defer { try? FileManager.default.removeItem(at: compiled) }
+                    let classifier = try CoreMLStageClassifier(contentsOf: compiled, columns: columns)
                     return try StageDataset.blocks(fold.heldOut.rows, classifier: classifier)
                 }
                 Log.general.notice("Stage trainer: \(kind.rawValue, privacy: .public) fold \(index + 1)/\(folds.count) fitted in \(Int(Date().timeIntervalSince(started))) s")
@@ -244,14 +251,6 @@ enum StageTrainer {
     }
 
     // MARK: Create ML
-
-    /// A classifier fitted on rows, compiled to a temporary directory and loaded through Core ML, so held-out
-    /// predictions go through exactly the runtime path.
-    private static func fit(rows: [StageDataset.LabeledRow], columns: [String], kind: StageModelKind) throws -> CoreMLStageClassifier {
-        let compiled = try compile(rows: rows, columns: columns, kind: kind)
-        defer { try? FileManager.default.removeItem(at: compiled) }
-        return try CoreMLStageClassifier(contentsOf: compiled, columns: columns)
-    }
 
     #if canImport(CreateML)
     private static func compile(rows: [StageDataset.LabeledRow], columns: [String], kind: StageModelKind) throws -> URL {
