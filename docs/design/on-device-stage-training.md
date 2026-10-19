@@ -29,7 +29,7 @@ Both compile for iOS 17+ and the app targets iOS 26 (verified with a probe build
 
 Neither Create ML classifier takes class weights (none in the iOS SDK's CreateML interface), so class balance is handled by oversampling rows instead; see Training step 3.
 
-Measured on an iPhone 15 Pro with 11 nights (756 labelled epochs, about 1,800 rows after oversampling): a Create ML random-forest fit takes about two minutes on one core, not seconds. Leave-one-night-out folds therefore run four at a time on a concurrent queue, and the whole run is reported with a progress bar and a "keep the app open" note; training runs in a detached task off the main actor with the app in the foreground.
+Measured on an iPhone 15 Pro with 11 nights (756 labelled epochs, about 1,800 rows after oversampling): a Create ML random-forest fit takes about two minutes on one core, not seconds. Running folds concurrently made it worse (four at a time never finished within an hour), so folds run one after another, the whole run is reported with a progress bar and a "keep the app open" note, the screen is kept awake, and a forest run on eleven nights takes about 25 minutes; training runs in a detached task off the main actor with the app in the foreground.
 
 ## Labels
 

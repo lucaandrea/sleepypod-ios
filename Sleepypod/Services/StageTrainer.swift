@@ -109,8 +109,8 @@ enum StageTrainer {
         if let fold = folds.first(where: { Set($0.training.map(\.label)).count < 2 }) {
             throw TrainingError.notEnoughData("Holding out \(fold.heldOut.enteredBed.formatted(.dateTime.month(.abbreviated).day())) leaves a single stage to learn from; more Watch nights are needed.")
         }
-        // A Create ML fit runs on one core and a 200-tree forest takes about two minutes on an iPhone, so the
-        // folds run a few at a time; results are collected in fold order.
+        // A 200-tree Create ML forest takes about two minutes a fold on an iPhone; the folds run one after
+        // another (see `concurrentFolds`) and results are collected in fold order.
         let foldBlocks = try foldPredictions(folds, columns: columns, kind: kind, progress: progress)
         var perNight: [StageScore?] = [], rulesPerNight: [StageScore?] = [], challengerPerNight: [StageScore?] = []
         var pooledBlocks: [StageDataset.Block] = [], pooledRules: [StageDataset.Block] = [], pooledChallenger: [StageDataset.Block] = []
@@ -155,7 +155,9 @@ enum StageTrainer {
         return StageTrainingResult(report: report, card: card, modelURL: modelURL, cardURL: cardURL)
     }
 
-    static let concurrentFolds = 4
+    /// Measured on an iPhone 15 Pro: four concurrent Create ML forest fits never finished within an hour,
+    /// while one at a time takes about two minutes each, so folds run sequentially.
+    static let concurrentFolds = 1
 
     /// Each fold's held-out predictions, fitted `concurrentFolds` at a time on a concurrent queue.
     private static func foldPredictions(_ folds: [(heldOut: StageDataset.Night, training: [StageDataset.LabeledRow])], columns: [String],
