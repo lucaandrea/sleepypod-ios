@@ -13,6 +13,7 @@ struct SleepypodApp: App {
     @State private var sensorStream = SensorStreamService()
     @State private var notificationRelay = NotificationRelay()
     @State private var healthSync = HealthSyncService()
+    @State private var stageModels = StageModelStore()
 
     init() {
         let client = APIBackend.current.createClient()
@@ -43,6 +44,8 @@ struct SleepypodApp: App {
                 .environment(sensorStream)
                 .environment(notificationRelay)
                 .environment(healthSync)
+                .environment(stageModels)
+                .task { healthSync.stageModels = stageModels }
                 .preferredColorScheme(userProfile.appearance.colorScheme)
                 .foregroundStyle(Theme.text1)
                 .tint(Theme.text1)

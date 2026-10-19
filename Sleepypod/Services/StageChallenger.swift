@@ -17,16 +17,21 @@ enum StageChallenger {
         "Method after ojwalch/sleep_classifiers (MIT)."
     ]
 
+    /// The bundled model's inputs (feature contract A); `values` is the named-column form every classifier takes.
     struct Features: Codable, Sendable, Equatable {
         let hrZ: Double
         let hrStdZ: Double
         let motionZ: Double
         let nightFraction: Double
+
+        static let columns = ["hrZ", "hrStdZ", "motionZ", "nightFraction"]
+        var values: [String: Double] { ["hrZ": hrZ, "hrStdZ": hrStdZ, "motionZ": motionZ, "nightFraction": nightFraction] }
     }
 
+    /// One epoch's inputs by column name, so contracts with different columns share the classifier path.
     struct FeatureEpoch: Sendable, Equatable {
         let start: Date
-        let features: Features
+        let values: [String: Double]
     }
 
     struct Prediction: Sendable, Equatable {
@@ -37,11 +42,13 @@ enum StageChallenger {
 
     enum ModelError: Error, LocalizedError, Equatable {
         case missingOutput(String)
+        case missingInput(String)
         case unknownClass(Int64)
 
         var errorDescription: String? {
             switch self {
             case .missingOutput(let name): "The model returned no \(name)"
+            case .missingInput(let name): "The features have no \(name) column"
             case .unknownClass(let label): "The model returned class \(label), outside 0–3"
             }
         }
@@ -84,9 +91,9 @@ enum StageChallenger {
         let hrStdZ = zScores(kept.map(\.hrStd))
         let motionZ = zScores(kept.map { log(1 + $0.motion) })
         return kept.indices.map { index in
-            FeatureEpoch(start: kept[index].start, features: Features(
+            FeatureEpoch(start: kept[index].start, values: Features(
                 hrZ: hrZ[index], hrStdZ: hrStdZ[index], motionZ: motionZ[index],
-                nightFraction: kept[index].start.timeIntervalSince(enteredBed) / night))
+                nightFraction: kept[index].start.timeIntervalSince(enteredBed) / night).values)
         }
     }
 
@@ -111,7 +118,7 @@ enum StageChallenger {
     /// Each kept epoch as a 5-minute block of the predicted stage.
     static func classify(_ epochs: [FeatureEpoch], with classifier: any SleepStageClassifying) throws -> [WatchComparison.StageSample] {
         try epochs.map { epoch in
-            let prediction = try classifier.predict(epoch.features)
+            let prediction = try classifier.predict(epoch.values)
             guard let stage = prediction.stage else { throw ModelError.unknownClass(prediction.classLabel) }
             return WatchComparison.StageSample(start: epoch.start, end: epoch.start.addingTimeInterval(epochSeconds), stage: stage)
         }
@@ -120,20 +127,26 @@ enum StageChallenger {
     // MARK: Model card
 
     struct Card: Decodable, Sendable, Equatable {
-        struct TestVector: Decodable, Sendable, Equatable {
-            let inputs: Features
+        struct TestVector: Codable, Sendable, Equatable {
+            let inputs: [String: Double]
             let expected: Int64
 
-            init(inputs: Features, expected: Int64) {
+            init(inputs: [String: Double], expected: Int64) {
                 self.inputs = inputs
                 self.expected = expected
             }
 
             private enum CodingKeys: String, CodingKey { case inputs, input, expected, expectedClass, classLabel }
 
+            func encode(to encoder: Encoder) throws {
+                var c = encoder.container(keyedBy: CodingKeys.self)
+                try c.encode(inputs, forKey: .inputs)
+                try c.encode(expected, forKey: .expected)
+            }
+
             init(from decoder: Decoder) throws {
                 let c = try decoder.container(keyedBy: CodingKeys.self)
-                inputs = try c.decodeIfPresent(Features.self, forKey: .inputs) ?? c.decode(Features.self, forKey: .input)
+                inputs = try c.decodeIfPresent([String: Double].self, forKey: .inputs) ?? c.decode([String: Double].self, forKey: .input)
                 expected = try c.decodeIfPresent(Int64.self, forKey: .expected)
                     ?? c.decodeIfPresent(Int64.self, forKey: .expectedClass)
                     ?? c.decode(Int64.self, forKey: .classLabel)
@@ -141,19 +154,36 @@ enum StageChallenger {
         }
 
         /// One evaluation's headline numbers; the card's confusion matrices and per-night rows are left in the file.
-        struct Evaluation: Decodable, Sendable, Equatable {
+        struct Evaluation: Codable, Sendable, Equatable {
             let epochs: Int?
             let kappa: Double?
             let accuracy: Double?
             let nights: Int?
         }
-        struct Metrics: Decodable, Sendable, Equatable {
+        struct Metrics: Codable, Sendable, Equatable {
             /// Leave-one-subject-out on the training set.
             let loso: Evaluation?
             /// Against Apple Watch stages on the developer's pod nights.
             let pod: Evaluation?
+            /// Leave-one-night-out on this phone's nights (personal models).
+            let lono: Evaluation?
+            /// The rules and the bundled challenger on the same held-out epochs, for the eligibility bar.
+            let rules: Evaluation?
+            let challenger: Evaluation?
+            /// Nights on which the personal model's κ beat both the rules and the challenger.
+            let nightsWon: Int?
+
+            init(loso: Evaluation? = nil, pod: Evaluation? = nil, lono: Evaluation? = nil, rules: Evaluation? = nil,
+                 challenger: Evaluation? = nil, nightsWon: Int? = nil) {
+                self.loso = loso
+                self.pod = pod
+                self.lono = lono
+                self.rules = rules
+                self.challenger = challenger
+                self.nightsWon = nightsWon
+            }
         }
-        struct Training: Decodable, Sendable, Equatable {
+        struct Training: Codable, Sendable, Equatable {
             let dataset: String?
             let doi: String?
             let license: String?
@@ -162,21 +192,34 @@ enum StageChallenger {
 
         let version: String
         let testVectors: [TestVector]
+        /// The model kind the card describes ("forest", "logistic").
+        var model: String
         /// The card's metrics for the bundled model kind (`model`, e.g. "forest").
         var metrics: Metrics?
         var training: Training?
         var limitations: String?
+        /// Ordered input columns; a card without one is the bundled challenger's four-column contract A.
+        var featureContract: [String]?
+        var hyperparameters: [String: Double]?
+        var trainedAt: Date?
 
-        init(version: String, testVectors: [TestVector], metrics: Metrics? = nil, training: Training? = nil, limitations: String? = nil) {
+        var columns: [String] { featureContract ?? Features.columns }
+
+        init(version: String, testVectors: [TestVector], model: String = "forest", metrics: Metrics? = nil, training: Training? = nil,
+             limitations: String? = nil, featureContract: [String]? = nil, hyperparameters: [String: Double]? = nil, trainedAt: Date? = nil) {
             self.version = version
             self.testVectors = testVectors
+            self.model = model
             self.metrics = metrics
             self.training = training
             self.limitations = limitations
+            self.featureContract = featureContract
+            self.hyperparameters = hyperparameters
+            self.trainedAt = trainedAt
         }
 
         private enum CodingKeys: String, CodingKey {
-            case version, testVectors, model, metrics, training, limitations
+            case version, testVectors, model, metrics, training, limitations, featureContract, hyperparameters, trainedAt
             case testVectorsSnake = "test_vectors"
         }
 
@@ -190,9 +233,13 @@ enum StageChallenger {
             testVectors = try c.decodeIfPresent([TestVector].self, forKey: .testVectors)
                 ?? c.decode([TestVector].self, forKey: .testVectorsSnake)
             let kind = try c.decodeIfPresent(String.self, forKey: .model) ?? "forest"
+            model = kind
             metrics = (try? c.decodeIfPresent([String: Metrics].self, forKey: .metrics))?[kind]
             training = try? c.decodeIfPresent(Training.self, forKey: .training)
             limitations = try? c.decodeIfPresent(String.self, forKey: .limitations)
+            featureContract = try? c.decodeIfPresent([String].self, forKey: .featureContract)
+            hyperparameters = try? c.decodeIfPresent([String: Double].self, forKey: .hyperparameters)
+            trainedAt = try? c.decodeIfPresent(Date.self, forKey: .trainedAt)
         }
     }
 
@@ -205,7 +252,7 @@ enum StageChallenger {
 
     // MARK: Loading
 
-    enum Availability {
+    enum Availability: Sendable {
         case ready(any SleepStageClassifying, Card)
         case notBundled
         case failed(String)
@@ -233,9 +280,20 @@ enum StageChallenger {
         guard let cardURL = bundle.url(forResource: cardResourceName, withExtension: "json") else {
             return .failed("\(cardResourceName).json is missing")
         }
+        return load(modelURL: modelURL, cardURL: cardURL)
+    }
+
+    static let cardDecoder: JSONDecoder = {
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        return decoder
+    }()
+
+    /// A compiled model and its card from anywhere on disk: the app bundle, or Application Support for a personal model.
+    static func load(modelURL: URL, cardURL: URL) -> Availability {
         do {
-            let card = try JSONDecoder().decode(Card.self, from: Data(contentsOf: cardURL))
-            let classifier = try CoreMLStageClassifier(contentsOf: modelURL)
+            let card = try cardDecoder.decode(Card.self, from: Data(contentsOf: cardURL))
+            let classifier = try CoreMLStageClassifier(contentsOf: modelURL, columns: card.columns)
             let failing = failingVectors(card, classifier: classifier)
             guard failing.isEmpty else {
                 Log.general.error("Stage challenger failed \(failing.count) of \(card.testVectors.count) card test vectors")
@@ -249,33 +307,37 @@ enum StageChallenger {
     }
 }
 
-/// One epoch in, one stage class out. Core ML in the app, a test double in tests.
-protocol SleepStageClassifying {
-    func predict(_ features: StageChallenger.Features) throws -> StageChallenger.Prediction
+/// One epoch in, one stage class out. Core ML in the app, a test double in tests. Inputs are named columns so
+/// the bundled challenger and personal models with other feature contracts share one path.
+protocol SleepStageClassifying: Sendable {
+    func predict(_ features: [String: Double]) throws -> StageChallenger.Prediction
 }
 
-/// Runs `SleepStageChallenger.mlmodel` through the generic Core ML API, so the app builds without the model
-/// and picks it up once the compiled resource is in the bundle.
-final class CoreMLStageClassifier: SleepStageClassifying {
+/// Runs a compiled stage model through the generic Core ML API, so the app builds without any model and
+/// picks one up from the bundle or from disk. MLModel is safe to call from any thread.
+final class CoreMLStageClassifier: SleepStageClassifying, @unchecked Sendable {
     private let model: MLModel
+    /// The model's input names; a missing column in the features is an error rather than a silent zero.
+    let columns: [String]
 
-    init(model: MLModel) {
+    init(model: MLModel, columns: [String] = StageChallenger.Features.columns) {
         self.model = model
+        self.columns = columns
     }
 
-    convenience init(contentsOf url: URL) throws {
+    convenience init(contentsOf url: URL, columns: [String] = StageChallenger.Features.columns) throws {
         let configuration = MLModelConfiguration()
         configuration.computeUnits = .cpuOnly
-        self.init(model: try MLModel(contentsOf: url, configuration: configuration))
+        self.init(model: try MLModel(contentsOf: url, configuration: configuration), columns: columns)
     }
 
-    func predict(_ features: StageChallenger.Features) throws -> StageChallenger.Prediction {
-        let input = try MLDictionaryFeatureProvider(dictionary: [
-            "hrZ": MLFeatureValue(double: features.hrZ),
-            "hrStdZ": MLFeatureValue(double: features.hrStdZ),
-            "motionZ": MLFeatureValue(double: features.motionZ),
-            "nightFraction": MLFeatureValue(double: features.nightFraction)
-        ])
+    func predict(_ features: [String: Double]) throws -> StageChallenger.Prediction {
+        var dictionary: [String: MLFeatureValue] = [:]
+        for column in columns {
+            guard let value = features[column] else { throw StageChallenger.ModelError.missingInput(column) }
+            dictionary[column] = MLFeatureValue(double: value)
+        }
+        let input = try MLDictionaryFeatureProvider(dictionary: dictionary)
         let output = try model.prediction(from: input)
         guard let label = output.featureValue(for: "classLabel"), label.type == .int64 else {
             throw StageChallenger.ModelError.missingOutput("classLabel")

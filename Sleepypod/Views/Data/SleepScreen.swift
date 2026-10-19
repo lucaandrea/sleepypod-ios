@@ -8,6 +8,7 @@ struct SleepScreen: View {
     @Environment(SettingsManager.self) private var settings
     @Environment(UserProfile.self) private var profile
     @Environment(HealthSyncService.self) private var health
+    @Environment(StageModelStore.self) private var stageModels
     @State private var selectedDate = Calendar.current.startOfDay(for: Date()).addingTimeInterval(-86400)
     @State private var period: Period = ["week", "weektrend"].contains(DebugRoute.current) ? .week : DebugRoute.current == "month" ? .month : .night
     @State private var analyzer = SleepAnalyzer()
@@ -441,12 +442,14 @@ struct SleepScreen: View {
         if metrics.selectedWeekStart != weekStart { metrics.selectedWeekStart = weekStart }
         await metrics.fetchAll()
         let calibration = try? await APIBackend.current.createClient().getCalibrationStatus(side: metrics.selectedSide)
-        analyzer.analyze(vitals: vitals, movement: metrics.movementRecords, calibrationQuality: calibration?.piezo?.qualityScore ?? 0)
+        analyzer.analyze(vitals: vitals, movement: metrics.movementRecords, calibrationQuality: calibration?.piezo?.qualityScore ?? 0,
+                         model: record.flatMap { stageModels.staging(enteredBed: $0.enteredBedDate, leftBed: $0.leftBedDate) })
         let weekAnalyzer = SleepAnalyzer()
         var nights: [(record: SleepRecord, epochs: [SleepAnalyzer.SleepEpoch], vitals: [VitalsRecord])] = []
         for night in metrics.sleepRecords where night.leftBedDate > night.enteredBedDate {
             let records = metrics.vitalsRecords.filter { $0.date >= night.enteredBedDate && $0.date < night.leftBedDate }
-            weekAnalyzer.analyze(vitals: records, movement: metrics.movementRecords, calibrationQuality: calibration?.piezo?.qualityScore ?? 0)
+            weekAnalyzer.analyze(vitals: records, movement: metrics.movementRecords, calibrationQuality: calibration?.piezo?.qualityScore ?? 0,
+                                 model: stageModels.staging(enteredBed: night.enteredBedDate, leftBed: night.leftBedDate))
             nights.append((night, weekAnalyzer.stages, weekAnalyzer.filterOutliers(vitals: records)))
         }
         var nightly: [Double?]

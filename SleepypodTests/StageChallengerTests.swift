@@ -4,8 +4,8 @@ import Foundation
 
 /// Stands in for the Core ML model: a fixed rule from features to class label.
 private struct RuleClassifier: SleepStageClassifying {
-    let rule: @Sendable (StageChallenger.Features) -> Int64
-    func predict(_ features: StageChallenger.Features) throws -> StageChallenger.Prediction {
+    let rule: @Sendable ([String: Double]) -> Int64
+    func predict(_ features: [String: Double]) throws -> StageChallenger.Prediction {
         let label = rule(features)
         return StageChallenger.Prediction(classLabel: label, probabilities: [label: 1])
     }
@@ -43,10 +43,11 @@ struct StageChallengerTests {
             (-1 / hrStd, -1 / sqrt(2), 0, 900.0 / 1260)
         ]
         for (epoch, want) in zip(epochs, expected) {
-            #expect(abs(epoch.features.hrZ - want.hrZ) < 1e-9)
-            #expect(abs(epoch.features.hrStdZ - want.hrStdZ) < 1e-9)
-            #expect(abs(epoch.features.motionZ - want.motionZ) < 1e-9)
-            #expect(abs(epoch.features.nightFraction - want.fraction) < 1e-12)
+            #expect(abs(epoch.values["hrZ"]! - want.hrZ) < 1e-9)
+            #expect(abs(epoch.values["hrStdZ"]! - want.hrStdZ) < 1e-9)
+            #expect(abs(epoch.values["motionZ"]! - want.motionZ) < 1e-9)
+            #expect(abs(epoch.values["nightFraction"]! - want.fraction) < 1e-12)
+            #expect(Set(epoch.values.keys) == Set(StageChallenger.Features.columns))
         }
     }
 
@@ -54,16 +55,16 @@ struct StageChallengerTests {
         let vitals = (0..<6).map { vital(Double($0) * 300 + 10, 58) }
         let epochs = StageChallenger.features(enteredBed: t0, leftBed: t0.addingTimeInterval(1800), vitals: vitals, movement: [])
         #expect(epochs.count == 6)
-        #expect(epochs.allSatisfy { $0.features.hrZ == 0 && $0.features.hrStdZ == 0 && $0.features.motionZ == 0 })
-        #expect(epochs.allSatisfy { (0..<1).contains($0.features.nightFraction) })
+        #expect(epochs.allSatisfy { $0.values["hrZ"] == 0 && $0.values["hrStdZ"] == 0 && $0.values["motionZ"] == 0 })
+        #expect(epochs.allSatisfy { (0..<1).contains($0.values["nightFraction"]!) })
         #expect(StageChallenger.features(enteredBed: t0, leftBed: t0.addingTimeInterval(299), vitals: vitals, movement: []).isEmpty)
     }
 
     // MARK: Wrapper with a test double
 
     @Test func classifyMapsLabelsToFiveMinuteBlocks() throws {
-        let epochs = [0, 300, 900].map { StageChallenger.FeatureEpoch(start: t0.addingTimeInterval($0), features: .init(hrZ: $0 / 300, hrStdZ: 0, motionZ: 0, nightFraction: 0)) }
-        let blocks = try StageChallenger.classify(epochs, with: RuleClassifier { Int64($0.hrZ) })
+        let epochs = [0, 300, 900].map { StageChallenger.FeatureEpoch(start: t0.addingTimeInterval($0), values: ["hrZ": $0 / 300, "hrStdZ": 0, "motionZ": 0, "nightFraction": 0]) }
+        let blocks = try StageChallenger.classify(epochs, with: RuleClassifier { Int64($0["hrZ"]!) })
         #expect(blocks.map(\.stage) == [.wake, .light, .rem])
         #expect(blocks.map { $0.end.timeIntervalSince($0.start) } == [300, 300, 300])
         #expect(blocks[2].start == t0.addingTimeInterval(900))
@@ -85,8 +86,9 @@ struct StageChallengerTests {
         #expect(card.metrics?.loso?.kappa == 0.3)
         #expect(card.metrics?.pod?.nights == 2)
         #expect(card.training?.subjects == 4)
-        #expect(StageChallenger.failingVectors(card, classifier: RuleClassifier { Int64($0.hrZ) }) == [1])
-        #expect(StageChallenger.failingVectors(card, classifier: RuleClassifier { $0.nightFraction < 0.5 ? 2 : 1 }).isEmpty)
+        #expect(card.columns == StageChallenger.Features.columns)
+        #expect(StageChallenger.failingVectors(card, classifier: RuleClassifier { Int64($0["hrZ"]!) }) == [1])
+        #expect(StageChallenger.failingVectors(card, classifier: RuleClassifier { $0["nightFraction"]! < 0.5 ? 2 : 1 }).isEmpty)
     }
 
     // MARK: The bundled model
