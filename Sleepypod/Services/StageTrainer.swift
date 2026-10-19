@@ -101,19 +101,17 @@ enum StageTrainer {
     // MARK: Evaluation and the final fit
 
     private static func fitAndEvaluate(dataset: StageDataset, kind: StageModelKind, directory: URL,
-                                       progress: @Sendable (Double) -> Void) throws -> StageTrainingResult {
+                                       progress: @escaping @Sendable (Double) -> Void) throws -> StageTrainingResult {
         let columns = dataset.contract.columns
         let folds = dataset.leaveOneNightOut()
+        guard folds.allSatisfy({ !$0.training.isEmpty }) else { throw TrainingError.emptyFold }
+        // A Create ML fit runs on one core and a 200-tree forest takes about two minutes on an iPhone, so the
+        // folds run a few at a time; results are collected in fold order.
+        let foldBlocks = try foldPredictions(folds, columns: columns, kind: kind, progress: progress)
         var perNight: [StageScore?] = [], rulesPerNight: [StageScore?] = [], challengerPerNight: [StageScore?] = []
         var pooledBlocks: [StageDataset.Block] = [], pooledRules: [StageDataset.Block] = [], pooledChallenger: [StageDataset.Block] = []
         var pooledWatch: [StageDataset.Block] = []
-        for (index, fold) in folds.enumerated() {
-            try Task.checkCancellation()
-            guard !fold.training.isEmpty else { throw TrainingError.emptyFold }
-            let started = Date()
-            let classifier = try fit(rows: StageDataset.oversampled(fold.training), columns: columns, kind: kind)
-            Log.general.notice("Stage trainer: \(kind.rawValue) fold \(index + 1)/\(folds.count) fitted in \(Int(Date().timeIntervalSince(started))) s")
-            let blocks = try StageDataset.blocks(fold.heldOut.rows, classifier: classifier)
+        for (fold, blocks) in zip(folds, foldBlocks) {
             // The rules and the challenger are scored on the same labelled epochs only.
             let labelled = Set(fold.heldOut.rows.map(\.start))
             let rules = fold.heldOut.rules.filter { labelled.contains($0.start) }
@@ -125,7 +123,6 @@ enum StageTrainer {
             pooledRules += rules
             pooledChallenger += challenger
             pooledWatch += fold.heldOut.watch
-            progress(Double(index + 1) / Double(folds.count + 1))
         }
         let report = StageTrainingReport(
             kind: kind, contract: dataset.contract, nights: dataset.nights.count, epochs: dataset.labeledEpochs,
@@ -135,7 +132,7 @@ enum StageTrainer {
             perNight: perNight, rulesPerNight: rulesPerNight, challengerPerNight: challengerPerNight)
 
         // Final fit on every night, installed under the kind's fixed name.
-        Log.general.notice("Stage trainer: \(kind.rawValue) final fit on \(dataset.allRows.count) rows")
+        Log.general.notice("Stage trainer: \(kind.rawValue, privacy: .public) final fit on \(dataset.allRows.count) rows")
         let rows = dataset.allRows
         let compiled = try compile(rows: StageDataset.oversampled(rows), columns: columns, kind: kind)
         let fileManager = FileManager.default
@@ -152,6 +149,51 @@ enum StageTrainer {
         try encoder.encode(CardDocument(card)).write(to: cardURL, options: .atomic)
         progress(1)
         return StageTrainingResult(report: report, card: card, modelURL: modelURL, cardURL: cardURL)
+    }
+
+    static let concurrentFolds = 4
+
+    /// Each fold's held-out predictions, fitted `concurrentFolds` at a time on a concurrent queue.
+    private static func foldPredictions(_ folds: [(heldOut: StageDataset.Night, training: [StageDataset.LabeledRow])], columns: [String],
+                                        kind: StageModelKind, progress: @escaping @Sendable (Double) -> Void) throws -> [[StageDataset.Block]] {
+        let results = Locked<[Int: Result<[StageDataset.Block], Error>]>([:])
+        let done = Locked(0)
+        let queue = DispatchQueue(label: "stage-trainer-folds", attributes: .concurrent)
+        let limit = DispatchSemaphore(value: concurrentFolds)
+        let group = DispatchGroup()
+        for (index, fold) in folds.enumerated() {
+            limit.wait()
+            group.enter()
+            queue.async {
+                defer { limit.signal(); group.leave() }
+                let started = Date()
+                let result = Result { () throws -> [StageDataset.Block] in
+                    let classifier = try fit(rows: StageDataset.oversampled(fold.training), columns: columns, kind: kind)
+                    return try StageDataset.blocks(fold.heldOut.rows, classifier: classifier)
+                }
+                Log.general.notice("Stage trainer: \(kind.rawValue, privacy: .public) fold \(index + 1)/\(folds.count) fitted in \(Int(Date().timeIntervalSince(started))) s")
+                results.with { $0[index] = result }
+                let finished = done.with { $0 += 1; return $0 }
+                progress(Double(finished) / Double(folds.count + 1))
+            }
+        }
+        group.wait()
+        return try folds.indices.map { index in
+            guard let result = results.with({ $0[index] }) else { throw TrainingError.emptyFold }
+            return try result.get()
+        }
+    }
+
+    /// A lock around a value, for the fold workers.
+    private final class Locked<Value>: @unchecked Sendable {
+        private var value: Value
+        private let lock = NSLock()
+        init(_ value: Value) { self.value = value }
+        func with<T>(_ body: (inout Value) throws -> T) rethrows -> T {
+            lock.lock()
+            defer { lock.unlock() }
+            return try body(&value)
+        }
     }
 
     /// The card a personal model is loaded with: the eligibility numbers and test vectors the final model must reproduce.
