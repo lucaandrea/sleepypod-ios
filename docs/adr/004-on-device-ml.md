@@ -17,9 +17,9 @@ Run sleep analysis on-device using Core ML:
 
 ### Phase 2 (Planned): Trained Core ML model
 - Collect labeled data via HealthKit (Apple Watch sleep stages as ground truth)
-- Train 1D-CNN or tabular classifier on paired pod+watch data
-- ~80-85% accuracy target
-- Model delivered OTA or bundled in app update
+- Train logistic regression and random forest on the phone with Create ML from the user's own nights; design in docs/design/on-device-stage-training.md
+- A bundled open-data challenger (PR #63) ships meanwhile for comparison only
+- Eligibility to drive live stages: leave-one-night-out κ above both the rules and the challenger
 
 ### Phase 3 (Future): Additional models
 - Anomaly detection (unusual HRV patterns)
