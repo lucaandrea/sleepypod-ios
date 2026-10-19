@@ -1,5 +1,6 @@
 import Foundation
 import Observation
+import UIKit
 
 /// The personal stage models on this iPhone: loads them from Application Support, trains new ones, and holds
 /// the one setting that says where the app's sleep stages come from.
@@ -131,7 +132,14 @@ final class StageModelStore {
         trainingKind = kind
         trainingProgress = 0
         trainingError = nil
-        defer { isTraining = false; trainingKind = nil; trainingStatus = nil }
+        // A locked phone suspends the app mid-fit; the screen stays on until the run ends.
+        UIApplication.shared.isIdleTimerDisabled = true
+        defer {
+            isTraining = false
+            trainingKind = nil
+            trainingStatus = nil
+            UIApplication.shared.isIdleTimerDisabled = false
+        }
         do {
             trainingStatus = "Reading nights"
             let dataset = try await builder.build(contract: contract) { done, total in
