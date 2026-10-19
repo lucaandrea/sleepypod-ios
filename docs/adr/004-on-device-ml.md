@@ -30,5 +30,5 @@ Run sleep analysis on-device using Core ML:
 - All inference runs on-device — no data leaves the phone
 - Rule-based approach ships immediately without training data
 - HealthKit integration requires user consent and Apple Watch ownership
-- Model accuracy depends on calibrated sensor data (blocked on core#172)
+- Model accuracy depends on calibrated sensor data (core#172, resolved in core v1.1.0)
 - See docs/health-vitals-science.md for formulas and references
