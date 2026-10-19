@@ -326,12 +326,58 @@ struct SidesSettingsView: View {
 }
 
 struct AnalysisInventoryView: View {
+    @Environment(StageModelStore.self) private var stageModels
+
+    private func sourceTitle(_ source: StageModelStore.Source) -> String {
+        switch source {
+        case .rules: "Rules"
+        case .personalLogistic, .personalForest: source.title
+        }
+    }
+
     var body: some View {
+        @Bindable var stageModels = stageModels
         ScrollView {
             VStack(alignment: .leading, spacing: 22) {
+                GroupedSection("SLEEP STAGES FROM") {
+                    GroupedCard {
+                        Menu {
+                            Picker("Sleep stages from", selection: $stageModels.source) {
+                                ForEach(StageModelStore.Source.allCases) { source in
+                                    if let kind = source.kind {
+                                        Label(source.title, systemImage: source.symbol).tag(source)
+                                            .disabled(!stageModels.isEligible(kind))
+                                    } else {
+                                        Label("Rules", systemImage: source.symbol).tag(source)
+                                    }
+                                }
+                            }
+                        } label: {
+                            SettingsRow("Stage source", icon: stageModels.source.symbol,
+                                        iconColor: stageModels.source.kind == nil ? Theme.icon : Theme.cool, tile: true) {
+                                HStack(spacing: 6) {
+                                    StageSourceBadge(stageModels.source.kind == nil ? .rules : .model(stageModels.source.title))
+                                    Image(systemName: "chevron.up.chevron.down").font(.system(size: 9, weight: .semibold)).foregroundStyle(Theme.text3)
+                                }
+                            }
+                        }
+                        .accessibilityLabel("Sleep stages from, \(sourceTitle(stageModels.source))")
+                        ForEach(StageModelKind.allCases) { kind in
+                            SettingsRow(kind.title, subtitle: stageModels.card(for: kind).map { card in
+                                "κ \(card.metrics?.lono?.kappa.map { String(format: "%.2f", $0) } ?? "—") · \(stageModels.isEligible(kind) ? "eligible" : "not yet eligible")"
+                            } ?? "Not trained", icon: "brain", iconColor: Theme.cool, tile: true, height: 56) {
+                                RowValue(stageModels.card(for: kind)?.trainedAt.map { $0.formatted(.dateTime.month(.abbreviated).day()) } ?? "—", mono: true)
+                            }
+                        }
+                    }
+                }
+                Text("A personal model can stage your sleep once it beats the rules and the challenger on your own nights, leave-one-night-out. Train it from Sleep → Night → Compare stage models. Switching the source rewrites synced nights in Health.")
+                    .font(.footnote).foregroundStyle(Theme.text2).padding(.horizontal, 16).fixedSize(horizontal: false, vertical: true)
                 GroupedSection("ON THIS iPHONE") {
                     GroupedCard {
-                        SettingsRow("Stage model", icon: "cpu", tile: true) { RowValue("rule-based", mono: true) }
+                        SettingsRow("Stage model", icon: stageModels.source.symbol, tile: true) {
+                            RowValue(stageModels.active.map { "Core ML · \($0.kind.rawValue)" } ?? "rule-based", mono: true)
+                        }
                         SettingsRow("Runs", icon: "iphone", tile: true) { RowValue("On device") }
                         SettingsRow("Challenger model", subtitle: "Experimental, for comparison only", icon: "flask", tile: true, height: 56) {
                             RowValue(StageChallenger.bundled.version.map { "v\($0)" } ?? "not bundled", mono: true)

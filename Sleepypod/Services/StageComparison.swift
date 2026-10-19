@@ -68,6 +68,15 @@ struct StageComparison: Sendable {
     let model: [Block]
     let modelStatus: ModelStatus
     let modelScore: StageScore?
+    /// The personal models' lanes, by kind; absent when that model is not trained.
+    var personal: [StageModelKind: PersonalLane] = [:]
+
+    struct PersonalLane: Sendable, Equatable {
+        let blocks: [Block]
+        let score: StageScore?
+        let error: String?
+        let version: String
+    }
 
     var hasWatchData: Bool { !watch.isEmpty }
 
@@ -174,6 +183,42 @@ struct StageComparison: Sendable {
     }
 }
 
+extension StageComparison {
+    /// One personal model run over a night's vitals, scored against the Watch like the challenger.
+    static func personalLane(_ availability: StageChallenger.Availability, enteredBed: Date, leftBed: Date, vitals: [VitalsRecord],
+                             movement: [MovementRecord], watch: [Block]) -> PersonalLane? {
+        guard case .ready(let classifier, let card) = availability else {
+            if case .failed(let message) = availability { return PersonalLane(blocks: [], score: nil, error: message, version: "") }
+            return nil
+        }
+        guard let contract = StageFeatures.Contract.matching(card.columns) else {
+            return PersonalLane(blocks: [], score: nil, error: "Unknown feature contract", version: card.version)
+        }
+        do {
+            let rows = StageFeatures.rows(contract: contract, enteredBed: enteredBed, leftBed: leftBed, vitals: vitals, movement: movement)
+            let blocks = try StageChallenger.classify(rows, with: classifier)
+            return PersonalLane(blocks: blocks, score: StageScore.score(blocks, reference: watch), error: nil, version: card.version)
+        } catch {
+            return PersonalLane(blocks: [], score: nil, error: error.localizedDescription, version: card.version)
+        }
+    }
+
+    /// Demo mode's stand-in for a trained model: the demo Watch with every sixth block nudged to a neighbour.
+    static func demoPersonalLane(kind: StageModelKind, watch: [Block]) -> PersonalLane {
+        let blocks = watch.enumerated().map { index, block -> Block in
+            guard (index + (kind == .forest ? 3 : 0)) % 6 == 0 else { return block }
+            let stage: SleepAnalyzer.SleepStage = switch block.stage {
+            case .light: .deep
+            case .deep: .light
+            case .rem: .light
+            case .wake: .light
+            }
+            return Block(start: block.start, end: block.end, stage: stage)
+        }
+        return PersonalLane(blocks: blocks, score: StageScore.score(blocks, reference: watch), error: nil, version: "demo")
+    }
+}
+
 /// The de-identified agreement summary people can share for cross-user model comparison (`stage-challenger-v1`).
 /// Nights carry only a relative index: no dates, timestamps, record or device ids, and no raw vitals or movement.
 struct StageAgreementExport: Encodable, Equatable {
@@ -208,14 +253,28 @@ struct StageAgreementExport: Encodable, Equatable {
         let epochs: Int
         let podRules: Lane?
         let model: Lane?
+        /// Personal models trained on this phone; optional so readers of the schema without them keep working.
+        let personalLogistic: Lane?
+        let personalForest: Lane?
 
-        private enum CodingKeys: String, CodingKey { case night, epochs, podRules, model }
+        init(night: Int, epochs: Int, podRules: Lane?, model: Lane?, personalLogistic: Lane? = nil, personalForest: Lane? = nil) {
+            self.night = night
+            self.epochs = epochs
+            self.podRules = podRules
+            self.model = model
+            self.personalLogistic = personalLogistic
+            self.personalForest = personalForest
+        }
+
+        private enum CodingKeys: String, CodingKey { case night, epochs, podRules, model, personalLogistic, personalForest }
         func encode(to encoder: Encoder) throws {
             var c = encoder.container(keyedBy: CodingKeys.self)
             try c.encode(night, forKey: .night)
             try c.encode(epochs, forKey: .epochs)
             try c.encode(podRules, forKey: .podRules)
             try c.encode(model, forKey: .model)
+            try c.encodeIfPresent(personalLogistic, forKey: .personalLogistic)
+            try c.encodeIfPresent(personalForest, forKey: .personalForest)
         }
     }
 
@@ -230,7 +289,8 @@ struct StageAgreementExport: Encodable, Equatable {
     init(nights: [StageComparison], modelVersion: String?) {
         self.modelVersion = modelVersion
         self.nights = nights.filter { $0.podScore != nil || $0.modelScore != nil }.enumerated().map { index, night in
-            Night(night: index, epochs: night.epochs, podRules: night.podScore.map(Lane.init), model: night.modelScore.map(Lane.init))
+            Night(night: index, epochs: night.epochs, podRules: night.podScore.map(Lane.init), model: night.modelScore.map(Lane.init),
+                  personalLogistic: night.personal[.logistic]?.score.map(Lane.init), personalForest: night.personal[.forest]?.score.map(Lane.init))
         }
     }
 
@@ -261,6 +321,8 @@ struct StageComparisonLoader {
     let side: Side
     let demo: Bool
     let challenger: StageChallenger.Availability
+    /// Trained personal models to run beside the challenger.
+    var personal: [StageModelKind: StageChallenger.Availability] = [:]
 
     /// How far either side of the bed window Watch samples are read, so a Watch night that starts early still shows whole.
     static let watchMargin: TimeInterval = 3 * 3600
@@ -278,17 +340,29 @@ struct StageComparisonLoader {
         }
 
         var model: [StageComparison.Block] = []
-        let status: StageComparison.ModelStatus
+        var status: StageComparison.ModelStatus
+        var vitals: [VitalsRecord] = [], movement: [MovementRecord] = []
+        var signalsError: String?
+        if challenger.classifier != nil || !personal.isEmpty {
+            do {
+                vitals = try await api.getVitals(side: side, start: enteredBed, end: leftBed).filter { $0.side == side.rawValue }
+                movement = try await api.getMovement(side: side, start: enteredBed, end: leftBed).filter { $0.side == side.rawValue }
+            } catch {
+                signalsError = error.localizedDescription
+            }
+        }
         switch challenger {
         case .ready(let classifier, _):
-            do {
-                let vitals = try await api.getVitals(side: side, start: enteredBed, end: leftBed).filter { $0.side == side.rawValue }
-                let movement = try await api.getMovement(side: side, start: enteredBed, end: leftBed).filter { $0.side == side.rawValue }
-                let features = StageChallenger.features(enteredBed: enteredBed, leftBed: leftBed, vitals: vitals, movement: movement)
-                model = try StageChallenger.classify(features, with: classifier)
-                status = .ready
-            } catch {
-                status = .failed(error.localizedDescription)
+            if let signalsError {
+                status = .failed(signalsError)
+            } else {
+                do {
+                    let features = StageChallenger.features(enteredBed: enteredBed, leftBed: leftBed, vitals: vitals, movement: movement)
+                    model = try StageChallenger.classify(features, with: classifier)
+                    status = .ready
+                } catch {
+                    status = .failed(error.localizedDescription)
+                }
             }
         case .notBundled:
             status = .notBundled
@@ -307,7 +381,18 @@ struct StageComparisonLoader {
             })
             watch = StageComparison.watchNight(stages, enteredBed: enteredBed, leftBed: leftBed)
         }
-        return StageComparison.build(enteredBed: enteredBed, leftBed: leftBed, watch: watch, pod: pod, podError: podError,
-                                     model: model, modelStatus: status)
+        var comparison = StageComparison.build(enteredBed: enteredBed, leftBed: leftBed, watch: watch, pod: pod, podError: podError,
+                                               model: model, modelStatus: status)
+        for (kind, availability) in personal {
+            if demo {
+                comparison.personal[kind] = StageComparison.demoPersonalLane(kind: kind, watch: watch)
+            } else if let signalsError {
+                comparison.personal[kind] = StageComparison.PersonalLane(blocks: [], score: nil, error: signalsError, version: "")
+            } else {
+                comparison.personal[kind] = StageComparison.personalLane(availability, enteredBed: enteredBed, leftBed: leftBed,
+                                                                         vitals: vitals, movement: movement, watch: watch)
+            }
+        }
+        return comparison
     }
 }

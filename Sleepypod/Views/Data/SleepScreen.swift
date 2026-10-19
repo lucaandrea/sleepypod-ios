@@ -138,7 +138,8 @@ struct SleepScreen: View {
     @ViewBuilder private var nightContent: some View {
         if let record {
             SleepSummaryCardView(record: record, score: analyzer.qualityScore)
-            SleepStagesTimelineView(stages: analyzer.stages, qualityScore: analyzer.qualityScore)
+            SleepStagesTimelineView(stages: analyzer.stages, qualityScore: analyzer.qualityScore,
+                                    source: analyzer.source, modelName: stageModels.active?.kind.title)
             vitalsLayout {
                 vital("HR", unit: "bpm", key: \.heartRate, decimals: 0, icon: "heart", color: Theme.red)
                 vital("HRV", unit: "ms", key: \.hrv, decimals: 0, icon: "waveform.path.ecg", color: Theme.cool)
