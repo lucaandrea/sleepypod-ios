@@ -339,11 +339,16 @@ final class CoreMLStageClassifier: SleepStageClassifying, @unchecked Sendable {
         }
         let input = try MLDictionaryFeatureProvider(dictionary: dictionary)
         let output = try model.prediction(from: input)
-        guard let label = output.featureValue(for: "classLabel"), label.type == .int64 else {
-            throw StageChallenger.ModelError.missingOutput("classLabel")
+        // coremltools names the outputs classLabel/classProbability; Create ML names them after the target
+        // column (stage/stageProbability). Pick them by type so both load through the same wrapper.
+        let outputs = model.modelDescription.outputDescriptionsByName
+        let labelName = outputs.first { $0.key == "classLabel" }?.key ?? outputs.first { $0.value.type == .int64 }?.key ?? "classLabel"
+        let probabilityName = outputs.first { $0.key == "classProbability" }?.key ?? outputs.first { $0.value.type == .dictionary }?.key ?? "classProbability"
+        guard let label = output.featureValue(for: labelName), label.type == .int64 else {
+            throw StageChallenger.ModelError.missingOutput(labelName)
         }
         var probabilities: [Int64: Double] = [:]
-        for (key, value) in output.featureValue(for: "classProbability")?.dictionaryValue ?? [:] {
+        for (key, value) in output.featureValue(for: probabilityName)?.dictionaryValue ?? [:] {
             if let key = key as? Int64 ?? (key as? NSNumber)?.int64Value { probabilities[key] = value.doubleValue }
         }
         // The converted random forest sums its trees' votes (totals of 100) rather than averaging them.

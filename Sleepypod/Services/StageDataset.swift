@@ -112,13 +112,19 @@ struct StageDatasetBuilder {
         let candidates = Self.longestPerDay(records)
         let calibration = try? await api.getCalibrationStatus(side: side)
         var nights: [StageDataset.Night] = []
+        Log.general.notice("Stage dataset: \(candidates.count) candidate nights over \(StageDataset.daysBack) days")
         for (index, record) in candidates.enumerated() {
             progress(index, candidates.count)
             try Task.checkCancellation()
+            let started = Date()
             if let night = try await night(record, contract: contract, calibrationQuality: calibration?.piezo?.qualityScore ?? 0) {
                 nights.append(night)
+                Log.general.notice("Stage dataset: night \(index + 1)/\(candidates.count) record \(record.id) kept, \(night.rows.count) labelled epochs, \(Int(Date().timeIntervalSince(started))) s")
+            } else {
+                Log.general.notice("Stage dataset: night \(index + 1)/\(candidates.count) record \(record.id) skipped, \(Int(Date().timeIntervalSince(started))) s")
             }
         }
+        Log.general.notice("Stage dataset: \(nights.count) nights, \(nights.reduce(0) { $0 + $1.rows.count }) labelled epochs")
         progress(candidates.count, candidates.count)
         return StageDataset(contract: contract, nights: nights)
     }

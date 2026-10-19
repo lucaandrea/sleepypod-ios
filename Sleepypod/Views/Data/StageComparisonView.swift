@@ -90,7 +90,13 @@ struct StageComparisonView: View {
         .alert("Couldn't export", isPresented: Binding(get: { exportError != nil }, set: { if !$0 { exportError = nil } })) {
             Button("OK", role: .cancel) {}
         } message: { Text(exportError ?? "") }
+        .alert("Training didn't finish", isPresented: Binding(get: { stageModels.trainingError != nil }, set: { if !$0 { stageModels.trainingError = nil } })) {
+            Button("OK", role: .cancel) {}
+        } message: { Text(stageModels.trainingError ?? "") }
         .task { await loadNights() }
+        .task {
+            if let kind = DebugRoute.trainStageModel, !isDemo, !stageModels.isTraining { await stageModels.train(kind, builder: builder) }
+        }
         .onChange(of: personalVersions) { comparisons = [:] }
         .confirmationDialog("Delete this model?", isPresented: Binding(get: { confirmDelete != nil }, set: { if !$0 { confirmDelete = nil } }),
                             titleVisibility: .visible) {
@@ -342,17 +348,24 @@ struct StageComparisonView: View {
             }
             Text("Trained on this iPhone from your own nights, with the Watch as the label. Scored leave-one-night-out against the Watch, beside the rules and the challenger on the same epochs.")
                 .font(.footnote).foregroundStyle(Theme.text2).fixedSize(horizontal: false, vertical: true)
-            ForEach(StageModelKind.allCases) { kind in personalRow(kind) }
             if stageModels.isTraining {
-                VStack(alignment: .leading, spacing: 6) {
-                    ProgressView(value: stageModels.trainingProgress)
-                    Text(stageModels.trainingStatus ?? "Training…").font(.footnote).foregroundStyle(Theme.text2)
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack {
+                        ProgressView().controlSize(.small)
+                        Text(stageModels.trainingStatus ?? "Training…").font(.subheadline.weight(.semibold)).foregroundStyle(Theme.text1)
+                        Spacer()
+                        Text("\(Int((stageModels.trainingProgress * 100).rounded()))%").font(.mono(12, relativeTo: .caption)).foregroundStyle(Theme.text2)
+                    }
+                    ProgressView(value: stageModels.trainingProgress).tint(Theme.cool)
+                    Text("Reads each night's vitals and movement from the pod and its stages from Health, then fits the model once per held-out night. Keep the app open.")
+                        .font(.footnote).foregroundStyle(Theme.text3).fixedSize(horizontal: false, vertical: true)
                 }
+                .padding(12)
+                .background(Theme.cool.opacity(0.08), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
                 .accessibilityElement(children: .combine)
             }
-            if let error = stageModels.trainingError {
-                Text(error).font(.footnote).foregroundStyle(Theme.amber).fixedSize(horizontal: false, vertical: true)
-            }
+            if let report = stageModels.lastReport, !stageModels.isTraining { reportCard(report) }
+            ForEach(StageModelKind.allCases) { kind in personalRow(kind) }
             if !StageTrainer.isAvailable && !isDemo {
                 Text("Training needs an iPhone; the simulator has no Create ML.").font(.footnote).foregroundStyle(Theme.text3)
             }
@@ -362,6 +375,47 @@ struct StageComparisonView: View {
             }
         }
         .cardStyle()
+    }
+
+    /// What the last training run found, in the same κ terms as the lanes above.
+    private func reportCard(_ report: StageTrainingReport) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(alignment: .firstTextBaseline) {
+                Text("Last run · \(report.kind.title.lowercased())").font(.subheadline.weight(.semibold)).foregroundStyle(Theme.text1)
+                Spacer()
+                Text("\(report.nights) nights · \(report.epochs) epochs").font(.mono(11, relativeTo: .caption2)).foregroundStyle(Theme.text3)
+            }
+            Grid(alignment: .leading, horizontalSpacing: 12, verticalSpacing: 6) {
+                GridRow {
+                    Text("").gridColumnAlignment(.leading)
+                    Text("κ").gridColumnAlignment(.trailing)
+                    Text("ACCURACY").gridColumnAlignment(.trailing)
+                    Text("NIGHTS WON").gridColumnAlignment(.trailing)
+                }
+                .font(.mono(10, relativeTo: .caption2)).foregroundStyle(Theme.text3)
+                reportRow(report.kind.title, report.pooled, won: "\(report.nightsWon) of \(report.nights)")
+                reportRow("Pod (rules)", report.rules, won: "")
+                if let challenger = report.challenger { reportRow("Challenger", challenger, won: "") }
+            }
+            let eligible = stageModels.isEligible(report.kind)
+            Text(eligible
+                 ? "Clears the bar: choose it under Settings → On-device analysis → Sleep stages from."
+                 : "Not yet eligible: needs κ \(String(format: "%.2f", StageModelStore.kappaMargin)) above both and a majority of nights won. More Watch nights help most.")
+                .font(.footnote).foregroundStyle(eligible ? Theme.green : Theme.text2).fixedSize(horizontal: false, vertical: true)
+        }
+        .padding(12)
+        .background(Theme.card, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).stroke(Theme.border1, lineWidth: 1))
+    }
+
+    private func reportRow(_ title: String, _ score: StageScore?, won: String) -> some View {
+        GridRow {
+            Text(title).font(.subheadline).foregroundStyle(Theme.text1)
+            Text(Self.kappaText(score?.kappa))
+            Text(score.map { Self.percent($0.accuracy) } ?? "—")
+            Text(won)
+        }
+        .font(.mono(13, relativeTo: .footnote)).foregroundStyle(Theme.text1)
     }
 
     private func personalRow(_ kind: StageModelKind) -> some View {

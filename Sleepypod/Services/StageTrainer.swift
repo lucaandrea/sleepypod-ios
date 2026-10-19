@@ -110,7 +110,9 @@ enum StageTrainer {
         for (index, fold) in folds.enumerated() {
             try Task.checkCancellation()
             guard !fold.training.isEmpty else { throw TrainingError.emptyFold }
+            let started = Date()
             let classifier = try fit(rows: StageDataset.oversampled(fold.training), columns: columns, kind: kind)
+            Log.general.notice("Stage trainer: \(kind.rawValue) fold \(index + 1)/\(folds.count) fitted in \(Int(Date().timeIntervalSince(started))) s")
             let blocks = try StageDataset.blocks(fold.heldOut.rows, classifier: classifier)
             // The rules and the challenger are scored on the same labelled epochs only.
             let labelled = Set(fold.heldOut.rows.map(\.start))
@@ -133,6 +135,7 @@ enum StageTrainer {
             perNight: perNight, rulesPerNight: rulesPerNight, challengerPerNight: challengerPerNight)
 
         // Final fit on every night, installed under the kind's fixed name.
+        Log.general.notice("Stage trainer: \(kind.rawValue) final fit on \(dataset.allRows.count) rows")
         let rows = dataset.allRows
         let compiled = try compile(rows: StageDataset.oversampled(rows), columns: columns, kind: kind)
         let fileManager = FileManager.default
