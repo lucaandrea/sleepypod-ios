@@ -443,7 +443,8 @@ struct SleepScreen: View {
         let weekStart = calendar.startOfWeek(for: selectedDate)
         if metrics.selectedWeekStart != weekStart { metrics.selectedWeekStart = weekStart }
         await metrics.fetchAll()
-        if !isDemo { await stageModels.refreshPodModel(api: APIBackend.current.createClient(), side: metrics.selectedSide) }
+        // The store holds one model, used for Health sync of the wearer's side; the partner's side never replaces it.
+        if !isDemo { await stageModels.refreshPodModel(api: APIBackend.current.createClient(), side: profile.defaultSide) }
         let calibration = try? await APIBackend.current.createClient().getCalibrationStatus(side: metrics.selectedSide)
         analyzer.analyze(vitals: vitals, movement: metrics.movementRecords, calibrationQuality: calibration?.piezo?.qualityScore ?? 0,
                          model: record.flatMap { stageModels.staging(enteredBed: $0.enteredBedDate, leftBed: $0.leftBedDate) })

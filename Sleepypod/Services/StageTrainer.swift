@@ -96,9 +96,16 @@ enum StageTrainer {
                       status: @escaping @Sendable (String) -> Void = { _ in }) async throws -> StageTrainingResult {
         guard isAvailable else { throw TrainingError.unavailable }
         if let shortfall = dataset.shortfall { throw TrainingError.notEnoughData(shortfall) }
-        return try await Task.detached(priority: .userInitiated) {
+        // Awaiting a detached task does not make it a child: cancel it explicitly when the caller is cancelled,
+        // and the fits check for cancellation between folds and before installing anything.
+        let work = Task.detached(priority: .userInitiated) {
             try fitAndEvaluate(dataset: dataset, kind: kind, directory: directory, progress: progress, status: status)
-        }.value
+        }
+        return try await withTaskCancellationHandler {
+            try await work.value
+        } onCancel: {
+            work.cancel()
+        }
     }
 
     // MARK: Evaluation and the final fit
@@ -139,13 +146,17 @@ enum StageTrainer {
             challenger: pooledChallenger.isEmpty ? nil : StageScore.score(pooledChallenger, reference: pooledWatch),
             perNight: perNight, rulesPerNight: rulesPerNight, challengerPerNight: challengerPerNight)
 
-        // Final fit on every night, installed under the kind's fixed name.
+        // Final fit on every night, installed under the kind's fixed name. The spec is moved into place last,
+        // so a failure anywhere leaves the previous model, card and spec consistent with each other.
+        try Task.checkCancellation()
         Log.general.notice("Stage trainer: \(kind.rawValue, privacy: .public) final fit on \(dataset.allRows.count) rows")
         status("final fit on \(dataset.allRows.count) rows")
         let rows = dataset.allRows
         let fileManager = FileManager.default
         try fileManager.createDirectory(at: directory, withIntermediateDirectories: true)
-        let compiled = try compile(rows: StageDataset.oversampled(rows), columns: columns, kind: kind, keepSpecAt: specURL(for: kind, in: directory))
+        let (compiled, spec) = try compile(rows: StageDataset.oversampled(rows), columns: columns, kind: kind, keepSpec: true)
+        defer { if let spec { try? fileManager.removeItem(at: spec) } }
+        try Task.checkCancellation()
         let modelURL = modelURL(for: kind, in: directory)
         if fileManager.fileExists(atPath: modelURL.path) { try fileManager.removeItem(at: modelURL) }
         try fileManager.moveItem(at: compiled, to: modelURL)
@@ -156,6 +167,11 @@ enum StageTrainer {
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
         encoder.dateEncodingStrategy = .iso8601
         try encoder.encode(CardDocument(card)).write(to: cardURL, options: .atomic)
+        if let spec {
+            let specURL = specURL(for: kind, in: directory)
+            try? fileManager.removeItem(at: specURL)
+            try fileManager.moveItem(at: spec, to: specURL)
+        }
         progress(1)
         return StageTrainingResult(report: report, card: card, modelURL: modelURL, cardURL: cardURL)
     }
@@ -180,7 +196,8 @@ enum StageTrainer {
                 defer { limit.signal(); group.leave() }
                 let started = Date()
                 let result = Result { () throws -> [StageDataset.Block] in
-                    let compiled = try compile(rows: StageDataset.oversampled(fold.training), columns: columns, kind: kind)
+                    try Task.checkCancellation()
+                    let (compiled, _) = try compile(rows: StageDataset.oversampled(fold.training), columns: columns, kind: kind)
                     // Core ML may map the compiled files lazily, so the directory outlives the predictions.
                     defer { try? FileManager.default.removeItem(at: compiled) }
                     let classifier = try CoreMLStageClassifier(contentsOf: compiled, columns: columns)
@@ -262,8 +279,9 @@ enum StageTrainer {
     // MARK: Create ML
 
     #if canImport(CreateML)
-    /// Trains and compiles; the `.mlmodel` spec is deleted unless `keepSpecAt` names where to keep it.
-    private static func compile(rows: [StageDataset.LabeledRow], columns: [String], kind: StageModelKind, keepSpecAt: URL? = nil) throws -> URL {
+    /// Trains and compiles. The compiled directory is returned; the `.mlmodel` spec is deleted unless `keepSpec`,
+    /// in which case its temporary URL is returned too for the caller to move into place once the install is done.
+    private static func compile(rows: [StageDataset.LabeledRow], columns: [String], kind: StageModelKind, keepSpec: Bool = false) throws -> (URL, URL?) {
         var frame = DataFrame()
         for column in columns {
             frame.append(column: Column(name: column, contents: rows.map { $0.values[column] ?? 0 }))
@@ -284,18 +302,12 @@ enum StageTrainer {
             let model = try MLRandomForestClassifier(trainingData: frame, targetColumn: "stage", parameters: parameters)
             try model.write(to: scratch)
         }
-        defer {
-            if let keepSpecAt {
-                try? FileManager.default.removeItem(at: keepSpecAt)
-                try? FileManager.default.moveItem(at: scratch, to: keepSpecAt)
-            } else {
-                try? FileManager.default.removeItem(at: scratch)
-            }
-        }
-        return try MLModel.compileModel(at: scratch)
+        defer { if !keepSpec { try? FileManager.default.removeItem(at: scratch) } }
+        let compiled = try MLModel.compileModel(at: scratch)
+        return (compiled, keepSpec ? scratch : nil)
     }
     #else
-    private static func compile(rows: [StageDataset.LabeledRow], columns: [String], kind: StageModelKind, keepSpecAt: URL? = nil) throws -> URL {
+    private static func compile(rows: [StageDataset.LabeledRow], columns: [String], kind: StageModelKind, keepSpec: Bool = false) throws -> (URL, URL?) {
         throw TrainingError.unavailable
     }
     #endif

@@ -113,24 +113,33 @@ final class StageModelStore {
     /// Reads the side's model from the pod. A document that fails validation is refused and reported, and the
     /// source falls back to the rules if it was the pod.
     func refreshPodModel(api: SleepypodProtocol, side: Side) async {
+        let response: PodStageModelResponse
         do {
-            let response = try await api.getStageModel(side: side)
-            podFetchedAt = Date()
-            guard let model = response.model else {
-                podModel = nil
-                podError = nil
-                if source == .pod { source = .rules }
-                return
-            }
+            response = try await api.getStageModel(side: side)
+        } catch {
+            // Away from the pod's network: keep the last valid model and the user's choice; just say why.
+            podError = error.localizedDescription
+            Log.general.error("Pod stage model not reachable: \(error.localizedDescription, privacy: .public)")
+            return
+        }
+        podFetchedAt = Date()
+        guard let model = response.model else {
+            podModel = nil
+            podError = nil
+            if source == .pod { source = .rules }
+            return
+        }
+        do {
             try model.validate()
             podModel = model
             podError = nil
             Log.general.notice("Pod stage model \(model.version, privacy: .public) loaded, \(model.kind, privacy: .public)")
         } catch {
+            // The pod handed over something broken: refuse it rather than stage nights with it.
             podModel = nil
             podError = error.localizedDescription
             if source == .pod { source = .rules }
-            Log.general.error("Pod stage model unavailable: \(error.localizedDescription, privacy: .public)")
+            Log.general.error("Pod stage model refused: \(error.localizedDescription, privacy: .public)")
         }
     }
 

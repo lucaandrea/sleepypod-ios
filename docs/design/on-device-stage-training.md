@@ -86,7 +86,7 @@ The same two models should be trained off the pod on the same features so on-dev
 - Parity check, two halves. Conversion: convert each with coremltools to `.mlmodel`, generate card test vectors, and confirm the iOS `CoreMLStageClassifier` reproduces the container's predictions on those vectors; a mismatch there is the converter. Features: a fixture of one night's raw vitals and movement plus the feature rows the Python port computes from it, checked against the Swift feature type in a unit test; a mismatch there is the feature contract.
 - Output: a card JSON in the challenger schema per model, so a container-trained model could also be bundled as a second challenger if it beats the personal one.
 
-The container itself was not found in the sleepypod repositories on this Mac; its Dockerfile and the dataset script location need to be added to the research README when this lands.
+The scikit-learn script and the one-command Mac flow (`scripts/train-personal-models.py`) exist in sleepypod-core and run on any Apple-silicon Mac with `uv`. The analysis container's Dockerfile was not found in the sleepypod repositories on this Mac; the script runs there unchanged once its location is recorded in the research README.
 
 ## The pod as the model hub (added after the first device runs)
 

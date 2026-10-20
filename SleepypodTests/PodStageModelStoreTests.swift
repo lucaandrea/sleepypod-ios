@@ -58,10 +58,14 @@ struct PodStageModelStoreTests {
         #expect(store.podModel == nil)
         #expect(store.podError?.contains("test vectors") == true)
         #expect(store.source == .rules)
-        // The pod being unreachable is reported the same way.
+        // The pod being unreachable keeps the last valid model and the user's choice, and only reports why.
+        api.stageModelResponse = .success(PodStageModelResponse(model: try JSONDecoder().decode(PortableStageModel.self, from: Data(forestJSON.utf8)), uploadedAt: 3))
+        await store.refreshPodModel(api: api, side: .left)
+        store.source = .pod
         api.stageModelResponse = .failure(APIError.noBaseURL)
         await store.refreshPodModel(api: api, side: .left)
-        #expect(store.podModel == nil)
+        #expect(store.podModel?.version == "container-forest-test")
+        #expect(store.source == .pod)
         #expect(store.podError != nil)
     }
 }
