@@ -44,9 +44,17 @@ struct SleepStagesTimelineView: View {
         return result
     }
 
+    /// Where the stages came from; the model badge marks a night staged by a trained Core ML model.
+    var source: SleepAnalyzer.StageSource = .rules
+    var modelName: String?
+
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Eyebrow("STAGES")
+            HStack(alignment: .firstTextBaseline) {
+                Eyebrow("STAGES")
+                Spacer()
+                if source == .model { StageSourceBadge(.model(modelName ?? "model")) }
+            }
             if stages.isEmpty {
                 Text("Not enough data for stage analysis").font(.subheadline).foregroundStyle(Theme.text2)
             } else {

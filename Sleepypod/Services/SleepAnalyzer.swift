@@ -66,7 +66,22 @@ final class SleepAnalyzer {
     ///   - movement: Movement records from the same time window.
     ///   - calibrationQuality: Piezo calibration quality (0.0-1.0). Values below 0.3
     ///     trigger movement-only classification mode since HR/HRV are unreliable.
-    func analyze(vitals: [VitalsRecord], movement: [MovementRecord] = [], calibrationQuality: Double = 1.0) {
+    /// A personal Core ML model and the bed window its features are computed over.
+    struct ModelStaging: Sendable {
+        let classifier: any SleepStageClassifying
+        let contract: StageFeatures.Contract
+        let enteredBed: Date
+        let leftBed: Date
+    }
+
+    /// Where the last analysis's stages came from.
+    enum StageSource: Sendable, Equatable {
+        case rules
+        case model
+    }
+    private(set) var source: StageSource = .rules
+
+    func analyze(vitals: [VitalsRecord], movement: [MovementRecord] = [], calibrationQuality: Double = 1.0, model: ModelStaging? = nil) {
         isAnalyzing = true
         defer { isAnalyzing = false }
 
@@ -78,8 +93,27 @@ final class SleepAnalyzer {
         guard sorted.count >= 5 else {
             stages = []
             qualityScore = nil
+            source = .rules
             return
         }
+
+        // A personal model stages the night when one is active and the pod's heart rate can be trusted;
+        // anything it cannot handle falls back to the rules so a night is never left blank.
+        if let model, calibrationQuality >= 0.3 {
+            do {
+                var epochs = try classifyWithModel(model, vitals: sorted, movement: movement)
+                applyTransitionConstraints(&epochs)
+                guard !epochs.isEmpty else { throw StageChallenger.ModelError.missingOutput("epochs") }
+                stages = epochs
+                source = .model
+                qualityScore = computeQualityScore(calibrationQuality: calibrationQuality)
+                Log.general.info("Sleep analysis (model): \(self.stages.count) epochs, score=\(self.qualityScore ?? 0)")
+                return
+            } catch {
+                Log.general.error("Stage model failed, using rules: \(error.localizedDescription, privacy: .public)")
+            }
+        }
+        source = .rules
 
         // Build a movement lookup keyed by timestamp (rounded to nearest minute)
         let movementByMinute = buildMovementLookup(movement)
@@ -117,6 +151,43 @@ final class SleepAnalyzer {
         stages = classified
         qualityScore = computeQualityScore(calibrationQuality: calibrationQuality)
         Log.general.info("Sleep analysis: \(self.stages.count) epochs, score=\(self.qualityScore ?? 0)")
+    }
+
+    // MARK: - Model staging
+
+    /// The model emits 5-minute blocks; smoothing runs on those blocks (an isolated block between two equal
+    /// neighbours takes their stage), then each block expands to five 60-second epochs so the Night page, the
+    /// quality score and Health sync see the shape the rules produce.
+    func classifyWithModel(_ model: ModelStaging, vitals: [VitalsRecord], movement: [MovementRecord]) throws -> [SleepEpoch] {
+        let rows = StageFeatures.rows(contract: model.contract, enteredBed: model.enteredBed, leftBed: model.leftBed,
+                                      vitals: vitals, movement: movement)
+        var blocks = try StageChallenger.classify(rows, with: model.classifier)
+        blocks = Self.smoothedBlocks(blocks)
+        var byMinute: [Int: VitalsRecord] = [:]
+        for record in vitals { byMinute[Int(record.date.timeIntervalSince1970) / 60] = record }
+        return blocks.flatMap { block -> [SleepEpoch] in
+            let minutes = Int(block.end.timeIntervalSince(block.start) / 60)
+            let blockVitals = vitals.filter { $0.date >= block.start && $0.date < block.end }
+            let blockHR = blockVitals.compactMap(\.heartRate)
+            let fallbackHR = blockHR.isEmpty ? 0 : blockHR.reduce(0, +) / Double(blockHR.count)
+            return (0..<minutes).map { offset in
+                let start = block.start.addingTimeInterval(Double(offset) * 60)
+                let record = byMinute[Int(start.timeIntervalSince1970) / 60]
+                return SleepEpoch(start: start, duration: 60, stage: block.stage,
+                                  heartRate: record?.heartRate ?? fallbackHR, hrv: record?.hrv, breathingRate: record?.breathingRate)
+            }
+        }
+    }
+
+    /// Single-block A-B-A spikes take their neighbours' stage, the rules' smoothing at the model's resolution.
+    static func smoothedBlocks(_ blocks: [WatchComparison.StageSample]) -> [WatchComparison.StageSample] {
+        guard blocks.count >= 3 else { return blocks }
+        var result = blocks
+        for index in 1..<(blocks.count - 1)
+        where blocks[index - 1].stage == blocks[index + 1].stage && blocks[index].stage != blocks[index - 1].stage {
+            result[index] = WatchComparison.StageSample(start: blocks[index].start, end: blocks[index].end, stage: blocks[index - 1].stage)
+        }
+        return result
     }
 
     // MARK: - Outlier Filtering

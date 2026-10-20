@@ -29,7 +29,7 @@ Both compile for iOS 17+ and the app targets iOS 26 (verified with a probe build
 
 Neither Create ML classifier takes class weights (none in the iOS SDK's CreateML interface), so class balance is handled by oversampling rows instead; see Training step 3.
 
-Training a tree on tabular data of a few thousand rows takes seconds on an A-series chip; it runs in a detached task off the main actor with the app in the foreground.
+Measured on an iPhone 15 Pro with 11 nights (756 labelled epochs, about 1,800 rows after oversampling): a Create ML random-forest fit takes about two minutes on one core, not seconds. Running folds concurrently made it worse (four at a time never finished within an hour), so folds run one after another, the whole run is reported with a progress bar and a "keep the app open" note, the screen is kept awake, and a forest run on eleven nights takes about 25 minutes; training runs in a detached task off the main actor with the app in the foreground.
 
 ## Labels
 
@@ -82,11 +82,21 @@ Success criteria for a model to become eligible as the live classifier: pooled l
 The same two models should be trained off the pod on the same features so on-device results can be cross-checked:
 
 - Dataset: the per-minute pairing of Watch stages and pod vitals from `sleepypod-core/docs/research/sleep-stage-calibration` (pod DB snapshot plus Health export, or `--from-db` after `import-watch-health.py`).
-- Models: scikit-learn `LogisticRegression` and `RandomForestClassifier` with the ojwalch/sleep_classifiers settings, over Contract A and Contract B features computed by a port of the Swift feature code. Leave-one-night-out, κ and confusion per night, same as on device.
+- Models: scikit-learn `LogisticRegression` and `RandomForestClassifier` with the hyperparameters pinned above (200 trees, depth 4; 200 iterations, L2 0.01), over Contract A and Contract B features computed by a port of the Swift feature code. Leave-one-night-out, κ and confusion per night, same as on device.
 - Parity check, two halves. Conversion: convert each with coremltools to `.mlmodel`, generate card test vectors, and confirm the iOS `CoreMLStageClassifier` reproduces the container's predictions on those vectors; a mismatch there is the converter. Features: a fixture of one night's raw vitals and movement plus the feature rows the Python port computes from it, checked against the Swift feature type in a unit test; a mismatch there is the feature contract.
 - Output: a card JSON in the challenger schema per model, so a container-trained model could also be bundled as a second challenger if it beats the personal one.
 
-The container itself was not found in the sleepypod repositories on this Mac; its Dockerfile and the dataset script location need to be added to the research README when this lands.
+The scikit-learn script and the one-command Mac flow (`scripts/train-personal-models.py`) exist in sleepypod-core and run on any Apple-silicon Mac with `uv`. The analysis container's Dockerfile was not found in the sleepypod repositories on this Mac; the script runs there unchanged once its location is recorded in the research README.
+
+## The pod as the model hub (added after the first device runs)
+
+On-device training works but is slow and fragile: a Create ML forest takes about two minutes a fold on an iPhone 15 Pro, and iOS suspends the app the moment the phone locks, so a 20-minute run rarely finishes. The same training on an Apple-silicon Mac takes seconds. The pipeline therefore also runs the other way round, and that is the recommended path:
+
+1. **Mac trains.** `scripts/train-personal-models.py` in sleepypod-core snapshots the pod's database, builds the dataset, trains both models on a contract with leave-one-night-out scoring, exports the pod's portable JSON form (forest trees as arrays, logistic as weights, with the feature contract and test vectors), and uploads the better model to the pod. About five seconds.
+2. **Pod stores and scores it.** `PUT /sleep-stages/model` refuses a document that fails its own test vectors; `POST /sleep-stages/model/preview` stages recent nights with it and scores it against the Watch beside the rules.
+3. **Phone fetches and evaluates it.** `PortableStageModel` decodes and validates the same document and evaluates it exactly as the pod's TypeScript and the Python exporter do (checked by a fixture of the Mac-trained logistic model replayed over the synthetic night). It appears as a "Pod model" lane on the Stage models screen and as a "Pod model" choice under Sleep stages from; the Night page refreshes it from the pod on every load.
+
+On-device training stays as the fallback for people without a Mac, since the app is how they control the pod. Still open: the pod using the model as its live classifier, which is pinned to the hashed biometrics manifest through the profile system and needs its own migration.
 
 ## Work breakdown
 
@@ -105,6 +115,6 @@ Each of 1–4 is its own PR with tests; 5 and 6 can ship together once 4 is in.
 - Few nights: nine today. Logistic is the safer first result; the forest needs 15–20 nights before its κ stabilises. The UI shows per-night κ so a lucky pooled number is visible as such.
 - Label noise: the Watch is the reference, not the truth. The eligibility bar is relative to the rules and the challenger, not absolute.
 - Class imbalance and short bed sessions: skipped below 2 h of Watch sleep; oversampled rare classes.
-- Battery and time: seconds for these sizes, foreground only, never on background refresh.
+- Battery and time: about 25 minutes for a forest run on eleven nights (logistic takes about a minute), foreground only with the screen kept awake, never on background refresh.
 - Privacy: all training and inference on the phone; the export stays de-identified; Health times and source names are logged private.
 - Breathing rate may still be constant on older pod firmware even though core#172 is resolved; the plan does not depend on it.

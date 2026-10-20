@@ -100,6 +100,8 @@ final class HealthSyncService {
     private(set) var isSyncing = false
     private(set) var rebuildProgress: (done: Int, total: Int)?
     var authorizationError: String?
+    /// Personal stage models; when one is active, synced nights are staged by it and its version is in the receipt.
+    weak var stageModels: StageModelStore?
     /// The last HealthKit read failure, so the Watch page can say why it is empty instead of showing a generic message.
     private(set) var readError: String?
     private let store: any HealthSyncStore
@@ -163,8 +165,11 @@ final class HealthSyncService {
     /// Bump when the samples written for a night change, so every synced night is rewritten once.
     /// v2: full-night vitals (previously truncated to the last 288 rows), capped and fragment records dropped.
     static let syncVersion = 2
-    static func receiptSignature(_ preferences: Preferences) -> String {
-        "v\(syncVersion)-a\(SleepAnalyzer.version)-\(preferences.signature)"
+    static func receiptSignature(_ preferences: Preferences, model: String? = nil) -> String {
+        "v\(syncVersion)-a\(SleepAnalyzer.version)-m\(model ?? "rules")-\(preferences.signature)"
+    }
+    func receiptSignature(_ preferences: Preferences) -> String {
+        Self.receiptSignature(preferences, model: stageModels?.activeVersion)
     }
 
     /// The pod force-closes a session after 16 h (MAX_SESSION_S in sleep-detector); those are stuck presence, not sleep.
@@ -179,7 +184,7 @@ final class HealthSyncService {
         guard enabled, !writeTypes.isEmpty,
               writeTypes.allSatisfy({ store.authorizationStatus(for: $0) == .sharingAuthorized }),
               let receipt = receipts[Self.recordKey(podID: podID, record: record)],
-              receipt.signature == Self.receiptSignature(preferences), receipt.closedAt == record.leftBedDate, receipt.enteredAt == record.enteredBedDate else { return nil }
+              receipt.signature == receiptSignature(preferences), receipt.closedAt == record.leftBedDate, receipt.enteredAt == record.enteredBedDate else { return nil }
         return receipt
     }
 
@@ -310,8 +315,15 @@ final class HealthSyncService {
                     let movement = try await api.getMovement(side: side, start: record.enteredBedDate, end: record.leftBedDate)
                     let calibration = try? await api.getCalibrationStatus(side: side)
                     let analyzer = SleepAnalyzer()
+                    // One snapshot of the active model per night: it stages the night and names the receipt. If the
+                    // analyzer fell back to the rules, the receipt says so, and the night is retried next sync.
+                    let activeModel = stageModels?.active
+                    let staging = activeModel.map {
+                        SleepAnalyzer.ModelStaging(classifier: $0.classifier, contract: $0.contract, enteredBed: record.enteredBedDate, leftBed: record.leftBedDate)
+                    }
                     analyzer.analyze(vitals: vitals.filter { $0.side == side.rawValue && $0.date >= record.enteredBedDate && $0.date < record.leftBedDate },
-                                     movement: movement, calibrationQuality: calibration?.piezo?.qualityScore ?? 0)
+                                     movement: movement, calibrationQuality: calibration?.piezo?.qualityScore ?? 0, model: staging)
+                    let stagedBy = analyzer.source == .model ? activeModel?.version : nil
                     let filtered = analyzer.filterOutliers(vitals: vitals.filter { $0.side == side.rawValue && $0.date >= record.enteredBedDate && $0.date < record.leftBedDate })
                     guard !Task.isCancelled, enabled, preferences == requestedPreferences else { return false }
                     guard !filtered.isEmpty, !preferences.sleep || !analyzer.stages.isEmpty else {
@@ -326,7 +338,8 @@ final class HealthSyncService {
                     // Save first, then drop whatever this write didn't replace, so a failed save never empties the night.
                     try await store.delete(types: writeTypes, deviceID: deviceID, start: clearStart, end: clearEnd, olderThan: version)
                     Log.health.info("Saved \(samples.count, privacy: .private) samples to Health")
-                    receipts[key] = Receipt(date: Date(), signature: Self.receiptSignature(requestedPreferences), closedAt: record.leftBedDate, enteredAt: record.enteredBedDate)
+                    receipts[key] = Receipt(date: Date(), signature: Self.receiptSignature(requestedPreferences, model: stagedBy),
+                                            closedAt: record.leftBedDate, enteredAt: record.enteredBedDate)
                     failures[key] = nil
                     persistence.set(try JSONEncoder().encode(receipts), forKey: "healthSyncReceipts")
                 } catch {

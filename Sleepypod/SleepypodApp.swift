@@ -12,7 +12,8 @@ struct SleepypodApp: App {
     @State private var userProfile = UserProfile()
     @State private var sensorStream = SensorStreamService()
     @State private var notificationRelay = NotificationRelay()
-    @State private var healthSync = HealthSyncService()
+    @State private var healthSync: HealthSyncService
+    @State private var stageModels: StageModelStore
 
     init() {
         let client = APIBackend.current.createClient()
@@ -27,6 +28,13 @@ struct SleepypodApp: App {
         _metricsManager = State(initialValue: metrics)
         _statusManager = State(initialValue: status)
         _settingsManager = State(initialValue: settings)
+        // Wired here, not in a view task: a background-refresh launch syncs Health before any window appears,
+        // and the receipt signature must already know which model stages the nights.
+        let models = StageModelStore()
+        let health = HealthSyncService()
+        health.stageModels = models
+        _stageModels = State(initialValue: models)
+        _healthSync = State(initialValue: health)
     }
 
     var body: some Scene {
@@ -43,6 +51,7 @@ struct SleepypodApp: App {
                 .environment(sensorStream)
                 .environment(notificationRelay)
                 .environment(healthSync)
+                .environment(stageModels)
                 .preferredColorScheme(userProfile.appearance.colorScheme)
                 .foregroundStyle(Theme.text1)
                 .tint(Theme.text1)

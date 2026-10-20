@@ -10,6 +10,16 @@ enum DebugRoute {
         #endif
     }
 
+    /// DEBUG-only `-trainStageModel logistic|forest`: starts a personal model training run when the Stage models
+    /// screen opens, so a device run can be driven from the command line.
+    static var trainStageModel: StageModelKind? {
+        #if DEBUG
+        UserDefaults.standard.string(forKey: "trainStageModel").flatMap(StageModelKind.init)
+        #else
+        nil
+        #endif
+    }
+
     /// DEBUG-only `-marketingCapture YES`: skips the notification prompt and the DEMO badge so App Store captures show the plain UI.
     static var marketingCapture: Bool {
         #if DEBUG

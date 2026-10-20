@@ -5,7 +5,11 @@ import Charts
 /// shared time axis, with the pod and the model each scored against the Watch.
 struct StageComparisonView: View {
     @Environment(HealthSyncService.self) private var health
+    @Environment(StageModelStore.self) private var stageModels
     let side: Side
+    @State private var confirmDelete: StageModelKind?
+    @State private var debugTrainingStarted = false
+    @State private var modelShareItems: [URL] = []
     @State private var record: SleepRecord
     @State private var nights: [SleepRecord] = []
     @State private var comparisons: [Int: StageComparison] = [:]
@@ -30,7 +34,17 @@ struct StageComparisonView: View {
     private var needsHealthAccess: Bool { !isDemo && (!health.enabled || !health.preferences.readSleep) }
     private var comparison: StageComparison? { comparisons[record.id] }
     private var loader: StageComparisonLoader {
-        StageComparisonLoader(api: APIBackend.current.createClient(), health: health, side: side, demo: isDemo, challenger: challenger)
+        StageComparisonLoader(api: APIBackend.current.createClient(), health: health, side: side, demo: isDemo, challenger: challenger,
+                              personal: isDemo ? Self.demoPersonal : stageModels.personal, podModel: isDemo ? nil : stageModels.podModel)
+    }
+    /// Demo mode shows both personal lanes without a trained model behind them.
+    private static let demoPersonal: [StageModelKind: StageChallenger.Availability] = [.logistic: .notBundled, .forest: .notBundled]
+    private var builder: StageDatasetBuilder {
+        StageDatasetBuilder(api: APIBackend.current.createClient(), health: health, side: side, demo: isDemo, challenger: challenger)
+    }
+    /// Cards with personal lanes are cached per night; a new model needs a reload, keyed by its versions.
+    private var personalVersions: String {
+        (StageModelKind.allCases.map { stageModels.card(for: $0)?.version ?? "-" } + [stageModels.podModel?.version ?? "-"]).joined(separator: ",")
     }
 
     var body: some View {
@@ -52,6 +66,7 @@ struct StageComparisonView: View {
                 } else {
                     ProgressView().frame(maxWidth: .infinity).padding(.top, 40)
                 }
+                personalCard
                 modelCard
             }
             .padding(.horizontal, 16)
@@ -74,11 +89,28 @@ struct StageComparisonView: View {
         .sheet(isPresented: $showShare) {
             if let exportURL { ShareSheet(items: [exportURL]) }
         }
+        .sheet(isPresented: Binding(get: { !modelShareItems.isEmpty }, set: { if !$0 { modelShareItems = [] } })) {
+            ShareSheet(items: modelShareItems)
+        }
         .alert("Couldn't export", isPresented: Binding(get: { exportError != nil }, set: { if !$0 { exportError = nil } })) {
             Button("OK", role: .cancel) {}
         } message: { Text(exportError ?? "") }
+        .alert("Training didn't finish", isPresented: Binding(get: { stageModels.trainingError != nil }, set: { if !$0 { stageModels.trainingError = nil } })) {
+            Button("OK", role: .cancel) {}
+        } message: { Text(stageModels.trainingError ?? "") }
         .task { await loadNights() }
-        .task(id: record.id) {
+        .task {
+            guard let kind = DebugRoute.trainStageModel, !isDemo, !stageModels.isTraining, !debugTrainingStarted else { return }
+            debugTrainingStarted = true
+            await stageModels.train(kind, builder: builder)
+        }
+        .onChange(of: personalVersions) { comparisons = [:] }
+        .confirmationDialog("Delete this model?", isPresented: Binding(get: { confirmDelete != nil }, set: { if !$0 { confirmDelete = nil } }),
+                            titleVisibility: .visible) {
+            Button("Delete", role: .destructive) { if let kind = confirmDelete { stageModels.delete(kind) }; confirmDelete = nil }
+            Button("Cancel", role: .cancel) { confirmDelete = nil }
+        } message: { Text("Stages go back to the rules if this model was in use. You can train it again any time.") }
+        .task(id: "\(record.id)-\(personalVersions)") {
             selection = nil
             // Capture the night before awaiting: switching nights cancels this
             // task, and a late result must not be cached, or cached under the new night.
@@ -172,17 +204,31 @@ struct StageComparisonView: View {
             lane("POD (RULES)", blocks: comparison.pod, score: comparison.podScore, comparison: comparison,
                  placeholder: comparison.podError != nil ? "Pod stages unavailable" : comparison.pod.isEmpty ? "No pod stages this night" : nil)
             lane("CHALLENGER MODEL (EXPERIMENTAL)", blocks: model, score: comparison.modelScore, comparison: comparison,
-                 placeholder: modelPlaceholder(comparison), showsTime: true)
+                 placeholder: modelPlaceholder(comparison), showsTime: comparison.personal.isEmpty)
+            ForEach(StageModelKind.allCases) { kind in
+                if let personal = comparison.personal[kind] {
+                    lane(kind.title.uppercased(), blocks: WatchComparison.merged(personal.blocks, maxGap: 0), score: personal.score,
+                         comparison: comparison, placeholder: personal.error.map { "Model unavailable: \($0)" }
+                            ?? (personal.blocks.isEmpty ? "No pod heart rate this night" : nil),
+                         showsTime: comparison.podModel == nil && kind == StageModelKind.allCases.last(where: { comparison.personal[$0] != nil }), isModel: true)
+                }
+            }
+            if let pod = comparison.podModel {
+                lane("POD MODEL · \(stageModels.podModel?.title.uppercased() ?? "")", blocks: WatchComparison.merged(pod.blocks, maxGap: 0), score: pod.score,
+                     comparison: comparison, placeholder: pod.error.map { "Model unavailable: \($0)" } ?? (pod.blocks.isEmpty ? "No pod heart rate this night" : nil),
+                     showsTime: true, isModel: true)
+            }
             legend
         }
         .cardStyle()
     }
 
     private func lane(_ title: String, blocks: [Block], score: StageScore?, comparison: StageComparison,
-                      placeholder: String?, showsTime: Bool = false) -> some View {
+                      placeholder: String?, showsTime: Bool = false, isModel: Bool = false) -> some View {
         VStack(alignment: .leading, spacing: 6) {
-            HStack(alignment: .firstTextBaseline) {
+            HStack(alignment: .firstTextBaseline, spacing: 6) {
                 Eyebrow(title, size: 10)
+                if isModel { StageSourceBadge(.model(""), compact: true) }
                 Spacer(minLength: 8)
                 if let score {
                     Text("κ \(Self.kappaText(score.kappa)) · \(Self.percent(score.accuracy))")
@@ -280,6 +326,10 @@ struct StageComparisonView: View {
                 .font(.mono(10, relativeTo: .caption2)).foregroundStyle(Theme.text3)
                 scoreRow("Pod (rules)", comparison.podScore)
                 scoreRow("Challenger", comparison.modelScore)
+                ForEach(StageModelKind.allCases) { kind in
+                    if let personal = comparison.personal[kind] { scoreRow(kind.title, personal.score) }
+                }
+                if let pod = comparison.podModel { scoreRow(stageModels.podModel?.title ?? "Pod model", pod.score) }
             }
             Text("Scored per 5-minute epoch against the Watch's stage at its midpoint. κ (Cohen's kappa) is 0 at chance and 1 when every epoch agrees.")
                 .font(.footnote).foregroundStyle(Theme.text3).fixedSize(horizontal: false, vertical: true)
@@ -298,6 +348,165 @@ struct StageComparisonView: View {
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(score.map { "\(title): kappa \(Self.kappaText($0.kappa)), accuracy \(Self.percent($0.accuracy)), \($0.epochs) epochs" }
                             ?? "\(title): not scored")
+    }
+
+    // MARK: Personal models
+
+    private var personalCard: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(alignment: .firstTextBaseline, spacing: 8) {
+                Eyebrow("PERSONAL MODELS")
+                StageSourceBadge(.model("Core ML"), compact: false)
+                Spacer()
+            }
+            Text("Trained on this iPhone from your own nights, with the Watch as the label. Scored leave-one-night-out against the Watch, beside the rules and the challenger on the same epochs.")
+                .font(.footnote).foregroundStyle(Theme.text2).fixedSize(horizontal: false, vertical: true)
+            podRow
+            if stageModels.isTraining {
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack {
+                        ProgressView().controlSize(.small)
+                        Text(stageModels.trainingStatus ?? "Training…").font(.subheadline.weight(.semibold)).foregroundStyle(Theme.text1)
+                        Spacer()
+                        Text("\(Int((stageModels.trainingProgress * 100).rounded()))%").font(.mono(12, relativeTo: .caption)).foregroundStyle(Theme.text2)
+                    }
+                    ProgressView(value: stageModels.trainingProgress).tint(Theme.cool)
+                    Text("Reads each night's vitals and movement from the pod and its stages from Health, then fits the model once per held-out night. Keep the app open.")
+                        .font(.footnote).foregroundStyle(Theme.text3).fixedSize(horizontal: false, vertical: true)
+                }
+                .padding(12)
+                .background(Theme.cool.opacity(0.08), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                .accessibilityElement(children: .combine)
+            }
+            if let report = stageModels.lastReport, !stageModels.isTraining { reportCard(report) }
+            ForEach(StageModelKind.allCases) { kind in personalRow(kind) }
+            if !StageTrainer.isAvailable && !isDemo {
+                Text("Training needs an iPhone; the simulator has no Create ML.").font(.footnote).foregroundStyle(Theme.text3)
+            }
+            if isDemo {
+                Text("Demo mode shows synthesized personal lanes; connect a pod and wear your Watch to train real ones.")
+                    .font(.footnote).foregroundStyle(Theme.text3).fixedSize(horizontal: false, vertical: true)
+            }
+        }
+        .cardStyle()
+    }
+
+    /// What the last training run found, in the same κ terms as the lanes above.
+    private func reportCard(_ report: StageTrainingReport) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(alignment: .firstTextBaseline) {
+                Text("Last run · \(report.kind.title.lowercased())").font(.subheadline.weight(.semibold)).foregroundStyle(Theme.text1)
+                Spacer()
+                Text("\(report.nights) nights · \(report.epochs) epochs").font(.mono(11, relativeTo: .caption2)).foregroundStyle(Theme.text3)
+            }
+            Grid(alignment: .leading, horizontalSpacing: 12, verticalSpacing: 6) {
+                GridRow {
+                    Text("").gridColumnAlignment(.leading)
+                    Text("κ").gridColumnAlignment(.trailing)
+                    Text("ACCURACY").gridColumnAlignment(.trailing)
+                    Text("NIGHTS WON").gridColumnAlignment(.trailing)
+                }
+                .font(.mono(10, relativeTo: .caption2)).foregroundStyle(Theme.text3)
+                reportRow(report.kind.title, report.pooled, won: "\(report.nightsWon) of \(report.nights)")
+                reportRow("Pod (rules)", report.rules, won: "")
+                if let challenger = report.challenger { reportRow("Challenger", challenger, won: "") }
+            }
+            let eligible = stageModels.isEligible(report.kind)
+            Text(eligible
+                 ? "Clears the bar: choose it under Settings → On-device analysis → Sleep stages from."
+                 : "Not yet eligible: needs κ \(String(format: "%.2f", StageModelStore.kappaMargin)) above both and a majority of nights won. More Watch nights help most.")
+                .font(.footnote).foregroundStyle(eligible ? Theme.green : Theme.text2).fixedSize(horizontal: false, vertical: true)
+        }
+        .padding(12)
+        .background(Theme.card, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).stroke(Theme.border1, lineWidth: 1))
+    }
+
+    private func reportRow(_ title: String, _ score: StageScore?, won: String) -> some View {
+        GridRow {
+            Text(title).font(.subheadline).foregroundStyle(Theme.text1)
+            Text(Self.kappaText(score?.kappa))
+            Text(score.map { Self.percent($0.accuracy) } ?? "—")
+            Text(won)
+        }
+        .font(.mono(13, relativeTo: .footnote)).foregroundStyle(Theme.text1)
+    }
+
+    /// The model stored on the pod, trained on a Mac in seconds; the phone evaluates it without training.
+    private var podRow: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack(alignment: .firstTextBaseline) {
+                Text("Pod model").font(.subheadline.weight(.semibold)).foregroundStyle(Theme.text1)
+                Spacer()
+                if let model = stageModels.podModel {
+                    Text(model.title.lowercased()).font(.mono(11, relativeTo: .caption2)).foregroundStyle(Theme.text2)
+                    if stageModels.source == .pod { Text("· in use").font(.mono(11, relativeTo: .caption2)).foregroundStyle(Theme.green) }
+                } else {
+                    Text("none").font(.mono(11, relativeTo: .caption2)).foregroundStyle(Theme.text3)
+                }
+            }
+            if let model = stageModels.podModel {
+                Text("Trained on a Mac from the pod's nights (\(model.version)). Leave-one-night-out κ \(Self.kappaText(model.metrics?["lono"]?.kappa)) over \(model.metrics?["lono"]?.nights ?? 0) nights. Choose it under Settings → On-device analysis → Sleep stages from.")
+                    .font(.footnote).foregroundStyle(Theme.text2).fixedSize(horizontal: false, vertical: true)
+            } else {
+                Text(stageModels.podError ?? "Nothing stored on the pod yet. Train on a Mac with scripts/train-personal-models.py and it appears here.")
+                    .font(.footnote).foregroundStyle(stageModels.podError == nil ? Theme.text3 : Theme.amber).fixedSize(horizontal: false, vertical: true)
+            }
+            Button("Refresh from pod", systemImage: "arrow.triangle.2.circlepath") {
+                Task { await stageModels.refreshPodModel(api: APIBackend.current.createClient(), side: side) }
+            }
+            .buttonStyle(.bordered).font(.subheadline).disabled(isDemo)
+        }
+        .padding(.vertical, 4)
+    }
+
+    private func personalRow(_ kind: StageModelKind) -> some View {
+        let card = stageModels.card(for: kind)
+        let eligible = stageModels.isEligible(kind)
+        return VStack(alignment: .leading, spacing: 6) {
+            HStack(alignment: .firstTextBaseline) {
+                Text(kind.title).font(.subheadline.weight(.semibold)).foregroundStyle(Theme.text1)
+                Spacer()
+                if let card {
+                    Text(eligible ? "eligible" : "trained").font(.mono(11, relativeTo: .caption2))
+                        .foregroundStyle(eligible ? Theme.green : Theme.text2)
+                    if stageModels.source.kind == kind {
+                        Text("· in use").font(.mono(11, relativeTo: .caption2)).foregroundStyle(Theme.green)
+                    }
+                    Text(card.trainedAt.map { $0.formatted(.dateTime.month(.abbreviated).day()) } ?? "")
+                        .font(.mono(11, relativeTo: .caption2)).foregroundStyle(Theme.text3)
+                } else {
+                    Text("not trained").font(.mono(11, relativeTo: .caption2)).foregroundStyle(Theme.text3)
+                }
+            }
+            if let metrics = card?.metrics, let lono = metrics.lono {
+                Text("Leave-one-night-out κ \(Self.kappaText(lono.kappa)) over \(lono.nights ?? 0) nights · rules κ \(Self.kappaText(metrics.rules?.kappa))"
+                     + (metrics.challenger?.kappa.map { " · challenger κ \(Self.kappaText($0))" } ?? "")
+                     + " · won \(metrics.nightsWon ?? 0) of \(lono.nights ?? 0)")
+                    .font(.footnote).foregroundStyle(Theme.text2).fixedSize(horizontal: false, vertical: true)
+                if !eligible {
+                    Text("Needs κ at least \(String(format: "%.2f", StageModelStore.kappaMargin)) above both and a majority of nights before it can stage your sleep.")
+                        .font(.footnote).foregroundStyle(Theme.text3).fixedSize(horizontal: false, vertical: true)
+                }
+            }
+            HStack(spacing: 12) {
+                Button(card == nil ? "Train" : "Retrain") {
+                    Haptics.light()
+                    Task { await stageModels.train(kind, builder: builder) }
+                }
+                .buttonStyle(.borderedProminent).tint(Theme.cool)
+                .disabled(stageModels.isTraining || isDemo || !StageTrainer.isAvailable)
+                if card != nil {
+                    Button("Share model", systemImage: "square.and.arrow.up") { modelShareItems = stageModels.shareableFiles(for: kind) }
+                        .buttonStyle(.bordered).disabled(stageModels.isTraining || stageModels.shareableFiles(for: kind).isEmpty)
+                    Button("Delete", role: .destructive) { confirmDelete = kind }
+                        .buttonStyle(.bordered).disabled(stageModels.isTraining)
+                }
+            }
+            .font(.subheadline)
+        }
+        .padding(.vertical, 4)
+        .accessibilityElement(children: .contain)
     }
 
     // MARK: Model card
