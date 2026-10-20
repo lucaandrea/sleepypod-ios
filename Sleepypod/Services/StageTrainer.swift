@@ -17,11 +17,12 @@ enum StageModelKind: String, Codable, CaseIterable, Sendable, Identifiable {
         case .forest: "Personal forest"
         }
     }
-    /// Pinned to sleepypod-core's research script (feat2.py) so the container run and the device fit match.
+    /// Pinned to sleepypod-core's personal-models.py so the Mac run and the device fit match. Depth 8 came from a
+    /// leave-one-night-out sweep on eleven nights (depth 4 κ 0.21, depth 8 κ 0.26; tree count made no difference).
     var hyperparameters: [String: Double] {
         switch self {
         case .logistic: ["maxIterations": 200, "l2Penalty": 0.01]
-        case .forest: ["trees": 200, "maxDepth": 4]
+        case .forest: ["trees": 200, "maxDepth": 8]
         }
     }
 }
