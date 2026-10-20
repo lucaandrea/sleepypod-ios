@@ -87,6 +87,8 @@ enum StageTrainer {
     #endif
 
     static func modelURL(for kind: StageModelKind, in directory: URL) -> URL { directory.appendingPathComponent("\(kind.rawValue).mlmodelc") }
+    /// The editable model spec, kept beside the compiled one so it can be shared with the analysis container.
+    static func specURL(for kind: StageModelKind, in directory: URL) -> URL { directory.appendingPathComponent("\(kind.rawValue).mlmodel") }
     static func cardURL(for kind: StageModelKind, in directory: URL) -> URL { directory.appendingPathComponent("\(kind.rawValue).card.json") }
 
     static func train(dataset: StageDataset, kind: StageModelKind, into directory: URL,
@@ -141,9 +143,9 @@ enum StageTrainer {
         Log.general.notice("Stage trainer: \(kind.rawValue, privacy: .public) final fit on \(dataset.allRows.count) rows")
         status("final fit on \(dataset.allRows.count) rows")
         let rows = dataset.allRows
-        let compiled = try compile(rows: StageDataset.oversampled(rows), columns: columns, kind: kind)
         let fileManager = FileManager.default
         try fileManager.createDirectory(at: directory, withIntermediateDirectories: true)
+        let compiled = try compile(rows: StageDataset.oversampled(rows), columns: columns, kind: kind, keepSpecAt: specURL(for: kind, in: directory))
         let modelURL = modelURL(for: kind, in: directory)
         if fileManager.fileExists(atPath: modelURL.path) { try fileManager.removeItem(at: modelURL) }
         try fileManager.moveItem(at: compiled, to: modelURL)
@@ -260,7 +262,8 @@ enum StageTrainer {
     // MARK: Create ML
 
     #if canImport(CreateML)
-    private static func compile(rows: [StageDataset.LabeledRow], columns: [String], kind: StageModelKind) throws -> URL {
+    /// Trains and compiles; the `.mlmodel` spec is deleted unless `keepSpecAt` names where to keep it.
+    private static func compile(rows: [StageDataset.LabeledRow], columns: [String], kind: StageModelKind, keepSpecAt: URL? = nil) throws -> URL {
         var frame = DataFrame()
         for column in columns {
             frame.append(column: Column(name: column, contents: rows.map { $0.values[column] ?? 0 }))
@@ -281,11 +284,18 @@ enum StageTrainer {
             let model = try MLRandomForestClassifier(trainingData: frame, targetColumn: "stage", parameters: parameters)
             try model.write(to: scratch)
         }
-        defer { try? FileManager.default.removeItem(at: scratch) }
+        defer {
+            if let keepSpecAt {
+                try? FileManager.default.removeItem(at: keepSpecAt)
+                try? FileManager.default.moveItem(at: scratch, to: keepSpecAt)
+            } else {
+                try? FileManager.default.removeItem(at: scratch)
+            }
+        }
         return try MLModel.compileModel(at: scratch)
     }
     #else
-    private static func compile(rows: [StageDataset.LabeledRow], columns: [String], kind: StageModelKind) throws -> URL {
+    private static func compile(rows: [StageDataset.LabeledRow], columns: [String], kind: StageModelKind, keepSpecAt: URL? = nil) throws -> URL {
         throw TrainingError.unavailable
     }
     #endif

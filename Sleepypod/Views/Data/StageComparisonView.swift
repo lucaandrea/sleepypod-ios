@@ -9,6 +9,7 @@ struct StageComparisonView: View {
     let side: Side
     @State private var confirmDelete: StageModelKind?
     @State private var debugTrainingStarted = false
+    @State private var modelShareItems: [URL] = []
     @State private var record: SleepRecord
     @State private var nights: [SleepRecord] = []
     @State private var comparisons: [Int: StageComparison] = [:]
@@ -87,6 +88,9 @@ struct StageComparisonView: View {
         }
         .sheet(isPresented: $showShare) {
             if let exportURL { ShareSheet(items: [exportURL]) }
+        }
+        .sheet(isPresented: Binding(get: { !modelShareItems.isEmpty }, set: { if !$0 { modelShareItems = [] } })) {
+            ShareSheet(items: modelShareItems)
         }
         .alert("Couldn't export", isPresented: Binding(get: { exportError != nil }, set: { if !$0 { exportError = nil } })) {
             Button("OK", role: .cancel) {}
@@ -458,6 +462,8 @@ struct StageComparisonView: View {
                 .buttonStyle(.borderedProminent).tint(Theme.cool)
                 .disabled(stageModels.isTraining || isDemo || !StageTrainer.isAvailable)
                 if card != nil {
+                    Button("Share model", systemImage: "square.and.arrow.up") { modelShareItems = stageModels.shareableFiles(for: kind) }
+                        .buttonStyle(.bordered).disabled(stageModels.isTraining || stageModels.shareableFiles(for: kind).isEmpty)
                     Button("Delete", role: .destructive) { confirmDelete = kind }
                         .buttonStyle(.bordered).disabled(stageModels.isTraining)
                 }

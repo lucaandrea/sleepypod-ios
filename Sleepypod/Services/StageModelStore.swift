@@ -133,8 +133,14 @@ final class StageModelStore {
     /// Folded into Health receipts so switching models rewrites synced nights.
     var activeVersion: String? { active?.version }
 
+    /// The files to hand to the analysis container: the editable spec (when the trainer kept it) and the card.
+    func shareableFiles(for kind: StageModelKind) -> [URL] {
+        [StageTrainer.specURL(for: kind, in: directory), StageTrainer.cardURL(for: kind, in: directory)]
+            .filter { FileManager.default.fileExists(atPath: $0.path) }
+    }
+
     func delete(_ kind: StageModelKind) {
-        for url in [StageTrainer.modelURL(for: kind, in: directory), StageTrainer.cardURL(for: kind, in: directory)] {
+        for url in [StageTrainer.modelURL(for: kind, in: directory), StageTrainer.specURL(for: kind, in: directory), StageTrainer.cardURL(for: kind, in: directory)] {
             try? FileManager.default.removeItem(at: url)
         }
         if source.kind == kind { source = .rules }
