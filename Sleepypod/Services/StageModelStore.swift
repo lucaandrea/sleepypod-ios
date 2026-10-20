@@ -48,8 +48,12 @@ final class StageModelStore {
     private(set) var personal: [StageModelKind: StageChallenger.Availability] = [:]
     private(set) var isTraining = false
     private(set) var trainingKind: StageModelKind?
-    private(set) var trainingProgress: Double = 0
-    private(set) var trainingStatus: String?
+    private(set) var trainingProgress: Double = 0 {
+        didSet { writeTrainingStatus() }
+    }
+    private(set) var trainingStatus: String? {
+        didSet { writeTrainingStatus() }
+    }
     var trainingError: String?
     private(set) var lastReport: StageTrainingReport?
 
@@ -63,6 +67,19 @@ final class StageModelStore {
         source = defaults.string(forKey: "stageSource").flatMap(Source.init) ?? .rules
         contract = defaults.string(forKey: "stageContract").flatMap(StageFeatures.Contract.init) ?? .challenger
         reload()
+    }
+
+    /// A one-line status file beside the models, so a run can be followed from outside the app (the device log
+    /// stream is not always reachable) and a crash mid-run leaves a trace.
+    private func writeTrainingStatus() {
+        let url = directory.appendingPathComponent("training-status.txt")
+        guard isTraining, let kind = trainingKind else {
+            try? FileManager.default.removeItem(at: url)
+            return
+        }
+        let line = "\(Date().formatted(.iso8601)) \(kind.rawValue) \(Int((trainingProgress * 100).rounded()))% \(trainingStatus ?? "")\n"
+        try? FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        try? line.write(to: url, atomically: true, encoding: .utf8)
     }
 
     func reload() {
@@ -147,9 +164,11 @@ final class StageModelStore {
                 self.trainingProgress = total == 0 ? 0 : 0.5 * Double(done) / Double(total)
             }
             trainingStatus = "Training \(kind.title.lowercased())"
-            let result = try await StageTrainer.train(dataset: dataset, kind: kind, into: directory) { fraction in
+            let result = try await StageTrainer.train(dataset: dataset, kind: kind, into: directory, progress: { fraction in
                 Task { @MainActor in self.trainingProgress = 0.5 + 0.5 * fraction }
-            }
+            }, status: { text in
+                Task { @MainActor in self.trainingStatus = "Training \(kind.title.lowercased()): \(text)" }
+            })
             lastReport = result.report
             reload()
             Log.general.info("Trained \(kind.rawValue) on \(result.report.nights) nights, κ \(result.report.pooled?.kappa ?? -1)")

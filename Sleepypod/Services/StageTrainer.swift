@@ -90,18 +90,20 @@ enum StageTrainer {
     static func cardURL(for kind: StageModelKind, in directory: URL) -> URL { directory.appendingPathComponent("\(kind.rawValue).card.json") }
 
     static func train(dataset: StageDataset, kind: StageModelKind, into directory: URL,
-                      progress: @escaping @Sendable (Double) -> Void) async throws -> StageTrainingResult {
+                      progress: @escaping @Sendable (Double) -> Void,
+                      status: @escaping @Sendable (String) -> Void = { _ in }) async throws -> StageTrainingResult {
         guard isAvailable else { throw TrainingError.unavailable }
         if let shortfall = dataset.shortfall { throw TrainingError.notEnoughData(shortfall) }
         return try await Task.detached(priority: .userInitiated) {
-            try fitAndEvaluate(dataset: dataset, kind: kind, directory: directory, progress: progress)
+            try fitAndEvaluate(dataset: dataset, kind: kind, directory: directory, progress: progress, status: status)
         }.value
     }
 
     // MARK: Evaluation and the final fit
 
     private static func fitAndEvaluate(dataset: StageDataset, kind: StageModelKind, directory: URL,
-                                       progress: @escaping @Sendable (Double) -> Void) throws -> StageTrainingResult {
+                                       progress: @escaping @Sendable (Double) -> Void,
+                                       status: @escaping @Sendable (String) -> Void) throws -> StageTrainingResult {
         let columns = dataset.contract.columns
         let folds = dataset.leaveOneNightOut()
         guard folds.allSatisfy({ !$0.training.isEmpty }) else { throw TrainingError.emptyFold }
@@ -111,7 +113,7 @@ enum StageTrainer {
         }
         // A 200-tree Create ML forest takes about two minutes a fold on an iPhone; the folds run one after
         // another (see `concurrentFolds`) and results are collected in fold order.
-        let foldBlocks = try foldPredictions(folds, columns: columns, kind: kind, progress: progress)
+        let foldBlocks = try foldPredictions(folds, columns: columns, kind: kind, progress: progress, status: status)
         var perNight: [StageScore?] = [], rulesPerNight: [StageScore?] = [], challengerPerNight: [StageScore?] = []
         var pooledBlocks: [StageDataset.Block] = [], pooledRules: [StageDataset.Block] = [], pooledChallenger: [StageDataset.Block] = []
         var pooledWatch: [StageDataset.Block] = []
@@ -137,6 +139,7 @@ enum StageTrainer {
 
         // Final fit on every night, installed under the kind's fixed name.
         Log.general.notice("Stage trainer: \(kind.rawValue, privacy: .public) final fit on \(dataset.allRows.count) rows")
+        status("final fit on \(dataset.allRows.count) rows")
         let rows = dataset.allRows
         let compiled = try compile(rows: StageDataset.oversampled(rows), columns: columns, kind: kind)
         let fileManager = FileManager.default
@@ -161,7 +164,8 @@ enum StageTrainer {
 
     /// Each fold's held-out predictions, fitted `concurrentFolds` at a time on a concurrent queue.
     private static func foldPredictions(_ folds: [(heldOut: StageDataset.Night, training: [StageDataset.LabeledRow])], columns: [String],
-                                        kind: StageModelKind, progress: @escaping @Sendable (Double) -> Void) throws -> [[StageDataset.Block]] {
+                                        kind: StageModelKind, progress: @escaping @Sendable (Double) -> Void,
+                                        status: @escaping @Sendable (String) -> Void) throws -> [[StageDataset.Block]] {
         let results = Locked<[Int: Result<[StageDataset.Block], Error>]>([:])
         let done = Locked(0)
         let queue = DispatchQueue(label: "stage-trainer-folds", attributes: .concurrent)
@@ -184,6 +188,7 @@ enum StageTrainer {
                 results.with { $0[index] = result }
                 let finished = done.with { $0 += 1; return $0 }
                 progress(Double(finished) / Double(folds.count + 1))
+                status("fold \(finished) of \(folds.count) fitted in \(Int(Date().timeIntervalSince(started))) s")
             }
         }
         group.wait()
