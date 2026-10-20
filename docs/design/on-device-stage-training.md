@@ -21,9 +21,9 @@ Both are the open-source pair from ojwalch/sleep_classifiers, which the challeng
 | Model | Create ML class | Why |
 |---|---|---|
 | Logistic regression | `MLLogisticRegressionClassifier` | Inspectable weights, hard to overfit on few nights, the paper's baseline |
-| Random forest | `MLRandomForestClassifier` (200 trees, maxDepth 4) | The paper's best; handles the non-linear HR/HRV interactions |
+| Random forest | `MLRandomForestClassifier` (200 trees, maxDepth 8) | The paper's best; handles the non-linear HR/HRV interactions. Depth 8 from a held-out sweep: depth 4 κ 0.21, depth 8 κ 0.26, tree count irrelevant |
 
-Hyperparameters are pinned to sleepypod-core's research script (`docs/research/sleep-stage-calibration/feat2.py`: 200 trees, depth 4) so the container run and the device fit are the same model. These are not the ojwalch defaults, and the bundled challenger was fit with 100 trees; the card records the settings used.
+Hyperparameters are pinned to sleepypod-core's `personal-models.py` (200 trees, depth 8) so the Mac run and the device fit are the same model. These are not the ojwalch defaults, and the bundled challenger was fit with 100 trees; the card records the settings used.
 
 Both compile for iOS 17+ and the app targets iOS 26 (verified with a probe build). Create ML does not exist on the simulator, so training code sits behind `#if canImport(CreateML)` and tests use the `SleepStageClassifying` test double from PR #63. Core ML inference works everywhere.
 
