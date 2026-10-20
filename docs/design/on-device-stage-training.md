@@ -88,6 +88,16 @@ The same two models should be trained off the pod on the same features so on-dev
 
 The container itself was not found in the sleepypod repositories on this Mac; its Dockerfile and the dataset script location need to be added to the research README when this lands.
 
+## The pod as the model hub (added after the first device runs)
+
+On-device training works but is slow and fragile: a Create ML forest takes about two minutes a fold on an iPhone 15 Pro, and iOS suspends the app the moment the phone locks, so a 20-minute run rarely finishes. The same training on an Apple-silicon Mac takes seconds. The pipeline therefore also runs the other way round, and that is the recommended path:
+
+1. **Mac trains.** `scripts/train-personal-models.py` in sleepypod-core snapshots the pod's database, builds the dataset, trains both models on a contract with leave-one-night-out scoring, exports the pod's portable JSON form (forest trees as arrays, logistic as weights, with the feature contract and test vectors), and uploads the better model to the pod. About five seconds.
+2. **Pod stores and scores it.** `PUT /sleep-stages/model` refuses a document that fails its own test vectors; `POST /sleep-stages/model/preview` stages recent nights with it and scores it against the Watch beside the rules.
+3. **Phone fetches and evaluates it.** `PortableStageModel` decodes and validates the same document and evaluates it exactly as the pod's TypeScript and the Python exporter do (checked by a fixture of the Mac-trained logistic model replayed over the synthetic night). It appears as a "Pod model" lane on the Stage models screen and as a "Pod model" choice under Sleep stages from; the Night page refreshes it from the pod on every load.
+
+On-device training stays as the fallback for people without a Mac, since the app is how they control the pod. Still open: the pod using the model as its live classifier, which is pinned to the hashed biometrics manifest through the profile system and needs its own migration.
+
 ## Work breakdown
 
 1. `StageFeatures.swift`: Contract A and B feature computation, shared, pure, with tests against hand-computed rows and the raw-vitals parity fixture. Reuse `StageChallenger.features` for A. Generalise `SleepStageClassifying`, `CoreMLStageClassifier` and `Card.TestVector` to named columns in the same PR, keeping the bundled challenger's tests green.

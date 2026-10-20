@@ -41,6 +41,7 @@
 		3F3CA68DBFC6398C218DB8D0 /* MovementRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9604F6662B2AB6363AECF42A /* MovementRecord.swift */; };
 		415E9841EFC783DCF6A4588A /* SetPointEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 987F4C796A69FBEA5B834DEF /* SetPointEditor.swift */; };
 		44664352D73C4A1AD9CC123A /* ModernizationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F548261B6FA017552631862C /* ModernizationTests.swift */; };
+		447572489568CC64C469DBB1 /* stage-model-logistic.json in Resources */ = {isa = PBXBuildFile; fileRef = 0C0E9B65F03DBAB993E99FFD /* stage-model-logistic.json */; };
 		447C11C4377FF915603C4FC3 /* StageComparison.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAC584FE4474921B48DF9078 /* StageComparison.swift */; };
 		4537E75A1A5822042DB9C8A2 /* Log.swift in Sources */ = {isa = PBXBuildFile; fileRef = 060906F2618180E4E45E29F3 /* Log.swift */; };
 		47254DC4322FC4F3DE0DA3EC /* BetaModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7398AC2DDAE6E48A52F7C413 /* BetaModels.swift */; };
@@ -57,6 +58,7 @@
 		6363D9DF1E8F01CF5B5D7B88 /* SanitizeIPTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2E3176EB2A6FF2F190D09EC5 /* SanitizeIPTests.swift */; };
 		650EC4F1527BA82FBF187755 /* SettingsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68BEE347AC8D43152FFBEE7B /* SettingsManager.swift */; };
 		67DB457E3E2AF5AE9DCB628F /* UserProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = B89A040B405BEF4117A8324F /* UserProfile.swift */; };
+		6C0F81B81592C619E69DCF51 /* PodStageModelStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAB458E75C3B462CF5B29AF9 /* PodStageModelStoreTests.swift */; };
 		6C2843125C47D323DAB695BC /* APIBackend.swift in Sources */ = {isa = PBXBuildFile; fileRef = 295C867DF528905A55668F52 /* APIBackend.swift */; };
 		6C5D7826E1BC087A04338FF2 /* TemperatureDialView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA55E7C1AA8D071C2D7FACA9 /* TemperatureDialView.swift */; };
 		6DA1EE3C5849B0EB53461AF4 /* StageModelStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF96D1D98331EFFC47B48C65 /* StageModelStore.swift */; };
@@ -136,8 +138,10 @@
 		DF9DA11C55532D5F8CFEA48B /* SensorStreamService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81EF4CCF024C14C6F5034605 /* SensorStreamService.swift */; };
 		E14081657D38C6E39C493746 /* MockAPIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BA5BFA567D7FBA54153B602 /* MockAPIClient.swift */; };
 		E393C0FC7B5AA58821E621D9 /* DebugRoute.swift in Sources */ = {isa = PBXBuildFile; fileRef = 926C00E590B52F56707119E3 /* DebugRoute.swift */; };
+		E3F37CF054EAF939155DD257 /* PortableStageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4748383FAE314C9B618AD6E1 /* PortableStageModel.swift */; };
 		E41AEAF67CA5F7801B5A13EB /* Haptics.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5A1999947F6DB7202489B6C /* Haptics.swift */; };
 		E6661819B24B1F3364F913AF /* VitalsReport.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2495028E884905FC457615E /* VitalsReport.swift */; };
+		ECB32894E5D4CE2B77D4F6E3 /* PortableStageModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36CA3E2091E691163F71E3A2 /* PortableStageModelTests.swift */; };
 		ED1BA2E1F213040F5DDAEC30 /* DeviceStatus.swift in Sources */ = {isa = PBXBuildFile; fileRef = BED50F23F24049CF0324CF1B /* DeviceStatus.swift */; };
 		F3F49E79F1F62B7FC77FF54C /* MockClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43F0D2022B6D8AF6E35D4562 /* MockClient.swift */; };
 		F43BB4E4BD6341C7700A6480 /* PhaseBlockView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2EFD212CB1C1A249CAD940C8 /* PhaseBlockView.swift */; };
@@ -176,6 +180,7 @@
 		04710A8ABCD6BE865AA7E37E /* HealthMetricsGridView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthMetricsGridView.swift; sourceTree = "<group>"; };
 		060906F2618180E4E45E29F3 /* Log.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Log.swift; sourceTree = "<group>"; };
 		0A371DFB0E208B673B06EA5F /* StageModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StageModelTests.swift; sourceTree = "<group>"; };
+		0C0E9B65F03DBAB993E99FFD /* stage-model-logistic.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "stage-model-logistic.json"; sourceTree = "<group>"; };
 		0C70BD4A2C786A698DBBD742 /* HeartRateChartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeartRateChartView.swift; sourceTree = "<group>"; };
 		0FCC5EA8D41BF91BCCFDEA6D /* SleepTimeCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SleepTimeCardView.swift; sourceTree = "<group>"; };
 		117825B4438F3E4625CF5034 /* PodSleepStages.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PodSleepStages.swift; sourceTree = "<group>"; };
@@ -199,6 +204,7 @@
 		2F0AFD07A8CB0082733ACB36 /* SleepRecord.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SleepRecord.swift; sourceTree = "<group>"; };
 		30D386CF79858C76A30F9B9E /* TemperatureConversion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemperatureConversion.swift; sourceTree = "<group>"; };
 		3395E1B8972851D74677489D /* DesignSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystem.swift; sourceTree = "<group>"; };
+		36CA3E2091E691163F71E3A2 /* PortableStageModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PortableStageModelTests.swift; sourceTree = "<group>"; };
 		37FC9D8DD1B736AAE87A0FBB /* PiezoSweepTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PiezoSweepTests.swift; sourceTree = "<group>"; };
 		3802A46A93A63E5977A34D19 /* SleepStageChallenger.mlmodel */ = {isa = PBXFileReference; lastKnownFileType = file.mlmodel; path = SleepStageChallenger.mlmodel; sourceTree = "<group>"; };
 		3AEFD648905DE40E74327EF0 /* StageSourceBadge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StageSourceBadge.swift; sourceTree = "<group>"; };
@@ -207,6 +213,7 @@
 		3F6C0F4048FF9E24D4B5CD54 /* ThermalBedTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThermalBedTests.swift; sourceTree = "<group>"; };
 		43F0D2022B6D8AF6E35D4562 /* MockClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockClient.swift; sourceTree = "<group>"; };
 		452905BE65E698AC3C3419A6 /* MovementCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MovementCardView.swift; sourceTree = "<group>"; };
+		4748383FAE314C9B618AD6E1 /* PortableStageModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PortableStageModel.swift; sourceTree = "<group>"; };
 		489B1791FCB967E58E8D40F6 /* SensorFrames.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SensorFrames.swift; sourceTree = "<group>"; };
 		4A8BAD843B5F8A9CD181A2AE /* TempScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TempScreen.swift; sourceTree = "<group>"; };
 		4BE210E5A8FC6945D3DE384C /* ServiceRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServiceRowView.swift; sourceTree = "<group>"; };
@@ -259,6 +266,7 @@
 		A76D36286E623D5618D32EEF /* IBMPlexMono-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "IBMPlexMono-Regular.ttf"; sourceTree = "<group>"; };
 		A81DAC161D7DC4EABA59EEEC /* StageDataset.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StageDataset.swift; sourceTree = "<group>"; };
 		A9FF9D7BA24408A31A5A650C /* DaySelectorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DaySelectorView.swift; sourceTree = "<group>"; };
+		AAB458E75C3B462CF5B29AF9 /* PodStageModelStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PodStageModelStoreTests.swift; sourceTree = "<group>"; };
 		AB34C326BB9C97E9A3E686C6 /* CalibrationSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalibrationSheet.swift; sourceTree = "<group>"; };
 		AB9D4912797C4F2688E60E8A /* BedTempTrendView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BedTempTrendView.swift; sourceTree = "<group>"; };
 		AC39EA7DCB2E1133715215F0 /* IBMPlexMono-Light.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "IBMPlexMono-Light.ttf"; sourceTree = "<group>"; };
@@ -485,6 +493,8 @@
 				1BA5BFA567D7FBA54153B602 /* MockAPIClient.swift */,
 				B5CB2ABDFB609592AB94357C /* ModernizationTests.swift */,
 				37FC9D8DD1B736AAE87A0FBB /* PiezoSweepTests.swift */,
+				AAB458E75C3B462CF5B29AF9 /* PodStageModelStoreTests.swift */,
+				36CA3E2091E691163F71E3A2 /* PortableStageModelTests.swift */,
 				2E3176EB2A6FF2F190D09EC5 /* SanitizeIPTests.swift */,
 				DA2F416C6569A20CE25E7736 /* ScheduleEndActionTests.swift */,
 				DE5C25057170EC9CC2049440 /* SleepAnalyzerTests.swift */,
@@ -539,6 +549,7 @@
 				D3B44F02B272682A83840CA4 /* NotificationRelay.swift */,
 				A4464A41F150702F0C25D231 /* PiezoAnalyzer.swift */,
 				C803665AE72E33B8B50730E9 /* PodDiscovery.swift */,
+				4748383FAE314C9B618AD6E1 /* PortableStageModel.swift */,
 				A0EF147CC5E285EB9FCF9DBB /* ScheduleManager.swift */,
 				81EF4CCF024C14C6F5034605 /* SensorStreamService.swift */,
 				68BEE347AC8D43152FFBEE7B /* SettingsManager.swift */,
@@ -586,6 +597,7 @@
 			isa = PBXGroup;
 			children = (
 				3B286266385ED6B07FE95947 /* stage-features-night.json */,
+				0C0E9B65F03DBAB993E99FFD /* stage-model-logistic.json */,
 			);
 			path = Fixtures;
 			sourceTree = "<group>";
@@ -736,6 +748,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				DC95A99C5E341DE2BAD811D5 /* stage-features-night.json in Resources */,
+				447572489568CC64C469DBB1 /* stage-model-logistic.json in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -753,6 +766,8 @@
 				E14081657D38C6E39C493746 /* MockAPIClient.swift in Sources */,
 				71C68D220DF59FEB219D0245 /* ModernizationTests.swift in Sources */,
 				7E1137EA20C8AB5375B21EEA /* PiezoSweepTests.swift in Sources */,
+				6C0F81B81592C619E69DCF51 /* PodStageModelStoreTests.swift in Sources */,
+				ECB32894E5D4CE2B77D4F6E3 /* PortableStageModelTests.swift in Sources */,
 				6363D9DF1E8F01CF5B5D7B88 /* SanitizeIPTests.swift in Sources */,
 				CA8A50DDD41F09B8AEA62585 /* ScheduleEndActionTests.swift in Sources */,
 				CD014B9CEE2C262CDD2637B5 /* SleepAnalyzerTests.swift in Sources */,
@@ -825,6 +840,7 @@
 				0911824544AF401433A9DC43 /* PiezoWaveformView.swift in Sources */,
 				AF368CE52344A599C020EA68 /* PodDiscovery.swift in Sources */,
 				8EF882F66EFB7BDE9090E767 /* PodSleepStages.swift in Sources */,
+				E3F37CF054EAF939155DD257 /* PortableStageModel.swift in Sources */,
 				1C1212D4AE1E9773A795BCD8 /* PresenceHeatmapView.swift in Sources */,
 				D45FD73FE3DE25E49C9FAD2D /* PrimingIndicator.swift in Sources */,
 				A723A40EBCB30E4352F9D4B1 /* ProfilePickerView.swift in Sources */,

@@ -140,7 +140,7 @@ struct SleepScreen: View {
         if let record {
             SleepSummaryCardView(record: record, score: analyzer.qualityScore)
             SleepStagesTimelineView(stages: analyzer.stages, qualityScore: analyzer.qualityScore,
-                                    source: analyzer.source, modelName: stageModels.active?.kind.title)
+                                    source: analyzer.source, modelName: stageModels.active?.title)
             vitalsLayout {
                 vital("HR", unit: "bpm", key: \.heartRate, decimals: 0, icon: "heart", color: Theme.red)
                 vital("HRV", unit: "ms", key: \.hrv, decimals: 0, icon: "waveform.path.ecg", color: Theme.cool)
@@ -443,6 +443,7 @@ struct SleepScreen: View {
         let weekStart = calendar.startOfWeek(for: selectedDate)
         if metrics.selectedWeekStart != weekStart { metrics.selectedWeekStart = weekStart }
         await metrics.fetchAll()
+        if !isDemo { await stageModels.refreshPodModel(api: APIBackend.current.createClient(), side: metrics.selectedSide) }
         let calibration = try? await APIBackend.current.createClient().getCalibrationStatus(side: metrics.selectedSide)
         analyzer.analyze(vitals: vitals, movement: metrics.movementRecords, calibrationQuality: calibration?.piezo?.qualityScore ?? 0,
                          model: record.flatMap { stageModels.staging(enteredBed: $0.enteredBedDate, leftBed: $0.leftBedDate) })

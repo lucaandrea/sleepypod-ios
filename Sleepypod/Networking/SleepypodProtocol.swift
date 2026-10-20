@@ -50,6 +50,8 @@ protocol SleepypodProtocol: Sendable {
 
     // The pod's rule-based stages for one record (sleepypod-core biometrics.getSleepStages)
     func getSleepStages(side: Side, sleepRecordId: Int) async throws -> PodSleepStages
+    // The personal stage model stored on the pod for a side, trained on a Mac (sleepypod-core sleepStages.getModel)
+    func getStageModel(side: Side) async throws -> PodStageModelResponse
 }
 
 struct CalibrationTriggerResponse: Decodable, Sendable {
@@ -72,4 +74,5 @@ extension SleepypodProtocol {
         throw URLError(.unsupportedURL)
     }
     func getSleepStages(side: Side, sleepRecordId: Int) async throws -> PodSleepStages { throw URLError(.unsupportedURL) }
+    func getStageModel(side: Side) async throws -> PodStageModelResponse { throw URLError(.unsupportedURL) }
 }

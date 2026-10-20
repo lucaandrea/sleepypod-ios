@@ -70,6 +70,8 @@ struct StageComparison: Sendable {
     let modelScore: StageScore?
     /// The personal models' lanes, by kind; absent when that model is not trained.
     var personal: [StageModelKind: PersonalLane] = [:]
+    /// The pod's stored model run over the night, when one is loaded.
+    var podModel: PersonalLane?
 
     struct PersonalLane: Sendable, Equatable {
         let blocks: [Block]
@@ -203,6 +205,19 @@ extension StageComparison {
         }
     }
 
+    /// The pod's portable model over a night's vitals, scored like the others.
+    static func podLane(_ model: PortableStageModel, enteredBed: Date, leftBed: Date, vitals: [VitalsRecord],
+                        movement: [MovementRecord], watch: [Block]) -> PersonalLane {
+        guard let contract = model.contract else { return PersonalLane(blocks: [], score: nil, error: "Unknown feature contract", version: model.version) }
+        do {
+            let rows = StageFeatures.rows(contract: contract, enteredBed: enteredBed, leftBed: leftBed, vitals: vitals, movement: movement)
+            let blocks = try StageChallenger.classify(rows, with: PortableStageClassifier(model: model))
+            return PersonalLane(blocks: blocks, score: StageScore.score(blocks, reference: watch), error: nil, version: model.version)
+        } catch {
+            return PersonalLane(blocks: [], score: nil, error: error.localizedDescription, version: model.version)
+        }
+    }
+
     /// Demo mode's stand-in for a trained model: the demo Watch with every sixth block nudged to a neighbour.
     static func demoPersonalLane(kind: StageModelKind, watch: [Block]) -> PersonalLane {
         let blocks = watch.enumerated().map { index, block -> Block in
@@ -323,6 +338,8 @@ struct StageComparisonLoader {
     let challenger: StageChallenger.Availability
     /// Trained personal models to run beside the challenger.
     var personal: [StageModelKind: StageChallenger.Availability] = [:]
+    /// The pod's stored model, if the store holds a valid one.
+    var podModel: PortableStageModel?
 
     /// How far either side of the bed window Watch samples are read, so a Watch night that starts early still shows whole.
     static let watchMargin: TimeInterval = 3 * 3600
@@ -343,7 +360,7 @@ struct StageComparisonLoader {
         var status: StageComparison.ModelStatus
         var vitals: [VitalsRecord] = [], movement: [MovementRecord] = []
         var signalsError: String?
-        if challenger.classifier != nil || !personal.isEmpty {
+        if challenger.classifier != nil || !personal.isEmpty || podModel != nil {
             do {
                 // Outlier-filtered, as the dataset builder trains on and the analyzer infers on; a spike would
                 // otherwise shift every z-scored feature and the lane would not reproduce the card's κ.
@@ -386,6 +403,10 @@ struct StageComparisonLoader {
         }
         var comparison = StageComparison.build(enteredBed: enteredBed, leftBed: leftBed, watch: watch, pod: pod, podError: podError,
                                                model: model, modelStatus: status)
+        if let stored = podModel, !demo {
+            comparison.podModel = signalsError.map { StageComparison.PersonalLane(blocks: [], score: nil, error: $0, version: stored.version) }
+                ?? StageComparison.podLane(stored, enteredBed: enteredBed, leftBed: leftBed, vitals: vitals, movement: movement, watch: watch)
+        }
         for (kind, availability) in personal {
             if demo {
                 comparison.personal[kind] = StageComparison.demoPersonalLane(kind: kind, watch: watch)

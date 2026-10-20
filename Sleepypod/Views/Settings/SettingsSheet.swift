@@ -328,12 +328,7 @@ struct SidesSettingsView: View {
 struct AnalysisInventoryView: View {
     @Environment(StageModelStore.self) private var stageModels
 
-    private func sourceTitle(_ source: StageModelStore.Source) -> String {
-        switch source {
-        case .rules: "Rules"
-        case .personalLogistic, .personalForest: source.title
-        }
-    }
+    private func sourceTitle(_ source: StageModelStore.Source) -> String { source.title }
 
     var body: some View {
         @Bindable var stageModels = stageModels
@@ -344,7 +339,13 @@ struct AnalysisInventoryView: View {
                         Menu {
                             // A menu picker ignores disabled rows, so ineligible models are left out of it.
                             Picker("Sleep stages from", selection: $stageModels.source) {
-                                ForEach(StageModelStore.Source.allCases.filter { $0.kind.map(stageModels.isEligible) ?? true }) { source in
+                                ForEach(StageModelStore.Source.allCases.filter { source in
+                                    switch source {
+                                    case .rules: true
+                                    case .pod: stageModels.podModel != nil
+                                    case .personalLogistic, .personalForest: source.kind.map(stageModels.isEligible) ?? false
+                                    }
+                                }) { source in
                                     Label(source.title, systemImage: source.symbol).tag(source)
                                 }
                             }
@@ -358,6 +359,11 @@ struct AnalysisInventoryView: View {
                             }
                         }
                         .accessibilityLabel("Sleep stages from, \(sourceTitle(stageModels.source))")
+                        SettingsRow("Pod model", subtitle: stageModels.podModel.map { "\($0.title) · κ \($0.metrics?["lono"]?.kappa.map { String(format: "%.2f", $0) } ?? "—") held out" }
+                                        ?? (stageModels.podError ?? "None stored on the pod; train one on a Mac"),
+                                    icon: "server.rack", iconColor: Theme.cool, tile: true, height: 56) {
+                            RowValue(stageModels.podModel?.version.split(separator: "-").last.map(String.init) ?? "—", mono: true)
+                        }
                         ForEach(StageModelKind.allCases) { kind in
                             SettingsRow(kind.title, subtitle: stageModels.card(for: kind).map { card in
                                 "κ \(card.metrics?.lono?.kappa.map { String(format: "%.2f", $0) } ?? "—") · \(stageModels.isEligible(kind) ? "eligible" : "not yet eligible")"
@@ -372,7 +378,7 @@ struct AnalysisInventoryView: View {
                 GroupedSection("ON THIS iPHONE") {
                     GroupedCard {
                         SettingsRow("Stage model", icon: stageModels.source.symbol, tile: true) {
-                            RowValue(stageModels.active.map { "Core ML · \($0.kind.rawValue)" } ?? "rule-based", mono: true)
+                            RowValue(stageModels.active.map { $0.kind == nil ? "pod · \($0.title.lowercased())" : "Core ML · \($0.title.lowercased())" } ?? "rule-based", mono: true)
                         }
                         SettingsRow("Runs", icon: "iphone", tile: true) { RowValue("On device") }
                         SettingsRow("Challenger model", subtitle: "Experimental, for comparison only", icon: "flask", tile: true, height: 56) {

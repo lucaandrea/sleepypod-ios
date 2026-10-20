@@ -12,18 +12,26 @@ final class StageModelStore {
         case rules
         case personalLogistic
         case personalForest
+        /// The model stored on the pod, trained on a Mac; fetched, validated and evaluated here.
+        case pod
 
         var id: String { rawValue }
         var kind: StageModelKind? {
             switch self {
-            case .rules: nil
+            case .rules, .pod: nil
             case .personalLogistic: .logistic
             case .personalForest: .forest
             }
         }
-        var title: String { kind?.title ?? "Rules" }
+        var title: String {
+            switch self {
+            case .rules: "Rules"
+            case .pod: "Pod model"
+            case .personalLogistic, .personalForest: kind?.title ?? rawValue
+            }
+        }
         /// A model badge for the UI: a brain for a trained model, a list for hand-written thresholds.
-        var symbol: String { kind == nil ? "list.bullet.rectangle" : "brain" }
+        var symbol: String { self == .rules ? "list.bullet.rectangle" : "brain" }
 
         static func forKind(_ kind: StageModelKind) -> Source {
             switch kind {
@@ -46,6 +54,10 @@ final class StageModelStore {
         didSet { persistence.set(contract.rawValue, forKey: "stageContract") }
     }
     private(set) var personal: [StageModelKind: StageChallenger.Availability] = [:]
+    /// The pod's stored model after validation, and why there is none.
+    private(set) var podModel: PortableStageModel?
+    private(set) var podError: String?
+    private(set) var podFetchedAt: Date?
     private(set) var isTraining = false
     private(set) var trainingKind: StageModelKind?
     private(set) var trainingProgress: Double = 0 {
@@ -98,6 +110,32 @@ final class StageModelStore {
         if let kind = source.kind, !isEligible(kind) { source = .rules }
     }
 
+    /// Reads the side's model from the pod. A document that fails validation is refused and reported, and the
+    /// source falls back to the rules if it was the pod.
+    func refreshPodModel(api: SleepypodProtocol, side: Side) async {
+        do {
+            let response = try await api.getStageModel(side: side)
+            podFetchedAt = Date()
+            guard let model = response.model else {
+                podModel = nil
+                podError = nil
+                if source == .pod { source = .rules }
+                return
+            }
+            try model.validate()
+            podModel = model
+            podError = nil
+            Log.general.notice("Pod stage model \(model.version, privacy: .public) loaded, \(model.kind, privacy: .public)")
+        } catch {
+            podModel = nil
+            podError = error.localizedDescription
+            if source == .pod { source = .rules }
+            Log.general.error("Pod stage model unavailable: \(error.localizedDescription, privacy: .public)")
+        }
+    }
+
+    var podClassifier: (any SleepStageClassifying)? { podModel.map { PortableStageClassifier(model: $0) } }
+
     func card(for kind: StageModelKind) -> StageChallenger.Card? { personal[kind]?.card }
     func classifier(for kind: StageModelKind) -> (any SleepStageClassifying)? { personal[kind]?.classifier }
 
@@ -119,10 +157,14 @@ final class StageModelStore {
     }
 
     /// The classifier the app's stages come from, when the setting names an eligible, loaded model.
-    var active: (kind: StageModelKind, classifier: any SleepStageClassifying, contract: StageFeatures.Contract, version: String)? {
+    var active: (kind: StageModelKind?, title: String, classifier: any SleepStageClassifying, contract: StageFeatures.Contract, version: String)? {
+        if source == .pod {
+            guard let model = podModel, let contract = model.contract else { return nil }
+            return (nil, model.title, PortableStageClassifier(model: model), contract, model.version)
+        }
         guard let kind = source.kind, isEligible(kind), let card = card(for: kind), let classifier = classifier(for: kind),
               let contract = StageFeatures.Contract.matching(card.columns) else { return nil }
-        return (kind, classifier, contract, card.version)
+        return (kind, kind.title, classifier, contract, card.version)
     }
 
     /// What `SleepAnalyzer.analyze` needs to stage a night with the active model.
