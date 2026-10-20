@@ -315,9 +315,15 @@ final class HealthSyncService {
                     let movement = try await api.getMovement(side: side, start: record.enteredBedDate, end: record.leftBedDate)
                     let calibration = try? await api.getCalibrationStatus(side: side)
                     let analyzer = SleepAnalyzer()
+                    // One snapshot of the active model per night: it stages the night and names the receipt. If the
+                    // analyzer fell back to the rules, the receipt says so, and the night is retried next sync.
+                    let activeModel = stageModels?.active
+                    let staging = activeModel.map {
+                        SleepAnalyzer.ModelStaging(classifier: $0.classifier, contract: $0.contract, enteredBed: record.enteredBedDate, leftBed: record.leftBedDate)
+                    }
                     analyzer.analyze(vitals: vitals.filter { $0.side == side.rawValue && $0.date >= record.enteredBedDate && $0.date < record.leftBedDate },
-                                     movement: movement, calibrationQuality: calibration?.piezo?.qualityScore ?? 0,
-                                     model: stageModels?.staging(enteredBed: record.enteredBedDate, leftBed: record.leftBedDate))
+                                     movement: movement, calibrationQuality: calibration?.piezo?.qualityScore ?? 0, model: staging)
+                    let stagedBy = analyzer.source == .model ? activeModel?.version : nil
                     let filtered = analyzer.filterOutliers(vitals: vitals.filter { $0.side == side.rawValue && $0.date >= record.enteredBedDate && $0.date < record.leftBedDate })
                     guard !Task.isCancelled, enabled, preferences == requestedPreferences else { return false }
                     guard !filtered.isEmpty, !preferences.sleep || !analyzer.stages.isEmpty else {
@@ -332,7 +338,8 @@ final class HealthSyncService {
                     // Save first, then drop whatever this write didn't replace, so a failed save never empties the night.
                     try await store.delete(types: writeTypes, deviceID: deviceID, start: clearStart, end: clearEnd, olderThan: version)
                     Log.health.info("Saved \(samples.count, privacy: .private) samples to Health")
-                    receipts[key] = Receipt(date: Date(), signature: receiptSignature(requestedPreferences), closedAt: record.leftBedDate, enteredAt: record.enteredBedDate)
+                    receipts[key] = Receipt(date: Date(), signature: Self.receiptSignature(requestedPreferences, model: stagedBy),
+                                            closedAt: record.leftBedDate, enteredAt: record.enteredBedDate)
                     failures[key] = nil
                     persistence.set(try JSONEncoder().encode(receipts), forKey: "healthSyncReceipts")
                 } catch {

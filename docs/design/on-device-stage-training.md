@@ -82,7 +82,7 @@ Success criteria for a model to become eligible as the live classifier: pooled l
 The same two models should be trained off the pod on the same features so on-device results can be cross-checked:
 
 - Dataset: the per-minute pairing of Watch stages and pod vitals from `sleepypod-core/docs/research/sleep-stage-calibration` (pod DB snapshot plus Health export, or `--from-db` after `import-watch-health.py`).
-- Models: scikit-learn `LogisticRegression` and `RandomForestClassifier` with the ojwalch/sleep_classifiers settings, over Contract A and Contract B features computed by a port of the Swift feature code. Leave-one-night-out, κ and confusion per night, same as on device.
+- Models: scikit-learn `LogisticRegression` and `RandomForestClassifier` with the hyperparameters pinned above (200 trees, depth 4; 200 iterations, L2 0.01), over Contract A and Contract B features computed by a port of the Swift feature code. Leave-one-night-out, κ and confusion per night, same as on device.
 - Parity check, two halves. Conversion: convert each with coremltools to `.mlmodel`, generate card test vectors, and confirm the iOS `CoreMLStageClassifier` reproduces the container's predictions on those vectors; a mismatch there is the converter. Features: a fixture of one night's raw vitals and movement plus the feature rows the Python port computes from it, checked against the Swift feature type in a unit test; a mismatch there is the feature contract.
 - Output: a card JSON in the challenger schema per model, so a container-trained model could also be bundled as a second challenger if it beats the personal one.
 
@@ -105,6 +105,6 @@ Each of 1–4 is its own PR with tests; 5 and 6 can ship together once 4 is in.
 - Few nights: nine today. Logistic is the safer first result; the forest needs 15–20 nights before its κ stabilises. The UI shows per-night κ so a lucky pooled number is visible as such.
 - Label noise: the Watch is the reference, not the truth. The eligibility bar is relative to the rules and the challenger, not absolute.
 - Class imbalance and short bed sessions: skipped below 2 h of Watch sleep; oversampled rare classes.
-- Battery and time: seconds for these sizes, foreground only, never on background refresh.
+- Battery and time: about 25 minutes for a forest run on eleven nights (logistic takes about a minute), foreground only with the screen kept awake, never on background refresh.
 - Privacy: all training and inference on the phone; the export stays de-identified; Health times and source names are logged private.
 - Breathing rate may still be constant on older pod firmware even though core#172 is resolved; the plan does not depend on it.

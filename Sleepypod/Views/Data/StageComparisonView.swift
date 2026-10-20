@@ -106,7 +106,7 @@ struct StageComparisonView: View {
             Button("Delete", role: .destructive) { if let kind = confirmDelete { stageModels.delete(kind) }; confirmDelete = nil }
             Button("Cancel", role: .cancel) { confirmDelete = nil }
         } message: { Text("Stages go back to the rules if this model was in use. You can train it again any time.") }
-        .task(id: record.id) {
+        .task(id: "\(record.id)-\(personalVersions)") {
             selection = nil
             // Capture the night before awaiting: switching nights cancels this
             // task, and a late result must not be cached, or cached under the new night.
