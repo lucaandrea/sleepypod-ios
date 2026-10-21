@@ -24,6 +24,8 @@ struct HealthAccessView: View {
                     Text("Sync with Apple Health").font(.system(size: titleSize, weight: .bold)).tracking(-0.5)
                     Text("Each morning, last night's sleep and vitals are written to Health. Stage analysis runs on this iPhone.")
                         .font(.subheadline).foregroundStyle(Theme.text2).lineSpacing(3)
+                    Text("Your Health data stays on this iPhone. sleepypod has no server: nothing you allow here is uploaded to the pod, to iCloud or to anyone else. The pod's own readings are fetched to this iPhone for the comparison.")
+                        .font(.footnote).foregroundStyle(Theme.text2).lineSpacing(3)
                 }
                 .padding(.horizontal, 8)
                 VStack(alignment: .leading, spacing: 16) {

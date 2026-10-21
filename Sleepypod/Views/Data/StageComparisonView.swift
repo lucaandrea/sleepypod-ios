@@ -158,7 +158,7 @@ struct StageComparisonView: View {
 
     private var healthAccessCard: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text("Allow sleepypod to read Sleep in Apple Health to compare with your Watch.")
+            Text("Allow sleepypod to read Sleep in Apple Health to compare with your Watch. The comparison runs on this iPhone; your Health data is never uploaded.")
                 .font(.subheadline).foregroundStyle(Theme.text1).fixedSize(horizontal: false, vertical: true)
             NavigationLink { HealthAccessView() } label: {
                 Text("Set up Apple Health").font(.subheadline.weight(.semibold)).foregroundStyle(Theme.red)
