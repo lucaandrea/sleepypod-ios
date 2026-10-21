@@ -72,7 +72,7 @@ DEMO badge. The `-uiRoute` and `-tempControl` arguments choose the screen:
 | `05-sleep-night` | `-uiRoute sleep` (last night: stages, HR, HRV, breathing) |
 | `06-sleep-week` | `-uiRoute weektrend` (Week, scrolled to the Watch agreement trend) |
 | `07-apple-watch` | `-uiRoute watch` (Compare with Apple Watch) |
-| `08-apple-health` | `-uiRoute onboard3 -apiBackend sleepypod-core -onboardingComplete NO` (Health step of setup) |
+| `08-apple-health` | `-uiRoute health` (Settings, Apple Health) |
 
 The `uiRoute` and `marketingCapture` hooks are compiled out of Release builds;
 the other arguments override existing app preferences for this capture launch. Demo vitals are

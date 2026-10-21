@@ -36,9 +36,7 @@ SHOTS = [
     ('05-sleep-night', {'uiRoute': 'sleep'}),
     ('06-sleep-week', {'uiRoute': 'weektrend'}),
     ('07-apple-watch', {'uiRoute': 'watch'}),
-    # Health onboarding needs a non-demo backend; it never connects before step 3 finishes.
-    ('08-apple-health', {'uiRoute': 'onboard3', 'apiBackend': 'sleepypod-core', 'onboardingComplete': 'NO',
-                         'podIPAddress': ''}),
+    ('08-apple-health', {'uiRoute': 'health'}),
 ]
 # (output name, MarketingTour test, allowed seconds). App Store previews must run 15–30 s;
 # the walkthrough is for the web and social, so it is longer than App Store Connect accepts.

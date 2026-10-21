@@ -120,6 +120,21 @@ private final class FakeHealthStore: HealthSyncStore {
 @Suite("Health sync lifecycle")
 @MainActor
 struct HealthSyncLifecycleTests {
+    @Test func deniedAccessIsOnlyReportedAfterARefusalOnAnAvailableStore() async {
+        let store = FakeHealthStore()
+        let defaults = UserDefaults(suiteName: "health-tests-\(UUID().uuidString)")!
+        let service = HealthSyncService(store: store, defaults: defaults)
+        #expect(!service.authorizationDenied)
+        store.allowed = false
+        #expect(service.authorizationDenied)
+        store.available = false
+        #expect(!service.authorizationDenied, "nothing to open in Settings where Health does not exist")
+        store.available = true
+        service.preferences.sleep = false; service.preferences.heartRate = false
+        service.preferences.hrv = false; service.preferences.respiration = false
+        #expect(!service.authorizationDenied, "no write types means no sheet was ever refused")
+    }
+
     @Test func selectedTypesOnlyAndDemoNeverWrites() async {
         let store = FakeHealthStore()
         let defaults = UserDefaults(suiteName: "health-tests-\(UUID().uuidString)")!
