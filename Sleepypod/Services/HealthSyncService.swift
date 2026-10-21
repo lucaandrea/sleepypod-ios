@@ -11,8 +11,9 @@ protocol HealthSyncStore {
     func authorize(write: Set<HKSampleType>, read: Set<HKObjectType>) async throws
     func save(_ samples: [HKSample]) async throws
     func delete(types: Set<HKSampleType>, deviceID: String, start: Date, end: Date, olderThan version: Int?) async throws
-    func sleepSamples(start: Date, end: Date) async -> [HKCategorySample]
-    func quantitySamples(_ type: HKQuantityTypeIdentifier, start: Date, end: Date) async -> [HKQuantitySample]
+    func deleteAll(types: Set<HKSampleType>, olderThan version: Int) async throws
+    func sleepSamples(start: Date, end: Date) async throws -> [HKCategorySample]
+    func quantitySamples(_ type: HKQuantityTypeIdentifier, start: Date, end: Date) async throws -> [HKQuantitySample]
 }
 
 @MainActor
@@ -40,11 +41,21 @@ final class SystemHealthSyncStore: HealthSyncStore {
             _ = try await store.deleteObjects(of: type, predicate: predicate)
         }
     }
-    func sleepSamples(start: Date, end: Date) async -> [HKCategorySample] {
-        await HealthSyncService.querySleepSamples(store: store, start: start, end: end)
+    // Every pod, side and night this app wrote before `version`.
+    func deleteAll(types: Set<HKSampleType>, olderThan version: Int) async throws {
+        let predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [
+            HKQuery.predicateForObjects(from: .default()),
+            HKQuery.predicateForObjects(withMetadataKey: HKMetadataKeySyncVersion, operatorType: .lessThan, value: version)
+        ])
+        for type in types {
+            _ = try await store.deleteObjects(of: type, predicate: predicate)
+        }
     }
-    func quantitySamples(_ type: HKQuantityTypeIdentifier, start: Date, end: Date) async -> [HKQuantitySample] {
-        await HealthSyncService.querySamples(store: store, type: HKQuantityType(type), start: start, end: end)
+    func sleepSamples(start: Date, end: Date) async throws -> [HKCategorySample] {
+        try await HealthSyncService.querySamples(store: store, type: HKCategoryType(.sleepAnalysis), start: start, end: end)
+    }
+    func quantitySamples(_ type: HKQuantityTypeIdentifier, start: Date, end: Date) async throws -> [HKQuantitySample] {
+        try await HealthSyncService.querySamples(store: store, type: HKQuantityType(type), start: start, end: end)
     }
 }
 
@@ -87,7 +98,12 @@ final class HealthSyncService {
     private(set) var receipts: [String: Receipt]
     private(set) var failures: [String: String] = [:]
     private(set) var isSyncing = false
+    private(set) var rebuildProgress: (done: Int, total: Int)?
     var authorizationError: String?
+    /// Personal stage models; when one is active, synced nights are staged by it and its version is in the receipt.
+    weak var stageModels: StageModelStore?
+    /// The last HealthKit read failure, so the Watch page can say why it is empty instead of showing a generic message.
+    private(set) var readError: String?
     private let store: any HealthSyncStore
     private let persistence: UserDefaults
 
@@ -98,6 +114,9 @@ final class HealthSyncService {
         receipts = defaults.data(forKey: "healthSyncReceipts").flatMap { try? JSONDecoder().decode([String: Receipt].self, from: $0) } ?? [:]
         enabled = defaults.bool(forKey: "healthSyncEnabled")
     }
+
+    static let allWriteTypes: [HKSampleType] = [HKCategoryType(.sleepAnalysis), HKQuantityType(.heartRate),
+                                                HKQuantityType(.heartRateVariabilitySDNN), HKQuantityType(.respiratoryRate)]
 
     var writeTypes: Set<HKSampleType> {
         var types: Set<HKSampleType> = []
@@ -119,6 +138,11 @@ final class HealthSyncService {
 
     var hasWriteAuthorization: Bool {
         enabled && writeTypes.contains { store.authorizationStatus(for: $0) == .sharingAuthorized }
+    }
+
+    /// The user refused every write type on the Health sheet; iOS will not show it again.
+    var authorizationDenied: Bool {
+        store.available && !writeTypes.isEmpty && writeTypes.allSatisfy { store.authorizationStatus(for: $0) == .sharingDenied }
     }
 
     func requestAuthorization() async -> Bool {
@@ -146,7 +170,12 @@ final class HealthSyncService {
     /// Bump when the samples written for a night change, so every synced night is rewritten once.
     /// v2: full-night vitals (previously truncated to the last 288 rows), capped and fragment records dropped.
     static let syncVersion = 2
-    static func receiptSignature(_ preferences: Preferences) -> String { "v\(syncVersion)-\(preferences.signature)" }
+    static func receiptSignature(_ preferences: Preferences, model: String? = nil) -> String {
+        "v\(syncVersion)-a\(SleepAnalyzer.version)-m\(model ?? "rules")-\(preferences.signature)"
+    }
+    func receiptSignature(_ preferences: Preferences) -> String {
+        Self.receiptSignature(preferences, model: stageModels?.activeVersion)
+    }
 
     /// The pod force-closes a session after 16 h (MAX_SESSION_S in sleep-detector); those are stuck presence, not sleep.
     static let maxSessionDuration: TimeInterval = 16 * 3600
@@ -160,7 +189,7 @@ final class HealthSyncService {
         guard enabled, !writeTypes.isEmpty,
               writeTypes.allSatisfy({ store.authorizationStatus(for: $0) == .sharingAuthorized }),
               let receipt = receipts[Self.recordKey(podID: podID, record: record)],
-              receipt.signature == Self.receiptSignature(preferences), receipt.closedAt == record.leftBedDate, receipt.enteredAt == record.enteredBedDate else { return nil }
+              receipt.signature == receiptSignature(preferences), receipt.closedAt == record.leftBedDate, receipt.enteredAt == record.enteredBedDate else { return nil }
         return receipt
     }
 
@@ -193,24 +222,86 @@ final class HealthSyncService {
         Log.health.info("Background Health sync finished")
     }
 
+    static let recentDays = 7
+    static let rebuildDays = 90
+
     func syncRecent(api: SleepypodProtocol, podID: String, side: Side, demo: Bool) async {
         guard enabled, !demo, !isSyncing, !podID.isEmpty, store.available, !writeTypes.isEmpty else { return }
         isSyncing = true
         defer { isSyncing = false }
+        _ = await sync(api: api, podID: podID, side: side, days: Self.recentDays)
+    }
+
+    /// Rewrites the last `rebuildDays` nights with the current analysis, then deletes everything else
+    /// sleepypod ever wrote to Health. Each night is saved before its older samples go, and the final
+    /// sweep runs only once every night was handled, so a rebuild that stops partway (pod offline,
+    /// phone locked) leaves the earlier data in place instead of emptying Health.
+    func rebuild(api: SleepypodProtocol, podID: String, side: Side, demo: Bool) async -> Bool {
+        guard enabled, !demo, !isSyncing, !podID.isEmpty, store.available, !writeTypes.isEmpty else { return false }
+        isSyncing = true
+        rebuildProgress = (0, 0)
+        defer { isSyncing = false; rebuildProgress = nil }
+        let version = Int(Date().timeIntervalSince1970 * 1000)
+        receipts = [:]
+        failures = [:]
+        persistence.removeObject(forKey: "healthSyncReceipts")
+        guard await sync(api: api, podID: podID, side: side, days: Self.rebuildDays) else { return false }
+        // Types switched off since an earlier sync may still hold samples; only granted types can be deleted.
+        let types = Set(Self.allWriteTypes.filter { store.authorizationStatus(for: $0) == .sharingAuthorized })
+        do {
+            try await store.deleteAll(types: types, olderThan: version)
+            Log.health.info("Rebuilt Health data")
+            return true
+        } catch {
+            authorizationError = error.localizedDescription
+            Log.health.error("Health rebuild cleanup failed: \(error.localizedDescription, privacy: .public)")
+            return false
+        }
+    }
+
+    /// The core returns at most 30 records per request by default, so long windows are fetched a week at a time,
+    /// and a week that hits the cap (fragmented nights) is fetched again a day at a time.
+    nonisolated static let recordsPageLimit = 30
+    static func sleepRecords(api: SleepypodProtocol, side: Side, start: Date, end: Date, chunk: TimeInterval = 7 * 86400) async throws -> [SleepRecord] {
+        var seen = Set<Int>()
+        var records: [SleepRecord] = []
+        var chunkStart = start
+        while chunkStart < end {
+            let chunkEnd = min(end, chunkStart.addingTimeInterval(chunk))
+            var batch = try await api.getSleepRecords(side: side, start: chunkStart, end: chunkEnd)
+            if batch.count >= recordsPageLimit && chunk > 86400 {
+                batch = try await sleepRecords(api: api, side: side, start: chunkStart, end: chunkEnd, chunk: 86400)
+            }
+            for record in batch where seen.insert(record.id).inserted {
+                records.append(record)
+            }
+            chunkStart = chunkEnd
+        }
+        return records
+    }
+
+    /// Returns false if the sync stopped early or any night failed to write, so a rebuild knows not to sweep.
+    private func sync(api: SleepypodProtocol, podID: String, side: Side, days: Int) async -> Bool {
         let requestedPreferences = preferences
         let end = Date()
-        let start = Calendar.current.date(byAdding: .day, value: -7, to: end) ?? end
+        let start = Calendar.current.date(byAdding: .day, value: -days, to: end) ?? end
+        var complete = true
         do {
-            let records = try await api.getSleepRecords(side: side, start: start, end: end)
-            for record in records where record.side == side.rawValue && record.enteredBedDate.timeIntervalSince1970 > 0 && record.leftBedDate > record.enteredBedDate && record.leftBedDate <= end {
+            let records = try await Self.sleepRecords(api: api, side: side, start: start, end: end).filter {
+                $0.side == side.rawValue && $0.enteredBedDate.timeIntervalSince1970 > 0 && $0.leftBedDate > $0.enteredBedDate && $0.leftBedDate <= end
+            }
+            if rebuildProgress != nil { rebuildProgress = (0, records.count) }
+            for record in records {
+                if let progress = rebuildProgress { rebuildProgress = (progress.done + 1, progress.total) }
                 let key = Self.recordKey(podID: podID, record: record)
                 let syncable = Self.isSyncable(record)
                 // An excluded record with a receipt was written by an earlier version; only those need cleanup.
                 guard syncable ? receipt(podID: podID, record: record) == nil : receipts[key] != nil else { continue }
                 do {
-                    guard !Task.isCancelled, enabled, preferences == requestedPreferences else { return }
+                    guard !Task.isCancelled, enabled, preferences == requestedPreferences else { return false }
                     guard writeTypes.allSatisfy({ store.authorizationStatus(for: $0) == .sharingAuthorized }) else {
                         failures[key] = "Allow the selected write types in Apple Health."
+                        complete = false
                         continue
                     }
                     let deviceID = Self.deviceID(podID: podID, record: record)
@@ -229,10 +320,17 @@ final class HealthSyncService {
                     let movement = try await api.getMovement(side: side, start: record.enteredBedDate, end: record.leftBedDate)
                     let calibration = try? await api.getCalibrationStatus(side: side)
                     let analyzer = SleepAnalyzer()
+                    // One snapshot of the active model per night: it stages the night and names the receipt. If the
+                    // analyzer fell back to the rules, the receipt says so, and the night is retried next sync.
+                    let activeModel = stageModels?.active
+                    let staging = activeModel.map {
+                        SleepAnalyzer.ModelStaging(classifier: $0.classifier, contract: $0.contract, enteredBed: record.enteredBedDate, leftBed: record.leftBedDate)
+                    }
                     analyzer.analyze(vitals: vitals.filter { $0.side == side.rawValue && $0.date >= record.enteredBedDate && $0.date < record.leftBedDate },
-                                     movement: movement, calibrationQuality: calibration?.piezo?.qualityScore ?? 0)
+                                     movement: movement, calibrationQuality: calibration?.piezo?.qualityScore ?? 0, model: staging)
+                    let stagedBy = analyzer.source == .model ? activeModel?.version : nil
                     let filtered = analyzer.filterOutliers(vitals: vitals.filter { $0.side == side.rawValue && $0.date >= record.enteredBedDate && $0.date < record.leftBedDate })
-                    guard !Task.isCancelled, enabled, preferences == requestedPreferences else { return }
+                    guard !Task.isCancelled, enabled, preferences == requestedPreferences else { return false }
                     guard !filtered.isEmpty, !preferences.sleep || !analyzer.stages.isEmpty else {
                         failures[key] = "Waiting for enough vitals to analyze this night."
                         continue
@@ -245,21 +343,25 @@ final class HealthSyncService {
                     // Save first, then drop whatever this write didn't replace, so a failed save never empties the night.
                     try await store.delete(types: writeTypes, deviceID: deviceID, start: clearStart, end: clearEnd, olderThan: version)
                     Log.health.info("Saved \(samples.count, privacy: .private) samples to Health")
-                    receipts[key] = Receipt(date: Date(), signature: Self.receiptSignature(requestedPreferences), closedAt: record.leftBedDate, enteredAt: record.enteredBedDate)
+                    receipts[key] = Receipt(date: Date(), signature: Self.receiptSignature(requestedPreferences, model: stagedBy),
+                                            closedAt: record.leftBedDate, enteredAt: record.enteredBedDate)
                     failures[key] = nil
                     persistence.set(try JSONEncoder().encode(receipts), forKey: "healthSyncReceipts")
                 } catch {
                     // A cancelled sync (scene change, backgrounding) retries next time; it isn't a failed night.
-                    if Self.isCancellation(error) { return }
+                    if Self.isCancellation(error) { return false }
                     failures[key] = error.localizedDescription
+                    complete = false
                     Log.health.error("Health sync failed: \(error.localizedDescription, privacy: .public)")
                 }
             }
         } catch {
-            if Self.isCancellation(error) { return }
+            if Self.isCancellation(error) { return false }
             authorizationError = error.localizedDescription
             Log.health.error("Health sync fetch failed: \(error.localizedDescription, privacy: .public)")
+            return false
         }
+        return complete
     }
 
     nonisolated static func isCancellation(_ error: Error) -> Bool {
@@ -340,9 +442,19 @@ final class HealthSyncService {
     }
 
     // Only what the Watch itself recorded counts; sleepypod's own writes are never compared against themselves.
+    // The source's productType is the usual tell, but some samples carry it only on the device.
     static func isWatch(_ sample: HKSample) -> Bool {
-        sample.sourceRevision.productType?.hasPrefix("Watch") == true
-            && sample.sourceRevision.source.bundleIdentifier != Bundle.main.bundleIdentifier
+        guard sample.sourceRevision.source.bundleIdentifier != Bundle.main.bundleIdentifier else { return false }
+        return sample.sourceRevision.productType?.lowercased().hasPrefix("watch") == true
+            || sample.device?.model == "Watch"
+            || sample.device?.hardwareVersion?.lowercased().hasPrefix("watch") == true
+    }
+
+    static func describeSources(_ samples: [HKSample]) -> String {
+        let keys = Set(samples.map {
+            "\($0.sourceRevision.source.name)/\($0.sourceRevision.productType ?? "-")/\($0.device?.model ?? "-")"
+        })
+        return keys.sorted().joined(separator: ", ")
     }
 
     static func watchStages(_ samples: [HKCategorySample]) -> [WatchComparison.StageSample] {
@@ -360,33 +472,76 @@ final class HealthSyncService {
         let all = nights.flatMap { $0 }
         guard enabled, preferences.readSleep, let start = all.map(\.start).min(),
               let end = all.map({ $0.start.addingTimeInterval($0.duration) }).max() else { return (nil, nights.map { _ in nil }) }
-        let watch = Self.watchStages(await store.sleepSamples(start: start, end: end))
+        let watch = Self.watchStages(await read("sleep") { try await store.sleepSamples(start: start, end: end) })
         return (WatchComparison.stageAgreement(epochs: all, watch: watch).percent,
                 nights.map { WatchComparison.stageAgreement(epochs: $0, watch: watch).percent })
     }
 
+    /// How far either side of the bed record the Watch's night may sit and still count as the same night.
+    static let watchSearchMargin: TimeInterval = 12 * 3600
+
     func watchComparison(record: SleepRecord, epochs: [SleepAnalyzer.SleepEpoch], vitals: [VitalsRecord]) async -> WatchComparison? {
         guard enabled, preferences.readSleep || preferences.readVitals, store.available,
               record.leftBedDate > record.enteredBedDate else { return nil }
-        let start = record.enteredBedDate, end = record.leftBedDate
-        let stages = preferences.readSleep ? Self.watchStages(await store.sleepSamples(start: start, end: end)) : []
+        readError = nil
+        Log.health.notice("Watch comparison for night \(record.id) \(record.enteredBedDate.formatted(.iso8601), privacy: .private) to \(record.leftBedDate.formatted(.iso8601), privacy: .private)")
+        // The Watch's night is found on its own terms, then vitals are read over whichever span is wider.
+        var stages: [WatchComparison.StageSample] = []
+        var start = record.enteredBedDate, end = record.leftBedDate
+        if preferences.readSleep {
+            let all = Self.watchStages(await read("sleep") {
+                try await store.sleepSamples(start: start.addingTimeInterval(-Self.watchSearchMargin), end: end.addingTimeInterval(Self.watchSearchMargin))
+            })
+            if let session = WatchComparison.session(for: start, end: end, in: WatchComparison.sessions(all)) {
+                stages = session.samples
+                // Vitals come from the Watch's night, joined with the bed span only when the two actually overlap,
+                // so a night matched at a distance never pulls in daytime readings.
+                if session.start < end && session.end > start {
+                    start = min(start, session.start)
+                    end = max(end, session.end)
+                } else {
+                    start = session.start
+                    end = session.end
+                }
+                Log.health.notice("Watch night \(session.start.formatted(.iso8601), privacy: .private) to \(session.end.formatted(.iso8601), privacy: .private), \(session.samples.count) samples")
+            }
+        }
         var heartRate: [WatchComparison.Reading] = [], hrv: [WatchComparison.Reading] = [], breathing: [WatchComparison.Reading] = []
         if preferences.readVitals {
-            heartRate = Self.watchReadings(await store.quantitySamples(.heartRate, start: start, end: end), unit: .count().unitDivided(by: .minute()))
-            hrv = Self.watchReadings(await store.quantitySamples(.heartRateVariabilitySDNN, start: start, end: end), unit: .secondUnit(with: .milli))
-            breathing = Self.watchReadings(await store.quantitySamples(.respiratoryRate, start: start, end: end), unit: .count().unitDivided(by: .minute()))
+            heartRate = Self.watchReadings(await read("heart rate") { try await store.quantitySamples(.heartRate, start: start, end: end) },
+                                           unit: .count().unitDivided(by: .minute()))
+            hrv = Self.watchReadings(await read("HRV") { try await store.quantitySamples(.heartRateVariabilitySDNN, start: start, end: end) },
+                                     unit: .secondUnit(with: .milli))
+            breathing = Self.watchReadings(await read("breathing") { try await store.quantitySamples(.respiratoryRate, start: start, end: end) },
+                                           unit: .count().unitDivided(by: .minute()))
         }
+        Log.health.notice("Watch samples kept: \(stages.count) stages, \(heartRate.count) HR, \(hrv.count) HRV, \(breathing.count) breathing")
         return WatchComparison.build(epochs: epochs, vitals: vitals, watchStages: stages,
                                      watchHeartRate: heartRate, watchHRV: hrv, watchBreathing: breathing)
     }
 
     func sleepSamples(start: Date, end: Date) async -> [HKCategorySample] {
         guard enabled, preferences.readSleep else { return [] }
-        return await store.sleepSamples(start: start, end: end)
+        return await read("sleep") { try await store.sleepSamples(start: start, end: end) }
+    }
+
+    /// Runs one Health read, logging what came back and keeping the first failure for the UI.
+    private func read<S: HKSample>(_ label: String, _ query: () async throws -> [S]) async -> [S] {
+        do {
+            let samples = try await query()
+            let watch = samples.filter(Self.isWatch)
+            let span = watch.isEmpty ? "none" : "\(watch.map(\.startDate).min()!.formatted(.iso8601)) to \(watch.map(\.endDate).max()!.formatted(.iso8601))"
+            Log.health.notice("Health read \(label, privacy: .public): \(samples.count) samples, \(watch.count) from Watch spanning \(span, privacy: .private); sources: \(Self.describeSources(samples), privacy: .private)")
+            return samples
+        } catch {
+            Log.health.error("Health read \(label) failed: \(error.localizedDescription, privacy: .private)")
+            if readError == nil { readError = error.localizedDescription }
+            return []
+        }
     }
 
     static func queryScheduleTimes(store: HKHealthStore, start: Date, end: Date) async -> (bed: Date, wake: Date)? {
-        let samples = await querySleepSamples(store: store, start: start, end: end)
+        let samples = (try? await querySleepSamples(store: store, start: start, end: end)) ?? []
         return scheduleTimes(from: samples)
     }
 
@@ -410,19 +565,19 @@ final class HealthSyncService {
 
     func inferredSchedule() async -> (bed: Date, wake: Date)? {
         guard enabled, preferences.readSleep else { return nil }
-        let samples = await store.sleepSamples(start: Date().addingTimeInterval(-7 * 86400), end: Date())
+        let samples = await read("sleep") { try await store.sleepSamples(start: Date().addingTimeInterval(-7 * 86400), end: Date()) }
         return Self.scheduleTimes(from: samples)
     }
 
-    static func querySleepSamples(store: HKHealthStore, start: Date, end: Date) async -> [HKCategorySample] {
-        await querySamples(store: store, type: HKCategoryType(.sleepAnalysis), start: start, end: end)
+    static func querySleepSamples(store: HKHealthStore, start: Date, end: Date) async throws -> [HKCategorySample] {
+        try await querySamples(store: store, type: HKCategoryType(.sleepAnalysis), start: start, end: end)
     }
 
-    static func querySamples<S: HKSample>(store: HKHealthStore, type: HKSampleType, start: Date, end: Date) async -> [S] {
-        await withCheckedContinuation { continuation in
+    static func querySamples<S: HKSample>(store: HKHealthStore, type: HKSampleType, start: Date, end: Date) async throws -> [S] {
+        try await withCheckedThrowingContinuation { continuation in
             let query = HKSampleQuery(sampleType: type, predicate: HKQuery.predicateForSamples(withStart: start, end: end),
-                limit: HKObjectQueryNoLimit, sortDescriptors: [NSSortDescriptor(key: HKSampleSortIdentifierStartDate, ascending: false)]) { _, samples, _ in
-                    continuation.resume(returning: samples as? [S] ?? [])
+                limit: HKObjectQueryNoLimit, sortDescriptors: [NSSortDescriptor(key: HKSampleSortIdentifierStartDate, ascending: false)]) { _, samples, error in
+                    if let error { continuation.resume(throwing: error) } else { continuation.resume(returning: samples as? [S] ?? []) }
                 }
             store.execute(query)
         }

@@ -28,7 +28,7 @@ struct PodDiscoveryMark: View {
     }
 }
 
-/// Back button, three-segment progress and `n/3`, as in 1n/1o.
+/// Back button, two-segment progress and `n/2`, as in 1n.
 struct OnboardingHeader: View {
     let step: Int
     let onBack: () -> Void
@@ -36,13 +36,13 @@ struct OnboardingHeader: View {
         HStack(spacing: 14) {
             GlassCircleButton(title: "Back", systemImage: "chevron.left", action: onBack)
             HStack(spacing: 6) {
-                ForEach(1...3, id: \.self) { index in
+                ForEach(1...2, id: \.self) { index in
                     Capsule().fill(index <= step ? Theme.text1 : Theme.border2).frame(height: 4)
                 }
             }
             .accessibilityHidden(true)
-            Text("\(step)/3").font(.mono(11, relativeTo: .caption2)).foregroundStyle(Theme.text2)
-                .accessibilityLabel("Step \(step) of 3")
+            Text("\(step)/2").font(.mono(11, relativeTo: .caption2)).foregroundStyle(Theme.text2)
+                .accessibilityLabel("Step \(step) of 2")
         }
         .padding(.horizontal, 20)
         .padding(.top, 8)
@@ -143,8 +143,7 @@ struct WelcomeScreen: View {
         NavigationStack {
             Group {
                 if step == 1 { findPod }
-                else if step == 2 { chooseSides(defaultSide: $profile.defaultSide) }
-                else { HealthAccessView(onComplete: onConnect) }
+                else { chooseSides(defaultSide: $profile.defaultSide) }
             }
             .background(Theme.background)
             .safeAreaInset(edge: .top, spacing: 0) {
@@ -336,7 +335,8 @@ struct WelcomeScreen: View {
         Haptics.success()
         device.selectSide(profile.defaultSide == .left ? .left : .right)
         failure = nil
-        withAnimation { step = 3 }
+        // Apple Health is set up from Settings or the Watch comparison, where its permission request follows directly.
+        onConnect()
     }
 
     private func prepareSides() async {

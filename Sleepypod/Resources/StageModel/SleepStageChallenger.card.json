@@ -1,0 +1,310 @@
+{
+  "name": "SleepStageChallenger",
+  "version": "1.0.0",
+  "model": "forest",
+  "classes": [
+    "wake",
+    "light",
+    "deep",
+    "rem"
+  ],
+  "features": [
+    "hrZ",
+    "hrStdZ",
+    "motionZ",
+    "nightFraction"
+  ],
+  "featureSpec": "iOS contract: 5-minute epochs from bed entry; epochs without HR skipped; per-night population z-scores of epoch mean HR, epoch HR population std (0 if <2 samples) and ln(1 + summed motion); nightFraction = (epochStart - enteredBed) / (leftBed - enteredBed).",
+  "metrics": {
+    "logistic": {
+      "loso": {
+        "epochs": 2664,
+        "kappa": 0.2946,
+        "accuracy": 0.4977
+      },
+      "pod": {
+        "epochs": 642,
+        "kappa": 0.1119,
+        "accuracy": 0.3832,
+        "nights": 9,
+        "confusion": [
+          [
+            0,
+            4,
+            3,
+            7
+          ],
+          [
+            42,
+            140,
+            126,
+            85
+          ],
+          [
+            4,
+            13,
+            48,
+            7
+          ],
+          [
+            11,
+            57,
+            37,
+            58
+          ]
+        ],
+        "perNight": [
+          {
+            "epochs": 43,
+            "kappa": 0.0452,
+            "accuracy": 0.3256
+          },
+          {
+            "epochs": 75,
+            "kappa": 0.1235,
+            "accuracy": 0.4133
+          },
+          {
+            "epochs": 43,
+            "kappa": 0.1252,
+            "accuracy": 0.3953
+          },
+          {
+            "epochs": 95,
+            "kappa": -0.0507,
+            "accuracy": 0.2105
+          },
+          {
+            "epochs": 97,
+            "kappa": 0.0324,
+            "accuracy": 0.3402
+          },
+          {
+            "epochs": 57,
+            "kappa": 0.3523,
+            "accuracy": 0.5614
+          },
+          {
+            "epochs": 66,
+            "kappa": 0.1704,
+            "accuracy": 0.4242
+          },
+          {
+            "epochs": 103,
+            "kappa": 0.1532,
+            "accuracy": 0.4078
+          },
+          {
+            "epochs": 63,
+            "kappa": 0.1682,
+            "accuracy": 0.4603
+          }
+        ]
+      }
+    },
+    "forest": {
+      "loso": {
+        "epochs": 2664,
+        "kappa": 0.3477,
+        "accuracy": 0.5357
+      },
+      "pod": {
+        "epochs": 642,
+        "kappa": 0.1217,
+        "accuracy": 0.3723,
+        "nights": 9,
+        "confusion": [
+          [
+            1,
+            3,
+            1,
+            9
+          ],
+          [
+            19,
+            106,
+            137,
+            131
+          ],
+          [
+            2,
+            7,
+            55,
+            8
+          ],
+          [
+            3,
+            47,
+            36,
+            77
+          ]
+        ],
+        "perNight": [
+          {
+            "epochs": 43,
+            "kappa": 0.0065,
+            "accuracy": 0.2558
+          },
+          {
+            "epochs": 75,
+            "kappa": 0.0915,
+            "accuracy": 0.3733
+          },
+          {
+            "epochs": 43,
+            "kappa": 0.2223,
+            "accuracy": 0.4419
+          },
+          {
+            "epochs": 95,
+            "kappa": -0.0011,
+            "accuracy": 0.2632
+          },
+          {
+            "epochs": 97,
+            "kappa": 0.0457,
+            "accuracy": 0.3093
+          },
+          {
+            "epochs": 57,
+            "kappa": 0.3028,
+            "accuracy": 0.4912
+          },
+          {
+            "epochs": 66,
+            "kappa": 0.208,
+            "accuracy": 0.4545
+          },
+          {
+            "epochs": 103,
+            "kappa": 0.1825,
+            "accuracy": 0.4175
+          },
+          {
+            "epochs": 63,
+            "kappa": 0.1398,
+            "accuracy": 0.3968
+          }
+        ]
+      }
+    }
+  },
+  "training": {
+    "dataset": "Motion and heart rate from a wrist-worn wearable and labeled sleep from polysomnography (Walch, 2019), PhysioNet",
+    "doi": "https://doi.org/10.13026/hmhs-py35",
+    "license": "ODC-By 1.0",
+    "subjects": 31
+  },
+  "method": "After ojwalch/sleep_classifiers (MIT license)",
+  "limitations": "Trained on Apple Watch PPG heart rate and wrist accelerometer motion; applied to pod piezo heart rate and bed movement after per-night normalisation. Experimental, not a medical device.",
+  "testVectors": [
+    {
+      "input": {
+        "hrZ": 0.00123,
+        "hrStdZ": 0.298746,
+        "motionZ": -0.274138,
+        "nightFraction": 0.871339
+      },
+      "classLabel": 3
+    },
+    {
+      "input": {
+        "hrZ": -0.454671,
+        "hrStdZ": -0.991647,
+        "motionZ": 0.060144,
+        "nightFraction": 0.361264
+      },
+      "classLabel": 2
+    },
+    {
+      "input": {
+        "hrZ": -0.492207,
+        "hrStdZ": -0.620475,
+        "motionZ": 0.489842,
+        "nightFraction": 0.598184
+      },
+      "classLabel": 1
+    },
+    {
+      "input": {
+        "hrZ": 0.105414,
+        "hrStdZ": -0.930468,
+        "motionZ": -0.029252,
+        "nightFraction": 0.059252
+      },
+      "classLabel": 2
+    },
+    {
+      "input": {
+        "hrZ": -1.344215,
+        "hrStdZ": -0.457616,
+        "motionZ": -1.901223,
+        "nightFraction": 0.387632
+      },
+      "classLabel": 1
+    },
+    {
+      "input": {
+        "hrZ": -1.841735,
+        "hrStdZ": -0.235091,
+        "motionZ": -1.267446,
+        "nightFraction": 0.323036
+      },
+      "classLabel": 1
+    },
+    {
+      "input": {
+        "hrZ": 0.156751,
+        "hrStdZ": -0.186931,
+        "motionZ": -2.51676,
+        "nightFraction": 0.1502
+      },
+      "classLabel": 1
+    },
+    {
+      "input": {
+        "hrZ": -0.048501,
+        "hrStdZ": 0.113309,
+        "motionZ": -1.530136,
+        "nightFraction": 0.816338
+      },
+      "classLabel": 3
+    },
+    {
+      "input": {
+        "hrZ": -0.978519,
+        "hrStdZ": -0.808837,
+        "motionZ": 1.060899,
+        "nightFraction": 0.379446
+      },
+      "classLabel": 1
+    },
+    {
+      "input": {
+        "hrZ": -0.032522,
+        "hrStdZ": 0.88439,
+        "motionZ": -0.5836,
+        "nightFraction": 0.978748
+      },
+      "classLabel": 3
+    },
+    {
+      "input": {
+        "hrZ": 0.110464,
+        "hrStdZ": 0.063782,
+        "motionZ": -1.225056,
+        "nightFraction": 0.589992
+      },
+      "classLabel": 3
+    },
+    {
+      "input": {
+        "hrZ": 1.358823,
+        "hrStdZ": -1.547145,
+        "motionZ": 0.859383,
+        "nightFraction": 0.605056
+      },
+      "classLabel": 2
+    }
+  ]
+}

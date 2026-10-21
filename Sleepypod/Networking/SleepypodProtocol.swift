@@ -47,6 +47,11 @@ protocol SleepypodProtocol: Sendable {
     // Night / Dawn phases of tonight's schedule (sleepypod-core schedules.getNightPhases)
     func getNightPhases(side: Side) async throws -> NightPhases?
     func setNightPhase(side: Side, phase: NightPhaseKey, temperatureF: Int) async throws -> NightPhases?
+
+    // The pod's rule-based stages for one record (sleepypod-core biometrics.getSleepStages)
+    func getSleepStages(side: Side, sleepRecordId: Int) async throws -> PodSleepStages
+    // The personal stage model stored on the pod for a side, trained on a Mac (sleepypod-core sleepStages.getModel)
+    func getStageModel(side: Side) async throws -> PodStageModelResponse
 }
 
 struct CalibrationTriggerResponse: Decodable, Sendable {
@@ -68,4 +73,6 @@ extension SleepypodProtocol {
     func setNightPhase(side: Side, phase: NightPhaseKey, temperatureF: Int) async throws -> NightPhases? {
         throw URLError(.unsupportedURL)
     }
+    func getSleepStages(side: Side, sleepRecordId: Int) async throws -> PodSleepStages { throw URLError(.unsupportedURL) }
+    func getStageModel(side: Side) async throws -> PodStageModelResponse { throw URLError(.unsupportedURL) }
 }
