@@ -172,15 +172,18 @@ enum StageChallenger {
             let challenger: Evaluation?
             /// Nights on which the personal model's κ beat both the rules and the challenger.
             let nightsWon: Int?
+            /// The same, night by night in training order (oldest first), for the wins strip.
+            var wonPerNight: [Bool]?
 
             init(loso: Evaluation? = nil, pod: Evaluation? = nil, lono: Evaluation? = nil, rules: Evaluation? = nil,
-                 challenger: Evaluation? = nil, nightsWon: Int? = nil) {
+                 challenger: Evaluation? = nil, nightsWon: Int? = nil, wonPerNight: [Bool]? = nil) {
                 self.loso = loso
                 self.pod = pod
                 self.lono = lono
                 self.rules = rules
                 self.challenger = challenger
                 self.nightsWon = nightsWon
+                self.wonPerNight = wonPerNight
             }
         }
         struct Training: Codable, Sendable, Equatable {
@@ -188,6 +191,9 @@ enum StageChallenger {
             let doi: String?
             let license: String?
             let subjects: Int?
+            /// Bed entry of the first and last night a personal model learned from.
+            var firstNight: Date?
+            var lastNight: Date?
         }
 
         let version: String
