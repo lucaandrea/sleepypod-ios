@@ -50,6 +50,10 @@ final class StageModelStore {
     var source: Source {
         didSet { persistence.set(source.rawValue, forKey: "stageSource") }
     }
+    /// Set once the user picks a source here; until then the phone follows whatever the pod stages with.
+    private(set) var sourceChosenByUser: Bool {
+        didSet { persistence.set(sourceChosenByUser, forKey: "stageSourceChosen") }
+    }
     var contract: StageFeatures.Contract {
         didSet { persistence.set(contract.rawValue, forKey: "stageContract") }
     }
@@ -58,6 +62,8 @@ final class StageModelStore {
     private(set) var podModel: PortableStageModel?
     private(set) var podError: String?
     private(set) var podFetchedAt: Date?
+    /// Whether the pod stages the side's nights with its stored model.
+    private(set) var podActive = false
     private(set) var isTraining = false
     private(set) var trainingKind: StageModelKind?
     private(set) var trainingProgress: Double = 0 {
@@ -78,7 +84,14 @@ final class StageModelStore {
             .appendingPathComponent("StageModel", isDirectory: true)
         source = defaults.string(forKey: "stageSource").flatMap(Source.init) ?? .rules
         contract = defaults.string(forKey: "stageContract").flatMap(StageFeatures.Contract.init) ?? .challenger
+        sourceChosenByUser = defaults.bool(forKey: "stageSourceChosen")
         reload()
+    }
+
+    /// The user's pick from the settings picker, which stops the phone following the pod's switch.
+    func choose(_ source: Source) {
+        sourceChosenByUser = true
+        self.source = source
     }
 
     /// A one-line status file beside the models, so a run can be followed from outside the app (the device log
@@ -123,9 +136,11 @@ final class StageModelStore {
             return
         }
         podFetchedAt = Date()
+        podActive = response.active ?? false
         guard let model = response.model else {
             podModel = nil
             podError = nil
+            podActive = false
             if source == .pod { source = .rules }
             return
         }
@@ -134,12 +149,26 @@ final class StageModelStore {
             podModel = model
             podError = nil
             Log.general.notice("Pod stage model \(model.version, privacy: .public) loaded, \(model.kind, privacy: .public)")
+            if let active = response.active { followPod(active: active) }
         } catch {
             // The pod handed over something broken: refuse it rather than stage nights with it.
             podModel = nil
             podError = error.localizedDescription
+            podActive = false
             if source == .pod { source = .rules }
             Log.general.error("Pod stage model refused: \(error.localizedDescription, privacy: .public)")
+        }
+    }
+
+    /// Until the user picks a source on this phone, its stages come from wherever the pod's do: the pod's
+    /// model when the pod has switched it on, the rules when it has switched it off again. A pod too old to
+    /// say leaves the phone's setting alone.
+    private func followPod(active: Bool) {
+        guard !sourceChosenByUser else { return }
+        if active, source == .rules {
+            source = .pod
+        } else if !active, source == .pod {
+            source = .rules
         }
     }
 

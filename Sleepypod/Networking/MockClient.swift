@@ -337,7 +337,7 @@ final class MockClient: SleepypodProtocol, @unchecked Sendable {
     // MARK: - Sleep Stages
 
     /// Stands in for the core's classifier with the on-device rules it was ported from, so demo nights have pod stages.
-    func getStageModel(side: Side) async throws -> PodStageModelResponse { PodStageModelResponse(model: nil, uploadedAt: nil) }
+    func getStageModel(side: Side) async throws -> PodStageModelResponse { PodStageModelResponse(model: nil, uploadedAt: nil, active: false) }
 
     func getSleepStages(side: Side, sleepRecordId: Int) async throws -> PodSleepStages {
         guard let record = try await getSleepRecords(side: side).first(where: { $0.id == sleepRecordId }) else {

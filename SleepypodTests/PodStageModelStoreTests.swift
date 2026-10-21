@@ -13,8 +13,8 @@ struct PodStageModelStoreTests {
      "testVectors":[{"inputs":{"hrZ":-1,"hrStdZ":0,"motionZ":0,"nightFraction":0.5},"expected":2}]}
     """
 
-    private func store() throws -> StageModelStore {
-        let defaults = try #require(UserDefaults(suiteName: "pod-store-\(UUID().uuidString)"))
+    private func store(defaults: UserDefaults? = nil) throws -> StageModelStore {
+        let defaults = try defaults ?? #require(UserDefaults(suiteName: "pod-store-\(UUID().uuidString)"))
         return StageModelStore(defaults: defaults, directory: FileManager.default.temporaryDirectory.appendingPathComponent("pod-store-\(UUID().uuidString)"))
     }
 
@@ -67,5 +67,65 @@ struct PodStageModelStoreTests {
         #expect(store.podModel?.version == "container-forest-test")
         #expect(store.source == .pod)
         #expect(store.podError != nil)
+    }
+
+    private func model() throws -> PortableStageModel { try JSONDecoder().decode(PortableStageModel.self, from: Data(forestJSON.utf8)) }
+
+    @Test func thePhoneFollowsThePodsSwitchUntilTheUserChooses() async throws {
+        let store = try store()
+        let api = MockAPIClient()
+        // The pod stages nights with its model: so does the phone, with nothing chosen here.
+        api.stageModelResponse = .success(PodStageModelResponse(model: try model(), uploadedAt: 1, active: true))
+        await store.refreshPodModel(api: api, side: .left)
+        #expect(store.podActive)
+        #expect(store.source == .pod)
+        #expect(store.sourceChosenByUser == false)
+        // The pod switches it off again: the phone goes back to the rules.
+        api.stageModelResponse = .success(PodStageModelResponse(model: try model(), uploadedAt: 1, active: false))
+        await store.refreshPodModel(api: api, side: .left)
+        #expect(store.podActive == false)
+        #expect(store.source == .rules)
+        #expect(store.podModel != nil, "the model stays selectable")
+        // Being unreachable changes nothing.
+        api.stageModelResponse = .success(PodStageModelResponse(model: try model(), uploadedAt: 1, active: true))
+        await store.refreshPodModel(api: api, side: .left)
+        api.stageModelResponse = .failure(APIError.noBaseURL)
+        await store.refreshPodModel(api: api, side: .left)
+        #expect(store.source == .pod)
+        #expect(store.podActive)
+    }
+
+    @Test func aChoiceMadeOnThePhoneIsNotOverriddenByThePod() async throws {
+        let defaults = try #require(UserDefaults(suiteName: "pod-store-\(UUID().uuidString)"))
+        let store = try store(defaults: defaults)
+        let api = MockAPIClient()
+        store.choose(.rules)
+        #expect(store.sourceChosenByUser)
+        api.stageModelResponse = .success(PodStageModelResponse(model: try model(), uploadedAt: 1, active: true))
+        await store.refreshPodModel(api: api, side: .left)
+        #expect(store.podActive)
+        #expect(store.source == .rules)
+        // And the other way round: chosen on the phone, kept when the pod switches off.
+        store.choose(.pod)
+        api.stageModelResponse = .success(PodStageModelResponse(model: try model(), uploadedAt: 1, active: false))
+        await store.refreshPodModel(api: api, side: .left)
+        #expect(store.source == .pod)
+        // The choice survives a relaunch.
+        let again = StageModelStore(defaults: defaults, directory: store.directory)
+        #expect(again.sourceChosenByUser)
+        #expect(again.source == .pod)
+    }
+
+    @Test func aPodWithoutTheSwitchLeavesTheSourceAlone() async throws {
+        let store = try store()
+        let api = MockAPIClient()
+        api.stageModelResponse = .success(PodStageModelResponse(model: try model(), uploadedAt: 1))
+        await store.refreshPodModel(api: api, side: .left)
+        #expect(store.podModel != nil)
+        #expect(store.podActive == false)
+        #expect(store.source == .rules)
+        store.source = .pod
+        await store.refreshPodModel(api: api, side: .left)
+        #expect(store.source == .pod, "a programmatic choice on an older pod is left as is")
     }
 }

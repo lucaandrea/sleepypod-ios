@@ -157,4 +157,12 @@ struct PortableStageClassifier: SleepStageClassifying {
 struct PodStageModelResponse: Decodable, Sendable {
     let model: PortableStageModel?
     let uploadedAt: Double?
+    /// Whether the pod itself stages the side's nights with this model. Pods before the switch omit it.
+    let active: Bool?
+
+    init(model: PortableStageModel?, uploadedAt: Double?, active: Bool? = nil) {
+        self.model = model
+        self.uploadedAt = uploadedAt
+        self.active = active
+    }
 }
