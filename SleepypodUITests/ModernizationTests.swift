@@ -68,10 +68,7 @@ final class ModernizationTests: XCTestCase {
         XCTAssertTrue(app.staticTexts["Who sleeps where?"].waitForExistence(timeout: 10))
         capture("Choose-sides-dark")
         app.buttons["Continue"].tap()
-        XCTAssertTrue(app.buttons["Not now"].waitForExistence(timeout: 10))
-        capture("Health-onboarding-dark")
-        app.buttons["Not now"].tap()
-        XCTAssertTrue(app.tabBars.buttons["Temp"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.tabBars.buttons["Temp"].waitForExistence(timeout: 10))
         capture("Temp-dark")
     }
 

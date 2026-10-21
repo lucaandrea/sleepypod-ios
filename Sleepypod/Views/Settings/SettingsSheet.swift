@@ -10,6 +10,7 @@ struct SettingsSheet: View {
     @Environment(HealthSyncService.self) private var health
     @Environment(UserProfile.self) private var profile
     @State private var showAllSettings = DebugRoute.current == "allsettings"
+    @State private var showHealth = DebugRoute.current == "health"
     @State private var confirmPrime = false
     @State private var primeError: String?
 
@@ -88,6 +89,7 @@ struct SettingsSheet: View {
                 Button("Cancel", role: .cancel) {}
             } message: { Text("Water will circulate through the pod to remove trapped air.") }
             .task { await settings.fetchSettings(); await status.fetchAll() }
+            .navigationDestination(isPresented: $showHealth) { HealthAccessView() }
         }
         .tint(Theme.text1)
         .presentationDetents([.medium, .large])

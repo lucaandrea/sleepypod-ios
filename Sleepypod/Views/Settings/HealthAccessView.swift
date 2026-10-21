@@ -5,7 +5,7 @@ struct HealthAccessView: View {
     @Environment(UserProfile.self) private var profile
     @Environment(ScheduleManager.self) private var schedule
     @Environment(SettingsManager.self) private var settings
-    var onComplete: (() -> Void)?
+    @Environment(\.openURL) private var openURL
     @State private var requesting = false
     @State private var confirmRebuild = false
     @State private var rebuildFailed = false
@@ -45,17 +45,15 @@ struct HealthAccessView: View {
                             }
                         }
                     }
-                    if onComplete == nil {
-                        GroupedSection("THIS iPHONE") {
-                            GroupedCard {
-                                SettingsRow("Sync this iPhone's side") {
-                                    Toggle("Sync this iPhone's side", isOn: $health.enabled).labelsHidden()
-                                }
+                    GroupedSection("THIS iPHONE") {
+                        GroupedCard {
+                            SettingsRow("Sync this iPhone's side") {
+                                Toggle("Sync this iPhone's side", isOn: $health.enabled).labelsHidden()
                             }
                         }
-                        allowButton.padding(.top, 8)
-                        syncStatus
                     }
+                    if health.authorizationDenied { deniedNote } else { allowButton.padding(.top, 8) }
+                    syncStatus
                     if let error = health.authorizationError {
                         Text(error).font(.footnote).foregroundStyle(Theme.amber).padding(.horizontal, 16)
                     }
@@ -63,24 +61,12 @@ struct HealthAccessView: View {
                 .padding(.top, 28)
             }
             .padding(.horizontal, 16)
-            .padding(.top, onComplete == nil ? 8 : 30)
+            .padding(.top, 8)
             .padding(.bottom, 24)
         }
         .scrollBounceBehavior(.basedOnSize)
-        .safeAreaInset(edge: .bottom) {
-            if let onComplete {
-                VStack(spacing: 6) {
-                    allowButton
-                    Button("Not now") { health.enabled = false; onComplete() }
-                        .font(.callout.weight(.medium)).foregroundStyle(Theme.text2)
-                        .frame(maxWidth: .infinity, minHeight: 44)
-                }
-                .padding(.horizontal, 16).padding(.bottom, 4)
-                .background(Theme.background)
-            }
-        }
         .background(Theme.background).tint(Theme.green)
-        .navigationTitle(onComplete == nil ? "Apple Health" : "").navigationBarTitleDisplayMode(.inline)
+        .navigationTitle("Apple Health").navigationBarTitleDisplayMode(.inline)
         .confirmationDialog("Rebuild Apple Health data?", isPresented: $confirmRebuild, titleVisibility: .visible) {
             Button("Rebuild", role: .destructive) { rebuild() }
         } message: {
@@ -162,7 +148,6 @@ struct HealthAccessView: View {
                 if await health.requestAuthorization() {
                     Haptics.success()
                     if health.preferences.readSleep { await importSchedule() }
-                    onComplete?()
                 } else {
                     Haptics.warning()
                 }
@@ -172,6 +157,20 @@ struct HealthAccessView: View {
             BusyLabel(title: "Allow Health access", busyTitle: "Requesting access…", isBusy: requesting)
         }
         .buttonStyle(PrimaryButtonStyle()).disabled(requesting)
+    }
+
+    /// iOS shows the Health sheet once; after a refusal the only way back in is the Settings app.
+    private var deniedNote: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("Health access is turned off for sleepypod. Turn it on in Settings under Health, Data Access & Devices.")
+                .font(.footnote).foregroundStyle(Theme.text2).fixedSize(horizontal: false, vertical: true)
+            Button("Open Settings") {
+                Haptics.light()
+                if let url = URL(string: UIApplication.openSettingsURLString) { openURL(url) }
+            }
+            .buttonStyle(PrimaryButtonStyle())
+        }
+        .padding(.top, 8)
     }
 
     private func importSchedule() async {

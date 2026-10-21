@@ -133,7 +133,7 @@ struct GlassCircleButton: View {
 }
 
 struct SettingsToolbar: ViewModifier {
-    @State private var presented = ["settings", "allsettings"].contains(DebugRoute.current)
+    @State private var presented = ["settings", "allsettings", "health"].contains(DebugRoute.current)
     func body(content: Content) -> some View {
         content.toolbar {
             ToolbarItem(placement: .topBarTrailing) {

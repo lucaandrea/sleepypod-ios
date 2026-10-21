@@ -140,6 +140,11 @@ final class HealthSyncService {
         enabled && writeTypes.contains { store.authorizationStatus(for: $0) == .sharingAuthorized }
     }
 
+    /// The user refused every write type on the Health sheet; iOS will not show it again.
+    var authorizationDenied: Bool {
+        store.available && !writeTypes.isEmpty && writeTypes.allSatisfy { store.authorizationStatus(for: $0) == .sharingDenied }
+    }
+
     func requestAuthorization() async -> Bool {
         guard store.available else {
             authorizationError = "Apple Health is unavailable on this device."

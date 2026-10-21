@@ -152,7 +152,7 @@ struct ContentView: View {
             deviceManager.selectSide(profile.defaultSide == .left ? .left : .right)
             scheduleManager.selectedSide = profile.defaultSide == .left ? .left : .right
             metricsManager.selectedSide = profile.defaultSide
-            // Run setup until all three onboarding steps are complete.
+            // Run setup until both onboarding steps are complete.
             if !profile.onboardingComplete && !isDemo {
                 showWelcome = true
                 return
