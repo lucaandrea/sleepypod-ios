@@ -187,6 +187,8 @@ struct AllSettingsScreen: View {
                             SettingsRow("On-device analysis", icon: "cpu", tile: true, chevron: true)
                         }
                     }
+                    Text("Your Health data stays on this iPhone. sleepypod has no server: nothing is uploaded to the pod, to iCloud or to anyone else.")
+                        .font(.footnote).foregroundStyle(Theme.text2).padding(.horizontal, 16).fixedSize(horizontal: false, vertical: true)
                 }
 
                 GroupedSection("POD") {

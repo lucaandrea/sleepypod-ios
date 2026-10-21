@@ -42,13 +42,16 @@ struct StageTrainingReport: Sendable, Equatable {
     let challengerPerNight: [StageScore?]
 
     /// Nights where the personal model's κ beat both the rules and the challenger (a missing challenger counts as beaten).
-    var nightsWon: Int {
-        perNight.indices.filter { index in
+    var nightsWon: Int { wonPerNight.filter { $0 }.count }
+
+    /// The same verdict night by night, in training order.
+    var wonPerNight: [Bool] {
+        perNight.indices.map { index in
             guard let mine = perNight[index]?.kappa else { return false }
             let rulesKappa = rulesPerNight[index]?.kappa ?? -1
             let challengerKappa = challengerPerNight[index]?.kappa ?? -1
             return mine > rulesKappa && mine > challengerKappa
-        }.count
+        }
     }
 
     func evaluation(_ score: StageScore?) -> StageChallenger.Card.Evaluation {
@@ -162,7 +165,9 @@ enum StageTrainer {
         if fileManager.fileExists(atPath: modelURL.path) { try fileManager.removeItem(at: modelURL) }
         try fileManager.moveItem(at: compiled, to: modelURL)
         let classifier = try CoreMLStageClassifier(contentsOf: modelURL, columns: columns)
-        let card = try card(report: report, rows: rows, classifier: classifier, columns: columns)
+        let bedTimes = dataset.nights.map(\.enteredBed)
+        let card = try card(report: report, rows: rows, classifier: classifier, columns: columns,
+                            nightSpan: bedTimes.min().flatMap { first in bedTimes.max().map { (first, $0) } })
         let cardURL = cardURL(for: kind, in: directory)
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
@@ -232,7 +237,7 @@ enum StageTrainer {
 
     /// The card a personal model is loaded with: the eligibility numbers and test vectors the final model must reproduce.
     static func card(report: StageTrainingReport, rows: [StageDataset.LabeledRow], classifier: any SleepStageClassifying,
-                     columns: [String]) throws -> StageChallenger.Card {
+                     columns: [String], nightSpan: (first: Date, last: Date)? = nil) throws -> StageChallenger.Card {
         let stride = max(1, rows.count / 12)
         let vectors = try Swift.stride(from: 0, to: rows.count, by: stride).prefix(12).map { index in
             StageChallenger.Card.TestVector(inputs: rows[index].values, expected: try classifier.predict(rows[index].values).classLabel)
@@ -244,8 +249,9 @@ enum StageTrainer {
             testVectors: vectors,
             model: report.kind.rawValue,
             metrics: .init(lono: report.evaluation(report.pooled), rules: report.evaluation(report.rules),
-                           challenger: report.challenger.map(report.evaluation), nightsWon: report.nightsWon),
-            training: .init(dataset: "This iPhone's nights, Apple Watch stages as labels", doi: nil, license: nil, subjects: report.nights),
+                           challenger: report.challenger.map(report.evaluation), nightsWon: report.nightsWon, wonPerNight: report.wonPerNight),
+            training: .init(dataset: "This iPhone's nights, Apple Watch stages as labels", doi: nil, license: nil, subjects: report.nights,
+                            firstNight: nightSpan?.first, lastNight: nightSpan?.last),
             limitations: "Trained on one person's pod nights against their Apple Watch, which is itself an estimate. Experimental, not a medical device.",
             featureContract: columns,
             hyperparameters: report.kind.hyperparameters,
