@@ -448,6 +448,9 @@ struct StageComparisonView: View {
             if let model = stageModels.podModel {
                 Text("Trained on a Mac from the pod's nights (\(model.version)). Leave-one-night-out κ \(Self.kappaText(model.metrics?["lono"]?.kappa)) over \(model.metrics?["lono"]?.nights ?? 0) nights. Choose it under Settings → On-device analysis → Sleep stages from.")
                     .font(.footnote).foregroundStyle(Theme.text2).fixedSize(horizontal: false, vertical: true)
+                Label(stageModels.podActive ? "Pod stages nights with this model" : "Pod uses rules",
+                      systemImage: stageModels.podActive ? "checkmark.circle" : "list.bullet.rectangle")
+                    .font(.caption).foregroundStyle(stageModels.podActive ? Theme.green : Theme.text3)
             } else {
                 Text(stageModels.podError ?? "Nothing stored on the pod yet. Train on a Mac with scripts/train-personal-models.py and it appears here.")
                     .font(.footnote).foregroundStyle(stageModels.podError == nil ? Theme.text3 : Theme.amber).fixedSize(horizontal: false, vertical: true)

@@ -338,7 +338,7 @@ struct AnalysisInventoryView: View {
                     GroupedCard {
                         Menu {
                             // A menu picker ignores disabled rows, so ineligible models are left out of it.
-                            Picker("Sleep stages from", selection: $stageModels.source) {
+                            Picker("Sleep stages from", selection: Binding(get: { stageModels.source }, set: { stageModels.choose($0) })) {
                                 ForEach(StageModelStore.Source.allCases.filter { source in
                                     switch source {
                                     case .rules: true
@@ -359,7 +359,7 @@ struct AnalysisInventoryView: View {
                             }
                         }
                         .accessibilityLabel("Sleep stages from, \(sourceTitle(stageModels.source))")
-                        SettingsRow("Pod model", subtitle: stageModels.podModel.map { "\($0.title) · κ \($0.metrics?["lono"]?.kappa.map { String(format: "%.2f", $0) } ?? "—") held out" }
+                        SettingsRow("Pod model", subtitle: stageModels.podModel.map { "\($0.title) · κ \($0.metrics?["lono"]?.kappa.map { String(format: "%.2f", $0) } ?? "—") held out · \(stageModels.podActive ? "pod stages nights with it" : "pod uses rules")" }
                                         ?? (stageModels.podError ?? "None stored on the pod; train one on a Mac"),
                                     icon: "server.rack", iconColor: Theme.cool, tile: true, height: 56) {
                             RowValue(stageModels.podModel?.version.split(separator: "-").last.map(String.init) ?? "—", mono: true)
