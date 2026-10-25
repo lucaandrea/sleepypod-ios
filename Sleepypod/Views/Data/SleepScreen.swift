@@ -125,10 +125,16 @@ struct SleepScreen: View {
             .task {
                 guard !initialized else { return }
                 initialized = true
-                metrics.selectedSide = profile.defaultSide
                 metrics.timeZone = settings.timeZone
-                selectedDate = SleepCalendar.previousNight(calendar: calendar)
+                if let request = metrics.sleepNavigation { openSleep(request) }
+                else {
+                    metrics.selectedSide = profile.defaultSide
+                    selectedDate = SleepCalendar.previousNight(calendar: calendar)
+                }
                 await refresh()
+            }
+            .onChange(of: metrics.sleepNavigation?.id) {
+                if let request = metrics.sleepNavigation { openSleep(request) }
             }
             .task(id: selectedDate) { if initialized { await refresh() } }
             .onChange(of: settings.timeZone) {
@@ -155,6 +161,12 @@ struct SleepScreen: View {
                     fetch: APIBackend.current.createClient().getSleepStages)
             }
             .refreshable { await reload() }
+    }
+
+    private func openSleep(_ request: SleepNavigationRequest) {
+        if let side = Side(rawValue: request.record.side) { metrics.selectedSide = side }
+        period = .night
+        selectedDate = SleepCalendar.nightDate(for: request.record.enteredBedDate, calendar: calendar)
     }
     private var exportWindow: DateInterval {
         let startDay = period == .night ? selectedDate : period == .week ? metrics.selectedWeekStart : monthStart

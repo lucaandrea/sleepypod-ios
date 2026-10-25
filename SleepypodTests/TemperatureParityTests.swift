@@ -106,6 +106,22 @@ final class TemperatureParityTests: XCTestCase {
         XCTAssertFalse(manager.isLinked)
     }
 
+    func testTimelineRespectsExplicitNextDayBoundaryAcrossDST() async throws {
+        var schedules = try await MockClient().getSchedules()
+        for day in DayOfWeek.allCases {
+            schedules.left[day].power.enabled = false
+            schedules.left[day].temperatures = [:]
+        }
+        schedules.left.saturday.power = PowerSchedule(on: "06:00", off: "07:00", endAction: .turnOff, offDayOffset: 1, onTemperature: 72, enabled: true)
+        let parse = ISO8601DateFormatter()
+        let timeline = TemperatureTimeline(schedules: schedules, timezone: "America/Los_Angeles", now: parse.date(from: "2026-03-08T03:00:00Z")!)
+        XCTAssertEqual(timeline.state(for: .left, at: parse.date(from: "2026-03-08T12:00:00Z")!).powered, true)
+        XCTAssertEqual(timeline.state(for: .left, at: parse.date(from: "2026-03-08T14:00:00Z")!).powered, false)
+        schedules.left.saturday.power.endAction = .maintain
+        let maintained = TemperatureTimeline(schedules: schedules, timezone: "America/Los_Angeles", now: parse.date(from: "2026-03-08T03:00:00Z")!)
+        XCTAssertEqual(maintained.state(for: .left, at: parse.date(from: "2026-03-08T14:00:00Z")!).powered, true)
+    }
+
     func testAllOffWaitsForInFlightTemperature() async throws {
         let client = RecordingTemperatureClient()
         await client.recorder.suspendFirst()

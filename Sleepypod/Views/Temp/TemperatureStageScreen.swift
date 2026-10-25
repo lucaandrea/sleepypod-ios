@@ -61,6 +61,7 @@ struct TemperatureStageScreen: View {
                     }
                     timelineCard(timeline, preview: previewDate)
                     if APIBackend.current != .freeSleep { NextAlarmCard(side: device.selectedSide.primarySide) }
+                    if APIBackend.current != .freeSleep { TemperatureContextCards(side: device.selectedSide.primarySide) }
                 }.padding(16)
             }.refreshable { await device.fetchStatus(); await schedules.fetchSchedules() }
         }

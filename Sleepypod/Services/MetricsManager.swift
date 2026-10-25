@@ -9,6 +9,7 @@ final class MetricsManager {
     var vitalsSummary: VitalsSummary?
     var movementRecords: [MovementRecord] = []
     var selectedSide: Side = .left
+    var sleepNavigation: SleepNavigationRequest?
     var selectedWeekStart: Date = Calendar.current.startOfWeek(for: Date())
     var timeZone = "America/Los_Angeles"
     var calendar: Calendar { SleepCalendar.calendar(timeZone: timeZone) }
@@ -28,6 +29,7 @@ final class MetricsManager {
         requestGeneration += 1; connectionRevision += 1; api = client
         sleepRecords = []; vitalsRecords = []; movementRecords = []; vitalsSummary = nil
         error = nil; mutationError = nil; notice = nil; isLoading = false
+        sleepNavigation = nil
     }
 
     // MARK: - Computed

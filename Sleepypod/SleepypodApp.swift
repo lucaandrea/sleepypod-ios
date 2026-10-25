@@ -165,6 +165,12 @@ struct ContentView: View {
                 selectedTab = "temp"
             }
             .onReceive(NotificationCenter.default.publisher(for: .leaveDemoMode)) { _ in leaveDemoMode() }
+            .onReceive(NotificationCenter.default.publisher(for: .showSleepRecord)) { notification in
+                guard let record = notification.object as? SleepRecord, let side = Side(rawValue: record.side) else { return }
+                metricsManager.selectedSide = side
+                metricsManager.sleepNavigation = SleepNavigationRequest(record: record)
+                selectedTab = "sleep"
+            }
 
         }
         .fullScreenCover(isPresented: $showWelcome) {

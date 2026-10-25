@@ -236,6 +236,9 @@ struct TempScreen: View {
                     }
                 }
                 .padding(.top, 24)
+                if APIBackend.current != .freeSleep {
+                    TemperatureContextCards(side: deviceManager.selectedSide.primarySide).padding(.top, 20)
+                }
             }
             .padding(.horizontal, profile.tempControl == .stepper ? 16 : 20)
             .padding(.top, 16)
@@ -294,7 +297,7 @@ struct TempScreen: View {
         let layout = typeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: 8)) : AnyLayout(HStackLayout(spacing: 18))
         return layout {
             let temps = deviceManager.selectedSide.primarySide == .left ? sensor.leftTemps : sensor.rightTemps
-            if let ambient = temps?.amb, ambient.isFinite, ambient > -100 {
+            if RoomSnapshot.isFresh(sensor.bedTempUpdatedAt, now: .now), let ambient = temps?.amb, ambient.isFinite, ambient > -100 {
                 let format = settingsManager.temperatureFormat == .relative ? .fahrenheit : settingsManager.temperatureFormat
                 Label {
                     Text("\(TemperatureConversion.displayTemp(Int((ambient * 9 / 5 + 32).rounded()), format: format)) inside")

@@ -41,7 +41,9 @@ struct TemperatureTimeline {
                     if schedule.power.enabled,
                        let on = Self.date(schedule.power.on, on: day, calendar: calendar),
                        let sameDayOff = Self.date(schedule.power.off, on: day, calendar: calendar) {
-                        let off = sameDayOff <= on ? calendar.date(byAdding: .day, value: 1, to: sameDayOff)! : sameDayOff
+                        // Core stores the wake day's offset explicitly, including windows longer than 24 hours.
+                        let offset = schedule.power.offDayOffset ?? (sameDayOff <= on ? 1 : 0)
+                        guard (0...1).contains(offset), let off = calendar.date(byAdding: .day, value: offset, to: sameDayOff) else { continue }
                         result.append(Event(side: side, date: on, temperature: schedule.power.onTemperature, powered: true))
                         if schedule.power.endAction != .maintain {
                             result.append(Event(side: side, date: off, temperature: nil, powered: false))

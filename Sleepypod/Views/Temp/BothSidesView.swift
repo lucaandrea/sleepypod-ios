@@ -18,6 +18,7 @@ struct BothSidesView: View {
             if APIBackend.current != .freeSleep {
                 ForEach(Side.allCases) { side in
                     GroupedSection(settings.sideName(for: side).uppercased()) { NextAlarmCard(side: side) }
+                    TemperatureContextCards(side: side)
                 }
             }
         }
@@ -27,7 +28,7 @@ struct BothSidesView: View {
 
     private var subtitle: String {
         var parts = [device.deviceStatus?.podModelName ?? "Pod"]
-        if let ambient = sensor.leftTemps?.amb ?? sensor.rightTemps?.amb, ambient.isFinite, ambient > -100 {
+        if RoomSnapshot.isFresh(sensor.bedTempUpdatedAt, now: .now), let ambient = sensor.leftTemps?.amb ?? sensor.rightTemps?.amb, ambient.isFinite, ambient > -100 {
             let format = settings.temperatureFormat == .relative ? .fahrenheit : settings.temperatureFormat
             parts.append("\(TemperatureConversion.displayTemp(Int((ambient * 9 / 5 + 32).rounded()), format: format)) inside")
         }

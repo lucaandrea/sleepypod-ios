@@ -20,6 +20,16 @@ Still open within Temperature:
 
 - Reconcile Run Once, Autopilot/current-night ownership and historical occupancy with the timeline; it currently projects saved weekly schedules only.
 - Audit every Night & Dawn edit/recovery path against the current web implementation.
-- Room humidity/light/air, last-night/next-alarm context and full history parity.
+- Full schedule/sleep history parity. Room/light/recent-sleep context is implemented below; next-alarm controls are recorded in `ALARM_VALIDATION.md`.
 - Dedicated notice fixtures and UI/error checks, pinch/auto-return accessibility checks, iPad and large-text coverage.
 - Physical controller verification. Simulator and request assertions do not establish real hardware behavior.
+
+## Room and recent-sleep context (2026-10-25)
+
+Native cards now appear beneath the existing controls in Dial, Night & Dawn, Slider, Both sides and Stage. They reuse Sleepypod's card, typography and color components. The room card includes ambient temperature, humidity, the selected side's mean measured bed temperature, light and reading age. Environment units remain °C/°F when the dial uses Offset or Eight Sleep. Missing, stale (>120 seconds), invalid-date and future readings are never labeled current.
+
+The recent-sleep card uses the selected side's latest record and asks for vitals only within that record's actual interval. Open sessions omit an end timestamp, leaving the server to choose now. Room, light, sleep and vitals failures remain independent. The card labels historical records with their date, preserves Pod processing provenance and withholds HRV when definitions differ. Tapping it selects the matching side/night in the existing Sleep tab. Requests stop when the app becomes inactive, and late responses cannot overwrite a newly selected side.
+
+Read-only API contracts were checked against `sleepypod-core/src/server/routers/environment.ts`, `biometrics.ts` and `src/biometrics/profiles/vital-summary-provenance.ts`. Tests use synthetic responses shaped from those contracts, not live Pod measurements. Eight transport/state tests pass in `/tmp/SleepypodHealthAndContextIPad.xcresult`. The two context interaction tests pass on standard iPhone (`/tmp/SleepypodTemperatureContext5.xcresult`), maximum Dynamic Type (`/tmp/SleepypodTemperatureContextLargest.xcresult`) and iPad (`/tmp/SleepypodHealthAndContextIPad.xcresult`). Rendered captures are in `previews/temperature-context/`. The final cards separate metric labels and units; the standard iPhone captures precede that small spacing change, while the largest-text and iPad captures include it. The affected sleep-data/temperature suites also passed 36 focused unit checks in `/tmp/SleepypodTemperatureContext3.xcresult`; its earlier UI failures were test locator/scrolling issues corrected in the succeeding runs.
+
+The saved schedule projection also honors Core's explicit `offDayOffset`, including next-day windows whose end clock is later than the start clock. Calendar arithmetic preserves the Pod timezone across daylight saving transitions. Run Once, Autopilot, history and the other open items above remain pending.
