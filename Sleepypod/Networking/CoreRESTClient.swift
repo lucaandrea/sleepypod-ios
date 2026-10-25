@@ -23,6 +23,9 @@ struct CoreRESTClient: Sendable {
     func patch<Body: Encodable & Sendable>(_ path: String, body: Body) async throws {
         _ = try await send(path, method: "PATCH", body: JSONEncoder().encode(body))
     }
+    func patch<Body: Encodable & Sendable, Result: Decodable & Sendable>(_ path: String, body: Body, returning: Result.Type) async throws -> Result {
+        try JSONDecoder().decode(Result.self, from: await send(path, method: "PATCH", body: JSONEncoder().encode(body)))
+    }
     func put<Body: Encodable & Sendable, Result: Decodable & Sendable>(_ path: String, body: Body, returning: Result.Type) async throws -> Result {
         try JSONDecoder().decode(Result.self, from: await send(path, method: "PUT", body: JSONEncoder().encode(body)))
     }
