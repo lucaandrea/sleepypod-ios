@@ -68,7 +68,11 @@ import HealthKit
         XCTAssertEqual(plot.points[0].smooth, 60.5); XCTAssertTrue(plot.mixedSources); XCTAssertNil(plot.stats)
     }
     func testQuartilesAndDisplaySamplingRetainExtrema() {
-        let records = (0..<4000).map { VitalsRecord(id: $0, heartRate: $0 == 123 ? 190 : Double($0 % 80 + 40), date: base.addingTimeInterval(Double($0) * 60)) }
+        let records: [VitalsRecord] = (0..<4000).map { index in
+            let heartRate: Double = index == 123 ? 190 : Double(index % 80 + 40)
+            let date = base.addingTimeInterval(Double(index) * 60)
+            return VitalsRecord(id: index, heartRate: heartRate, date: date)
+        }
         let plot = BiometricPlot(metric: .heartRate, records: records)
         let display = plot.displayPoints(in: base...records.last!.date)
         XCTAssertLessThanOrEqual(display.count, 1500); XCTAssertTrue(display.contains { $0.value == 190 })
