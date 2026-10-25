@@ -1,0 +1,134 @@
+{
+  "engine": "rules",
+  "ruleset": {
+    "outliers": {
+      "heartRate": {
+        "min": 45,
+        "max": 130
+      },
+      "hrv": {
+        "min": 1,
+        "max": 300
+      },
+      "breathingRate": {
+        "min": 8,
+        "max": 25
+      },
+      "heartRateSpikeStdDevs": 2
+    },
+    "lowSignalBelow": 0.3,
+    "lowSignalRules": [
+      {
+        "stage": "wake",
+        "when": [
+          {
+            "metric": "movement",
+            "op": ">",
+            "value": 200
+          }
+        ]
+      }
+    ],
+    "rules": [
+      {
+        "stage": "wake",
+        "when": [
+          {
+            "metric": "movement",
+            "op": ">",
+            "value": 200
+          }
+        ]
+      },
+      {
+        "stage": "deep",
+        "when": [
+          {
+            "metric": "hrRatio",
+            "op": "<",
+            "value": 0.92
+          }
+        ]
+      },
+      {
+        "stage": "rem",
+        "when": [
+          {
+            "metric": "hrRatio",
+            "op": ">=",
+            "value": 0.95
+          },
+          {
+            "metric": "hrv",
+            "op": "<",
+            "value": 25
+          },
+          {
+            "metric": "movement",
+            "op": "<",
+            "value": 30
+          }
+        ]
+      },
+      {
+        "stage": "rem",
+        "when": [
+          {
+            "metric": "hrRatio",
+            "op": ">=",
+            "value": 0.95
+          },
+          {
+            "metric": "movement",
+            "op": "<",
+            "value": 50
+          },
+          {
+            "metric": "hrv",
+            "op": "<",
+            "value": 40
+          }
+        ]
+      },
+      {
+        "stage": "wake",
+        "when": [
+          {
+            "metric": "hrRatio",
+            "op": ">=",
+            "value": 0.95
+          },
+          {
+            "metric": "movement",
+            "op": ">",
+            "value": 100
+          }
+        ]
+      }
+    ],
+    "fallback": "light",
+    "smoothIsolatedEpochs": true,
+    "transitions": [
+      {
+        "from": "wake",
+        "to": "deep",
+        "via": "light"
+      },
+      {
+        "from": "deep",
+        "to": "wake",
+        "via": "light"
+      },
+      {
+        "from": "deep",
+        "to": "rem",
+        "via": "light"
+      },
+      {
+        "from": "rem",
+        "to": "deep",
+        "via": "light"
+      }
+    ]
+  }
+}

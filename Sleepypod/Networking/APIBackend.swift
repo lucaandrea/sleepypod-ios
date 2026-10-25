@@ -7,7 +7,7 @@ enum APIBackend: String, CaseIterable, Sendable {
 
     var displayName: String {
         switch self {
-        case .freeSleep: "Free Sleep (Legacy)"
+        case .freeSleep: "Existing Pod"
         case .sleepypodCore: "sleepypod"
         case .demo: "Demo Mode"
         }
@@ -46,15 +46,31 @@ enum APIBackend: String, CaseIterable, Sendable {
 
     private static let key = "apiBackend"
 
+    static var restoredLiveBackend: APIBackend {
+        if let saved = UserDefaults.standard.string(forKey: "lastLiveBackend"),
+           let backend = APIBackend(rawValue: saved), !backend.isDemo { return backend }
+        return UserDefaults.standard.string(forKey: "podURL")?.isEmpty == false
+            && (UserDefaults.standard.string(forKey: "podNativeAPIPrefix") ?? "").isEmpty ? .freeSleep : .sleepypodCore
+    }
+
     static var current: APIBackend {
         get {
             guard let raw = UserDefaults.standard.string(forKey: key),
                   let backend = APIBackend(rawValue: raw) else {
+                if UserDefaults.standard.string(forKey: "podURL")?.isEmpty == false,
+                   (UserDefaults.standard.string(forKey: "podNativeAPIPrefix") ?? "").isEmpty { return .freeSleep }
                 return .sleepypodCore
             }
             return backend
         }
         set {
+            let previous = current
+            if newValue.isDemo, !previous.isDemo {
+                UserDefaults.standard.set(previous.rawValue, forKey: "lastLiveBackend")
+            } else if !newValue.isDemo {
+                UserDefaults.standard.set(newValue.rawValue, forKey: "lastLiveBackend")
+                UserDefaults.standard.set(newValue == .sleepypodCore ? "native/v1" : "", forKey: "podNativeAPIPrefix")
+            }
             UserDefaults.standard.set(newValue.rawValue, forKey: key)
         }
     }

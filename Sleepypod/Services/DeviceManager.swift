@@ -11,9 +11,14 @@ final class DeviceManager {
     var selectedSide: SideSelection = .left
     var isLinked = false
     var error: String?
+    var commandError: String?
+    var holdMinutes = UserDefaults.standard.integer(forKey: "temperatureHoldMinutes").validatedHoldMinutes {
+        didSet { UserDefaults.standard.set(holdMinutes.validatedHoldMinutes, forKey: "temperatureHoldMinutes") }
+    }
+    var isSendingMutation = false
     var lastUpdated: Date?
 
-    /// Whether we're receiving live WS device status updates (disables HTTP polling)
+    /// WebSocket supplies fast observations; HTTP still refreshes ownership and notices.
     var isReceivingWebSocket = false
 
     /// Show spinner for first 3 attempts, then show failed state
@@ -30,7 +35,11 @@ final class DeviceManager {
     private var debounceTask: Task<Void, Never>?
     private var pollingTask: Task<Void, Never>?
     private var pendingUpdate: DeviceStatusUpdate?
-    private var isSendingMutation = false
+    private var mutationTask: Task<Void, Never>?
+    private var mutationCount = 0
+    private var connectionGeneration = UUID()
+    private var targetOverrides: [Side: (value: Int, until: Date)] = [:]
+    private var powerOverrides: [Side: (value: Bool, until: Date)] = [:]
     private var statusRequestID = UUID()
 
     init(api: SleepypodProtocol) {
@@ -105,6 +114,16 @@ final class DeviceManager {
 
     func switchBackend(_ newClient: SleepypodProtocol) {
         stopPolling()
+        debounceTask?.cancel()
+        pendingUpdate = nil
+        connectionGeneration = UUID()
+        mutationTask?.cancel()
+        mutationTask = nil
+        mutationCount = 0
+        isSendingMutation = false
+        commandError = nil
+        targetOverrides.removeAll()
+        powerOverrides.removeAll()
         statusRequestID = UUID()
         api = newClient
         deviceStatus = nil
@@ -128,7 +147,20 @@ final class DeviceManager {
     func acceptStatus(_ status: DeviceStatus) {
         liveEndpoint = Self.endpointIdentity
         statusRequestID = UUID()
-        deviceStatus = status
+        var merged = status
+        for side in Side.allCases {
+            var observed = status.status(for: side)
+            if let target = targetOverrides[side] {
+                if observed.targetTemperatureF == target.value || target.until < .now { targetOverrides[side] = nil }
+                else { observed.targetTemperatureF = target.value }
+            }
+            if let power = powerOverrides[side] {
+                if observed.isOn == power.value || power.until < .now { powerOverrides[side] = nil }
+                else { observed.isOn = power.value }
+            }
+            if side == .left { merged.left = observed } else { merged.right = observed }
+        }
+        deviceStatus = merged
         cacheStatus(status)
         hasLiveFetched = true
         isConnected = true
@@ -149,7 +181,7 @@ final class DeviceManager {
             while !Task.isCancelled {
                 if skipFirst {
                     skipFirst = false
-                } else if pendingUpdate == nil && !isReceivingWebSocket && !isSendingMutation {
+                } else if pendingUpdate == nil && !isSendingMutation {
                     await fetchStatus()
                 }
                 // Retry faster when disconnected, normal interval when connected
@@ -224,75 +256,108 @@ final class DeviceManager {
     /// Linked sides always move together.
     func setTemperature(_ tempF: Int, side: Side? = nil) {
         let clampedTempF = max(TemperatureConversion.minTempF, min(TemperatureConversion.maxTempF, tempF))
-        let sides = isLinked ? [Side.left, .right] : side.map { [$0] } ?? selectedSide.sides
-
-        // Optimistic update
-        for side in sides {
-            updateLocalTemperature(clampedTempF, for: side)
-        }
-
-        // Build update
+        let source = side ?? selectedSide.primarySide
+        guard !controlsBlocked(for: source) else { return }
+        let sides = (isLinked ? Side.allCases : side.map { [$0] } ?? selectedSide.sides)
+            .filter { !controlsBlocked(for: $0) }
         var update = pendingUpdate ?? DeviceStatusUpdate()
         for side in sides {
-            let sideUpdate = SideStatusUpdate(targetTemperatureF: clampedTempF, isOn: nil)
-            switch side {
-            case .left: update.left = sideUpdate
-            case .right: update.right = sideUpdate
+            targetOverrides[side] = (clampedTempF, .now.addingTimeInterval(8))
+            updateLocalTemperature(clampedTempF, for: side)
+            if APIBackend.current != .freeSleep {
+                powerOverrides[side] = (true, .now.addingTimeInterval(8))
+                updateLocalPower(true, for: side)
             }
+            let value = SideStatusUpdate(targetTemperatureF: clampedTempF, holdMinutes: holdMinutes.validatedHoldMinutes)
+            if side == .left { update.left = value } else { update.right = value }
         }
         pendingUpdate = update
         scheduleDebouncedSend()
     }
 
+    func controlsBlocked(for side: Side) -> Bool {
+        deviceStatus?.isPriming == true || deviceStatus?.pumpStallNotifications?[side] != nil
+            || deviceStatus?.temperatureControl?[side]?.blocked == "safety"
+    }
+
     // MARK: - Power Control
 
     func togglePower(side: Side? = nil) {
-        guard let status = side.flatMap({ deviceStatus?.status(for: $0) }) ?? currentSideStatus else { return }
-        let newIsOn = !status.isOn
-        let sides = isLinked ? [Side.left, .right] : side.map { [$0] } ?? selectedSide.sides
-
-        // Optimistic update
-        for side in sides {
-            updateLocalPower(newIsOn, for: side)
-        }
-
-        // Build and send immediately (no debounce for power)
-        var update = DeviceStatusUpdate()
-        for side in sides {
-            let sideUpdate = SideStatusUpdate(targetTemperatureF: nil, isOn: newIsOn)
-            switch side {
-            case .left: update.left = sideUpdate
-            case .right: update.right = sideUpdate
-            }
-        }
-
-        Task {
-            isSendingMutation = true
-            defer { isSendingMutation = false }
-            do {
-                try await api.updateDeviceStatus(update)
-            } catch {
-                Log.device.error("togglePower failed: \(error)")
-            }
-        }
+        let source = side ?? selectedSide.primarySide
+        guard let status = deviceStatus?.status(for: source) else { return }
+        setPower(!status.isOn, sides: isLinked ? Side.allCases : side.map { [$0] } ?? selectedSide.sides)
     }
 
-    // MARK: - Alarm
+    func allOff() { setPower(false, sides: Side.allCases) }
+
+    private func setPower(_ powered: Bool, sides: [Side]) {
+        let targets = sides.filter { !powered || !controlsBlocked(for: $0) }
+        dropPendingTemperature(for: targets)
+        var update = DeviceStatusUpdate()
+        for side in targets {
+            targetOverrides[side] = nil
+            powerOverrides[side] = (powered, .now.addingTimeInterval(8))
+            updateLocalPower(powered, for: side)
+            let value = SideStatusUpdate(isOn: powered)
+            if side == .left { update.left = value } else { update.right = value }
+        }
+        guard !targets.isEmpty else { return }
+        let command = update
+        enqueueMutation { api in try await api.updateDeviceStatus(command) }
+    }
+
+    /// Resume is queued after an already-sent change and cancels unsent changes on its side.
+    func resumeTemperature(side: Side) {
+        guard !controlsBlocked(for: side) else { return }
+        dropPendingTemperature(for: [side])
+        targetOverrides[side] = nil
+        powerOverrides[side] = nil
+        if APIBackend.current.isDemo {
+            deviceStatus?.temperatureControl?[side] = TemperatureControlStatus(source: "schedule")
+            return
+        }
+        guard APIBackend.current == .sleepypodCore else { return }
+        do {
+            let client = try CoreRESTClient.configured()
+            enqueueMutation { _ in try await client.post("device/temperature/resume", body: SideRequest(side: side)) }
+        } catch { commandError = error.localizedDescription }
+    }
+
+    // MARK: - Notices
 
     func stopAlarm() {
-        guard let side = alarmSide else { return }
-        // Optimistic update
-        updateLocalAlarm(false, for: side)
-
-        Task {
-            do {
-                try await api.clearAlarm(side: side)
-            } catch {
-                self.error = error.localizedDescription
-                await fetchStatus()
-            }
-        }
+        let active = Side.allCases.filter { deviceStatus?.status(for: $0).isAlarmVibrating == true }
+        let targets = active.isEmpty
+            ? Side.allCases.filter { deviceStatus?.snooze?[$0]?.active == true } : active
+        for side in targets { updateLocalAlarm(false, for: side) }
+        enqueueMutation { api in for side in targets { try await api.clearAlarm(side: side) } }
     }
+
+    func snoozeAlarm() {
+        let targets = Side.allCases.filter { deviceStatus?.status(for: $0).isAlarmVibrating == true }
+        enqueueMutation { api in for side in targets { _ = try await api.snoozeAlarm(side: side, duration: 300) } }
+    }
+
+    func resolvePumpStall(side: Side, restore: Bool) {
+        guard let notice = deviceStatus?.pumpStallNotifications?[side], APIBackend.current == .sleepypodCore else { return }
+        struct Request: Encodable, Sendable { let side: Side; let alertId: Int? }
+        do {
+            let client = try CoreRESTClient.configured()
+            let path = restore ? "pump-alerts/acknowledge" : "pump-alerts/dismiss-notification"
+            let body = Request(side: side, alertId: notice.alertId > 0 ? notice.alertId : nil)
+            enqueueMutation { _ in try await client.post(path, body: body) }
+        } catch { commandError = error.localizedDescription }
+    }
+
+    func dismissPrimeCompletion() {
+        guard APIBackend.current == .sleepypodCore else { return }
+        do {
+            let client = try CoreRESTClient.configured()
+            enqueueMutation { _ in try await client.post("device/prime/dismiss", body: [String: String]()) }
+        } catch { commandError = error.localizedDescription }
+    }
+
+    private struct SideRequest: Encodable, Sendable { let side: Side }
 
     // MARK: - Side Selection
 
@@ -343,24 +408,60 @@ final class DeviceManager {
         debounceTask?.cancel()
         debounceTask = Task {
             try? await Task.sleep(for: .milliseconds(500))
-            guard !Task.isCancelled else { return }
-            await sendPendingUpdate()
+            guard !Task.isCancelled, let update = pendingUpdate else { return }
+            pendingUpdate = nil
+            // The queue owns sending; cancelling the next tap's debounce must not cancel an in-flight request.
+            enqueueMutation { api in try await api.updateDeviceStatus(update) }
         }
     }
 
-    private func sendPendingUpdate() async {
-        guard let update = pendingUpdate else { return }
-        pendingUpdate = nil
-        isSendingMutation = true
-        do {
-            try await api.updateDeviceStatus(update)
-        } catch {
-            Log.device.error("sendPendingUpdate failed: \(error)")
-            // Don't call fetchStatus here — it competes with the hardware.
-            // The next polling cycle will naturally correct the state.
+    private func dropPendingTemperature(for sides: [Side]) {
+        for side in sides {
+            if side == .left { pendingUpdate?.left = nil } else { pendingUpdate?.right = nil }
         }
-        // Brief cooldown — let the hardware settle before the next poll
-        try? await Task.sleep(for: .seconds(2))
-        isSendingMutation = false
+        if pendingUpdate?.left == nil && pendingUpdate?.right == nil {
+            pendingUpdate = nil
+            debounceTask?.cancel()
+        }
     }
+
+    /// Serialize writes so a late dial request cannot re-energize a side after All off or Resume.
+    private func enqueueMutation(_ operation: @escaping @MainActor (SleepypodProtocol) async throws -> Void) {
+        let previous = mutationTask
+        let generation = connectionGeneration
+        let client = api
+        mutationCount += 1
+        isSendingMutation = true
+        commandError = nil
+        statusRequestID = UUID()
+        mutationTask = Task {
+            await previous?.value
+            guard !Task.isCancelled, generation == connectionGeneration else { return }
+            do { try await operation(client) }
+            catch {
+                guard generation == connectionGeneration else { return }
+                commandError = error.localizedDescription
+                targetOverrides.removeAll()
+                powerOverrides.removeAll()
+            }
+            guard generation == connectionGeneration else { return }
+            mutationCount -= 1
+            isSendingMutation = mutationCount > 0
+            // Keep the mutation's error visible even when a successful status read follows.
+            if mutationCount == 0 {
+                mutationTask = nil
+                await fetchStatus()
+            }
+        }
+    }
+
+    /// Also used by deterministic command-ordering tests; does not issue additional requests.
+    func waitForCommands() async {
+        await debounceTask?.value
+        await mutationTask?.value
+    }
+}
+
+private extension Int {
+    var validatedHoldMinutes: Int { [15, 30, 60, 120].contains(self) ? self : 30 }
 }

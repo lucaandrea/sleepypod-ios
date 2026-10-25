@@ -18,6 +18,7 @@ struct TempScreen: View {
 
     @Environment(SensorStreamService.self) private var sensor
     @Environment(UserProfile.self) private var profile
+    @Environment(\.dynamicTypeSize) private var typeSize
     @State private var curveError: String?
     @State private var activeCurve: ActiveCurve?
     @State private var nightPhases = NightPhasesStore()
@@ -32,10 +33,12 @@ struct TempScreen: View {
                 let api = APIBackend.current.createClient()
                 do {
                     try await api.cancelRunOnce(side: side)
-                    let powerOff = SideStatusUpdate(isOn: false)
-                    var update = DeviceStatusUpdate()
-                    if side == .left { update.left = powerOff } else { update.right = powerOff }
-                    try await api.updateDeviceStatus(update)
+                    if APIBackend.current == .freeSleep {
+                        let powerOff = SideStatusUpdate(isOn: false)
+                        var update = DeviceStatusUpdate()
+                        if side == .left { update.left = powerOff } else { update.right = powerOff }
+                        try await api.updateDeviceStatus(update)
+                    }
                     await deviceManager.fetchStatus()
                     curveError = nil
                     withAnimation { activeCurve = nil }
@@ -96,7 +99,9 @@ struct TempScreen: View {
     }
 
     private func currentDayOfWeek() -> DayOfWeek {
-        let weekday = Calendar.current.component(.weekday, from: Date())
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(identifier: settingsManager.timeZone) ?? .current
+        let weekday = calendar.component(.weekday, from: Date())
         // Calendar weekday: 1=Sunday, 2=Monday, ...
         let days: [DayOfWeek] = [.sunday, .monday, .tuesday, .wednesday, .thursday, .friday, .saturday]
         return days[weekday - 1]
@@ -130,18 +135,26 @@ struct TempScreen: View {
 
     var body: some View {
         NavigationStack {
-            Group {
+            VStack(spacing: 0) {
                 if deviceManager.isConnected {
-                    switch profile.tempControl {
+                    layoutToolbar
+                    TemperatureNoticesView()
+                }
+                Group {
+                if deviceManager.isConnected {
+                    if profile.temperatureLayout == .stage {
+                        TemperatureStageScreen()
+                    } else { switch profile.tempControl {
                     case .dial, .stepper: centeredControl
                     case .slider:
                         TempSliderView(curve: activeCurve, profileName: activeCurve.map { profileName($0.setPoints) } ?? "")
                     case .sides:
                         ScrollView { BothSidesView(curve: activeCurve) }
                             .refreshable { await deviceManager.fetchStatus(); await fetchActiveCurve() }
-                    }
+                    } }
                 } else {
                     DisconnectedTabView(tab: "Temp")
+                }
                 }
             }
             .background(Theme.background)
@@ -179,6 +192,21 @@ struct TempScreen: View {
         .onReceive(NotificationCenter.default.publisher(for: .switchToTempTab)) { _ in Task { await fetchActiveCurve() } }
     }
 
+    private var layoutToolbar: some View {
+        @Bindable var profile = profile
+        let layout = typeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: 8)) : AnyLayout(HStackLayout(spacing: 12))
+        return layout {
+            Picker("Temperature layout", selection: $profile.temperatureLayout) {
+                Label("Cards", systemImage: "square.grid.2x2").tag(TemperatureLayout.cards)
+                Label("Stage", systemImage: "cube").tag(TemperatureLayout.stage)
+            }.pickerStyle(.segmented).frame(maxWidth: 240)
+            if !typeSize.isAccessibilitySize { Spacer(minLength: 0) }
+            Button("All off", systemImage: "power") { deviceManager.allOff() }
+                .font(.subheadline).buttonStyle(.bordered)
+                .disabled(deviceManager.deviceStatus.map { !$0.left.isOn && !$0.right.isOn } ?? true)
+        }.padding(.horizontal, 16).padding(.vertical, 8)
+    }
+
     /// Dial or Night & Dawn stepper, with the side switcher above and today's context below.
     private var centeredControl: some View {
         ScrollView {
@@ -191,13 +219,14 @@ struct TempScreen: View {
                     TemperatureDialView().padding(.top, 28)
                     TempControlsView().padding(.top, 14)
                 }
-                environmentLine.padding(.top, 26)
+                TemperatureOwnershipView().padding(.top, 24)
+                environmentLine.padding(.top, 20)
+                if APIBackend.current != .freeSleep { NextAlarmCard(side: deviceManager.selectedSide.primarySide).padding(.top, 20) }
                 VStack(spacing: 12) {
                     if let curveError {
                         Text(curveError).font(.footnote).foregroundStyle(Theme.amber)
                             .frame(maxWidth: .infinity, alignment: .leading)
                     }
-                    if deviceManager.isAlarmActive, let side = deviceManager.alarmSide { alarmCard(side) }
                     if let curve = activeCurve {
                         if let session = curve.session {
                             RunOnceActiveBanner(session: session, onCancel: stopCurve, compact: true)
@@ -207,6 +236,9 @@ struct TempScreen: View {
                     }
                 }
                 .padding(.top, 24)
+                if APIBackend.current != .freeSleep {
+                    TemperatureContextCards(side: deviceManager.selectedSide.primarySide).padding(.top, 20)
+                }
             }
             .padding(.horizontal, profile.tempControl == .stepper ? 16 : 20)
             .padding(.top, 16)
@@ -262,9 +294,10 @@ struct TempScreen: View {
     }
 
     private var environmentLine: some View {
-        HStack(spacing: 18) {
+        let layout = typeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: 8)) : AnyLayout(HStackLayout(spacing: 18))
+        return layout {
             let temps = deviceManager.selectedSide.primarySide == .left ? sensor.leftTemps : sensor.rightTemps
-            if let ambient = temps?.amb, ambient.isFinite, ambient > -100 {
+            if RoomSnapshot.isFresh(sensor.bedTempUpdatedAt, now: .now), let ambient = temps?.amb, ambient.isFinite, ambient > -100 {
                 let format = settingsManager.temperatureFormat == .relative ? .fahrenheit : settingsManager.temperatureFormat
                 Label {
                     Text("\(TemperatureConversion.displayTemp(Int((ambient * 9 / 5 + 32).rounded()), format: format)) inside")
@@ -301,22 +334,6 @@ struct TempScreen: View {
     private func range(_ curve: ActiveCurve) -> some View {
         Text("\(DisplayTime.clock(curve.bedtime)) → \(DisplayTime.clock(curve.wakeTime))")
             .font(.mono(12, relativeTo: .caption)).foregroundStyle(Theme.text2)
-    }
-
-    private func alarmCard(_ side: Side) -> some View {
-        HStack(spacing: 10) {
-            Image(systemName: "alarm").foregroundStyle(Theme.amber)
-            Text("Alarm").font(.subheadline.weight(.semibold))
-            Spacer()
-            Button("Snooze") {
-                Task { _ = try? await APIBackend.current.createClient().snoozeAlarm(side: side, duration: 300) }
-            }
-            .font(.subheadline.weight(.semibold))
-            Button("Stop") { deviceManager.stopAlarm() }.font(.subheadline.weight(.semibold))
-        }
-        .buttonStyle(.plain)
-        .cardStyle(vertical: 14)
-        .overlay(RoundedRectangle(cornerRadius: 22, style: .continuous).stroke(Theme.amber, lineWidth: 1))
     }
 
     private func profileName(_ points: [RunOnceSetPoint]) -> String {

@@ -26,10 +26,10 @@ struct ThermalBedCard: View {
 
                 ThermalBedSceneView(
                     left: stale ? ThermalZones.none : left,
-                    right: stale ? ThermalZones.none : right
+                    right: stale ? ThermalZones.none : right,
+                    interactive: true
                 )
                 .frame(height: 210)
-                .allowsHitTesting(false)
                 .accessibilityLabel("Thermal bed")
 
                 cells(left: left, right: right, stale: stale)
@@ -74,7 +74,7 @@ struct ThermalBedCard: View {
             ForEach(0..<6, id: \.self) { i in
                 let f = values[i]
                 VStack(spacing: 3) {
-                    Text(f.map { TemperatureConversion.displayTemp(Int($0.rounded()), format: settingsManager.temperatureFormat) } ?? "--")
+                    Text(f.map { TemperatureConversion.displayTemp(Int($0.rounded()), format: settingsManager.temperatureFormat.degreeUnit) } ?? "--")
                         .font(.system(size: 11, weight: .medium).monospaced())
                         .foregroundColor(f == nil ? Theme.textMuted : .white)
                         .lineLimit(1)
@@ -92,7 +92,7 @@ struct ThermalBedCard: View {
     }
 
     private var legend: some View {
-        let format = settingsManager.temperatureFormat
+        let format = settingsManager.temperatureFormat.degreeUnit
         let stops = TempRamp.stops.map { TempRamp.color($0.f) }
         return HStack(spacing: 8) {
             Text(TemperatureConversion.displayTemp(Int(TempRamp.minF), format: format))
@@ -187,6 +187,11 @@ enum HeatTexture {
 struct ThermalBedSceneView: UIViewRepresentable {
     let left: [Double?]
     let right: [Double?]
+    var interactive = false
+    var selectedSide: Side?
+    var autoReturn = false
+    var resetCamera = 0
+    var onSelect: ((Side) -> Void)?
 
     func makeCoordinator() -> Coordinator { Coordinator() }
 
@@ -197,17 +202,32 @@ struct ThermalBedSceneView: UIViewRepresentable {
         view.backgroundColor = .clear
         view.antialiasingMode = .multisampling4X
         view.rendersContinuously = false
-        view.isUserInteractionEnabled = false
+        view.isUserInteractionEnabled = interactive
+        context.coordinator.installGestures(on: view)
+        context.coordinator.configure(interactive: interactive, selectedSide: selectedSide, autoReturn: autoReturn, reset: resetCamera, onSelect: onSelect)
         context.coordinator.update(left: left, right: right)
         return view
     }
 
     func updateUIView(_ view: SCNView, context: Context) {
+        view.isUserInteractionEnabled = interactive
+        context.coordinator.configure(interactive: interactive, selectedSide: selectedSide, autoReturn: autoReturn, reset: resetCamera, onSelect: onSelect)
         context.coordinator.update(left: left, right: right)
     }
 
+    static func dismantleUIView(_ view: SCNView, coordinator: Coordinator) { coordinator.stop() }
+
     @MainActor
-    final class Coordinator {
+    final class Coordinator: NSObject, UIGestureRecognizerDelegate {
+        private weak var view: SCNView?
+        private var autoReturnTask: Task<Void, Never>?
+        private var autoReturn = false
+        private var lastReset = 0
+        private var onSelect: ((Side) -> Void)?
+        private var yaw: Float = -0.3
+        private var elevation: Float = 0.68
+        private var distance: Float = 5.8
+        private var sideBodies: [Side: SCNNode] = [:]
         let scene = SCNScene()
         let camera = SCNNode()
         private let leftCover = SCNMaterial()
@@ -219,8 +239,89 @@ struct ThermalBedSceneView: UIViewRepresentable {
         private static let mattress = (width: 0.95, length: 2.0, height: 0.26, chamfer: 0.05)
         private static let seam = 0.015
 
-        init() {
+        override init() {
+            super.init()
             build()
+        }
+
+        func stop() { autoReturnTask?.cancel() }
+
+        func installGestures(on view: SCNView) {
+            self.view = view
+            let pan = UIPanGestureRecognizer(target: self, action: #selector(rotate(_:)))
+            pan.maximumNumberOfTouches = 2
+            pan.name = "bedOrbit"
+            pan.delegate = self
+            view.addGestureRecognizer(pan)
+            view.addGestureRecognizer(UIPinchGestureRecognizer(target: self, action: #selector(zoom(_:))))
+            let tap = UITapGestureRecognizer(target: self, action: #selector(select(_:)))
+            tap.require(toFail: pan)
+            view.addGestureRecognizer(tap)
+        }
+
+        func configure(interactive: Bool, selectedSide: Side?, autoReturn: Bool, reset: Int, onSelect: ((Side) -> Void)?) {
+            self.autoReturn = autoReturn
+            self.onSelect = onSelect
+            if !autoReturn { autoReturnTask?.cancel() }
+            if lastReset != reset { lastReset = reset; returnCamera() }
+            for (side, node) in sideBodies {
+                node.geometry?.firstMaterial?.emission.contents = selectedSide == side ? UIColor(white: 0.13, alpha: 1) : UIColor.black
+            }
+        }
+
+        func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
+            guard let pan = gestureRecognizer as? UIPanGestureRecognizer, pan.name == "bedOrbit" else { return true }
+            // A vertical one-finger swipe belongs to the surrounding scroll view.
+            let velocity = pan.velocity(in: view)
+            return pan.numberOfTouches > 1 || abs(velocity.x) > abs(velocity.y)
+        }
+
+        @objc private func rotate(_ gesture: UIPanGestureRecognizer) {
+            guard let view else { return }
+            autoReturnTask?.cancel()
+            let translation = gesture.translation(in: view)
+            yaw -= Float(translation.x) * 0.008
+            elevation = min(1.3, max(0.28, elevation + Float(translation.y) * 0.005))
+            gesture.setTranslation(.zero, in: view)
+            positionCamera()
+            if gesture.state == .ended || gesture.state == .cancelled { scheduleReturn() }
+        }
+
+        @objc private func zoom(_ gesture: UIPinchGestureRecognizer) {
+            autoReturnTask?.cancel()
+            distance = min(8, max(4.4, distance / Float(gesture.scale)))
+            gesture.scale = 1
+            positionCamera()
+            if gesture.state == .ended || gesture.state == .cancelled { scheduleReturn() }
+        }
+
+        @objc private func select(_ gesture: UITapGestureRecognizer) {
+            guard let view else { return }
+            let hit = view.hitTest(gesture.location(in: view), options: [.firstFoundOnly: false])
+            if let side = hit.compactMap({ $0.node.name.flatMap(Side.init(rawValue:)) }).first { onSelect?(side) }
+        }
+
+        /// Idle redraws stop; only gestures and a short camera return animate the scene.
+        private func positionCamera(animated: Bool = false) {
+            SCNTransaction.begin()
+            SCNTransaction.animationDuration = animated ? 0.7 : 0
+            camera.position = SCNVector3(sin(yaw) * cos(elevation) * distance, sin(elevation) * distance, cos(yaw) * cos(elevation) * distance)
+            camera.look(at: SCNVector3(0, 0.3, 0))
+            SCNTransaction.commit()
+            view?.setNeedsDisplay()
+        }
+        private func returnCamera() {
+            autoReturnTask?.cancel()
+            yaw = -0.3; elevation = 0.68; distance = 5.8
+            positionCamera(animated: true)
+        }
+        private func scheduleReturn() {
+            guard autoReturn else { return }
+            autoReturnTask = Task { [weak self] in
+                try? await Task.sleep(for: .seconds(6))
+                guard !Task.isCancelled else { return }
+                self?.returnCamera()
+            }
         }
 
         func update(left: [Double?], right: [Double?]) {
@@ -256,6 +357,9 @@ struct ThermalBedSceneView: UIViewRepresentable {
 
                 let body = box(width: m.width, height: m.height, length: m.length, chamfer: m.chamfer, color: UIColor(hex: 0x8d9199))
                 body.position = SCNVector3(x, mattressY, 0)
+                let side: Side = sign < 0 ? .left : .right
+                body.name = side.rawValue
+                sideBodies[side] = body
                 root.addChildNode(body)
 
                 // The heat sits on the flat of the cover, inside the rounded edge
@@ -268,10 +372,12 @@ struct ThermalBedSceneView: UIViewRepresentable {
                 let top = SCNNode(geometry: plane)
                 top.eulerAngles.x = -.pi / 2
                 top.position = SCNVector3(x, topY + 0.001, 0)
+                top.name = side.rawValue
                 root.addChildNode(top)
 
                 let pillow = box(width: m.width - 0.3, height: 0.1, length: 0.3, chamfer: 0.045, color: UIColor(hex: 0xc9ccd2))
                 pillow.position = SCNVector3(x, topY + 0.04, -m.length / 2 + 0.24)
+                pillow.name = side.rawValue
                 root.addChildNode(pillow)
             }
 
@@ -303,13 +409,12 @@ struct ThermalBedSceneView: UIViewRepresentable {
             root.addChildNode(keyNode)
 
             let lens = SCNCamera()
-            lens.fieldOfView = 25
+            lens.fieldOfView = 32
             lens.zNear = 0.1
             lens.zFar = 50
             camera.camera = lens
-            camera.position = SCNVector3(0, 2.6, 3.2)
-            camera.look(at: SCNVector3(0, 0.3, 0.1))
             root.addChildNode(camera)
+            positionCamera()
         }
 
         private func box(width: Double, height: Double, length: Double, chamfer: Double, color: UIColor) -> SCNNode {

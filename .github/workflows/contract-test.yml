@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [dev]
+    branches: [main, dev]
   pull_request:
   # Merge queue: the required checks must also report on the temporary
   # merge-group branch or every queue entry fails.
@@ -32,10 +32,10 @@ jobs:
           -scheme Sleepypod
           -destination 'generic/platform=iOS'
           CODE_SIGNING_ALLOWED=NO
-          SWIFT_TREAT_WARNINGS_AS_ERRORS=YES
           -quiet
 
       - name: Unit and transport regression tests
+        timeout-minutes: 20
         run: |
           IOS_SIM_ID=$(xcrun simctl list devices available --json | python3 -c '
           import json, sys
@@ -46,7 +46,19 @@ jobs:
           print(matches[0])')
           xcodebuild test -project Sleepypod.xcodeproj -scheme Sleepypod \
             -destination "platform=iOS Simulator,id=$IOS_SIM_ID" \
-            -only-testing:SleepypodTests CODE_SIGNING_ALLOWED=NO -quiet
+            -only-testing:SleepypodTests -only-testing:FreeSleepKitTests \
+            -resultBundlePath "$RUNNER_TEMP/SleepypodTests.xcresult" \
+            -collect-test-diagnostics never \
+            -parallel-testing-enabled NO CODE_SIGNING_ALLOWED=NO
+
+      - name: Preserve test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-unit-test-results
+          path: ${{ runner.temp }}/SleepypodTests.xcresult
+          if-no-files-found: ignore
+          retention-days: 7
 
   lint:
     runs-on: macos-15
@@ -75,9 +87,10 @@ jobs:
 
       - name: Copy iOS model files into Swift package
         run: |
-          for f in Side DeviceStatus VitalsRecord SleepRecord MovementRecord ServerStatus Settings Schedule Services TemperatureConversion; do
+          for f in Side DeviceStatus TemperatureControlStatus VitalsRecord SleepRecord MovementRecord ServerStatus Settings Schedule CoreScheduleRows Services TemperatureConversion; do
             cp "Sleepypod/Models/${f}.swift" contract-tests/Sources/SleepypodModels/
           done
+          cp SleepypodUI/Theme.swift contract-tests/Sources/SleepypodModels/
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
@@ -87,7 +100,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: '24.22.1'
           cache: 'pnpm'
           cache-dependency-path: core-checkout/pnpm-lock.yaml
 
@@ -145,7 +158,7 @@ jobs:
         uses: codecov/codecov-action@v5
         with:
           use_oidc: true
-          slug: sleepypod/ios
+          slug: ${{ github.repository }}
           files: contract-tests/lcov.info
           flags: contract-tests
 
@@ -154,7 +167,7 @@ jobs:
         uses: codecov/test-results-action@v1
         with:
           use_oidc: true
-          slug: sleepypod/ios
+          slug: ${{ github.repository }}
           files: contract-tests/test-results.xml
 
       - name: Stop server

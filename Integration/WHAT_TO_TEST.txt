@@ -1,0 +1,10 @@
+Sleepypod UI restoration
+
+The original Temp, Schedule and Sleep tabs, temperature dial, schedule curves, sleep charts and settings design are restored. Personal features now use the same Sleepypod components; the previous Free Sleep app interface has been removed.
+
+New feature locations:
+• Settings: Bed position (rotatable preview and mattress toggle), Personal comfort, Health, Home & Shortcuts and model connections.
+• Schedule options: Next alarm overrides and complete routine editing/copying.
+• Sleep options: Morning check-in, personal reports, sleep coach and recorded episode editing.
+
+Existing connection and personal data are retained. Core-only servers without the optional personal-feature service show a clear unavailable state. Demo mode is isolated from real bed commands. Physical bed movement, alarm vibration and Health/Home permissions still need attended testing.

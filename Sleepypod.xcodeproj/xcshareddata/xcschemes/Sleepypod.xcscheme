@@ -55,6 +55,17 @@
             parallelizable = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
+               BlueprintIdentifier = "5042CCE6EEB57C12CA0CD3DC"
+               BuildableName = "FreeSleepKitTests.xctest"
+               BlueprintName = "FreeSleepKitTests"
+               ReferencedContainer = "container:Sleepypod.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO"
+            parallelizable = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
                BlueprintIdentifier = "BF06DBF6CAB62C58B7AECD55"
                BuildableName = "SleepypodUITests.xctest"
                BlueprintName = "SleepypodUITests"

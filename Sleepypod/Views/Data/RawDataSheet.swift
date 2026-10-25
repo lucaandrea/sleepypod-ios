@@ -1,204 +1,152 @@
 import SwiftUI
 
 struct RawDataSheet: View {
-    let vitals: [VitalsRecord]
-    let smoothedVitals: [VitalsRecord]
-    let metricsManager: MetricsManager
-
     @Environment(\.dismiss) private var dismiss
-    @State private var exportURL: URL?
-    @State private var showShareSheet = false
-    @State private var fileCount: FileCount?
-
-    private var side: String { metricsManager.selectedSide.rawValue }
-    private var dropped: Int { vitals.count - smoothedVitals.count }
-
+    @Environment(SettingsManager.self) private var settings
+    @Environment(\.dynamicTypeSize) private var typeSize
+    @State private var model: SleepExportWorkspace
+    @State private var expanded = false
+    @State private var deleting: RawSensorFile?
+    private let backend: APIBackend
+    private let side: Side
+    private let start: Date
+    private let end: Date
+    private let vitals: [VitalsRecord]
+    private let sleep: [SleepRecord]
+    private let movement: [MovementRecord]
+    private let reference: WatchReferenceData
+    init(metrics: MetricsManager) {
+        backend = APIBackend.current; side = metrics.selectedSide
+        start = metrics.selectedWeekStart
+        end = metrics.calendar.date(byAdding: .hour, value: 12, to: metrics.selectedWeekEnd) ?? metrics.selectedWeekEnd
+        vitals = metrics.vitalsRecords; sleep = metrics.sleepRecords; movement = metrics.movementRecords
+        reference = WatchReferenceData()
+        _model = State(initialValue: SleepExportWorkspace(api: APIBackend.current.isDemo ? DemoRawDataClient() : CoreRawDataClient()))
+    }
+    init(side: Side, start: Date, end: Date, vitals: [VitalsRecord], sleep: [SleepRecord], movement: [MovementRecord], reference: WatchReferenceData = WatchReferenceData()) {
+        backend = APIBackend.current; self.side = side; self.start = start; self.end = end
+        self.vitals = vitals; self.sleep = sleep; self.movement = movement
+        self.reference = reference
+        _model = State(initialValue: SleepExportWorkspace(api: APIBackend.current.isDemo ? DemoRawDataClient() : CoreRawDataClient()))
+    }
+    private var dateRange: String {
+        let format = Date.FormatStyle(date: .abbreviated, time: .shortened, timeZone: SleepCalendar.calendar(timeZone: settings.timeZone).timeZone)
+        return "\(start.formatted(format)) → \(end.formatted(format))"
+    }
     var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(spacing: 16) {
-                    // Stats
-                    VStack(spacing: 6) {
-                        statRow("Side", metricsManager.selectedSide.displayName)
-                        statRow("Vitals records", "\(vitals.count)")
-                        if dropped > 0 {
-                            statRow("Outliers filtered", "\(dropped)", color: Theme.amber)
-                        }
-                        statRow("Sleep sessions", "\(metricsManager.sleepRecords.count)")
-                        statRow("Movement records", "\(metricsManager.movementRecords.count)")
-
-                        if let fc = fileCount {
-                            Divider().background(Theme.cardBorder).padding(.vertical, 2)
-                            statRow("Raw files (left)", "\(fc.rawFiles.left)")
-                            statRow("Raw files (right)", "\(fc.rawFiles.right)")
-                            statRow("Total size", fc.sizeDisplay)
-                        }
+                VStack(alignment: .leading, spacing: 18) {
+                    Text(settings.sideName(for: side)).font(.headline)
+                    Text(dateRange).font(.footnote).foregroundStyle(Theme.text2).fixedSize(horizontal: false, vertical: true)
+                    Text(settings.timeZone).font(.footnote).foregroundStyle(Theme.text3)
+                    VStack(spacing: 12) {
+                        stat("Vitals", value: "\(vitals.count) readings")
+                        stat("Sleep", value: "\(sleep.count) records")
+                        stat("Movement", value: "\(movement.count) readings")
+                    }.cardStyle()
+                    VStack(alignment: .leading, spacing: 16) {
+                        exportButton("Vitals CSV", count: vitals.count, filename: "vitals", content: SleepCSV.vitals(vitals))
+                        exportButton("Sleep CSV", count: sleep.count, filename: "sleep", content: SleepCSV.sleep(sleep))
+                        exportButton("Movement CSV", count: movement.count, filename: "movement", content: SleepCSV.movement(movement))
+                        if reference.count > 0 { exportButton("Apple Watch reference CSV", count: reference.count, filename: "watch-reference", content: reference.csv) }
+                        Button("Export all CSV files", systemImage: "square.and.arrow.up") {
+                            var files = [(name: "vitals-\(side.rawValue).csv", text: SleepCSV.vitals(vitals)),
+                                       (name: "sleep-\(side.rawValue).csv", text: SleepCSV.sleep(sleep)),
+                                       (name: "movement-\(side.rawValue).csv", text: SleepCSV.movement(movement))]
+                            if reference.count > 0 { files.append((name: "watch-reference-\(side.rawValue).csv", text: reference.csv)) }
+                            model.csv(files)
+                        }.disabled(vitals.isEmpty && sleep.isEmpty && movement.isEmpty)
+                        Text("Missing readings stay blank. The three files keep their own columns and can be opened in Numbers or Excel.")
+                            .font(.footnote).foregroundStyle(Theme.text2).fixedSize(horizontal: false, vertical: true)
+                    }.cardStyle().disabled(model.preparing)
+                    if backend != .freeSleep { controllerFiles }
+                    if let error = model.error { Text(error).font(.footnote).foregroundStyle(Theme.amber).fixedSize(horizontal: false, vertical: true) }
+                    if let notice = model.notice { Text(notice).font(.footnote).foregroundStyle(Theme.text2) }
+                    if model.preparing {
+                        ProgressView(model.activity)
+                        if model.canCancel { Button("Cancel download") { model.cancel() } }
                     }
-                    .cardStyle()
-
-                    // Files
-                    VStack(spacing: 2) {
-                        fileRow(
-                            name: "vitals-\(side).csv",
-                            rows: vitals.count,
-                            icon: "heart.text.clipboard"
-                        ) { exportVitals() }
-
-                        Divider().background(Theme.cardBorder)
-
-                        fileRow(
-                            name: "sleep-\(side).csv",
-                            rows: metricsManager.sleepRecords.count,
-                            icon: "LogoMark"
-                        ) { exportSleep() }
-
-                        Divider().background(Theme.cardBorder)
-
-                        fileRow(
-                            name: "movement-\(side).csv",
-                            rows: metricsManager.movementRecords.count,
-                            icon: "figure.walk"
-                        ) { exportMovement() }
-                    }
-                    .cardStyle()
-
-                    // Export all
-                    Button { exportAll() } label: {
-                        HStack(spacing: 8) {
-                            Image(systemName: "square.and.arrow.up")
-                            Text("Export All as CSV")
-                        }
-                        .font(.subheadline.weight(.semibold))
-                        .foregroundColor(Theme.text1)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 14)
-                        .background(Theme.accent)
-                        .clipShape(RoundedRectangle(cornerRadius: 12))
-                    }
-                    .buttonStyle(.plain)
-
-                    // Info
-                    Text("CSV files can be opened in Excel, Numbers, or imported into Python/R for analysis.")
-                        .font(.caption2)
-                        .foregroundColor(Theme.textMuted)
-                        .multilineTextAlignment(.center)
-                }
-                .padding(.horizontal, 16)
-                .padding(.bottom, 20)
-            }
-            .background(Theme.background)
-            .navigationTitle("Raw Data")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Done") { dismiss() }
-                        .foregroundColor(Theme.accent)
-                }
-            }
-            .sheet(isPresented: $showShareSheet) {
-                if let url = exportURL {
-                    ShareSheet(items: [url])
-                }
-            }
-            .task {
-                fileCount = try? await APIBackend.current.createClient().getFileCount()
-            }
+                }.frame(maxWidth: 720).padding(16).frame(maxWidth: .infinity)
+            }.background(Theme.background).navigationTitle("Raw data").navigationBarTitleDisplayMode(.inline)
+            .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { model.cancel(); dismiss() } } }
+            .sheet(isPresented: Binding(get: { !model.shares.isEmpty }, set: { if !$0 { model.cleanup() } })) { ShareSheet(items: model.shares) }
+            .task { if backend != .freeSleep { await model.refresh() } }
+            .onDisappear { model.cancel() }
+            .confirmationDialog("Delete sensor file?", isPresented: Binding(get: { deleting != nil }, set: { if !$0 { deleting = nil } }), presenting: deleting) { file in
+                Button("Delete \(file.name)", role: .destructive) { Task { await model.delete(file) } }
+            } message: { file in Text("Permanently remove \(file.name) (\(file.size)) from the Pod. This file contains readings from both sides. This cannot be undone.") }
         }
     }
-
-    private func statRow(_ label: String, _ value: String, color: Color = Theme.textSecondary) -> some View {
-        HStack {
-            Text(label).font(.subheadline).foregroundColor(Theme.textSecondary)
-            Spacer()
-            Text(value).font(.subheadline.monospaced()).foregroundColor(color)
-        }
-    }
-
-    private func fileRow(name: String, rows: Int, icon: String, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            HStack(spacing: 12) {
-                Group {
-                    if icon == "LogoMark" {
-                        Image("LogoMark")
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 20, height: 20)
-                    } else {
-                        Image(systemName: icon)
-                            .font(.system(size: 14))
-                            .foregroundColor(Theme.accent)
-                    }
-                }
-                .frame(width: 28)
-
-                VStack(alignment: .leading, spacing: 1) {
-                    Text(name)
-                        .font(.subheadline.monospaced())
-                        .foregroundColor(Theme.text1)
-                    Text("\(rows) rows")
-                        .font(.caption2)
-                        .foregroundColor(Theme.textMuted)
-                }
-
-                Spacer()
-
-                Image(systemName: "arrow.down.circle.fill")
-                    .font(.system(size: 18))
-                    .foregroundColor(Theme.accent)
+    private var controllerFiles: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            if let usage = model.usage {
+                stat("Sensor files", value: "\(usage.rawFileCount)")
+                stat("Sensor storage", value: ByteCountFormatter.string(fromByteCount: usage.rawBytes, countStyle: .file))
+                if usage.availableBytes > 0 { stat("Available space", value: ByteCountFormatter.string(fromByteCount: usage.availableBytes, countStyle: .file)) }
             }
-            .padding(.vertical, 8)
-        }
-        .buttonStyle(.plain)
+            if backend.isDemo { Text("DEMO · sensor files are simulated. CSV exports contain demo readings.").font(.footnote).foregroundStyle(Theme.text2) }
+            Button("Export archive", systemImage: "archivebox") { model.archive(start: start, end: end) }.disabled(backend.isDemo || model.preparing)
+            Text("Includes RAW waveforms in this interval and the full biometrics database for both sides. Large archives may take several minutes.")
+                .font(.footnote).foregroundStyle(Theme.text2).fixedSize(horizontal: false, vertical: true)
+            DisclosureGroup("Sensor data files", isExpanded: $expanded) {
+                Text("All files on this Pod · both sides").font(.footnote).foregroundStyle(Theme.text2).padding(.vertical, 8)
+                if model.loading { ProgressView("Loading files…") }
+                if model.files.isEmpty && !model.loading && model.error == nil { Text("No sensor files found.").font(.footnote) }
+                ForEach(model.files) { file in
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text(file.name).font(.mono(15, relativeTo: .body))
+                        Text("\(file.size)\(file.date.map { " · " + $0.formatted(Date.FormatStyle(date: .abbreviated, time: .shortened, timeZone: SleepCalendar.calendar(timeZone: settings.timeZone).timeZone)) } ?? "")")
+                            .font(.footnote).foregroundStyle(Theme.text2)
+                        ViewThatFits(in: .horizontal) { fileActions(file, vertical: false); fileActions(file, vertical: true) }
+                    }.padding(.vertical, 10)
+                    if file.id != model.files.last?.id { Divider() }
+                }
+            }.accessibilityIdentifier("sleep.sensorFiles")
+            Button("Refresh file list", systemImage: "arrow.clockwise") { Task { await model.refresh() } }.disabled(model.loading || model.preparing)
+        }.cardStyle()
     }
-
-    // MARK: - Export
-
-    private func exportVitals() {
-        let csv = "id,side,timestamp,heartRate,hrv,breathingRate\n" +
-            vitals.map { "\($0.id),\($0.side),\($0.date.ISO8601Format()),\($0.heartRate ?? 0),\($0.hrv ?? 0),\($0.breathingRate ?? 0)" }
-                .joined(separator: "\n")
-        share(csv, filename: "vitals-\(side).csv")
+    private func fileActions(_ file: RawSensorFile, vertical: Bool) -> some View {
+        let layout = vertical ? AnyLayout(VStackLayout(alignment: .leading, spacing: 10)) : AnyLayout(HStackLayout(spacing: 20))
+        return layout {
+            Button("Download", systemImage: "arrow.down.circle") { model.download(file) }.disabled(backend.isDemo || model.preparing)
+                .accessibilityLabel("Download \(file.name)")
+            if file.name == model.files.first?.name { Text("Active file").font(.footnote).foregroundStyle(Theme.text3) }
+            else { Button("Delete", systemImage: "trash", role: .destructive) { deleting = file }.disabled(model.preparing).accessibilityLabel("Delete \(file.name)") }
+        }.font(.subheadline)
     }
-
-    private func exportSleep() {
-        let csv = "id,side,enteredBed,leftBed,durationSeconds,timesExited\n" +
-            metricsManager.sleepRecords.map { "\($0.id),\($0.side),\($0.enteredBedDate.ISO8601Format()),\($0.leftBedDate.ISO8601Format()),\($0.sleepPeriodSeconds),\($0.timesExitedBed)" }
-                .joined(separator: "\n")
-        share(csv, filename: "sleep-\(side).csv")
+    private func stat(_ title: String, value: String) -> some View {
+        let layout = typeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: 4)) : AnyLayout(HStackLayout())
+        return layout { Text(title).foregroundStyle(Theme.text2); if !typeSize.isAccessibilitySize { Spacer() }; Text(value).monospacedDigit() }.font(.subheadline)
     }
-
-    private func exportMovement() {
-        let csv = "timestamp,movement\n" +
-            metricsManager.movementRecords.map { "\($0.timestamp),\($0.totalMovement)" }
-                .joined(separator: "\n")
-        share(csv, filename: "movement-\(side).csv")
+    private func exportButton(_ title: String, count: Int, filename: String, content: String) -> some View {
+        Button { model.csv([(name: "\(filename)-\(side.rawValue).csv", text: content)]) } label: {
+            Label("\(title) · \(count)", systemImage: "arrow.down.doc")
+        }.disabled(count == 0)
     }
+}
 
-    private func exportAll() {
-        // Combine all data into one CSV with sections
-        var combined = "# sleepypod raw data export\n"
-        combined += "# Side: \(metricsManager.selectedSide.displayName)\n"
-        combined += "# Date: \(Date().ISO8601Format())\n\n"
-
-        combined += "## Vitals\nid,side,timestamp,heartRate,hrv,breathingRate\n"
-        combined += vitals.map { "\($0.id),\($0.side),\($0.date.ISO8601Format()),\($0.heartRate ?? 0),\($0.hrv ?? 0),\($0.breathingRate ?? 0)" }
-            .joined(separator: "\n")
-
-        combined += "\n\n## Sleep\nid,side,enteredBed,leftBed,durationSeconds,timesExited\n"
-        combined += metricsManager.sleepRecords.map { "\($0.id),\($0.side),\($0.enteredBedDate.ISO8601Format()),\($0.leftBedDate.ISO8601Format()),\($0.sleepPeriodSeconds),\($0.timesExitedBed)" }
-            .joined(separator: "\n")
-
-        combined += "\n\n## Movement\ntimestamp,movement\n"
-        combined += metricsManager.movementRecords.map { "\($0.timestamp),\($0.totalMovement)" }
-            .joined(separator: "\n")
-
-        share(combined, filename: "sleepypod-\(side)-\(Date().ISO8601Format().prefix(10)).csv")
+/// Load the selected night, week or month explicitly; never export an unrelated cached week.
+struct SleepRangeExportSheet: View {
+    @Environment(\.dismiss) private var dismiss
+    let side: Side
+    let window: DateInterval
+    @State private var model = SleepRangeExportWorkspace(api: APIBackend.current.createClient())
+    var body: some View {
+        Group {
+            if let result = model.result {
+                RawDataSheet(side: side, start: result.window.start, end: result.window.end, vitals: result.vitals, sleep: result.sleep, movement: result.movement)
+            } else {
+                NavigationStack {
+                    VStack(spacing: 20) {
+                        if let error = model.error { Text(error).foregroundStyle(Theme.amber); Button("Retry") { Task { await load() } } }
+                        else { ProgressView("Loading the selected range…") }
+                    }.padding(24).frame(maxWidth: .infinity, maxHeight: .infinity).background(Theme.background)
+                        .navigationTitle("Raw data").navigationBarTitleDisplayMode(.inline)
+                        .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() } } }
+                }
+            }
+        }.task { await load() }
     }
-
-    private func share(_ content: String, filename: String) {
-        let url = FileManager.default.temporaryDirectory.appendingPathComponent(filename)
-        try? content.write(to: url, atomically: true, encoding: .utf8)
-        exportURL = url
-        showShareSheet = true
-    }
+    private func load() async { await model.load(side: side, nights: window) }
 }

@@ -1,0 +1,2139 @@
+[
+  {
+    "name": "empty",
+    "analytics": {
+      "timeZone": "UTC",
+      "goalMinutes": 480,
+      "nights": [],
+      "episodes": [],
+      "summary": {
+        "recordedNights": 0,
+        "recentRecordedNights": 0,
+        "previousRecordedNights": 0,
+        "periodEnding": null,
+        "averageOccupiedMinutes": null,
+        "averageHeartRate": null,
+        "averageHrv": null,
+        "averageRespiratoryRate": null,
+        "bedtimeVariationMinutes": null,
+        "weeklyChangeMinutes": null,
+        "opportunityGapMinutes": null,
+        "averageExits": null
+      },
+      "quality": {
+        "source": "pod-presence-and-vitals",
+        "coverage": {
+          "version": 1,
+          "minimumNights": 3,
+          "recent": null,
+          "previous": null,
+          "comparisonAvailable": false,
+          "comparisonReason": "A weekly change needs at least 3 nights with known presence in each period. This is an app display rule, not a medical confidence threshold.",
+          "excludedEpisodes": 0,
+          "scopeNote": "Based on records returned for your selected range. A date without a record does not prove sensor failure or no sleep. Choose a longer range to include earlier dates."
+        },
+        "stageClassification": false,
+        "hrvValidated": false,
+        "respiratoryRateValidated": false,
+        "nightsWithVitals": 0,
+        "notes": [
+          "Bed presence is not measured sleep.",
+          "HRV and respiratory rate are experimental estimates.",
+          "Trends use the longest episode per wake date. Missing nights are not zero.",
+          "Averages compare seven calendar days ending on the latest recorded wake date with the preceding seven days."
+        ]
+      }
+    },
+    "coaching": {
+      "headline": "Your story starts with a night",
+      "observations": [
+        "No usable bed-presence records are available for this period."
+      ],
+      "suggestions": [
+        "Keep your routine comfortable and collect more nights before changing several things at once."
+      ],
+      "limitations": [
+        "Presence is not measured sleep; sleep stages and diagnoses cannot be inferred here.",
+        "HRV and breathing estimates have not been validated.",
+        "A weekly change needs at least 3 nights with known presence in each period. This is an app display rule, not a medical confidence threshold."
+      ],
+      "grounding": {
+        "version": 1,
+        "facts": [
+          {
+            "id": "no-presence-summary",
+            "title": "Limited observations",
+            "observation": "No usable bed-presence records are available for this period.",
+            "context": "Selected history · UTC",
+            "sample": "0 nights with known presence",
+            "calculation": "No presence-duration or timing observation can be produced from the returned records. No missing value is filled with zero."
+          }
+        ],
+        "suggestions": "rules"
+      },
+      "provider": "rules",
+      "model": "Demo insights"
+    }
+  },
+  {
+    "name": "below-threshold",
+    "analytics": {
+      "timeZone": "UTC",
+      "goalMinutes": 480,
+      "nights": [
+        {
+          "id": 1,
+          "date": "2026-10-01",
+          "startedAt": "2026-10-01T02:00:00.000Z",
+          "endedAt": "2026-10-01T08:00:00.000Z",
+          "windowMinutes": 360,
+          "occupiedMinutes": 360,
+          "occupancyPercent": 100,
+          "exits": 0,
+          "sampleCount": 0,
+          "heartRate": null,
+          "hrv": null,
+          "respiratoryRate": null,
+          "bedtimeMinutes": 1560
+        },
+        {
+          "id": 2,
+          "date": "2026-10-02",
+          "startedAt": "2026-10-02T02:00:00.000Z",
+          "endedAt": "2026-10-02T08:00:00.000Z",
+          "windowMinutes": 360,
+          "occupiedMinutes": 360,
+          "occupancyPercent": 100,
+          "exits": 0,
+          "sampleCount": 0,
+          "heartRate": null,
+          "hrv": null,
+          "respiratoryRate": null,
+          "bedtimeMinutes": 1560
+        },
+        {
+          "id": 4,
+          "date": "2026-10-08",
+          "startedAt": "2026-10-08T00:00:00.000Z",
+          "endedAt": "2026-10-08T08:00:00.000Z",
+          "windowMinutes": 480,
+          "occupiedMinutes": 480,
+          "occupancyPercent": 100,
+          "exits": 0,
+          "sampleCount": 0,
+          "heartRate": null,
+          "hrv": null,
+          "respiratoryRate": null,
+          "bedtimeMinutes": 1440
+        },
+        {
+          "id": 5,
+          "date": "2026-10-09",
+          "startedAt": "2026-10-09T00:00:00.000Z",
+          "endedAt": "2026-10-09T08:00:00.000Z",
+          "windowMinutes": 480,
+          "occupiedMinutes": 480,
+          "occupancyPercent": 100,
+          "exits": 0,
+          "sampleCount": 0,
+          "heartRate": null,
+          "hrv": null,
+          "respiratoryRate": null,
+          "bedtimeMinutes": 1440
+        },
+        {
+          "id": 6,
+          "date": "2026-10-14",
+          "startedAt": "2026-10-14T00:00:00.000Z",
+          "endedAt": "2026-10-14T08:00:00.000Z",
+          "windowMinutes": 480,
+          "occupiedMinutes": 480,
+          "occupancyPercent": 100,
+          "exits": 0,
+          "sampleCount": 0,
+          "heartRate": null,
+          "hrv": null,
+          "respiratoryRate": null,
+          "bedtimeMinutes": 1440
+        }
+      ],
+      "episodes": [
+        {
+          "id": 1,
+          "date": "2026-10-01",
+          "startedAt": "2026-10-01T02:00:00.000Z",
+          "endedAt": "2026-10-01T08:00:00.000Z",
+          "windowMinutes": 360,
+          "occupiedMinutes": 360,
+          "occupancyPercent": 100,
+          "exits": 0,
+          "sampleCount": 0,
+          "heartRate": null,
+          "hrv": null,
+          "respiratoryRate": null,
+          "bedtimeMinutes": 1560
+        },
+        {
+          "id": 2,
+          "date": "2026-10-02",
+          "startedAt": "2026-10-02T02:00:00.000Z",
+          "endedAt": "2026-10-02T08:00:00.000Z",
+          "windowMinutes": 360,
+          "occupiedMinutes": 360,
+          "occupancyPercent": 100,
+          "exits": 0,
+          "sampleCount": 0,
+          "heartRate": null,
+          "hrv": null,
+          "respiratoryRate": null,
+          "bedtimeMinutes": 1560
+        },
+        {
+          "id": 4,
+          "date": "2026-10-08",
+          "startedAt": "2026-10-08T00:00:00.000Z",
+          "endedAt": "2026-10-08T08:00:00.000Z",
+          "windowMinutes": 480,
+          "occupiedMinutes": 480,
+          "occupancyPercent": 100,
+          "exits": 0,
+          "sampleCount": 0,
+          "heartRate": null,
+          "hrv": null,
+          "respiratoryRate": null,
+          "bedtimeMinutes": 1440
+        },
+        {
+          "id": 5,
+          "date": "2026-10-09",
+          "startedAt": "2026-10-09T00:00:00.000Z",
+          "endedAt": "2026-10-09T08:00:00.000Z",
+          "windowMinutes": 480,
+          "occupiedMinutes": 480,
+          "occupancyPercent": 100,
+          "exits": 0,
+          "sampleCount": 0,
+          "heartRate": null,
+          "hrv": null,
+          "respiratoryRate": null,
+          "bedtimeMinutes": 1440
+        },
+        {
+          "id": 6,
+          "date": "2026-10-14",
+          "startedAt": "2026-10-14T00:00:00.000Z",
+          "endedAt": "2026-10-14T08:00:00.000Z",
+          "windowMinutes": 480,
+          "occupiedMinutes": 480,
+          "occupancyPercent": 100,
+          "exits": 0,
+          "sampleCount": 0,
+          "heartRate": null,
+          "hrv": null,
+          "respiratoryRate": null,
+          "bedtimeMinutes": 1440
+        }
+      ],
+      "summary": {
+        "recordedNights": 5,
+        "recentRecordedNights": 3,
+        "previousRecordedNights": 2,
+        "periodEnding": "2026-10-14",
+        "averageOccupiedMinutes": 480,
+        "averageHeartRate": null,
+        "averageHrv": null,
+        "averageRespiratoryRate": null,
+        "bedtimeVariationMinutes": 0,
+        "weeklyChangeMinutes": null,
+        "opportunityGapMinutes": 0,
+        "averageExits": 0
+      },
+      "quality": {
+        "source": "pod-presence-and-vitals",
+        "coverage": {
+          "version": 1,
+          "minimumNights": 3,
+          "recent": {
+            "from": "2026-10-08",
+            "through": "2026-10-14",
+            "days": [
+              {
+                "date": "2026-10-08",
+                "status": "known"
+              },
+              {
+                "date": "2026-10-09",
+                "status": "known"
+              },
+              {
+                "date": "2026-10-10",
+                "status": "not_returned"
+              },
+              {
+                "date": "2026-10-11",
+                "status": "not_returned"
+              },
+              {
+                "date": "2026-10-12",
+                "status": "not_returned"
+              },
+              {
+                "date": "2026-10-13",
+                "status": "not_returned"
+              },
+              {
+                "date": "2026-10-14",
+                "status": "known"
+              }
+            ],
+            "recordedNights": 3,
+            "presenceNights": 3,
+            "heartRateNights": 0,
+            "hrvNights": 0,
+            "respiratoryRateNights": 0
+          },
+          "previous": {
+            "from": "2026-10-01",
+            "through": "2026-10-07",
+            "days": [
+              {
+                "date": "2026-10-01",
+                "status": "known"
+              },
+              {
+                "date": "2026-10-02",
+                "status": "known"
+              },
+              {
+                "date": "2026-10-03",
+                "status": "not_returned"
+              },
+              {
+                "date": "2026-10-04",
+                "status": "not_returned"
+              },
+              {
+                "date": "2026-10-05",
+                "status": "not_returned"
+              },
+              {
+                "date": "2026-10-06",
+                "status": "not_returned"
+              },
+              {
+                "date": "2026-10-07",
+                "status": "not_returned"
+              }
+            ],
+            "recordedNights": 2,
+            "presenceNights": 2,
+            "heartRateNights": 0,
+            "hrvNights": 0,
+            "respiratoryRateNights": 0
+          },
+          "comparisonAvailable": false,
+          "comparisonReason": "A weekly change needs at least 3 nights with known presence in each period. This is an app display rule, not a medical confidence threshold.",
+          "excludedEpisodes": 0,
+          "scopeNote": "Based on records returned for your selected range. A date without a record does not prove sensor failure or no sleep. Choose a longer range to include earlier dates."
+        },
+        "stageClassification": false,
+        "hrvValidated": false,
+        "respiratoryRateValidated": false,
+        "nightsWithVitals": 0,
+        "notes": [
+          "Bed presence is not measured sleep.",
+          "HRV and respiratory rate are experimental estimates.",
+          "Trends use the longest episode per wake date. Missing nights are not zero.",
+          "Averages compare seven calendar days ending on the latest recorded wake date with the preceding seven days."
+        ]
+      }
+    },
+    "coaching": {
+      "headline": "A little context for your nights",
+      "observations": [
+        "For the recorded period ending 2026-10-14, average bed presence is 480 minutes per recorded night.",
+        "Bed-entry timing varies by about 0 minutes across recent recorded nights."
+      ],
+      "suggestions": [
+        "Keep your routine comfortable and collect more nights before changing several things at once."
+      ],
+      "limitations": [
+        "Presence is not measured sleep; sleep stages and diagnoses cannot be inferred here.",
+        "HRV and breathing estimates have not been validated.",
+        "A weekly change needs at least 3 nights with known presence in each period. This is an app display rule, not a medical confidence threshold."
+      ],
+      "grounding": {
+        "version": 1,
+        "facts": [
+          {
+            "id": "bed-presence",
+            "title": "Bed presence",
+            "observation": "For the recorded period ending 2026-10-14, average bed presence is 480 minutes per recorded night.",
+            "context": "2026-10-08 → 2026-10-14 · UTC",
+            "sample": "3 nights with known presence",
+            "calculation": "Mean of known bed-presence durations from the longest episode per wake date, rounded to the nearest minute. Missing or unknown presence is excluded. Presence is not measured sleep."
+          },
+          {
+            "id": "bedtime-variation",
+            "title": "Bed-entry consistency",
+            "observation": "Bed-entry timing varies by about 0 minutes across recent recorded nights.",
+            "context": "2026-10-08 → 2026-10-14 · UTC",
+            "sample": "3 recorded nights",
+            "calculation": "Population standard deviation of bed-entry clock times across recorded main episodes, rounded to the nearest minute. Lower values mean more consistent timing; they do not measure sleep quality."
+          }
+        ],
+        "suggestions": "rules"
+      },
+      "provider": "rules",
+      "model": "Demo insights"
+    }
+  },
+  {
+    "name": "at-threshold",
+    "analytics": {
+      "timeZone": "UTC",
+      "goalMinutes": 480,
+      "nights": [
+        {
+          "id": 1,
+          "date": "2026-10-01",
+          "startedAt": "2026-10-01T02:00:00.000Z",
+          "endedAt": "2026-10-01T08:00:00.000Z",
+          "windowMinutes": 360,
+          "occupiedMinutes": 360,
+          "occupancyPercent": 100,
+          "exits": 0,
+          "sampleCount": 0,
+          "heartRate": null,
+          "hrv": null,
+          "respiratoryRate": null,
+          "bedtimeMinutes": 1560
+        },
+        {
+          "id": 2,
+          "date": "2026-10-02",
+          "startedAt": "2026-10-02T02:00:00.000Z",
+          "endedAt": "2026-10-02T08:00:00.000Z",
+          "windowMinutes": 360,
+          "occupiedMinutes": 360,
+          "occupancyPercent": 100,
+          "exits": 0,
+          "sampleCount": 0,
+          "heartRate": null,
+          "hrv": null,
+          "respiratoryRate": null,
+          "bedtimeMinutes": 1560
+        },
+        {
+          "id": 3,
+          "date": "2026-10-03",
+          "startedAt": "2026-10-03T02:00:00.000Z",
+          "endedAt": "2026-10-03T08:00:00.000Z",
+          "windowMinutes": 360,
+          "occupiedMinutes": 360,
+          "occupancyPercent": 100,
+          "exits": 0,
+          "sampleCount": 0,
+          "heartRate": null,
+          "hrv": null,
+          "respiratoryRate": null,
+          "bedtimeMinutes": 1560
+        },
+        {
+          "id": 4,
+          "date": "2026-10-08",
+          "startedAt": "2026-10-08T00:00:00.000Z",
+          "endedAt": "2026-10-08T08:00:00.000Z",
+          "windowMinutes": 480,
+          "occupiedMinutes": 480,
+          "occupancyPercent": 100,
+          "exits": 0,
+          "sampleCount": 0,
+          "heartRate": null,
+          "hrv": null,
+          "respiratoryRate": null,
+          "bedtimeMinutes": 1440
+        },
+        {
+          "id": 5,
+          "date": "2026-10-09",
+          "startedAt": "2026-10-09T00:00:00.000Z",
+          "endedAt": "2026-10-09T08:00:00.000Z",
+          "windowMinutes": 480,
+          "occupiedMinutes": 480,
+          "occupancyPercent": 100,
+          "exits": 0,
+          "sampleCount": 0,
+          "heartRate": null,
+          "hrv": null,
+          "respiratoryRate": null,
+          "bedtimeMinutes": 1440
+        },
+        {
+          "id": 6,
+          "date": "2026-10-14",
+          "startedAt": "2026-10-14T00:00:00.000Z",
+          "endedAt": "2026-10-14T08:00:00.000Z",
+          "windowMinutes": 480,
+          "occupiedMinutes": 480,
+          "occupancyPercent": 100,
+          "exits": 0,
+          "sampleCount": 0,
+          "heartRate": null,
+          "hrv": null,
+          "respiratoryRate": null,
+          "bedtimeMinutes": 1440
+        }
+      ],
+      "episodes": [
+        {
+          "id": 1,
+          "date": "2026-10-01",
+          "startedAt": "2026-10-01T02:00:00.000Z",
+          "endedAt": "2026-10-01T08:00:00.000Z",
+          "windowMinutes": 360,
+          "occupiedMinutes": 360,
+          "occupancyPercent": 100,
+          "exits": 0,
+          "sampleCount": 0,
+          "heartRate": null,
+          "hrv": null,
+          "respiratoryRate": null,
+          "bedtimeMinutes": 1560
+        },
+        {
+          "id": 2,
+          "date": "2026-10-02",
+          "startedAt": "2026-10-02T02:00:00.000Z",
+          "endedAt": "2026-10-02T08:00:00.000Z",
+          "windowMinutes": 360,
+          "occupiedMinutes": 360,
+          "occupancyPercent": 100,
+          "exits": 0,
+          "sampleCount": 0,
+          "heartRate": null,
+          "hrv": null,
+          "respiratoryRate": null,
+          "bedtimeMinutes": 1560
+        },
+        {
+          "id": 3,
+          "date": "2026-10-03",
+          "startedAt": "2026-10-03T02:00:00.000Z",
+          "endedAt": "2026-10-03T08:00:00.000Z",
+          "windowMinutes": 360,
+          "occupiedMinutes": 360,
+          "occupancyPercent": 100,
+          "exits": 0,
+          "sampleCount": 0,
+          "heartRate": null,
+          "hrv": null,
+          "respiratoryRate": null,
+          "bedtimeMinutes": 1560
+        },
+        {
+          "id": 4,
+          "date": "2026-10-08",
+          "startedAt": "2026-10-08T00:00:00.000Z",
+          "endedAt": "2026-10-08T08:00:00.000Z",
+          "windowMinutes": 480,
+          "occupiedMinutes": 480,
+          "occupancyPercent": 100,
+          "exits": 0,
+          "sampleCount": 0,
+          "heartRate": null,
+          "hrv": null,
+          "respiratoryRate": null,
+          "bedtimeMinutes": 1440
+        },
+        {
+          "id": 5,
+          "date": "2026-10-09",
+          "startedAt": "2026-10-09T00:00:00.000Z",
+          "endedAt": "2026-10-09T08:00:00.000Z",
+          "windowMinutes": 480,
+          "occupiedMinutes": 480,
+          "occupancyPercent": 100,
+          "exits": 0,
+          "sampleCount": 0,
+          "heartRate": null,
+          "hrv": null,
+          "respiratoryRate": null,
+          "bedtimeMinutes": 1440
+        },
+        {
+          "id": 6,
+          "date": "2026-10-14",
+          "startedAt": "2026-10-14T00:00:00.000Z",
+          "endedAt": "2026-10-14T08:00:00.000Z",
+          "windowMinutes": 480,
+          "occupiedMinutes": 480,
+          "occupancyPercent": 100,
+          "exits": 0,
+          "sampleCount": 0,
+          "heartRate": null,
+          "hrv": null,
+          "respiratoryRate": null,
+          "bedtimeMinutes": 1440
+        }
+      ],
+      "summary": {
+        "recordedNights": 6,
+        "recentRecordedNights": 3,
+        "previousRecordedNights": 3,
+        "periodEnding": "2026-10-14",
+        "averageOccupiedMinutes": 480,
+        "averageHeartRate": null,
+        "averageHrv": null,
+        "averageRespiratoryRate": null,
+        "bedtimeVariationMinutes": 0,
+        "weeklyChangeMinutes": 120,
+        "opportunityGapMinutes": 0,
+        "averageExits": 0
+      },
+      "quality": {
+        "source": "pod-presence-and-vitals",
+        "coverage": {
+          "version": 1,
+          "minimumNights": 3,
+          "recent": {
+            "from": "2026-10-08",
+            "through": "2026-10-14",
+            "days": [
+              {
+                "date": "2026-10-08",
+                "status": "known"
+              },
+              {
+                "date": "2026-10-09",
+                "status": "known"
+              },
+              {
+                "date": "2026-10-10",
+                "status": "not_returned"
+              },
+              {
+                "date": "2026-10-11",
+                "status": "not_returned"
+              },
+              {
+                "date": "2026-10-12",
+                "status": "not_returned"
+              },
+              {
+                "date": "2026-10-13",
+                "status": "not_returned"
+              },
+              {
+                "date": "2026-10-14",
+                "status": "known"
+              }
+            ],
+            "recordedNights": 3,
+            "presenceNights": 3,
+            "heartRateNights": 0,
+            "hrvNights": 0,
+            "respiratoryRateNights": 0
+          },
+          "previous": {
+            "from": "2026-10-01",
+            "through": "2026-10-07",
+            "days": [
+              {
+                "date": "2026-10-01",
+                "status": "known"
+              },
+              {
+                "date": "2026-10-02",
+                "status": "known"
+              },
+              {
+                "date": "2026-10-03",
+                "status": "known"
+              },
+              {
+                "date": "2026-10-04",
+                "status": "not_returned"
+              },
+              {
+                "date": "2026-10-05",
+                "status": "not_returned"
+              },
+              {
+                "date": "2026-10-06",
+                "status": "not_returned"
+              },
+              {
+                "date": "2026-10-07",
+                "status": "not_returned"
+              }
+            ],
+            "recordedNights": 3,
+            "presenceNights": 3,
+            "heartRateNights": 0,
+            "hrvNights": 0,
+            "respiratoryRateNights": 0
+          },
+          "comparisonAvailable": true,
+          "comparisonReason": "Both periods have at least 3 nights with known presence. This is a descriptive comparison, not proof of a change in sleep quality.",
+          "excludedEpisodes": 0,
+          "scopeNote": "Based on records returned for your selected range. A date without a record does not prove sensor failure or no sleep. Choose a longer range to include earlier dates."
+        },
+        "stageClassification": false,
+        "hrvValidated": false,
+        "respiratoryRateValidated": false,
+        "nightsWithVitals": 0,
+        "notes": [
+          "Bed presence is not measured sleep.",
+          "HRV and respiratory rate are experimental estimates.",
+          "Trends use the longest episode per wake date. Missing nights are not zero.",
+          "Averages compare seven calendar days ending on the latest recorded wake date with the preceding seven days."
+        ]
+      }
+    },
+    "coaching": {
+      "headline": "A little context for your nights",
+      "observations": [
+        "For the recorded period ending 2026-10-14, average bed presence is 480 minutes per recorded night.",
+        "Bed-entry timing varies by about 0 minutes across recent recorded nights.",
+        "Average bed presence changed by +120 minutes."
+      ],
+      "suggestions": [
+        "Keep your routine comfortable and collect more nights before changing several things at once."
+      ],
+      "limitations": [
+        "Presence is not measured sleep; sleep stages and diagnoses cannot be inferred here.",
+        "HRV and breathing estimates have not been validated.",
+        "Both periods have at least 3 nights with known presence. This is a descriptive comparison, not proof of a change in sleep quality."
+      ],
+      "grounding": {
+        "version": 1,
+        "facts": [
+          {
+            "id": "bed-presence",
+            "title": "Bed presence",
+            "observation": "For the recorded period ending 2026-10-14, average bed presence is 480 minutes per recorded night.",
+            "context": "2026-10-08 → 2026-10-14 · UTC",
+            "sample": "3 nights with known presence",
+            "calculation": "Mean of known bed-presence durations from the longest episode per wake date, rounded to the nearest minute. Missing or unknown presence is excluded. Presence is not measured sleep."
+          },
+          {
+            "id": "bedtime-variation",
+            "title": "Bed-entry consistency",
+            "observation": "Bed-entry timing varies by about 0 minutes across recent recorded nights.",
+            "context": "2026-10-08 → 2026-10-14 · UTC",
+            "sample": "3 recorded nights",
+            "calculation": "Population standard deviation of bed-entry clock times across recorded main episodes, rounded to the nearest minute. Lower values mean more consistent timing; they do not measure sleep quality."
+          },
+          {
+            "id": "weekly-presence-change",
+            "title": "Weekly presence change",
+            "observation": "Average bed presence changed by +120 minutes.",
+            "context": "2026-10-08 → 2026-10-14 · UTC · Previous: 2026-10-01 → 2026-10-07",
+            "sample": "3 recent and 3 previous nights with known presence",
+            "calculation": "Recent mean bed presence minus the previous mean, using only known-presence nights. Each period needs at least three. This describes the available records and does not establish a cause."
+          }
+        ],
+        "suggestions": "rules"
+      },
+      "provider": "rules",
+      "model": "Demo insights"
+    }
+  },
+  {
+    "name": "unknown-longest-episode",
+    "analytics": {
+      "timeZone": "UTC",
+      "goalMinutes": 480,
+      "nights": [
+        {
+          "id": 1,
+          "date": "2026-10-01",
+          "startedAt": "2026-10-01T02:00:00.000Z",
+          "endedAt": "2026-10-01T08:00:00.000Z",
+          "windowMinutes": 360,
+          "occupiedMinutes": 360,
+          "occupancyPercent": 100,
+          "exits": 0,
+          "sampleCount": 1,
+          "heartRate": 60,
+          "hrv": null,
+          "respiratoryRate": 15,
+          "bedtimeMinutes": 1560
+        },
+        {
+          "id": 2,
+          "date": "2026-10-02",
+          "startedAt": "2026-10-02T02:00:00.000Z",
+          "endedAt": "2026-10-02T08:00:00.000Z",
+          "windowMinutes": 360,
+          "occupiedMinutes": 360,
+          "occupancyPercent": 100,
+          "exits": 0,
+          "sampleCount": 0,
+          "heartRate": null,
+          "hrv": null,
+          "respiratoryRate": null,
+          "bedtimeMinutes": 1560
+        },
+        {
+          "id": 3,
+          "date": "2026-10-03",
+          "startedAt": "2026-10-03T02:00:00.000Z",
+          "endedAt": "2026-10-03T08:00:00.000Z",
+          "windowMinutes": 360,
+          "occupiedMinutes": 360,
+          "occupancyPercent": 100,
+          "exits": 0,
+          "sampleCount": 0,
+          "heartRate": null,
+          "hrv": null,
+          "respiratoryRate": null,
+          "bedtimeMinutes": 1560
+        },
+        {
+          "id": 4,
+          "date": "2026-10-08",
+          "startedAt": "2026-10-08T00:00:00.000Z",
+          "endedAt": "2026-10-08T08:00:00.000Z",
+          "windowMinutes": 480,
+          "occupiedMinutes": 480,
+          "occupancyPercent": 100,
+          "exits": 0,
+          "sampleCount": 0,
+          "heartRate": null,
+          "hrv": null,
+          "respiratoryRate": null,
+          "bedtimeMinutes": 1440
+        },
+        {
+          "id": 5,
+          "date": "2026-10-09",
+          "startedAt": "2026-10-09T00:00:00.000Z",
+          "endedAt": "2026-10-09T08:00:00.000Z",
+          "windowMinutes": 480,
+          "occupiedMinutes": 480,
+          "occupancyPercent": 100,
+          "exits": 0,
+          "sampleCount": 0,
+          "heartRate": null,
+          "hrv": null,
+          "respiratoryRate": null,
+          "bedtimeMinutes": 1440
+        },
+        {
+          "id": 6,
+          "date": "2026-10-14",
+          "startedAt": "2026-10-13T23:00:00.000Z",
+          "endedAt": "2026-10-14T08:00:00.000Z",
+          "windowMinutes": 540,
+          "occupiedMinutes": null,
+          "occupancyPercent": null,
+          "exits": 0,
+          "sampleCount": 0,
+          "heartRate": null,
+          "hrv": null,
+          "respiratoryRate": null,
+          "bedtimeMinutes": 1380
+        }
+      ],
+      "episodes": [
+        {
+          "id": 1,
+          "date": "2026-10-01",
+          "startedAt": "2026-10-01T02:00:00.000Z",
+          "endedAt": "2026-10-01T08:00:00.000Z",
+          "windowMinutes": 360,
+          "occupiedMinutes": 360,
+          "occupancyPercent": 100,
+          "exits": 0,
+          "sampleCount": 1,
+          "heartRate": 60,
+          "hrv": null,
+          "respiratoryRate": 15,
+          "bedtimeMinutes": 1560
+        },
+        {
+          "id": 2,
+          "date": "2026-10-02",
+          "startedAt": "2026-10-02T02:00:00.000Z",
+          "endedAt": "2026-10-02T08:00:00.000Z",
+          "windowMinutes": 360,
+          "occupiedMinutes": 360,
+          "occupancyPercent": 100,
+          "exits": 0,
+          "sampleCount": 0,
+          "heartRate": null,
+          "hrv": null,
+          "respiratoryRate": null,
+          "bedtimeMinutes": 1560
+        },
+        {
+          "id": 3,
+          "date": "2026-10-03",
+          "startedAt": "2026-10-03T02:00:00.000Z",
+          "endedAt": "2026-10-03T08:00:00.000Z",
+          "windowMinutes": 360,
+          "occupiedMinutes": 360,
+          "occupancyPercent": 100,
+          "exits": 0,
+          "sampleCount": 0,
+          "heartRate": null,
+          "hrv": null,
+          "respiratoryRate": null,
+          "bedtimeMinutes": 1560
+        },
+        {
+          "id": 4,
+          "date": "2026-10-08",
+          "startedAt": "2026-10-08T00:00:00.000Z",
+          "endedAt": "2026-10-08T08:00:00.000Z",
+          "windowMinutes": 480,
+          "occupiedMinutes": 480,
+          "occupancyPercent": 100,
+          "exits": 0,
+          "sampleCount": 0,
+          "heartRate": null,
+          "hrv": null,
+          "respiratoryRate": null,
+          "bedtimeMinutes": 1440
+        },
+        {
+          "id": 5,
+          "date": "2026-10-09",
+          "startedAt": "2026-10-09T00:00:00.000Z",
+          "endedAt": "2026-10-09T08:00:00.000Z",
+          "windowMinutes": 480,
+          "occupiedMinutes": 480,
+          "occupancyPercent": 100,
+          "exits": 0,
+          "sampleCount": 0,
+          "heartRate": null,
+          "hrv": null,
+          "respiratoryRate": null,
+          "bedtimeMinutes": 1440
+        },
+        {
+          "id": 6,
+          "date": "2026-10-14",
+          "startedAt": "2026-10-13T23:00:00.000Z",
+          "endedAt": "2026-10-14T08:00:00.000Z",
+          "windowMinutes": 540,
+          "occupiedMinutes": null,
+          "occupancyPercent": null,
+          "exits": 0,
+          "sampleCount": 0,
+          "heartRate": null,
+          "hrv": null,
+          "respiratoryRate": null,
+          "bedtimeMinutes": 1380
+        },
+        {
+          "id": 7,
+          "date": "2026-10-14",
+          "startedAt": "2026-10-14T07:30:00.000Z",
+          "endedAt": "2026-10-14T08:00:00.000Z",
+          "windowMinutes": 30,
+          "occupiedMinutes": 30,
+          "occupancyPercent": 100,
+          "exits": 0,
+          "sampleCount": 0,
+          "heartRate": null,
+          "hrv": null,
+          "respiratoryRate": null,
+          "bedtimeMinutes": 1890
+        }
+      ],
+      "summary": {
+        "recordedNights": 6,
+        "recentRecordedNights": 3,
+        "previousRecordedNights": 3,
+        "periodEnding": "2026-10-14",
+        "averageOccupiedMinutes": 480,
+        "averageHeartRate": null,
+        "averageHrv": null,
+        "averageRespiratoryRate": null,
+        "bedtimeVariationMinutes": 28.3,
+        "weeklyChangeMinutes": null,
+        "opportunityGapMinutes": 0,
+        "averageExits": 0
+      },
+      "quality": {
+        "source": "pod-presence-and-vitals",
+        "coverage": {
+          "version": 1,
+          "minimumNights": 3,
+          "recent": {
+            "from": "2026-10-08",
+            "through": "2026-10-14",
+            "days": [
+              {
+                "date": "2026-10-08",
+                "status": "known"
+              },
+              {
+                "date": "2026-10-09",
+                "status": "known"
+              },
+              {
+                "date": "2026-10-10",
+                "status": "not_returned"
+              },
+              {
+                "date": "2026-10-11",
+                "status": "not_returned"
+              },
+              {
+                "date": "2026-10-12",
+                "status": "not_returned"
+              },
+              {
+                "date": "2026-10-13",
+                "status": "not_returned"
+              },
+              {
+                "date": "2026-10-14",
+                "status": "unknown"
+              }
+            ],
+            "recordedNights": 3,
+            "presenceNights": 2,
+            "heartRateNights": 0,
+            "hrvNights": 0,
+            "respiratoryRateNights": 0
+          },
+          "previous": {
+            "from": "2026-10-01",
+            "through": "2026-10-07",
+            "days": [
+              {
+                "date": "2026-10-01",
+                "status": "known"
+              },
+              {
+                "date": "2026-10-02",
+                "status": "known"
+              },
+              {
+                "date": "2026-10-03",
+                "status": "known"
+              },
+              {
+                "date": "2026-10-04",
+                "status": "not_returned"
+              },
+              {
+                "date": "2026-10-05",
+                "status": "not_returned"
+              },
+              {
+                "date": "2026-10-06",
+                "status": "not_returned"
+              },
+              {
+                "date": "2026-10-07",
+                "status": "not_returned"
+              }
+            ],
+            "recordedNights": 3,
+            "presenceNights": 3,
+            "heartRateNights": 1,
+            "hrvNights": 0,
+            "respiratoryRateNights": 1
+          },
+          "comparisonAvailable": false,
+          "comparisonReason": "A weekly change needs at least 3 nights with known presence in each period. This is an app display rule, not a medical confidence threshold.",
+          "excludedEpisodes": 0,
+          "scopeNote": "Based on records returned for your selected range. A date without a record does not prove sensor failure or no sleep. Choose a longer range to include earlier dates."
+        },
+        "stageClassification": false,
+        "hrvValidated": false,
+        "respiratoryRateValidated": false,
+        "nightsWithVitals": 1,
+        "notes": [
+          "Bed presence is not measured sleep.",
+          "HRV and respiratory rate are experimental estimates.",
+          "Trends use the longest episode per wake date. Missing nights are not zero.",
+          "Averages compare seven calendar days ending on the latest recorded wake date with the preceding seven days."
+        ]
+      }
+    },
+    "coaching": {
+      "headline": "A little context for your nights",
+      "observations": [
+        "For the recorded period ending 2026-10-14, average bed presence is 480 minutes per recorded night.",
+        "Bed-entry timing varies by about 28 minutes across recent recorded nights."
+      ],
+      "suggestions": [
+        "Keep your routine comfortable and collect more nights before changing several things at once."
+      ],
+      "limitations": [
+        "Presence is not measured sleep; sleep stages and diagnoses cannot be inferred here.",
+        "HRV and breathing estimates have not been validated.",
+        "A weekly change needs at least 3 nights with known presence in each period. This is an app display rule, not a medical confidence threshold."
+      ],
+      "grounding": {
+        "version": 1,
+        "facts": [
+          {
+            "id": "bed-presence",
+            "title": "Bed presence",
+            "observation": "For the recorded period ending 2026-10-14, average bed presence is 480 minutes per recorded night.",
+            "context": "2026-10-08 → 2026-10-14 · UTC",
+            "sample": "2 nights with known presence",
+            "calculation": "Mean of known bed-presence durations from the longest episode per wake date, rounded to the nearest minute. Missing or unknown presence is excluded. Presence is not measured sleep."
+          },
+          {
+            "id": "bedtime-variation",
+            "title": "Bed-entry consistency",
+            "observation": "Bed-entry timing varies by about 28 minutes across recent recorded nights.",
+            "context": "2026-10-08 → 2026-10-14 · UTC",
+            "sample": "3 recorded nights",
+            "calculation": "Population standard deviation of bed-entry clock times across recorded main episodes, rounded to the nearest minute. Lower values mean more consistent timing; they do not measure sleep quality."
+          }
+        ],
+        "suggestions": "rules"
+      },
+      "provider": "rules",
+      "model": "Demo insights"
+    }
+  },
+  {
+    "name": "spring-forward",
+    "analytics": {
+      "timeZone": "America/Los_Angeles",
+      "goalMinutes": 480,
+      "nights": [
+        {
+          "id": 1,
+          "date": "2026-02-28",
+          "startedAt": "2026-02-28T08:00:00.000Z",
+          "endedAt": "2026-02-28T16:00:00.000Z",
+          "windowMinutes": 480,
+          "occupiedMinutes": 480,
+          "occupancyPercent": 100,
+          "exits": 0,
+          "sampleCount": 0,
+          "heartRate": null,
+          "hrv": null,
+          "respiratoryRate": null,
+          "bedtimeMinutes": 1440
+        },
+        {
+          "id": 2,
+          "date": "2026-03-01",
+          "startedAt": "2026-03-01T08:00:00.000Z",
+          "endedAt": "2026-03-01T16:00:00.000Z",
+          "windowMinutes": 480,
+          "occupiedMinutes": 480,
+          "occupancyPercent": 100,
+          "exits": 0,
+          "sampleCount": 0,
+          "heartRate": null,
+          "hrv": null,
+          "respiratoryRate": null,
+          "bedtimeMinutes": 1440
+        },
+        {
+          "id": 3,
+          "date": "2026-03-02",
+          "startedAt": "2026-03-02T08:00:00.000Z",
+          "endedAt": "2026-03-02T16:00:00.000Z",
+          "windowMinutes": 480,
+          "occupiedMinutes": 480,
+          "occupancyPercent": 100,
+          "exits": 0,
+          "sampleCount": 0,
+          "heartRate": null,
+          "hrv": null,
+          "respiratoryRate": null,
+          "bedtimeMinutes": 1440
+        },
+        {
+          "id": 4,
+          "date": "2026-03-06",
+          "startedAt": "2026-03-06T08:00:00.000Z",
+          "endedAt": "2026-03-06T16:00:00.000Z",
+          "windowMinutes": 480,
+          "occupiedMinutes": 480,
+          "occupancyPercent": 100,
+          "exits": 0,
+          "sampleCount": 0,
+          "heartRate": null,
+          "hrv": null,
+          "respiratoryRate": null,
+          "bedtimeMinutes": 1440
+        },
+        {
+          "id": 5,
+          "date": "2026-03-07",
+          "startedAt": "2026-03-07T08:00:00.000Z",
+          "endedAt": "2026-03-07T16:00:00.000Z",
+          "windowMinutes": 480,
+          "occupiedMinutes": 480,
+          "occupancyPercent": 100,
+          "exits": 0,
+          "sampleCount": 0,
+          "heartRate": null,
+          "hrv": null,
+          "respiratoryRate": null,
+          "bedtimeMinutes": 1440
+        },
+        {
+          "id": 6,
+          "date": "2026-03-08",
+          "startedAt": "2026-03-08T07:00:00.000Z",
+          "endedAt": "2026-03-08T15:00:00.000Z",
+          "windowMinutes": 480,
+          "occupiedMinutes": 480,
+          "occupancyPercent": 100,
+          "exits": 0,
+          "sampleCount": 0,
+          "heartRate": null,
+          "hrv": null,
+          "respiratoryRate": null,
+          "bedtimeMinutes": 1380
+        }
+      ],
+      "episodes": [
+        {
+          "id": 1,
+          "date": "2026-02-28",
+          "startedAt": "2026-02-28T08:00:00.000Z",
+          "endedAt": "2026-02-28T16:00:00.000Z",
+          "windowMinutes": 480,
+          "occupiedMinutes": 480,
+          "occupancyPercent": 100,
+          "exits": 0,
+          "sampleCount": 0,
+          "heartRate": null,
+          "hrv": null,
+          "respiratoryRate": null,
+          "bedtimeMinutes": 1440
+        },
+        {
+          "id": 2,
+          "date": "2026-03-01",
+          "startedAt": "2026-03-01T08:00:00.000Z",
+          "endedAt": "2026-03-01T16:00:00.000Z",
+          "windowMinutes": 480,
+          "occupiedMinutes": 480,
+          "occupancyPercent": 100,
+          "exits": 0,
+          "sampleCount": 0,
+          "heartRate": null,
+          "hrv": null,
+          "respiratoryRate": null,
+          "bedtimeMinutes": 1440
+        },
+        {
+          "id": 3,
+          "date": "2026-03-02",
+          "startedAt": "2026-03-02T08:00:00.000Z",
+          "endedAt": "2026-03-02T16:00:00.000Z",
+          "windowMinutes": 480,
+          "occupiedMinutes": 480,
+          "occupancyPercent": 100,
+          "exits": 0,
+          "sampleCount": 0,
+          "heartRate": null,
+          "hrv": null,
+          "respiratoryRate": null,
+          "bedtimeMinutes": 1440
+        },
+        {
+          "id": 4,
+          "date": "2026-03-06",
+          "startedAt": "2026-03-06T08:00:00.000Z",
+          "endedAt": "2026-03-06T16:00:00.000Z",
+          "windowMinutes": 480,
+          "occupiedMinutes": 480,
+          "occupancyPercent": 100,
+          "exits": 0,
+          "sampleCount": 0,
+          "heartRate": null,
+          "hrv": null,
+          "respiratoryRate": null,
+          "bedtimeMinutes": 1440
+        },
+        {
+          "id": 5,
+          "date": "2026-03-07",
+          "startedAt": "2026-03-07T08:00:00.000Z",
+          "endedAt": "2026-03-07T16:00:00.000Z",
+          "windowMinutes": 480,
+          "occupiedMinutes": 480,
+          "occupancyPercent": 100,
+          "exits": 0,
+          "sampleCount": 0,
+          "heartRate": null,
+          "hrv": null,
+          "respiratoryRate": null,
+          "bedtimeMinutes": 1440
+        },
+        {
+          "id": 6,
+          "date": "2026-03-08",
+          "startedAt": "2026-03-08T07:00:00.000Z",
+          "endedAt": "2026-03-08T15:00:00.000Z",
+          "windowMinutes": 480,
+          "occupiedMinutes": 480,
+          "occupancyPercent": 100,
+          "exits": 0,
+          "sampleCount": 0,
+          "heartRate": null,
+          "hrv": null,
+          "respiratoryRate": null,
+          "bedtimeMinutes": 1380
+        }
+      ],
+      "summary": {
+        "recordedNights": 6,
+        "recentRecordedNights": 4,
+        "previousRecordedNights": 2,
+        "periodEnding": "2026-03-08",
+        "averageOccupiedMinutes": 480,
+        "averageHeartRate": null,
+        "averageHrv": null,
+        "averageRespiratoryRate": null,
+        "bedtimeVariationMinutes": 26,
+        "weeklyChangeMinutes": null,
+        "opportunityGapMinutes": 0,
+        "averageExits": 0
+      },
+      "quality": {
+        "source": "pod-presence-and-vitals",
+        "coverage": {
+          "version": 1,
+          "minimumNights": 3,
+          "recent": {
+            "from": "2026-03-02",
+            "through": "2026-03-08",
+            "days": [
+              {
+                "date": "2026-03-02",
+                "status": "known"
+              },
+              {
+                "date": "2026-03-03",
+                "status": "not_returned"
+              },
+              {
+                "date": "2026-03-04",
+                "status": "not_returned"
+              },
+              {
+                "date": "2026-03-05",
+                "status": "not_returned"
+              },
+              {
+                "date": "2026-03-06",
+                "status": "known"
+              },
+              {
+                "date": "2026-03-07",
+                "status": "known"
+              },
+              {
+                "date": "2026-03-08",
+                "status": "known"
+              }
+            ],
+            "recordedNights": 4,
+            "presenceNights": 4,
+            "heartRateNights": 0,
+            "hrvNights": 0,
+            "respiratoryRateNights": 0
+          },
+          "previous": {
+            "from": "2026-02-23",
+            "through": "2026-03-01",
+            "days": [
+              {
+                "date": "2026-02-23",
+                "status": "not_returned"
+              },
+              {
+                "date": "2026-02-24",
+                "status": "not_returned"
+              },
+              {
+                "date": "2026-02-25",
+                "status": "not_returned"
+              },
+              {
+                "date": "2026-02-26",
+                "status": "not_returned"
+              },
+              {
+                "date": "2026-02-27",
+                "status": "not_returned"
+              },
+              {
+                "date": "2026-02-28",
+                "status": "known"
+              },
+              {
+                "date": "2026-03-01",
+                "status": "known"
+              }
+            ],
+            "recordedNights": 2,
+            "presenceNights": 2,
+            "heartRateNights": 0,
+            "hrvNights": 0,
+            "respiratoryRateNights": 0
+          },
+          "comparisonAvailable": false,
+          "comparisonReason": "A weekly change needs at least 3 nights with known presence in each period. This is an app display rule, not a medical confidence threshold.",
+          "excludedEpisodes": 0,
+          "scopeNote": "Based on records returned for your selected range. A date without a record does not prove sensor failure or no sleep. Choose a longer range to include earlier dates."
+        },
+        "stageClassification": false,
+        "hrvValidated": false,
+        "respiratoryRateValidated": false,
+        "nightsWithVitals": 0,
+        "notes": [
+          "Bed presence is not measured sleep.",
+          "HRV and respiratory rate are experimental estimates.",
+          "Trends use the longest episode per wake date. Missing nights are not zero.",
+          "Averages compare seven calendar days ending on the latest recorded wake date with the preceding seven days."
+        ]
+      }
+    },
+    "coaching": {
+      "headline": "A little context for your nights",
+      "observations": [
+        "For the recorded period ending 2026-03-08, average bed presence is 480 minutes per recorded night.",
+        "Bed-entry timing varies by about 26 minutes across recent recorded nights."
+      ],
+      "suggestions": [
+        "Keep your routine comfortable and collect more nights before changing several things at once."
+      ],
+      "limitations": [
+        "Presence is not measured sleep; sleep stages and diagnoses cannot be inferred here.",
+        "HRV and breathing estimates have not been validated.",
+        "A weekly change needs at least 3 nights with known presence in each period. This is an app display rule, not a medical confidence threshold."
+      ],
+      "grounding": {
+        "version": 1,
+        "facts": [
+          {
+            "id": "bed-presence",
+            "title": "Bed presence",
+            "observation": "For the recorded period ending 2026-03-08, average bed presence is 480 minutes per recorded night.",
+            "context": "2026-03-02 → 2026-03-08 · America/Los_Angeles",
+            "sample": "4 nights with known presence",
+            "calculation": "Mean of known bed-presence durations from the longest episode per wake date, rounded to the nearest minute. Missing or unknown presence is excluded. Presence is not measured sleep."
+          },
+          {
+            "id": "bedtime-variation",
+            "title": "Bed-entry consistency",
+            "observation": "Bed-entry timing varies by about 26 minutes across recent recorded nights.",
+            "context": "2026-03-02 → 2026-03-08 · America/Los_Angeles",
+            "sample": "4 recorded nights",
+            "calculation": "Population standard deviation of bed-entry clock times across recorded main episodes, rounded to the nearest minute. Lower values mean more consistent timing; they do not measure sleep quality."
+          }
+        ],
+        "suggestions": "rules"
+      },
+      "provider": "rules",
+      "model": "Demo insights"
+    }
+  },
+  {
+    "name": "fall-back",
+    "analytics": {
+      "timeZone": "America/Los_Angeles",
+      "goalMinutes": 480,
+      "nights": [
+        {
+          "id": 1,
+          "date": "2026-10-23",
+          "startedAt": "2026-10-23T07:00:00.000Z",
+          "endedAt": "2026-10-23T15:00:00.000Z",
+          "windowMinutes": 480,
+          "occupiedMinutes": 480,
+          "occupancyPercent": 100,
+          "exits": 0,
+          "sampleCount": 0,
+          "heartRate": null,
+          "hrv": null,
+          "respiratoryRate": null,
+          "bedtimeMinutes": 1440
+        },
+        {
+          "id": 2,
+          "date": "2026-10-24",
+          "startedAt": "2026-10-24T07:00:00.000Z",
+          "endedAt": "2026-10-24T15:00:00.000Z",
+          "windowMinutes": 480,
+          "occupiedMinutes": 480,
+          "occupancyPercent": 100,
+          "exits": 0,
+          "sampleCount": 0,
+          "heartRate": null,
+          "hrv": null,
+          "respiratoryRate": null,
+          "bedtimeMinutes": 1440
+        },
+        {
+          "id": 3,
+          "date": "2026-10-25",
+          "startedAt": "2026-10-25T07:00:00.000Z",
+          "endedAt": "2026-10-25T15:00:00.000Z",
+          "windowMinutes": 480,
+          "occupiedMinutes": 480,
+          "occupancyPercent": 100,
+          "exits": 0,
+          "sampleCount": 0,
+          "heartRate": null,
+          "hrv": null,
+          "respiratoryRate": null,
+          "bedtimeMinutes": 1440
+        },
+        {
+          "id": 4,
+          "date": "2026-10-30",
+          "startedAt": "2026-10-30T07:00:00.000Z",
+          "endedAt": "2026-10-30T15:00:00.000Z",
+          "windowMinutes": 480,
+          "occupiedMinutes": 480,
+          "occupancyPercent": 100,
+          "exits": 0,
+          "sampleCount": 0,
+          "heartRate": null,
+          "hrv": null,
+          "respiratoryRate": null,
+          "bedtimeMinutes": 1440
+        },
+        {
+          "id": 5,
+          "date": "2026-10-31",
+          "startedAt": "2026-10-31T07:00:00.000Z",
+          "endedAt": "2026-10-31T15:00:00.000Z",
+          "windowMinutes": 480,
+          "occupiedMinutes": 480,
+          "occupancyPercent": 100,
+          "exits": 0,
+          "sampleCount": 0,
+          "heartRate": null,
+          "hrv": null,
+          "respiratoryRate": null,
+          "bedtimeMinutes": 1440
+        },
+        {
+          "id": 6,
+          "date": "2026-11-01",
+          "startedAt": "2026-11-01T08:00:00.000Z",
+          "endedAt": "2026-11-01T16:00:00.000Z",
+          "windowMinutes": 480,
+          "occupiedMinutes": 480,
+          "occupancyPercent": 100,
+          "exits": 0,
+          "sampleCount": 0,
+          "heartRate": null,
+          "hrv": null,
+          "respiratoryRate": null,
+          "bedtimeMinutes": 1500
+        }
+      ],
+      "episodes": [
+        {
+          "id": 1,
+          "date": "2026-10-23",
+          "startedAt": "2026-10-23T07:00:00.000Z",
+          "endedAt": "2026-10-23T15:00:00.000Z",
+          "windowMinutes": 480,
+          "occupiedMinutes": 480,
+          "occupancyPercent": 100,
+          "exits": 0,
+          "sampleCount": 0,
+          "heartRate": null,
+          "hrv": null,
+          "respiratoryRate": null,
+          "bedtimeMinutes": 1440
+        },
+        {
+          "id": 2,
+          "date": "2026-10-24",
+          "startedAt": "2026-10-24T07:00:00.000Z",
+          "endedAt": "2026-10-24T15:00:00.000Z",
+          "windowMinutes": 480,
+          "occupiedMinutes": 480,
+          "occupancyPercent": 100,
+          "exits": 0,
+          "sampleCount": 0,
+          "heartRate": null,
+          "hrv": null,
+          "respiratoryRate": null,
+          "bedtimeMinutes": 1440
+        },
+        {
+          "id": 3,
+          "date": "2026-10-25",
+          "startedAt": "2026-10-25T07:00:00.000Z",
+          "endedAt": "2026-10-25T15:00:00.000Z",
+          "windowMinutes": 480,
+          "occupiedMinutes": 480,
+          "occupancyPercent": 100,
+          "exits": 0,
+          "sampleCount": 0,
+          "heartRate": null,
+          "hrv": null,
+          "respiratoryRate": null,
+          "bedtimeMinutes": 1440
+        },
+        {
+          "id": 4,
+          "date": "2026-10-30",
+          "startedAt": "2026-10-30T07:00:00.000Z",
+          "endedAt": "2026-10-30T15:00:00.000Z",
+          "windowMinutes": 480,
+          "occupiedMinutes": 480,
+          "occupancyPercent": 100,
+          "exits": 0,
+          "sampleCount": 0,
+          "heartRate": null,
+          "hrv": null,
+          "respiratoryRate": null,
+          "bedtimeMinutes": 1440
+        },
+        {
+          "id": 5,
+          "date": "2026-10-31",
+          "startedAt": "2026-10-31T07:00:00.000Z",
+          "endedAt": "2026-10-31T15:00:00.000Z",
+          "windowMinutes": 480,
+          "occupiedMinutes": 480,
+          "occupancyPercent": 100,
+          "exits": 0,
+          "sampleCount": 0,
+          "heartRate": null,
+          "hrv": null,
+          "respiratoryRate": null,
+          "bedtimeMinutes": 1440
+        },
+        {
+          "id": 6,
+          "date": "2026-11-01",
+          "startedAt": "2026-11-01T08:00:00.000Z",
+          "endedAt": "2026-11-01T16:00:00.000Z",
+          "windowMinutes": 480,
+          "occupiedMinutes": 480,
+          "occupancyPercent": 100,
+          "exits": 0,
+          "sampleCount": 0,
+          "heartRate": null,
+          "hrv": null,
+          "respiratoryRate": null,
+          "bedtimeMinutes": 1500
+        }
+      ],
+      "summary": {
+        "recordedNights": 6,
+        "recentRecordedNights": 3,
+        "previousRecordedNights": 3,
+        "periodEnding": "2026-11-01",
+        "averageOccupiedMinutes": 480,
+        "averageHeartRate": null,
+        "averageHrv": null,
+        "averageRespiratoryRate": null,
+        "bedtimeVariationMinutes": 28.3,
+        "weeklyChangeMinutes": 0,
+        "opportunityGapMinutes": 0,
+        "averageExits": 0
+      },
+      "quality": {
+        "source": "pod-presence-and-vitals",
+        "coverage": {
+          "version": 1,
+          "minimumNights": 3,
+          "recent": {
+            "from": "2026-10-26",
+            "through": "2026-11-01",
+            "days": [
+              {
+                "date": "2026-10-26",
+                "status": "not_returned"
+              },
+              {
+                "date": "2026-10-27",
+                "status": "not_returned"
+              },
+              {
+                "date": "2026-10-28",
+                "status": "not_returned"
+              },
+              {
+                "date": "2026-10-29",
+                "status": "not_returned"
+              },
+              {
+                "date": "2026-10-30",
+                "status": "known"
+              },
+              {
+                "date": "2026-10-31",
+                "status": "known"
+              },
+              {
+                "date": "2026-11-01",
+                "status": "known"
+              }
+            ],
+            "recordedNights": 3,
+            "presenceNights": 3,
+            "heartRateNights": 0,
+            "hrvNights": 0,
+            "respiratoryRateNights": 0
+          },
+          "previous": {
+            "from": "2026-10-19",
+            "through": "2026-10-25",
+            "days": [
+              {
+                "date": "2026-10-19",
+                "status": "not_returned"
+              },
+              {
+                "date": "2026-10-20",
+                "status": "not_returned"
+              },
+              {
+                "date": "2026-10-21",
+                "status": "not_returned"
+              },
+              {
+                "date": "2026-10-22",
+                "status": "not_returned"
+              },
+              {
+                "date": "2026-10-23",
+                "status": "known"
+              },
+              {
+                "date": "2026-10-24",
+                "status": "known"
+              },
+              {
+                "date": "2026-10-25",
+                "status": "known"
+              }
+            ],
+            "recordedNights": 3,
+            "presenceNights": 3,
+            "heartRateNights": 0,
+            "hrvNights": 0,
+            "respiratoryRateNights": 0
+          },
+          "comparisonAvailable": true,
+          "comparisonReason": "Both periods have at least 3 nights with known presence. This is a descriptive comparison, not proof of a change in sleep quality.",
+          "excludedEpisodes": 0,
+          "scopeNote": "Based on records returned for your selected range. A date without a record does not prove sensor failure or no sleep. Choose a longer range to include earlier dates."
+        },
+        "stageClassification": false,
+        "hrvValidated": false,
+        "respiratoryRateValidated": false,
+        "nightsWithVitals": 0,
+        "notes": [
+          "Bed presence is not measured sleep.",
+          "HRV and respiratory rate are experimental estimates.",
+          "Trends use the longest episode per wake date. Missing nights are not zero.",
+          "Averages compare seven calendar days ending on the latest recorded wake date with the preceding seven days."
+        ]
+      }
+    },
+    "coaching": {
+      "headline": "A little context for your nights",
+      "observations": [
+        "For the recorded period ending 2026-11-01, average bed presence is 480 minutes per recorded night.",
+        "Bed-entry timing varies by about 28 minutes across recent recorded nights.",
+        "Average bed presence changed by 0 minutes."
+      ],
+      "suggestions": [
+        "Keep your routine comfortable and collect more nights before changing several things at once."
+      ],
+      "limitations": [
+        "Presence is not measured sleep; sleep stages and diagnoses cannot be inferred here.",
+        "HRV and breathing estimates have not been validated.",
+        "Both periods have at least 3 nights with known presence. This is a descriptive comparison, not proof of a change in sleep quality."
+      ],
+      "grounding": {
+        "version": 1,
+        "facts": [
+          {
+            "id": "bed-presence",
+            "title": "Bed presence",
+            "observation": "For the recorded period ending 2026-11-01, average bed presence is 480 minutes per recorded night.",
+            "context": "2026-10-26 → 2026-11-01 · America/Los_Angeles",
+            "sample": "3 nights with known presence",
+            "calculation": "Mean of known bed-presence durations from the longest episode per wake date, rounded to the nearest minute. Missing or unknown presence is excluded. Presence is not measured sleep."
+          },
+          {
+            "id": "bedtime-variation",
+            "title": "Bed-entry consistency",
+            "observation": "Bed-entry timing varies by about 28 minutes across recent recorded nights.",
+            "context": "2026-10-26 → 2026-11-01 · America/Los_Angeles",
+            "sample": "3 recorded nights",
+            "calculation": "Population standard deviation of bed-entry clock times across recorded main episodes, rounded to the nearest minute. Lower values mean more consistent timing; they do not measure sleep quality."
+          },
+          {
+            "id": "weekly-presence-change",
+            "title": "Weekly presence change",
+            "observation": "Average bed presence changed by 0 minutes.",
+            "context": "2026-10-26 → 2026-11-01 · America/Los_Angeles · Previous: 2026-10-19 → 2026-10-25",
+            "sample": "3 recent and 3 previous nights with known presence",
+            "calculation": "Recent mean bed presence minus the previous mean, using only known-presence nights. Each period needs at least three. This describes the available records and does not establish a cause."
+          }
+        ],
+        "suggestions": "rules"
+      },
+      "provider": "rules",
+      "model": "Demo insights"
+    }
+  },
+  {
+    "name": "leap-day",
+    "analytics": {
+      "timeZone": "Asia/Kathmandu",
+      "goalMinutes": 480,
+      "nights": [
+        {
+          "id": 1,
+          "date": "2024-02-22",
+          "startedAt": "2024-02-21T18:15:00.000Z",
+          "endedAt": "2024-02-22T02:15:00.000Z",
+          "windowMinutes": 480,
+          "occupiedMinutes": 480,
+          "occupancyPercent": 100,
+          "exits": 0,
+          "sampleCount": 0,
+          "heartRate": null,
+          "hrv": null,
+          "respiratoryRate": null,
+          "bedtimeMinutes": 1440
+        },
+        {
+          "id": 2,
+          "date": "2024-02-23",
+          "startedAt": "2024-02-22T18:15:00.000Z",
+          "endedAt": "2024-02-23T02:15:00.000Z",
+          "windowMinutes": 480,
+          "occupiedMinutes": 480,
+          "occupancyPercent": 100,
+          "exits": 0,
+          "sampleCount": 0,
+          "heartRate": null,
+          "hrv": null,
+          "respiratoryRate": null,
+          "bedtimeMinutes": 1440
+        },
+        {
+          "id": 3,
+          "date": "2024-02-24",
+          "startedAt": "2024-02-23T18:15:00.000Z",
+          "endedAt": "2024-02-24T02:15:00.000Z",
+          "windowMinutes": 480,
+          "occupiedMinutes": 480,
+          "occupancyPercent": 100,
+          "exits": 0,
+          "sampleCount": 0,
+          "heartRate": null,
+          "hrv": null,
+          "respiratoryRate": null,
+          "bedtimeMinutes": 1440
+        },
+        {
+          "id": 4,
+          "date": "2024-02-28",
+          "startedAt": "2024-02-27T18:15:00.000Z",
+          "endedAt": "2024-02-28T02:15:00.000Z",
+          "windowMinutes": 480,
+          "occupiedMinutes": 480,
+          "occupancyPercent": 100,
+          "exits": 0,
+          "sampleCount": 0,
+          "heartRate": null,
+          "hrv": null,
+          "respiratoryRate": null,
+          "bedtimeMinutes": 1440
+        },
+        {
+          "id": 5,
+          "date": "2024-02-29",
+          "startedAt": "2024-02-28T18:15:00.000Z",
+          "endedAt": "2024-02-29T02:15:00.000Z",
+          "windowMinutes": 480,
+          "occupiedMinutes": 480,
+          "occupancyPercent": 100,
+          "exits": 0,
+          "sampleCount": 0,
+          "heartRate": null,
+          "hrv": null,
+          "respiratoryRate": null,
+          "bedtimeMinutes": 1440
+        },
+        {
+          "id": 6,
+          "date": "2024-03-01",
+          "startedAt": "2024-02-29T18:15:00.000Z",
+          "endedAt": "2024-03-01T02:15:00.000Z",
+          "windowMinutes": 480,
+          "occupiedMinutes": 480,
+          "occupancyPercent": 100,
+          "exits": 0,
+          "sampleCount": 0,
+          "heartRate": null,
+          "hrv": null,
+          "respiratoryRate": null,
+          "bedtimeMinutes": 1440
+        }
+      ],
+      "episodes": [
+        {
+          "id": 1,
+          "date": "2024-02-22",
+          "startedAt": "2024-02-21T18:15:00.000Z",
+          "endedAt": "2024-02-22T02:15:00.000Z",
+          "windowMinutes": 480,
+          "occupiedMinutes": 480,
+          "occupancyPercent": 100,
+          "exits": 0,
+          "sampleCount": 0,
+          "heartRate": null,
+          "hrv": null,
+          "respiratoryRate": null,
+          "bedtimeMinutes": 1440
+        },
+        {
+          "id": 2,
+          "date": "2024-02-23",
+          "startedAt": "2024-02-22T18:15:00.000Z",
+          "endedAt": "2024-02-23T02:15:00.000Z",
+          "windowMinutes": 480,
+          "occupiedMinutes": 480,
+          "occupancyPercent": 100,
+          "exits": 0,
+          "sampleCount": 0,
+          "heartRate": null,
+          "hrv": null,
+          "respiratoryRate": null,
+          "bedtimeMinutes": 1440
+        },
+        {
+          "id": 3,
+          "date": "2024-02-24",
+          "startedAt": "2024-02-23T18:15:00.000Z",
+          "endedAt": "2024-02-24T02:15:00.000Z",
+          "windowMinutes": 480,
+          "occupiedMinutes": 480,
+          "occupancyPercent": 100,
+          "exits": 0,
+          "sampleCount": 0,
+          "heartRate": null,
+          "hrv": null,
+          "respiratoryRate": null,
+          "bedtimeMinutes": 1440
+        },
+        {
+          "id": 4,
+          "date": "2024-02-28",
+          "startedAt": "2024-02-27T18:15:00.000Z",
+          "endedAt": "2024-02-28T02:15:00.000Z",
+          "windowMinutes": 480,
+          "occupiedMinutes": 480,
+          "occupancyPercent": 100,
+          "exits": 0,
+          "sampleCount": 0,
+          "heartRate": null,
+          "hrv": null,
+          "respiratoryRate": null,
+          "bedtimeMinutes": 1440
+        },
+        {
+          "id": 5,
+          "date": "2024-02-29",
+          "startedAt": "2024-02-28T18:15:00.000Z",
+          "endedAt": "2024-02-29T02:15:00.000Z",
+          "windowMinutes": 480,
+          "occupiedMinutes": 480,
+          "occupancyPercent": 100,
+          "exits": 0,
+          "sampleCount": 0,
+          "heartRate": null,
+          "hrv": null,
+          "respiratoryRate": null,
+          "bedtimeMinutes": 1440
+        },
+        {
+          "id": 6,
+          "date": "2024-03-01",
+          "startedAt": "2024-02-29T18:15:00.000Z",
+          "endedAt": "2024-03-01T02:15:00.000Z",
+          "windowMinutes": 480,
+          "occupiedMinutes": 480,
+          "occupancyPercent": 100,
+          "exits": 0,
+          "sampleCount": 0,
+          "heartRate": null,
+          "hrv": null,
+          "respiratoryRate": null,
+          "bedtimeMinutes": 1440
+        }
+      ],
+      "summary": {
+        "recordedNights": 6,
+        "recentRecordedNights": 4,
+        "previousRecordedNights": 2,
+        "periodEnding": "2024-03-01",
+        "averageOccupiedMinutes": 480,
+        "averageHeartRate": null,
+        "averageHrv": null,
+        "averageRespiratoryRate": null,
+        "bedtimeVariationMinutes": 0,
+        "weeklyChangeMinutes": null,
+        "opportunityGapMinutes": 0,
+        "averageExits": 0
+      },
+      "quality": {
+        "source": "pod-presence-and-vitals",
+        "coverage": {
+          "version": 1,
+          "minimumNights": 3,
+          "recent": {
+            "from": "2024-02-24",
+            "through": "2024-03-01",
+            "days": [
+              {
+                "date": "2024-02-24",
+                "status": "known"
+              },
+              {
+                "date": "2024-02-25",
+                "status": "not_returned"
+              },
+              {
+                "date": "2024-02-26",
+                "status": "not_returned"
+              },
+              {
+                "date": "2024-02-27",
+                "status": "not_returned"
+              },
+              {
+                "date": "2024-02-28",
+                "status": "known"
+              },
+              {
+                "date": "2024-02-29",
+                "status": "known"
+              },
+              {
+                "date": "2024-03-01",
+                "status": "known"
+              }
+            ],
+            "recordedNights": 4,
+            "presenceNights": 4,
+            "heartRateNights": 0,
+            "hrvNights": 0,
+            "respiratoryRateNights": 0
+          },
+          "previous": {
+            "from": "2024-02-17",
+            "through": "2024-02-23",
+            "days": [
+              {
+                "date": "2024-02-17",
+                "status": "not_returned"
+              },
+              {
+                "date": "2024-02-18",
+                "status": "not_returned"
+              },
+              {
+                "date": "2024-02-19",
+                "status": "not_returned"
+              },
+              {
+                "date": "2024-02-20",
+                "status": "not_returned"
+              },
+              {
+                "date": "2024-02-21",
+                "status": "not_returned"
+              },
+              {
+                "date": "2024-02-22",
+                "status": "known"
+              },
+              {
+                "date": "2024-02-23",
+                "status": "known"
+              }
+            ],
+            "recordedNights": 2,
+            "presenceNights": 2,
+            "heartRateNights": 0,
+            "hrvNights": 0,
+            "respiratoryRateNights": 0
+          },
+          "comparisonAvailable": false,
+          "comparisonReason": "A weekly change needs at least 3 nights with known presence in each period. This is an app display rule, not a medical confidence threshold.",
+          "excludedEpisodes": 0,
+          "scopeNote": "Based on records returned for your selected range. A date without a record does not prove sensor failure or no sleep. Choose a longer range to include earlier dates."
+        },
+        "stageClassification": false,
+        "hrvValidated": false,
+        "respiratoryRateValidated": false,
+        "nightsWithVitals": 0,
+        "notes": [
+          "Bed presence is not measured sleep.",
+          "HRV and respiratory rate are experimental estimates.",
+          "Trends use the longest episode per wake date. Missing nights are not zero.",
+          "Averages compare seven calendar days ending on the latest recorded wake date with the preceding seven days."
+        ]
+      }
+    },
+    "coaching": {
+      "headline": "A little context for your nights",
+      "observations": [
+        "For the recorded period ending 2024-03-01, average bed presence is 480 minutes per recorded night.",
+        "Bed-entry timing varies by about 0 minutes across recent recorded nights."
+      ],
+      "suggestions": [
+        "Keep your routine comfortable and collect more nights before changing several things at once."
+      ],
+      "limitations": [
+        "Presence is not measured sleep; sleep stages and diagnoses cannot be inferred here.",
+        "HRV and breathing estimates have not been validated.",
+        "A weekly change needs at least 3 nights with known presence in each period. This is an app display rule, not a medical confidence threshold."
+      ],
+      "grounding": {
+        "version": 1,
+        "facts": [
+          {
+            "id": "bed-presence",
+            "title": "Bed presence",
+            "observation": "For the recorded period ending 2024-03-01, average bed presence is 480 minutes per recorded night.",
+            "context": "2024-02-24 → 2024-03-01 · Asia/Kathmandu",
+            "sample": "4 nights with known presence",
+            "calculation": "Mean of known bed-presence durations from the longest episode per wake date, rounded to the nearest minute. Missing or unknown presence is excluded. Presence is not measured sleep."
+          },
+          {
+            "id": "bedtime-variation",
+            "title": "Bed-entry consistency",
+            "observation": "Bed-entry timing varies by about 0 minutes across recent recorded nights.",
+            "context": "2024-02-24 → 2024-03-01 · Asia/Kathmandu",
+            "sample": "4 recorded nights",
+            "calculation": "Population standard deviation of bed-entry clock times across recorded main episodes, rounded to the nearest minute. Lower values mean more consistent timing; they do not measure sleep quality."
+          }
+        ],
+        "suggestions": "rules"
+      },
+      "provider": "rules",
+      "model": "Demo insights"
+    }
+  }
+]

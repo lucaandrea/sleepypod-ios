@@ -1,0 +1,121 @@
+{
+  "now": "2026-10-14T12:00:00.000Z",
+  "attempts": [
+    {
+      "id": "10000000-0000-4000-8000-000000000001",
+      "provider": "openai",
+      "model": "Demo model · no external calls",
+      "startedAt": "2026-10-14T12:00:00.000Z",
+      "outcome": "completed",
+      "elapsedMilliseconds": 800,
+      "tokens": {
+        "inputTokens": 1000,
+        "outputTokens": 200,
+        "totalTokens": 1200
+      }
+    },
+    {
+      "id": "10000000-0000-4000-8000-000000000002",
+      "provider": "gemini",
+      "model": "Demo Flash",
+      "startedAt": "2026-10-14T12:00:00.000Z",
+      "outcome": "completed",
+      "elapsedMilliseconds": 950,
+      "tokens": {
+        "inputTokens": 1000,
+        "outputTokens": 250,
+        "totalTokens": 1250
+      }
+    },
+    {
+      "id": "10000000-0000-4000-8000-000000000003",
+      "provider": "openai",
+      "model": "Demo model · no external calls",
+      "startedAt": "2026-10-14T12:00:00.000Z",
+      "outcome": "failed",
+      "elapsedMilliseconds": 500,
+      "tokens": null
+    },
+    {
+      "id": "10000000-0000-4000-8000-000000000004",
+      "provider": "ollama",
+      "model": "Demo local model",
+      "startedAt": "2026-10-14T12:00:00.000Z",
+      "outcome": "completed",
+      "elapsedMilliseconds": 2000,
+      "tokens": {
+        "inputTokens": 1200,
+        "outputTokens": 300,
+        "totalTokens": 1500
+      }
+    }
+  ],
+  "snapshot": {
+    "version": 1,
+    "period": "2026-10",
+    "resetsAt": "2026-11-01T00:00:00.000Z",
+    "monthlyLimit": 100,
+    "revision": 0,
+    "remaining": 96,
+    "attempts": 4,
+    "completed": 3,
+    "failed": 1,
+    "unresolved": 0,
+    "pending": 0,
+    "tokensReportedFor": 3,
+    "inputTokens": 3200,
+    "outputTokens": 750,
+    "totalTokens": 3950,
+    "averageResponseMilliseconds": 1063,
+    "providers": [
+      {
+        "provider": "openai",
+        "models": [
+          "Demo model · no external calls"
+        ],
+        "attempts": 2,
+        "completed": 1,
+        "failed": 1,
+        "unresolved": 0,
+        "pending": 0,
+        "tokensReportedFor": 1,
+        "inputTokens": 1000,
+        "outputTokens": 200,
+        "totalTokens": 1200,
+        "averageResponseMilliseconds": 650
+      },
+      {
+        "provider": "gemini",
+        "models": [
+          "Demo Flash"
+        ],
+        "attempts": 1,
+        "completed": 1,
+        "failed": 0,
+        "unresolved": 0,
+        "pending": 0,
+        "tokensReportedFor": 1,
+        "inputTokens": 1000,
+        "outputTokens": 250,
+        "totalTokens": 1250,
+        "averageResponseMilliseconds": 950
+      },
+      {
+        "provider": "ollama",
+        "models": [
+          "Demo local model"
+        ],
+        "attempts": 1,
+        "completed": 1,
+        "failed": 0,
+        "unresolved": 0,
+        "pending": 0,
+        "tokensReportedFor": 1,
+        "inputTokens": 1200,
+        "outputTokens": 300,
+        "totalTokens": 1500,
+        "averageResponseMilliseconds": 2000
+      }
+    ]
+  }
+}

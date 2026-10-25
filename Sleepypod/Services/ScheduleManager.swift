@@ -17,7 +17,7 @@ final class ScheduleManager {
         self.api = api
     }
 
-    func switchBackend(_ client: SleepypodProtocol) { api = client }
+    func switchBackend(_ client: SleepypodProtocol) { api = client; schedules = nil; error = nil }
 
     // MARK: - Current Schedule
 
@@ -60,8 +60,10 @@ final class ScheduleManager {
                 daily.power.on = template.bedtime
                 daily.power.off = template.wake
                 daily.power.enabled = true
-                daily.alarm.time = template.wake
-                daily.alarm.enabled = true
+                if APIBackend.current == .freeSleep {
+                    daily.alarm.time = template.wake
+                    daily.alarm.enabled = true
+                }
                 sideSchedule[day] = daily
             }
             updated.setSchedule(sideSchedule, for: side)
@@ -95,9 +97,9 @@ final class ScheduleManager {
 
     // MARK: - Fetch
 
-    func fetchSchedules() async {
+    func fetchSchedules(preservingError: Bool = false) async {
         isLoading = true
-        error = nil
+        if !preservingError { error = nil }
         do {
             schedules = try await api.getSchedules()
         } catch {
@@ -135,7 +137,7 @@ final class ScheduleManager {
             self.schedules = try await api.updateSchedules(schedules, days: [selectedDay])
         } catch {
             self.error = error.localizedDescription
-            await fetchSchedules()
+            await fetchSchedules(preservingError: true)
         }
     }
 
@@ -163,7 +165,7 @@ final class ScheduleManager {
             self.schedules = try await api.updateSchedules(schedules, days: [selectedDay])
         } catch {
             self.error = error.localizedDescription
-            await fetchSchedules()
+            await fetchSchedules(preservingError: true)
         }
     }
 
@@ -193,7 +195,7 @@ final class ScheduleManager {
             self.schedules = try await api.updateSchedules(schedules, days: [selectedDay])
         } catch {
             self.error = error.localizedDescription
-            await fetchSchedules()
+            await fetchSchedules(preservingError: true)
         }
     }
 
@@ -223,7 +225,7 @@ final class ScheduleManager {
             self.schedules = try await api.updateSchedules(schedules, days: [selectedDay])
         } catch {
             self.error = error.localizedDescription
-            await fetchSchedules()
+            await fetchSchedules(preservingError: true)
         }
     }
 
@@ -256,7 +258,7 @@ final class ScheduleManager {
             self.schedules = try await api.updateSchedules(schedules, days: [selectedDay])
         } catch {
             self.error = error.localizedDescription
-            await fetchSchedules()
+            await fetchSchedules(preservingError: true)
         }
     }
 
@@ -287,7 +289,7 @@ final class ScheduleManager {
             self.schedules = try await api.updateSchedules(schedules, days: selectedDays)
         } catch {
             self.error = error.localizedDescription
-            await fetchSchedules()
+            await fetchSchedules(preservingError: true)
         }
     }
 
@@ -318,7 +320,7 @@ final class ScheduleManager {
             self.schedules = try await api.updateSchedules(schedules, days: selectedDays)
         } catch {
             self.error = error.localizedDescription
-            await fetchSchedules()
+            await fetchSchedules(preservingError: true)
         }
     }
 

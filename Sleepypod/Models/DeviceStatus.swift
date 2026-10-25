@@ -38,6 +38,11 @@ struct DeviceStatus: Codable, Sendable {
     var hubVersion: String
     var freeSleep: FreeSleepInfo
     var wifiStrength: Int
+    var temperatureControl: SidePair<TemperatureControlStatus>?
+    var pumpStallNotifications: SidePair<PumpStallNotice>?
+    var primeCompletedNotification: PrimeCompletion?
+    var snooze: SidePair<AlarmSnooze>?
+    var roomClimate: RoomClimate?
 
     var podModelName: String {
         switch hubVersion.uppercased() {
@@ -77,6 +82,8 @@ struct DeviceStatusUpdate: Encodable, Sendable {
 struct SideStatusUpdate: Encodable, Sendable {
     var targetTemperatureF: Int?
     var isOn: Bool?
+    // Core-only ownership preference; omitted from the legacy Free Sleep wire format.
+    var holdMinutes: Int?
 
     func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)

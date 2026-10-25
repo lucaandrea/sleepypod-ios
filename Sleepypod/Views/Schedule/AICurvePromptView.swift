@@ -27,6 +27,8 @@ struct AICurvePromptView: View {
     @State private var didInitialSetup = false
     @State private var parseError: String?
     @State private var showManualField = false
+    @State private var libraryDraft: CurveDraft?
+    @State private var runOnceReview: RunOnceDraft?
     @FocusState private var isFocused: Bool
     @FocusState private var isJSONFocused: Bool
 
@@ -87,6 +89,8 @@ struct AICurvePromptView: View {
             } message: {
                 Text("Give this curve a name so you can reuse it later.")
             }
+            .sheet(item: $libraryDraft) { NativeCurveEditor(initial: $0) }
+            .sheet(item: $runOnceReview) { RunOnceReview(initial: $0) }
         }
     }
 
@@ -480,7 +484,7 @@ struct AICurvePromptView: View {
 
                 Divider().frame(height: 20).background(Theme.text1.opacity(0.2))
 
-                floatingButton(title: isApplied ? "Applied!" : "Apply", icon: isApplied ? "checkmark" : "calendar.badge.plus") {
+                floatingButton(title: isApplied ? "Applied!" : APIBackend.current == .freeSleep ? "Apply" : "Review", icon: isApplied ? "checkmark" : "calendar.badge.plus") {
                     applyToSchedule()
                 }
 
@@ -802,6 +806,12 @@ struct AICurvePromptView: View {
 
     private func saveAsTemplate() {
         guard let result = parsedResult, !templateName.isEmpty else { return }
+        if APIBackend.current != .freeSleep {
+            var draft = sharedDraft(result)
+            draft.name = String(templateName.prefix(30)); draft.days = CurveDays(); draft.active = false
+            libraryDraft = draft
+            return
+        }
         var points: [String: Int] = [:]
         for p in editablePoints {
             points[p.time] = p.tempF
@@ -840,6 +850,10 @@ struct AICurvePromptView: View {
     }
 
     private func applyResult(_ result: CurveGenerator.GeneratedCurve) {
+        if APIBackend.current != .freeSleep {
+            libraryDraft = sharedDraft(result)
+            return
+        }
         Task {
             guard var schedules = scheduleManager.schedules else { return }
             let side = scheduleManager.selectedSide.primarySide
@@ -881,6 +895,15 @@ struct AICurvePromptView: View {
     private func useNow() {
         guard let result = parsedResult else { return }
         let side = scheduleManager.selectedSide.primarySide
+        if APIBackend.current != .freeSleep {
+            let draft = sharedDraft(result)
+            let payload = draft.payload
+            let curve = PodCurve(id: 0, name: payload.name, bedtime: payload.bedtime, wake: payload.wake, points: payload.points, notes: payload.notes)
+            var review = RunOnceDraft(curve: curve, side: side, timeZone: TimeZone(identifier: settingsManager.timeZone) ?? .current)
+            review.setWake(result.wake)
+            runOnceReview = review
+            return
+        }
 
         let setPoints: [RunOnceSetPoint]
 
@@ -945,5 +968,19 @@ struct AICurvePromptView: View {
         let parts = time.split(separator: ":")
         guard parts.count == 2, let h = Int(parts[0]), let m = Int(parts[1]) else { return 0 }
         return h * 60 + m
+    }
+
+    /// AI output stays a reviewable draft; schedule ownership is applied only by the library editor.
+    private func sharedDraft(_ result: CurveGenerator.GeneratedCurve) -> CurveDraft {
+        var draft = CurveDraft()
+        draft.name = String((result.profileName.isEmpty ? "Personal curve" : result.profileName).prefix(30))
+        draft.points = editablePoints.map { CurvePoint(time: $0.time, temperature: Double($0.tempF)) }
+        draft.notes = String(result.reasoning.prefix(1000))
+        draft.bedtime = draft.ordered.first?.time ?? result.bedtime
+        draft.wake = draft.ordered.last?.time ?? result.wake
+        draft.coolest = Int(draft.points.map(\.temperature).min() ?? 68)
+        draft.warmest = Int(draft.points.map(\.temperature).max() ?? 86)
+        for side in scheduleManager.selectedSide.sides { draft.days[side] = DayOfWeek.weekdays.filter { scheduleManager.selectedDays.contains($0) } }
+        return draft
     }
 }

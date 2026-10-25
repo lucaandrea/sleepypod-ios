@@ -1,4 +1,5 @@
 import SwiftUI
+import FreeSleepKit
 
 /// The gear sheet (1l): quick actions and the most-used rows over the current tab.
 struct SettingsSheet: View {
@@ -13,6 +14,8 @@ struct SettingsSheet: View {
     @State private var showHealth = DebugRoute.current == "health"
     @State private var confirmPrime = false
     @State private var primeError: String?
+    @State private var showBase = false
+    @State private var showComfort = false
 
     private var podName: String { device.deviceStatus?.podModelName ?? "Pod" }
 
@@ -42,6 +45,15 @@ struct SettingsSheet: View {
                         quick("Prime", icon: "drop", active: device.deviceStatus?.isPriming == true) { confirmPrime = true }
                     }
                     GroupedCard(glass: true) {
+                        Button { showBase = true } label: {
+                            SettingsRow("Bed position", icon: "bed.double", iconColor: Theme.text1, chevron: true)
+                        }
+                        Button { showComfort = true } label: {
+                            SettingsRow("Personal comfort", icon: "sparkles", iconColor: Theme.text1, chevron: true)
+                        }
+                        NavigationLink { OwnerConnectionView() } label: {
+                            SettingsRow("Pod connection", icon: "network", iconColor: Theme.text1, chevron: true)
+                        }
                         NavigationLink { StatusScreen().navigationTitle("Status") } label: {
                             SettingsRow("Status", icon: "waveform.path.ecg", iconColor: Theme.text1, chevron: true) {
                                 RowValue(status.totalCount > 0 ? "\(status.healthyCount)/\(status.totalCount)" : "—", mono: true,
@@ -55,6 +67,12 @@ struct SettingsSheet: View {
                             SettingsRow("Apple Health", icon: "heart", iconColor: Theme.red, chevron: true) {
                                 RowValue(health.enabled ? "On" : "Off")
                             }
+                        }
+                        NavigationLink { WatchMotionView() } label: {
+                            SettingsRow("Watch movement", icon: "applewatch", iconColor: Theme.text1, chevron: true)
+                        }
+                        NavigationLink { AppearanceSettingsScreen() } label: {
+                            SettingsRow("Appearance", icon: "circle.lefthalf.filled", iconColor: Theme.text1, chevron: true)
                         }
                         TempControlMenu(selection: $profile.tempControl, iconColor: Theme.text1, tile: false)
                         if APIBackend.current.isDemo {
@@ -95,6 +113,20 @@ struct SettingsSheet: View {
         .presentationDetents([.medium, .large])
         .presentationDragIndicator(.visible)
         .modifier(SettingsSheetBackground())
+        .fullScreenCover(isPresented: $showBase) {
+            NavigationStack {
+                UnifiedBaseScreen().toolbar {
+                    ToolbarItem(placement: .topBarTrailing) { Button("Done") { showBase = false } }
+                }
+            }
+        }
+        .fullScreenCover(isPresented: $showComfort) {
+            NavigationStack {
+                PodFeatureScreen(.comfort, side: device.selectedSide.primarySide.rawValue).toolbar {
+                    ToolbarItem(placement: .topBarTrailing) { Button("Done") { showComfort = false } }
+                }
+            }
+        }
         .fullScreenCover(isPresented: $showAllSettings) {
             NavigationStack {
                 AllSettingsScreen()
@@ -140,6 +172,7 @@ struct AllSettingsScreen: View {
     @Environment(StatusManager.self) private var status
     @Environment(UpdateChecker.self) private var updates
     @Environment(HealthSyncService.self) private var health
+    @Environment(SnoreCaptureService.self) private var snore
     @State private var showWater = false
 
     private var allHealthy: Bool { status.totalCount > 0 && status.healthyCount == status.totalCount }
@@ -153,6 +186,12 @@ struct AllSettingsScreen: View {
 
                 GroupedSection("BED") {
                     GroupedCard {
+                        NavigationLink { UnifiedBaseScreen() } label: {
+                            SettingsRow("Bed position", icon: "bed.double", tile: true, chevron: true)
+                        }
+                        PodFeatureLink(.comfort, icon: "sparkles", tile: true)
+                        PodFeatureLink(.routines, icon: "calendar", tile: true)
+                        PodFeatureLink(.alarms, icon: "alarm", tile: true)
                         NavigationLink { SidesSettingsView() } label: {
                             SettingsRow("Sides", icon: "person.2", tile: true, chevron: true) {
                                 RowValue("\(settings.leftName) · \(settings.rightName)")
@@ -168,7 +207,6 @@ struct AllSettingsScreen: View {
                             })) {
                                 Text("Fahrenheit (°F)").tag(TemperatureFormat.fahrenheit)
                                 Text("Celsius (°C)").tag(TemperatureFormat.celsius)
-                                Text("Relative (±)").tag(TemperatureFormat.relative)
                             }
                         } label: {
                             SettingsRow("Units", icon: "thermometer.medium", tile: true) { menuValue(unitLabel) }
@@ -183,12 +221,42 @@ struct AllSettingsScreen: View {
                                 RowValue(health.enabled ? "On" : "Off")
                             }
                         }
+                        PodFeatureLink(.healthHistory, icon: "clock.arrow.circlepath", tile: true)
+                        PodFeatureLink(.healthSync, icon: "arrow.triangle.2.circlepath", tile: true)
                         NavigationLink { AnalysisInventoryView() } label: {
                             SettingsRow("On-device analysis", icon: "cpu", tile: true, chevron: true)
                         }
+                        if APIBackend.current != .freeSleep {
+                            NavigationLink { RemoteStageRulesScreen(side: device.selectedSide.primarySide) } label: {
+                                SettingsRow("Pod sleep stages", icon: "moon.zzz", tile: true, chevron: true)
+                            }
+                        }
+                        NavigationLink { SnoreCaptureView() } label: {
+                            SettingsRow("Snore detection", icon: "waveform.badge.mic", tile: true, chevron: true) {
+                                RowValue(snore.isActive ? "Listening" : "Beta")
+                            }
+                        }
                     }
-                    Text("Your Health data stays on this iPhone. sleepypod has no server: nothing is uploaded to the pod, to iCloud or to anyone else.")
+                    Text("Health analysis stays on this iPhone. Personal reports send only the evidence you review, to the model you choose, after you approve each request.")
                         .font(.footnote).foregroundStyle(Theme.text2).padding(.horizontal, 16).fixedSize(horizontal: false, vertical: true)
+                }
+
+                GroupedSection("INSIGHTS") {
+                    GroupedCard {
+                        PodFeatureLink(.journal, icon: "square.and.pencil", tile: true)
+                        PodFeatureLink(.reports, icon: "doc.text.magnifyingglass", tile: true)
+                        PodFeatureLink(.coach, icon: "sparkles", tile: true)
+                        PodFeatureLink(.models, icon: "cpu", tile: true)
+                        PodFeatureLink(.history, icon: "clock", tile: true)
+                    }
+                }
+                GroupedSection("CONNECTIONS") {
+                    GroupedCard {
+                        NavigationLink { OwnerConnectionView() } label: {
+                            SettingsRow("Pod connection", icon: "network", tile: true, chevron: true)
+                        }
+                        PodFeatureLink(.home, icon: "house", tile: true)
+                    }
                 }
 
                 GroupedSection("POD") {
@@ -199,6 +267,8 @@ struct AllSettingsScreen: View {
                         NavigationLink { BedSensorScreen().navigationTitle("Sensors") } label: {
                             SettingsRow("Sensors", icon: "waveform", tile: true, chevron: true)
                         }
+                        PodFeatureLink(.preferences, icon: "slider.horizontal.3", tile: true)
+                        PodFeatureLink(.services, icon: "server.rack", tile: true)
                         Button { showWater = true } label: {
                             SettingsRow("Water & priming", icon: "drop", tile: true, chevron: true)
                         }
@@ -218,6 +288,9 @@ struct AllSettingsScreen: View {
 
                 GroupedSection("APP") {
                     GroupedCard {
+                        NavigationLink { AppearanceSettingsScreen() } label: {
+                            SettingsRow("Display & temperature", icon: "slider.horizontal.3", tile: true, chevron: true)
+                        }
                         TempControlMenu(selection: $profile.tempControl, iconColor: Theme.icon, tile: true)
                         Menu {
                             Picker("Appearance", selection: $profile.appearance) {
@@ -290,7 +363,7 @@ struct AllSettingsScreen: View {
         switch settings.temperatureFormat {
         case .fahrenheit: "°F"
         case .celsius: "°C"
-        case .relative: "±"
+        case .relative: "°F"
         }
     }
 

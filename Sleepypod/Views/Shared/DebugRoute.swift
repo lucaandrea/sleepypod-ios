@@ -2,6 +2,13 @@ import Foundation
 
 /// DEBUG-only deep link for design QA: `-uiRoute schedule|sleep|week|weektrend|month|watch|stages|settings|allsettings|health|onboard1|onboard2`.
 enum DebugRoute {
+    static var temperatureContextScenario: String {
+        #if DEBUG
+        UserDefaults.standard.string(forKey: "uiContextScenario") ?? "complete"
+        #else
+        "complete"
+        #endif
+    }
     static var current: String? {
         #if DEBUG
         UserDefaults.standard.string(forKey: "uiRoute")

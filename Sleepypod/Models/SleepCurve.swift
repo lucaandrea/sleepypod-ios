@@ -33,9 +33,9 @@ struct SleepCurve {
         wakeTime: Date,
         coolingIntensity: CoolingIntensity = .balanced,
         minTempF: Int = 68,
-        maxTempF: Int = 86
+        maxTempF: Int = 86,
+        calendar: Calendar = .current
     ) -> [Point] {
-        let calendar = Calendar.current
         var wake = wakeTime
         if wake <= bedtime {
             wake = calendar.date(byAdding: .day, value: 1, to: wake) ?? wake

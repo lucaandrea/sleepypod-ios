@@ -55,15 +55,16 @@ struct WatchComparison: Sendable {
     var watchBreathing: [Reading] = []
     let hrv: Averages
     let breathing: Averages
+    var comparableHeartRateSources = true
 
     var hasWatchData: Bool { !watchStages.isEmpty || !watchHeartRate.isEmpty || hrv.watch != nil || breathing.watch != nil }
     /// Mean absolute error in bpm over the matched minutes.
     var heartRateError: Double? {
-        heartRate.isEmpty ? nil : heartRate.map { abs($0.ours - $0.watch) }.reduce(0, +) / Double(heartRate.count)
+        heartRate.isEmpty || !comparableHeartRateSources ? nil : heartRate.map { abs($0.ours - $0.watch) }.reduce(0, +) / Double(heartRate.count)
     }
     /// Positive when the pod reads higher than the Watch.
     var heartRateBias: Double? {
-        heartRate.isEmpty ? nil : heartRate.map { $0.ours - $0.watch }.reduce(0, +) / Double(heartRate.count)
+        heartRate.isEmpty || !comparableHeartRateSources ? nil : heartRate.map { $0.ours - $0.watch }.reduce(0, +) / Double(heartRate.count)
     }
 
     static func build(epochs: [SleepAnalyzer.SleepEpoch], vitals: [VitalsRecord], watchStages: [StageSample],
@@ -76,8 +77,9 @@ struct WatchComparison: Sendable {
             watchHeartRate: watchHeartRate.sorted { $0.date < $1.date },
             watchHRV: watchHRV.sorted { $0.date < $1.date },
             watchBreathing: watchBreathing.sorted { $0.date < $1.date },
-            hrv: Averages(ours: mean(vitals.compactMap(\.hrv)), watch: mean(watchHRV.map(\.value))),
-            breathing: Averages(ours: mean(vitals.compactMap(\.breathingRate)), watch: mean(watchBreathing.map(\.value))))
+            hrv: Averages(ours: BiometricPlot(metric: .hrv, records: vitals).stats?.average, watch: mean(watchHRV.map(\.value))),
+            breathing: Averages(ours: BiometricPlot(metric: .breathingRate, records: vitals).stats?.average, watch: mean(watchBreathing.map(\.value))),
+            comparableHeartRateSources: !BiometricPlot(metric: .heartRate, records: vitals).mixedSources)
     }
 
     /// Minute-by-minute: an epoch counts only when the Watch recorded exactly one stage at its midpoint.

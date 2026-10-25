@@ -25,6 +25,18 @@ final class UserProfile {
     var tempControl: TempControl {
         didSet { UserDefaults.standard.set(tempControl.rawValue, forKey: "tempControl") }
     }
+    var temperatureDisplay: TemperatureDisplay {
+        didSet { UserDefaults.standard.set(temperatureDisplay.rawValue, forKey: "temperatureDisplay") }
+    }
+    var temperatureLayout: TemperatureLayout {
+        didSet { UserDefaults.standard.set(temperatureLayout.rawValue, forKey: "temperatureLayout") }
+    }
+    var stageZones: StageZoneVisibility {
+        didSet { UserDefaults.standard.set(stageZones.rawValue, forKey: "stageZones") }
+    }
+    var stageAutoReturn: Bool {
+        didSet { UserDefaults.standard.set(stageAutoReturn, forKey: "stageAutoReturn") }
+    }
     var appearance: Appearance {
         didSet { UserDefaults.standard.set(appearance.rawValue, forKey: "appearance") }
     }
@@ -42,12 +54,21 @@ final class UserProfile {
     }
 
     init() {
+        let legacyRelative = UserDefaults.standard.string(forKey: "temperatureFormat") == "relative"
+        temperatureDisplay = TemperatureDisplay(rawValue: UserDefaults.standard.string(forKey: "temperatureDisplay") ?? "") ?? (legacyRelative ? .offset : .degrees)
+        temperatureLayout = TemperatureLayout(rawValue: UserDefaults.standard.string(forKey: "temperatureLayout") ?? "cards") ?? .cards
+        stageZones = StageZoneVisibility(rawValue: UserDefaults.standard.string(forKey: "stageZones") ?? "selected") ?? .selected
+        stageAutoReturn = UserDefaults.standard.object(forKey: "stageAutoReturn") as? Bool ?? true
         tempControl = TempControl(rawValue: UserDefaults.standard.string(forKey: "tempControl") ?? "dial") ?? .dial
-        appearance = Appearance(rawValue: UserDefaults.standard.string(forKey: "appearance") ?? "System") ?? .system
+        let savedAppearance = UserDefaults.standard.string(forKey: "appearance") ?? "System"
+        appearance = Appearance.allCases.first { $0.rawValue.lowercased() == savedAppearance.lowercased() } ?? .system
         developer = UserDefaults.standard.bool(forKey: "developerMode")
-        onboardingComplete = UserDefaults.standard.bool(forKey: "onboardingComplete")
+        // Retain a configured Free Sleep installation when updating to the combined app.
+        let savedController = UserDefaults.standard.string(forKey: "podURL") ?? ""
+        onboardingComplete = UserDefaults.standard.bool(forKey: "onboardingComplete") || !savedController.isEmpty
         self.name = UserDefaults.standard.string(forKey: "userName") ?? ""
-        let sideRaw = UserDefaults.standard.string(forKey: "userDefaultSide") ?? "left"
+        let sideRaw = UserDefaults.standard.string(forKey: "userDefaultSide")
+            ?? UserDefaults.standard.string(forKey: "bedSide") ?? "left"
         self.defaultSide = Side(rawValue: sideRaw) ?? .left
     }
 

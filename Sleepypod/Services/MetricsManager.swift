@@ -9,8 +9,14 @@ final class MetricsManager {
     var vitalsSummary: VitalsSummary?
     var movementRecords: [MovementRecord] = []
     var selectedSide: Side = .left
+    var sleepNavigation: SleepNavigationRequest?
     var selectedWeekStart: Date = Calendar.current.startOfWeek(for: Date())
+    var timeZone = "America/Los_Angeles"
+    var calendar: Calendar { SleepCalendar.calendar(timeZone: timeZone) }
     var isLoading = false
+    var isSaving = false
+    var mutationError: String?
+    var notice: String?
     var error: String?
 
     private var api: SleepypodProtocol
@@ -19,19 +25,25 @@ final class MetricsManager {
         self.api = api
     }
 
-    func switchBackend(_ client: SleepypodProtocol) { api = client }
+    func switchBackend(_ client: SleepypodProtocol) {
+        requestGeneration += 1; connectionRevision += 1; api = client
+        sleepRecords = []; vitalsRecords = []; movementRecords = []; vitalsSummary = nil
+        error = nil; mutationError = nil; notice = nil; isLoading = false
+        sleepNavigation = nil
+    }
 
     // MARK: - Computed
 
     var selectedWeekEnd: Date {
-        Calendar.current.date(byAdding: .day, value: 7, to: selectedWeekStart) ?? selectedWeekStart
+        calendar.date(byAdding: .day, value: 7, to: selectedWeekStart) ?? selectedWeekStart
     }
 
     var weekLabel: String {
         let formatter = DateFormatter()
         formatter.dateFormat = "MMM d"
+        formatter.timeZone = calendar.timeZone
         let start = formatter.string(from: selectedWeekStart)
-        let end = formatter.string(from: Calendar.current.date(byAdding: .day, value: 6, to: selectedWeekStart) ?? selectedWeekStart)
+        let end = formatter.string(from: calendar.date(byAdding: .day, value: 6, to: selectedWeekStart) ?? selectedWeekStart)
         return "\(start) - \(end)"
     }
 
@@ -51,12 +63,12 @@ final class MetricsManager {
     // MARK: - Navigation
 
     func previousWeek() {
-        selectedWeekStart = Calendar.current.date(byAdding: .day, value: -7, to: selectedWeekStart) ?? selectedWeekStart
+        selectedWeekStart = calendar.date(byAdding: .day, value: -7, to: selectedWeekStart) ?? selectedWeekStart
         Task { await fetchAll() }
     }
 
     func nextWeek() {
-        let next = Calendar.current.date(byAdding: .day, value: 7, to: selectedWeekStart) ?? selectedWeekStart
+        let next = calendar.date(byAdding: .day, value: 7, to: selectedWeekStart) ?? selectedWeekStart
         guard next <= Date() else { return }
         selectedWeekStart = next
         Task { await fetchAll() }
@@ -65,6 +77,7 @@ final class MetricsManager {
     // MARK: - Fetch
 
     private var requestGeneration = 0
+    private var connectionRevision = 0
 
     func fetchAll() async {
         requestGeneration += 1
@@ -72,20 +85,21 @@ final class MetricsManager {
         let side = selectedSide
         let start = selectedWeekStart
         // Include the morning following the last bedtime in this week.
-        let end = selectedWeekEnd.addingTimeInterval(12 * 3600)
+        let end = calendar.date(byAdding: .hour, value: 12, to: selectedWeekEnd) ?? selectedWeekEnd
+        let client = api
         isLoading = true
         error = nil
         do {
-            async let sleep = api.getSleepRecords(side: side, start: start, end: end)
-            async let vitals = api.getVitals(side: side, start: start, end: end)
-            async let movement = api.getMovement(side: side, start: start, end: end)
-            async let summary = api.getVitalsSummary(side: side, start: start, end: end)
+            async let sleep = client.getSleepRecords(side: side, start: start, end: end)
+            async let vitals = client.getVitals(side: side, start: start, end: end)
+            async let movement = client.getMovement(side: side, start: start, end: end)
+            async let summary = client.getVitalsSummary(side: side, start: start, end: end)
             let result = try await (sleep, vitals, movement, summary)
             guard generation == requestGeneration, side == selectedSide, start == selectedWeekStart else { return }
-            sleepRecords = result.0.filter { $0.side == side.rawValue && $0.enteredBedDate >= start && $0.enteredBedDate < selectedWeekEnd }
+            sleepRecords = result.0.filter { $0.side == side.rawValue && SleepCalendar.nightDate(for: $0.enteredBedDate, calendar: calendar) >= start && SleepCalendar.nightDate(for: $0.enteredBedDate, calendar: calendar) < selectedWeekEnd }
                 .sorted { $0.enteredBedDate > $1.enteredBedDate }
             vitalsRecords = result.1.filter { $0.side == side.rawValue }
-            movementRecords = result.2
+            movementRecords = result.2.filter { $0.side == side.rawValue }
             vitalsSummary = result.3
         } catch {
             guard generation == requestGeneration else { return }
@@ -93,6 +107,36 @@ final class MetricsManager {
             sleepRecords = []; vitalsRecords = []; movementRecords = []; vitalsSummary = nil
         }
         if generation == requestGeneration { isLoading = false }
+    }
+
+    // Check the times again before an edit so a stale sheet cannot overwrite another device's correction.
+    func change(_ draft: SleepRecordDraft, deleting: Bool = false) async -> Bool {
+        guard !isSaving else { return false }
+        if !deleting, let validation = draft.validation { mutationError = validation; return false }
+        let revision = connectionRevision
+        let client = api
+        let original = draft.original
+        guard let side = Side(rawValue: original.side) else { return false }
+        isSaving = true; mutationError = nil; notice = nil
+        defer { isSaving = false }
+        do {
+            let fresh = try await client.getSleepRecords(side: side, start: original.enteredBedDate.addingTimeInterval(-1), end: original.enteredBedDate.addingTimeInterval(1))
+            guard revision == connectionRevision else { return false }
+            guard let current = fresh.first(where: { $0.id == original.id }),
+                  current.enteredBedDate == original.enteredBedDate, current.completedAt == original.completedAt else {
+                mutationError = "This record changed on another device. Close this editor and reload before editing."; return false
+            }
+            if deleting { try await client.deleteSleepRecord(id: original.id) }
+            else { try await client.updateSleepRecord(id: original.id, enteredBedAt: draft.bedtime, leftBedAt: draft.wake) }
+            guard revision == connectionRevision else { return false }
+            await fetchAll()
+            notice = error == nil ? (deleting ? "Sleep record deleted." : "Sleep times saved.")
+                : "Your change was saved, but the updated records could not be loaded. Pull to refresh."
+            return true
+        } catch {
+            guard revision == connectionRevision else { return false }
+            mutationError = error.localizedDescription; return false
+        }
     }
 
 }

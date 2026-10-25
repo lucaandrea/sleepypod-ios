@@ -1,8 +1,9 @@
 name: Sleepypod
 options:
-  bundleIdPrefix: com.jonathanng.com.ios.sleepypod
+  bundleIdPrefix: com.lucaandrea.freesleep
   deploymentTarget:
     iOS: "26.0"
+    watchOS: "26.0"
   xcodeVersion: "26"
   createIntermediateGroups: true
   defaultConfig: Debug
@@ -13,37 +14,133 @@ settings:
     GENERATE_INFOPLIST_FILE: true
     INFOPLIST_KEY_UILaunchScreen_Generation: true
     INFOPLIST_KEY_CFBundleDisplayName: sleepypod
-    MARKETING_VERSION: "1.1.1"
-    CURRENT_PROJECT_VERSION: 1
+    MARKETING_VERSION: "0.2.0"
+    CURRENT_PROJECT_VERSION: 7
     SWIFT_STRICT_CONCURRENCY: complete
+    # Apply to our targets, without overriding third-party package warning policies.
+    SWIFT_TREAT_WARNINGS_AS_ERRORS: YES
     # Color assets named green/red/indigo would clash with the built-in Color symbols.
     ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS: NO
     ENABLE_USER_SCRIPT_SANDBOXING: false
 
+packages:
+  AIProxy:
+    url: https://github.com/AIProxyTeam/AIProxySwift.git
+    revision: b9375912d21ad2e5a50d4ea47607af0c3af140a1
+
 targets:
+  FreeSleepKit:
+    type: framework
+    platform: iOS
+    sources:
+      - path: FreeSleepKit
+        excludes: ["App/FreeSleepApp.swift", "App/RootView.swift", "Features", "Design", "Resources"]
+      - path: SleepypodFeatures
+      - path: SleepypodUI
+      - path: Sleepypod/Models/Haptics.swift
+      - path: Integration/UnifiedWorkspace.swift
+    dependencies:
+      - package: AIProxy
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.lucaandrea.freesleep.features
+        DEVELOPMENT_TEAM: 9FNNQ6J269
+        CODE_SIGN_STYLE: Automatic
+        SKIP_INSTALL: YES
+      configs:
+        Release:
+          CODE_SIGN_STYLE: Manual
+          CODE_SIGN_IDENTITY: Apple Distribution
   Sleepypod:
     type: application
     platform: iOS
     sources:
       - path: Sleepypod
+      - path: SleepypodUI
+      - path: Shared
+      - path: Integration/Fixtures
+        buildPhase: resources
+      - path: FreeSleepKit/Resources/AIProxy-LICENSE.txt
+        buildPhase: resources
+      - path: Integration/FreeSleep-LICENSE.md
+        buildPhase: resources
+      - path: LICENSE
+        buildPhase: resources
+    postBuildScripts:
+      - name: Apply direct-provider privacy declarations
+        script: |
+          set -eu
+          SDK_MANIFEST="${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/AIProxy_AIProxy.bundle/PrivacyInfo.xcprivacy"
+          if [ -f "$SDK_MANIFEST" ]; then
+            cp "${SRCROOT}/FreeSleepKit/Resources/PrivacyInfo.xcprivacy" "$SDK_MANIFEST"
+            plutil -lint "$SDK_MANIFEST"
+          fi
+        basedOnDependencyAnalysis: false
+    dependencies:
+      - target: FreeSleepKit
+      - target: SleepypodWatch
     entitlements:
       path: Sleepypod/Sleepypod.entitlements
       properties:
         com.apple.developer.healthkit: true
+        com.apple.developer.homekit: true
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.jonathanng.com.ios.sleepypod
+        PRODUCT_BUNDLE_IDENTIFIER: com.lucaandrea.freesleep
         INFOPLIST_FILE: Sleepypod/Info.plist
-        INFOPLIST_KEY_NSHealthShareUsageDescription: "sleepypod reads sleep samples to infer bedtimes, and Apple Watch sleep, heart rate, HRV and respiratory rate to compare them with the pod on this iPhone; nothing is uploaded."
+        INFOPLIST_KEY_NSHealthShareUsageDescription: "Compare Apple Health history with your bed data and prepare personal sleep reports. Optional cloud sharing requires your consent."
         INFOPLIST_KEY_UIApplicationSceneManifest_Generation: true
         INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone: UIInterfaceOrientationPortrait
         INFOPLIST_KEY_NSLocalNetworkUsageDescription: "sleepypod connects to your sleep pod on the local network to control temperature, view sensor data, and track sleep."
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
-        TARGETED_DEVICE_FAMILY: 1
+        TARGETED_DEVICE_FAMILY: "1,2"
         CODE_SIGN_STYLE: Automatic
-        DEVELOPMENT_TEAM: ZUR2343J7S
+        DEVELOPMENT_TEAM: 9FNNQ6J269
         PRODUCT_NAME: Sleepypod
+      configs:
+        Release:
+          CODE_SIGN_STYLE: Manual
+          CODE_SIGN_IDENTITY: Apple Distribution
+          PROVISIONING_PROFILE_SPECIFIER: Free Sleep App Store 2026
 
+  SleepypodWatch:
+    type: application
+    platform: watchOS
+    sources:
+      - path: SleepypodWatch
+      - path: Shared
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.lucaandrea.freesleep.watchkitapp
+        PRODUCT_NAME: SleepypodWatch
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        INFOPLIST_KEY_CFBundleIconName: AppIcon
+        INFOPLIST_KEY_CFBundleDisplayName: sleepypod
+        INFOPLIST_KEY_WKCompanionAppBundleIdentifier: com.lucaandrea.freesleep
+        INFOPLIST_KEY_WKApplication: true
+        INFOPLIST_KEY_WKRunsIndependentlyOfCompanionApp: false
+        INFOPLIST_KEY_NSMotionUsageDescription: "sleepypod records wrist movement overnight on this Watch and sends it only to your iPhone, as movement labels for training."
+        TARGETED_DEVICE_FAMILY: 4
+        CODE_SIGN_STYLE: Automatic
+        DEVELOPMENT_TEAM: 9FNNQ6J269
+        SKIP_INSTALL: true
+      configs:
+        Release:
+          CODE_SIGN_STYLE: Manual
+          CODE_SIGN_IDENTITY: Apple Distribution
+          PROVISIONING_PROFILE_SPECIFIER: Free Sleep Watch App Store 2026
+
+  FreeSleepKitTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - path: FreeSleepKitTests
+    dependencies:
+      - target: Sleepypod
+      - target: FreeSleepKit
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.lucaandrea.freesleep.features.tests
   SleepypodTests:
     type: bundle.unit-test
     platform: iOS
@@ -53,7 +150,7 @@ targets:
       - target: Sleepypod
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.jonathanng.com.ios.sleepypod.tests
+        PRODUCT_BUNDLE_IDENTIFIER: com.lucaandrea.freesleep.tests
 
   SleepypodUITests:
     type: bundle.ui-testing
@@ -64,7 +161,7 @@ targets:
       - target: Sleepypod
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.jonathanng.com.ios.sleepypod.uitests
+        PRODUCT_BUNDLE_IDENTIFIER: com.lucaandrea.freesleep.uitests
         TEST_TARGET_NAME: Sleepypod
 
 schemes:
@@ -75,4 +172,5 @@ schemes:
     test:
       targets:
         - SleepypodTests
+        - FreeSleepKitTests
         - SleepypodUITests

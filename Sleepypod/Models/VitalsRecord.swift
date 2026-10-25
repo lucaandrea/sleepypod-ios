@@ -6,6 +6,11 @@ struct VitalsRecord: Codable, Sendable, Identifiable {
     var heartRate: Double?
     var hrv: Double?
     var breathingRate: Double?
+    var processingRunId: String?
+    var provenance: VitalProvenance?
+    var sourceKey: String { provenance?.processingRunId ?? processingRunId ?? "legacy_unknown" }
+    var hrvMetricID: String? { provenance?.hrvMetricId }
+    var canWriteSDNN: Bool { provenance?.status == "recorded" && hrvMetricID == "hrv_sdnn" }
 
     // Handles both unix timestamp (free-sleep) and ISO8601 string (sleepypod-core)
     private var _timestamp: TimeInterval
@@ -31,7 +36,7 @@ struct VitalsRecord: Codable, Sendable, Identifiable {
     }
 
     enum CodingKeys: String, CodingKey {
-        case id, side, timestamp, heartRate, hrv, breathingRate
+        case id, side, timestamp, heartRate, hrv, breathingRate, processingRunId, provenance
         // free-sleep snake_case aliases
         case heart_rate, breathing_rate
     }
@@ -45,6 +50,9 @@ struct VitalsRecord: Codable, Sendable, Identifiable {
         hrv = try c.decodeIfPresent(Double.self, forKey: .hrv)
         breathingRate = try c.decodeIfPresent(Double.self, forKey: .breathingRate)
             ?? c.decodeIfPresent(Double.self, forKey: .breathing_rate)
+
+        processingRunId = try c.decodeIfPresent(String.self, forKey: .processingRunId)
+        provenance = try c.decodeIfPresent(VitalProvenance.self, forKey: .provenance)
 
         // Parse timestamp — try Int first (unix), then String (ISO8601)
         if let unix = try? c.decode(Int.self, forKey: .timestamp) {
@@ -68,6 +76,8 @@ struct VitalsRecord: Codable, Sendable, Identifiable {
         try c.encodeIfPresent(heartRate, forKey: .heartRate)
         try c.encodeIfPresent(hrv, forKey: .hrv)
         try c.encodeIfPresent(breathingRate, forKey: .breathingRate)
+        try c.encodeIfPresent(processingRunId, forKey: .processingRunId)
+        try c.encodeIfPresent(provenance, forKey: .provenance)
     }
 }
 
@@ -77,4 +87,12 @@ struct VitalsSummary: Codable, Sendable {
     var maxHeartRate: Double?
     var avgHRV: Double?
     var avgBreathingRate: Double?
+}
+
+struct VitalProvenance: Codable, Sendable, Equatable {
+    var interpretation: String
+    var status: String
+    var processingRunId: String?
+    var configurationHash: String?
+    var hrvMetricId: String?
 }

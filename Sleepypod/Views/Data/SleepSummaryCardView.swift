@@ -2,8 +2,10 @@ import SwiftUI
 
 struct SleepSummaryCardView: View {
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(SettingsManager.self) private var settings
     let record: SleepRecord
     let score: Int?
+    var sleepSeconds: Int?
     var body: some View {
         let layout = dynamicTypeSize.isAccessibilitySize
             ? AnyLayout(VStackLayout(alignment: .leading, spacing: 18))
@@ -20,13 +22,18 @@ struct SleepSummaryCardView: View {
             .accessibilityElement(children: .ignore)
             .accessibilityLabel("Sleep quality \(score.map(String.init) ?? "unavailable")")
             VStack(alignment: .leading, spacing: 5) {
-                Text(DisplayTime.duration(record.sleepPeriodSeconds)).font(.mono(28, weight: .light, relativeTo: .title))
+                Text(DisplayTime.duration(sleepSeconds ?? record.sleepPeriodSeconds)).font(.mono(28, weight: .light, relativeTo: .title))
                     .minimumScaleFactor(0.7).lineLimit(1)
-                Text("\(record.bedtimeFormatted) → \(record.wakeTimeFormatted)")
+                Text("\(time(record.enteredBedDate)) → \(record.completedAt.map(time) ?? "Still in bed")")
                     .font(.mono(12, relativeTo: .caption)).foregroundStyle(Theme.text2)
             }
             Spacer(minLength: 0)
         }
         .cardStyle(vertical: 18, horizontal: 18)
+    }
+    private func time(_ date: Date) -> String {
+        let formatter = DateFormatter(); formatter.timeZone = SleepCalendar.calendar(timeZone: settings.timeZone).timeZone
+        formatter.dateStyle = .none; formatter.timeStyle = .short
+        return formatter.string(from: date)
     }
 }

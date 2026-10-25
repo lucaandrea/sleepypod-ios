@@ -1,0 +1,300 @@
+{
+  "left": {
+    "monday": {
+      "power": {
+        "on": "22:00",
+        "off": "08:00",
+        "onTemperature": 80,
+        "enabled": true
+      },
+      "temperatures": {
+        "23:00": 78,
+        "02:00": 76,
+        "06:00": 80
+      },
+      "alarm": {
+        "time": "07:00",
+        "enabled": true,
+        "alarmTemperature": 82,
+        "vibrationIntensity": 30,
+        "vibrationPattern": "rise",
+        "duration": 60
+      }
+    },
+    "tuesday": {
+      "power": {
+        "on": "22:00",
+        "off": "08:00",
+        "onTemperature": 80,
+        "enabled": true
+      },
+      "temperatures": {
+        "23:00": 78,
+        "02:00": 76,
+        "06:00": 80
+      },
+      "alarm": {
+        "time": "07:00",
+        "enabled": true,
+        "alarmTemperature": 82,
+        "vibrationIntensity": 30,
+        "vibrationPattern": "rise",
+        "duration": 60
+      }
+    },
+    "wednesday": {
+      "power": {
+        "on": "22:00",
+        "off": "08:00",
+        "onTemperature": 80,
+        "enabled": true
+      },
+      "temperatures": {
+        "23:00": 78,
+        "02:00": 76,
+        "06:00": 80
+      },
+      "alarm": {
+        "time": "07:00",
+        "enabled": true,
+        "alarmTemperature": 82,
+        "vibrationIntensity": 30,
+        "vibrationPattern": "rise",
+        "duration": 60
+      }
+    },
+    "thursday": {
+      "power": {
+        "on": "22:00",
+        "off": "08:00",
+        "onTemperature": 80,
+        "enabled": true
+      },
+      "temperatures": {
+        "23:00": 78,
+        "02:00": 76,
+        "06:00": 80
+      },
+      "alarm": {
+        "time": "07:00",
+        "enabled": true,
+        "alarmTemperature": 82,
+        "vibrationIntensity": 30,
+        "vibrationPattern": "rise",
+        "duration": 60
+      }
+    },
+    "friday": {
+      "power": {
+        "on": "22:00",
+        "off": "08:00",
+        "onTemperature": 80,
+        "enabled": true
+      },
+      "temperatures": {
+        "23:00": 78,
+        "02:00": 76,
+        "06:00": 80
+      },
+      "alarm": {
+        "time": "07:00",
+        "enabled": true,
+        "alarmTemperature": 82,
+        "vibrationIntensity": 30,
+        "vibrationPattern": "rise",
+        "duration": 60
+      }
+    },
+    "saturday": {
+      "power": {
+        "on": "22:00",
+        "off": "08:00",
+        "onTemperature": 80,
+        "enabled": true
+      },
+      "temperatures": {
+        "23:00": 78,
+        "02:00": 76,
+        "06:00": 80
+      },
+      "alarm": {
+        "time": "07:00",
+        "enabled": true,
+        "alarmTemperature": 82,
+        "vibrationIntensity": 30,
+        "vibrationPattern": "rise",
+        "duration": 60
+      }
+    },
+    "sunday": {
+      "power": {
+        "on": "22:00",
+        "off": "08:00",
+        "onTemperature": 80,
+        "enabled": true
+      },
+      "temperatures": {
+        "23:00": 78,
+        "02:00": 76,
+        "06:00": 80
+      },
+      "alarm": {
+        "time": "07:00",
+        "enabled": true,
+        "alarmTemperature": 82,
+        "vibrationIntensity": 30,
+        "vibrationPattern": "rise",
+        "duration": 60
+      }
+    }
+  },
+  "right": {
+    "monday": {
+      "power": {
+        "on": "22:00",
+        "off": "08:00",
+        "onTemperature": 80,
+        "enabled": true
+      },
+      "temperatures": {
+        "23:00": 78,
+        "02:00": 76,
+        "06:00": 80
+      },
+      "alarm": {
+        "time": "07:00",
+        "enabled": true,
+        "alarmTemperature": 82,
+        "vibrationIntensity": 30,
+        "vibrationPattern": "rise",
+        "duration": 60
+      }
+    },
+    "tuesday": {
+      "power": {
+        "on": "22:00",
+        "off": "08:00",
+        "onTemperature": 80,
+        "enabled": true
+      },
+      "temperatures": {
+        "23:00": 78,
+        "02:00": 76,
+        "06:00": 80
+      },
+      "alarm": {
+        "time": "07:00",
+        "enabled": true,
+        "alarmTemperature": 82,
+        "vibrationIntensity": 30,
+        "vibrationPattern": "rise",
+        "duration": 60
+      }
+    },
+    "wednesday": {
+      "power": {
+        "on": "22:00",
+        "off": "08:00",
+        "onTemperature": 80,
+        "enabled": true
+      },
+      "temperatures": {
+        "23:00": 78,
+        "02:00": 76,
+        "06:00": 80
+      },
+      "alarm": {
+        "time": "07:00",
+        "enabled": true,
+        "alarmTemperature": 82,
+        "vibrationIntensity": 30,
+        "vibrationPattern": "rise",
+        "duration": 60
+      }
+    },
+    "thursday": {
+      "power": {
+        "on": "22:00",
+        "off": "08:00",
+        "onTemperature": 80,
+        "enabled": true
+      },
+      "temperatures": {
+        "23:00": 78,
+        "02:00": 76,
+        "06:00": 80
+      },
+      "alarm": {
+        "time": "07:00",
+        "enabled": true,
+        "alarmTemperature": 82,
+        "vibrationIntensity": 30,
+        "vibrationPattern": "rise",
+        "duration": 60
+      }
+    },
+    "friday": {
+      "power": {
+        "on": "22:00",
+        "off": "08:00",
+        "onTemperature": 80,
+        "enabled": true
+      },
+      "temperatures": {
+        "23:00": 78,
+        "02:00": 76,
+        "06:00": 80
+      },
+      "alarm": {
+        "time": "07:00",
+        "enabled": true,
+        "alarmTemperature": 82,
+        "vibrationIntensity": 30,
+        "vibrationPattern": "rise",
+        "duration": 60
+      }
+    },
+    "saturday": {
+      "power": {
+        "on": "22:00",
+        "off": "08:00",
+        "onTemperature": 80,
+        "enabled": true
+      },
+      "temperatures": {
+        "23:00": 78,
+        "02:00": 76,
+        "06:00": 80
+      },
+      "alarm": {
+        "time": "07:00",
+        "enabled": true,
+        "alarmTemperature": 82,
+        "vibrationIntensity": 30,
+        "vibrationPattern": "rise",
+        "duration": 60
+      }
+    },
+    "sunday": {
+      "power": {
+        "on": "22:00",
+        "off": "08:00",
+        "onTemperature": 80,
+        "enabled": true
+      },
+      "temperatures": {
+        "23:00": 78,
+        "02:00": 76,
+        "06:00": 80
+      },
+      "alarm": {
+        "time": "07:00",
+        "enabled": true,
+        "alarmTemperature": 82,
+        "vibrationIntensity": 30,
+        "vibrationPattern": "rise",
+        "duration": 60
+      }
+    }
+  }
+}

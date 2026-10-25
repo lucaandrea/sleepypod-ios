@@ -22,7 +22,7 @@ struct ModernizationTests {
                                       stage: stage, heartRate: 62, hrv: 45, breathingRate: 14)
         }
         let samples = HealthSyncService.samples(record: record, epochs: epochs, podID: "pod-a", preferences: .init())
-        #expect(samples.count == 17)
+        #expect(samples.count == 13) // Unknown HRV definitions must not be written as SDNN.
         let sleep = samples.compactMap { $0 as? HKCategorySample }
         #expect(Set(sleep.map(\.value)) == Set([HKCategoryValueSleepAnalysis.inBed.rawValue,
             HKCategoryValueSleepAnalysis.awake.rawValue, HKCategoryValueSleepAnalysis.asleepREM.rawValue,
@@ -108,9 +108,9 @@ private final class FakeHealthStore: HealthSyncStore {
         deletes.append((deviceID, start, end, version))
         events.append("delete")
     }
-    var sweeps: [(types: Set<HKSampleType>, olderThan: Int)] = []
-    func deleteAll(types: Set<HKSampleType>, olderThan version: Int) async throws {
-        sweeps.append((types, version))
+    var sweeps: [(types: Set<HKSampleType>, deviceID: String, olderThan: Int)] = []
+    func deleteAll(types: Set<HKSampleType>, deviceID: String, olderThan version: Int) async throws {
+        sweeps.append((types, deviceID, version))
         events.append("deleteAll")
     }
     func sleepSamples(start: Date, end: Date) async -> [HKCategorySample] { [] }
@@ -243,27 +243,75 @@ struct HealthSyncLifecycleTests {
         #expect(HealthSyncService(store: store, defaults: defaults).receipts.isEmpty)
     }
 
-    @Test func rebuildRewritesEveryNightThenSweepsEverythingOlder() async throws {
+    @Test func rebuildRewritesRecentAndOlderNightsThenSweepsOnlyThisSide() async throws {
         let store = FakeHealthStore()
         let service = HealthSyncService(store: store, defaults: UserDefaults(suiteName: "health-tests-\(UUID().uuidString)")!)
         service.enabled = true
-        let api = MockClient()
+        let api = HealthRebuildClient()
         await service.syncRecent(api: api, podID: "test-pod", side: .left, demo: false)
-        let nights = store.batches.count
-        #expect(nights > 0)
+        #expect(store.batches.count == 1, "Only the two-day-old night is in the recent window")
         #expect(await service.rebuild(api: api, podID: "test-pod", side: .left, demo: false))
-        // Already-synced nights are written again rather than skipped by their receipts.
-        #expect(store.batches.count == nights * 2)
+        #expect(store.batches.count == 3, "Rebuild rewrites the recent night and adds the ten-day-old night")
         #expect(store.events.last == "deleteAll")
         let sweep = try #require(store.sweeps.first)
-        #expect(store.batches.suffix(nights).flatMap { $0 }.allSatisfy { ($0.metadata?[HKMetadataKeySyncVersion] as? Int ?? 0) >= sweep.olderThan })
-        #expect(store.batches.prefix(nights).flatMap { $0 }.allSatisfy { ($0.metadata?[HKMetadataKeySyncVersion] as? Int ?? .max) < sweep.olderThan })
-        #expect(service.receipts.count == nights)
+        #expect(sweep.deviceID == "test-pod-left")
+        #expect(store.batches.suffix(2).flatMap { $0 }.allSatisfy { ($0.metadata?[HKMetadataKeySyncVersion] as? Int ?? 0) >= sweep.olderThan })
+        #expect(store.batches[0].allSatisfy { ($0.metadata?[HKMetadataKeySyncVersion] as? Int ?? .max) < sweep.olderThan })
+        #expect(service.receipts.count == 2)
         #expect(service.rebuildProgress == nil && !service.isSyncing)
-        // A type switched off since an earlier sync still gets swept.
         service.preferences.hrv = false
         #expect(await service.rebuild(api: api, podID: "test-pod", side: .left, demo: false))
         #expect(store.sweeps.last?.types == Set(HealthSyncService.allWriteTypes))
+    }
+
+    @Test func incompleteAnalysisCannotSweepPreviouslyWrittenNights() async {
+        let store = FakeHealthStore()
+        let defaults = UserDefaults(suiteName: "health-tests-\(UUID().uuidString)")!
+        let service = HealthSyncService(store: store, defaults: defaults)
+        service.enabled = true
+        let api = HealthRebuildClient()
+        await service.syncRecent(api: api, podID: "test-pod", side: .left, demo: false)
+        let previousKeys = Set(service.receipts.keys)
+        api.omitVitals = true
+        #expect(await !service.rebuild(api: api, podID: "test-pod", side: .left, demo: false))
+        #expect(store.sweeps.isEmpty)
+        #expect(Set(service.receipts.keys) == previousKeys)
+        #expect(!service.failures.isEmpty)
+    }
+
+    @Test func aNightWithoutEligibleSelectedMetricsCannotTriggerCleanup() async {
+        let store = FakeHealthStore()
+        let service = HealthSyncService(store: store, defaults: UserDefaults(suiteName: "health-tests-\(UUID().uuidString)")!)
+        service.enabled = true
+        service.preferences.sleep = false
+        service.preferences.heartRate = false
+        service.preferences.respiration = false
+        // The fixture's HRV has no recorded SDNN provenance and must not become a Health sample.
+        #expect(await !service.rebuild(api: HealthRebuildClient(), podID: "test-pod", side: .left, demo: false))
+        #expect(store.batches.isEmpty && store.sweeps.isEmpty)
+        #expect(service.failures.count == 2)
+    }
+
+    @Test func rebuildKeepsOtherPodAndSideReceiptsAndVersionsSurviveClockRollback() async throws {
+        let store = FakeHealthStore()
+        let defaults = UserDefaults(suiteName: "health-tests-\(UUID().uuidString)")!
+        let futureVersion = Int(Date().addingTimeInterval(86400).timeIntervalSince1970 * 1000)
+        defaults.set(futureVersion, forKey: "healthSyncLastVersion")
+        let service = HealthSyncService(store: store, defaults: defaults)
+        service.enabled = true
+        let api = HealthRebuildClient()
+        await service.syncRecent(api: api, podID: "other-pod", side: .left, demo: false)
+        await service.syncRecent(api: api, podID: "test-pod", side: .right, demo: false)
+        let otherKeys = Set(service.receipts.keys)
+        #expect(await service.rebuild(api: api, podID: "test-pod", side: .left, demo: false))
+        #expect(otherKeys.isSubset(of: Set(service.receipts.keys)))
+        #expect(service.receipts.count == otherKeys.count + 2)
+        #expect(store.sweeps.map(\.deviceID) == ["test-pod-left"])
+        let versions = store.batches.compactMap { $0.first?.metadata?[HKMetadataKeySyncVersion] as? Int }
+        #expect(versions.allSatisfy { $0 > futureVersion })
+        #expect(zip(versions, versions.dropFirst()).allSatisfy { $0 < $1 })
+        let restored = HealthSyncService(store: store, defaults: defaults)
+        #expect(Set(restored.receipts.keys) == Set(service.receipts.keys))
     }
 
     @Test func failedRebuildKeepsOlderHealthData() async {
@@ -411,6 +459,30 @@ private final class ExcludedRecordsClient: MockAPIClient, @unchecked Sendable {
             try JSONDecoder().decode(SleepRecord.self, from: Data("""
             {"id":\(id),"side":"left","enteredBedAt":\(entered),"leftBedAt":\(left),"sleepDurationSeconds":\(left - entered)}
             """.utf8))
+        }
+    }
+}
+
+/// Stable relative dates cover both sync windows without depending on local bedtime or CI timezone.
+private final class HealthRebuildClient: MockAPIClient, @unchecked Sendable {
+    private let anchor = Date()
+    var omitVitals = false
+    override func getSleepRecords(side: Side?, start: Date?, end: Date?) async throws -> [SleepRecord] {
+        try [2, 10].compactMap { daysAgo in
+            let entered = anchor.addingTimeInterval(-Double(daysAgo) * 86400)
+            guard start.map({ entered >= $0 }) ?? true, end.map({ entered <= $0 }) ?? true else { return nil }
+            let json: [String: Any] = ["id": daysAgo, "side": (side ?? .left).rawValue,
+                                       "enteredBedAt": Int(entered.timeIntervalSince1970),
+                                       "leftBedAt": Int(entered.addingTimeInterval(8 * 3600).timeIntervalSince1970),
+                                       "sleepDurationSeconds": 8 * 3600]
+            return try JSONDecoder().decode(SleepRecord.self, from: JSONSerialization.data(withJSONObject: json))
+        }
+    }
+    override func getVitals(side: Side?, start: Date?, end: Date?) async throws -> [VitalsRecord] {
+        guard !omitVitals, let start, let end else { return [] }
+        return (0..<Int(end.timeIntervalSince(start) / 60)).map { minute in
+            VitalsRecord(id: minute, side: (side ?? .left).rawValue, heartRate: 58, hrv: 44, breathingRate: 14,
+                         date: start.addingTimeInterval(Double(minute) * 60))
         }
     }
 }

@@ -5,28 +5,46 @@
 	<key>BGTaskSchedulerPermittedIdentifiers</key>
 	<array>
 		<string>com.jonathanng.sleepypod.health-sync</string>
+		<string>com.lucaandrea.freesleep.health.refresh</string>
 	</array>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsLocalNetworking</key>
+		<true/>
+	</dict>
 	<key>NSBonjourServices</key>
 	<array>
 		<string>_sleepypod._tcp.</string>
 	</array>
 	<key>NSHealthShareUsageDescription</key>
-	<string>sleepypod reads sleep samples to infer bedtimes, and Apple Watch sleep, heart rate, HRV and respiratory rate to compare them with the pod on this iPhone; nothing is uploaded.</string>
+	<string>Compare your Apple Health history with your bed data and prepare personal sleep reports. Cloud sharing is optional and requires your consent.</string>
 	<key>NSHealthUpdateUsageDescription</key>
-	<string>sleepypod saves your sleep stages and overnight vitals to Apple Health for this iPhone's side of the bed; nothing leaves this iPhone.</string>
+	<string>Save your selected bed side’s sleep and vitals to Apple Health.</string>
+	<key>NSHomeKitUsageDescription</key>
+	<string>Access your Apple Home scenes and the connected bed bridge.</string>
 	<key>NSLocalNetworkUsageDescription</key>
 	<string>sleepypod connects to your sleep pod on the local network to control temperature, view sensor data, and track sleep.</string>
-	<key>UIBackgroundModes</key>
-	<array>
-		<string>fetch</string>
-	</array>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>sleepypod listens for snoring on this iPhone while you sleep. Audio is never recorded, saved or uploaded; only snore times are kept.</string>
 	<key>UIAppFonts</key>
 	<array>
 		<string>IBMPlexMono-Light.ttf</string>
 		<string>IBMPlexMono-Regular.ttf</string>
 		<string>IBMPlexMono-Medium.ttf</string>
+	</array>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>audio</string>
+		<string>fetch</string>
+	</array>
+	<key>UISupportedInterfaceOrientations~ipad</key>
+	<array>
+		<string>UIInterfaceOrientationPortrait</string>
+		<string>UIInterfaceOrientationPortraitUpsideDown</string>
+		<string>UIInterfaceOrientationLandscapeLeft</string>
+		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
 </dict>
 </plist>

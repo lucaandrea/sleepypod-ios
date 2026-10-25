@@ -50,7 +50,6 @@ struct DeviceSettingsCardView: View {
                 HStack(spacing: 0) {
                     formatButton(title: "\u{00B0}F", format: .fahrenheit)
                     formatButton(title: "\u{00B0}C", format: .celsius)
-                    formatButton(title: "+/-", format: .relative)
                 }
                 .clipShape(RoundedRectangle(cornerRadius: 8))
             }

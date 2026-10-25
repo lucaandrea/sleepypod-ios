@@ -1,0 +1,1278 @@
+{
+  "captured": "2026-10-25",
+  "coreRevision": "9ff9cd399f0432941ead6689e5b3103a546a1feb",
+  "endpoints": [
+    {
+      "method": "GET",
+      "path": "/api/healthcheck",
+      "source": "src/server/routers/app.ts",
+      "line": 30
+    },
+    {
+      "method": "GET",
+      "path": "/api/archive-push/config",
+      "source": "src/server/routers/archivePush.ts",
+      "line": 154
+    },
+    {
+      "method": "POST",
+      "path": "/api/archive-push/config",
+      "source": "src/server/routers/archivePush.ts",
+      "line": 167
+    },
+    {
+      "method": "POST",
+      "path": "/api/archive-push/key",
+      "source": "src/server/routers/archivePush.ts",
+      "line": 181
+    },
+    {
+      "method": "POST",
+      "path": "/api/archive-push/test",
+      "source": "src/server/routers/archivePush.ts",
+      "line": 233
+    },
+    {
+      "method": "GET",
+      "path": "/api/automations",
+      "source": "src/server/routers/automations.ts",
+      "line": 95
+    },
+    {
+      "method": "GET",
+      "path": "/api/automations/get",
+      "source": "src/server/routers/automations.ts",
+      "line": 109
+    },
+    {
+      "method": "POST",
+      "path": "/api/automations",
+      "source": "src/server/routers/automations.ts",
+      "line": 120
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/automations",
+      "source": "src/server/routers/automations.ts",
+      "line": 138
+    },
+    {
+      "method": "POST",
+      "path": "/api/automations/enable",
+      "source": "src/server/routers/automations.ts",
+      "line": 157
+    },
+    {
+      "method": "POST",
+      "path": "/api/automations/dry-run",
+      "source": "src/server/routers/automations.ts",
+      "line": 169
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/automations",
+      "source": "src/server/routers/automations.ts",
+      "line": 181
+    },
+    {
+      "method": "GET",
+      "path": "/api/automations/kill-switch",
+      "source": "src/server/routers/automations.ts",
+      "line": 193
+    },
+    {
+      "method": "POST",
+      "path": "/api/automations/kill-switch",
+      "source": "src/server/routers/automations.ts",
+      "line": 203
+    },
+    {
+      "method": "GET",
+      "path": "/api/automations/runs",
+      "source": "src/server/routers/automations.ts",
+      "line": 217
+    },
+    {
+      "method": "GET",
+      "path": "/api/automations/status",
+      "source": "src/server/routers/automations.ts",
+      "line": 249
+    },
+    {
+      "method": "GET",
+      "path": "/api/automations/diagnostics",
+      "source": "src/server/routers/automations.ts",
+      "line": 310
+    },
+    {
+      "method": "GET",
+      "path": "/api/automations/nights",
+      "source": "src/server/routers/automations.ts",
+      "line": 358
+    },
+    {
+      "method": "POST",
+      "path": "/api/automations/backtest",
+      "source": "src/server/routers/automations.ts",
+      "line": 383
+    },
+    {
+      "method": "POST",
+      "path": "/api/automations/backtest-range",
+      "source": "src/server/routers/automations.ts",
+      "line": 431
+    },
+    {
+      "method": "GET",
+      "path": "/api/automations/backtest-summaries",
+      "source": "src/server/routers/automations.ts",
+      "line": 458
+    },
+    {
+      "method": "GET",
+      "path": "/api/automations/tonight",
+      "source": "src/server/routers/automations.ts",
+      "line": 482
+    },
+    {
+      "method": "POST",
+      "path": "/api/automations/activity",
+      "source": "src/server/routers/automations.ts",
+      "line": 536
+    },
+    {
+      "method": "GET",
+      "path": "/api/automations/cap-zone-replay",
+      "source": "src/server/routers/automations.ts",
+      "line": 593
+    },
+    {
+      "method": "GET",
+      "path": "/api/base/availability",
+      "source": "src/server/routers/base.ts",
+      "line": 31
+    },
+    {
+      "method": "GET",
+      "path": "/api/base/status",
+      "source": "src/server/routers/base.ts",
+      "line": 35
+    },
+    {
+      "method": "POST",
+      "path": "/api/base/reconnect",
+      "source": "src/server/routers/base.ts",
+      "line": 39
+    },
+    {
+      "method": "POST",
+      "path": "/api/base/position",
+      "source": "src/server/routers/base.ts",
+      "line": 46
+    },
+    {
+      "method": "POST",
+      "path": "/api/base/preset",
+      "source": "src/server/routers/base.ts",
+      "line": 50
+    },
+    {
+      "method": "POST",
+      "path": "/api/base/stop",
+      "source": "src/server/routers/base.ts",
+      "line": 54
+    },
+    {
+      "method": "GET",
+      "path": "/api/base/schedules",
+      "source": "src/server/routers/base.ts",
+      "line": 58
+    },
+    {
+      "method": "POST",
+      "path": "/api/base/schedules",
+      "source": "src/server/routers/base.ts",
+      "line": 62
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/base/schedules/{id}",
+      "source": "src/server/routers/base.ts",
+      "line": 93
+    },
+    {
+      "method": "GET",
+      "path": "/api/biometric-tuning/shadow-templates",
+      "source": "src/server/routers/biometricShadow.ts",
+      "line": 37
+    },
+    {
+      "method": "POST",
+      "path": "/api/biometric-tuning/shadow-plans/prepare",
+      "source": "src/server/routers/biometricShadow.ts",
+      "line": 41
+    },
+    {
+      "method": "POST",
+      "path": "/api/biometric-tuning/shadow-runs",
+      "source": "src/server/routers/biometricShadow.ts",
+      "line": 49
+    },
+    {
+      "method": "GET",
+      "path": "/api/biometric-tuning/shadow-runs/{id}/report",
+      "source": "src/server/routers/biometricShadow.ts",
+      "line": 58
+    },
+    {
+      "method": "POST",
+      "path": "/api/biometric-tuning/shadow-runs/{id}/compare",
+      "source": "src/server/routers/biometricShadow.ts",
+      "line": 62
+    },
+    {
+      "method": "GET",
+      "path": "/api/biometric-tuning/shadow-runs",
+      "source": "src/server/routers/biometricShadow.ts",
+      "line": 66
+    },
+    {
+      "method": "GET",
+      "path": "/api/biometric-tuning/shadow-runs/{id}",
+      "source": "src/server/routers/biometricShadow.ts",
+      "line": 74
+    },
+    {
+      "method": "POST",
+      "path": "/api/biometric-tuning/shadow-runs/{id}/stop",
+      "source": "src/server/routers/biometricShadow.ts",
+      "line": 78
+    },
+    {
+      "method": "POST",
+      "path": "/api/biometric-tuning/activate",
+      "source": "src/server/routers/biometricTuning.ts",
+      "line": 80
+    },
+    {
+      "method": "GET",
+      "path": "/api/biometric-tuning/validated-activation-review",
+      "source": "src/server/routers/biometricTuning.ts",
+      "line": 86
+    },
+    {
+      "method": "POST",
+      "path": "/api/biometric-tuning/activate-validated",
+      "source": "src/server/routers/biometricTuning.ts",
+      "line": 93
+    },
+    {
+      "method": "POST",
+      "path": "/api/biometric-tuning/reset",
+      "source": "src/server/routers/biometricTuning.ts",
+      "line": 100
+    },
+    {
+      "method": "POST",
+      "path": "/api/biometric-tuning/rollback",
+      "source": "src/server/routers/biometricTuning.ts",
+      "line": 106
+    },
+    {
+      "method": "GET",
+      "path": "/api/biometric-tuning/activation-status",
+      "source": "src/server/routers/biometricTuning.ts",
+      "line": 112
+    },
+    {
+      "method": "GET",
+      "path": "/api/biometric-tuning/activations",
+      "source": "src/server/routers/biometricTuning.ts",
+      "line": 118
+    },
+    {
+      "method": "GET",
+      "path": "/api/biometric-tuning/sessions",
+      "source": "src/server/routers/biometricTuning.ts",
+      "line": 124
+    },
+    {
+      "method": "GET",
+      "path": "/api/biometric-tuning/sessions/{id}/capabilities",
+      "source": "src/server/routers/biometricTuning.ts",
+      "line": 132
+    },
+    {
+      "method": "POST",
+      "path": "/api/biometric-tuning/experiments",
+      "source": "src/server/routers/biometricTuning.ts",
+      "line": 138
+    },
+    {
+      "method": "GET",
+      "path": "/api/biometric-tuning/experiments/{id}",
+      "source": "src/server/routers/biometricTuning.ts",
+      "line": 145
+    },
+    {
+      "method": "GET",
+      "path": "/api/biometric-tuning/experiments",
+      "source": "src/server/routers/biometricTuning.ts",
+      "line": 151
+    },
+    {
+      "method": "POST",
+      "path": "/api/biometric-tuning/backtests",
+      "source": "src/server/routers/biometricTuning.ts",
+      "line": 159
+    },
+    {
+      "method": "GET",
+      "path": "/api/biometric-tuning/backtests",
+      "source": "src/server/routers/biometricTuning.ts",
+      "line": 169
+    },
+    {
+      "method": "GET",
+      "path": "/api/biometric-tuning/backtests/{id}",
+      "source": "src/server/routers/biometricTuning.ts",
+      "line": 180
+    },
+    {
+      "method": "POST",
+      "path": "/api/biometric-tuning/backtests/{id}/cancel",
+      "source": "src/server/routers/biometricTuning.ts",
+      "line": 186
+    },
+    {
+      "method": "GET",
+      "path": "/api/biometric-tuning/backtests/{id}/result",
+      "source": "src/server/routers/biometricTuning.ts",
+      "line": 192
+    },
+    {
+      "method": "GET",
+      "path": "/api/biometric-tuning/backtests/{id}/summary",
+      "source": "src/server/routers/biometricTuning.ts",
+      "line": 198
+    },
+    {
+      "method": "GET",
+      "path": "/api/biometric-tuning/backtests/{id}/trace",
+      "source": "src/server/routers/biometricTuning.ts",
+      "line": 204
+    },
+    {
+      "method": "GET",
+      "path": "/api/biometric-tuning/backtests/{id}/reference-trace",
+      "source": "src/server/routers/biometricTuning.ts",
+      "line": 210
+    },
+    {
+      "method": "GET",
+      "path": "/api/biometric-tuning/backtests/{id}/numeric-trace",
+      "source": "src/server/routers/biometricTuning.ts",
+      "line": 216
+    },
+    {
+      "method": "POST",
+      "path": "/api/biometric-tuning/backtests/{id}/result/release",
+      "source": "src/server/routers/biometricTuning.ts",
+      "line": 222
+    },
+    {
+      "method": "GET",
+      "path": "/api/biometric-tuning/replay-admission",
+      "source": "src/server/routers/biometricTuning.ts",
+      "line": 228
+    },
+    {
+      "method": "POST",
+      "path": "/api/biometric-tuning/raw-sources/inspect",
+      "source": "src/server/routers/biometricTuning.ts",
+      "line": 234
+    },
+    {
+      "method": "GET",
+      "path": "/api/biometric-tuning/raw-sources",
+      "source": "src/server/routers/biometricTuning.ts",
+      "line": 246
+    },
+    {
+      "method": "POST",
+      "path": "/api/biometric-tuning/waveform-datasets",
+      "source": "src/server/routers/biometricTuning.ts",
+      "line": 252
+    },
+    {
+      "method": "POST",
+      "path": "/api/biometric-tuning/datasets",
+      "source": "src/server/routers/biometricTuning.ts",
+      "line": 261
+    },
+    {
+      "method": "POST",
+      "path": "/api/biometric-tuning/datasets/{id}/release",
+      "source": "src/server/routers/biometricTuning.ts",
+      "line": 270
+    },
+    {
+      "method": "GET",
+      "path": "/api/biometric-tuning/datasets/{id}",
+      "source": "src/server/routers/biometricTuning.ts",
+      "line": 276
+    },
+    {
+      "method": "GET",
+      "path": "/api/biometric-tuning/datasets",
+      "source": "src/server/routers/biometricTuning.ts",
+      "line": 282
+    },
+    {
+      "method": "GET",
+      "path": "/api/biometric-tuning/manifest",
+      "source": "src/server/routers/biometricTuning.ts",
+      "line": 293
+    },
+    {
+      "method": "GET",
+      "path": "/api/biometric-tuning/profiles/overview",
+      "source": "src/server/routers/biometricTuning.ts",
+      "line": 299
+    },
+    {
+      "method": "POST",
+      "path": "/api/biometric-tuning/profiles/resolve",
+      "source": "src/server/routers/biometricTuning.ts",
+      "line": 305
+    },
+    {
+      "method": "POST",
+      "path": "/api/biometric-tuning/profiles",
+      "source": "src/server/routers/biometricTuning.ts",
+      "line": 311
+    },
+    {
+      "method": "POST",
+      "path": "/api/biometric-tuning/profiles/diff",
+      "source": "src/server/routers/biometricTuning.ts",
+      "line": 317
+    },
+    {
+      "method": "POST",
+      "path": "/api/biometric-tuning/profiles/{id}/validate",
+      "source": "src/server/routers/biometricTuning.ts",
+      "line": 324
+    },
+    {
+      "method": "GET",
+      "path": "/api/biometric-tuning/profiles/{id}",
+      "source": "src/server/routers/biometricTuning.ts",
+      "line": 334
+    },
+    {
+      "method": "GET",
+      "path": "/api/biometric-tuning/profiles",
+      "source": "src/server/routers/biometricTuning.ts",
+      "line": 340
+    },
+    {
+      "method": "POST",
+      "path": "/api/biometric-tuning/compare",
+      "source": "src/server/routers/biometricTuning.ts",
+      "line": 350
+    },
+    {
+      "method": "POST",
+      "path": "/api/biometric-tuning/references/preview",
+      "source": "src/server/routers/biometricTuning.ts",
+      "line": 356
+    },
+    {
+      "method": "POST",
+      "path": "/api/biometric-tuning/references/commit",
+      "source": "src/server/routers/biometricTuning.ts",
+      "line": 362
+    },
+    {
+      "method": "GET",
+      "path": "/api/biometric-tuning/references",
+      "source": "src/server/routers/biometricTuning.ts",
+      "line": 368
+    },
+    {
+      "method": "GET",
+      "path": "/api/biometric-tuning/references/{id}",
+      "source": "src/server/routers/biometricTuning.ts",
+      "line": 377
+    },
+    {
+      "method": "GET",
+      "path": "/api/biometric-tuning/references/{id}/measurements",
+      "source": "src/server/routers/biometricTuning.ts",
+      "line": 383
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/biometric-tuning/references/{id}",
+      "source": "src/server/routers/biometricTuning.ts",
+      "line": 389
+    },
+    {
+      "method": "GET",
+      "path": "/api/biometrics/sleep-records",
+      "source": "src/server/routers/biometrics.ts",
+      "line": 119
+    },
+    {
+      "method": "GET",
+      "path": "/api/biometrics/vitals",
+      "source": "src/server/routers/biometrics.ts",
+      "line": 208
+    },
+    {
+      "method": "GET",
+      "path": "/api/biometrics/movement",
+      "source": "src/server/routers/biometrics.ts",
+      "line": 304
+    },
+    {
+      "method": "GET",
+      "path": "/api/biometrics/movement/buckets",
+      "source": "src/server/routers/biometrics.ts",
+      "line": 385
+    },
+    {
+      "method": "GET",
+      "path": "/api/biometrics/movement/summary",
+      "source": "src/server/routers/biometrics.ts",
+      "line": 469
+    },
+    {
+      "method": "GET",
+      "path": "/api/biometrics/sleep-records/get",
+      "source": "src/server/routers/biometrics.ts",
+      "line": 541
+    },
+    {
+      "method": "GET",
+      "path": "/api/biometrics/sleep-records/latest",
+      "source": "src/server/routers/biometrics.ts",
+      "line": 573
+    },
+    {
+      "method": "GET",
+      "path": "/api/biometrics/occupancy",
+      "source": "src/server/routers/biometrics.ts",
+      "line": 619
+    },
+    {
+      "method": "GET",
+      "path": "/api/biometrics/vitals/summary",
+      "source": "src/server/routers/biometrics.ts",
+      "line": 699
+    },
+    {
+      "method": "GET",
+      "path": "/api/biometrics/vitals/baseline",
+      "source": "src/server/routers/biometrics.ts",
+      "line": 792
+    },
+    {
+      "method": "POST",
+      "path": "/api/biometrics/vitals",
+      "source": "src/server/routers/biometrics.ts",
+      "line": 873
+    },
+    {
+      "method": "POST",
+      "path": "/api/biometrics/vitals/batch",
+      "source": "src/server/routers/biometrics.ts",
+      "line": 913
+    },
+    {
+      "method": "POST",
+      "path": "/api/biometrics/reference-stages",
+      "source": "src/server/routers/biometrics.ts",
+      "line": 968
+    },
+    {
+      "method": "GET",
+      "path": "/api/biometrics/reference-stages",
+      "source": "src/server/routers/biometrics.ts",
+      "line": 1063
+    },
+    {
+      "method": "POST",
+      "path": "/api/biometrics/reference-vitals",
+      "source": "src/server/routers/biometrics.ts",
+      "line": 1122
+    },
+    {
+      "method": "GET",
+      "path": "/api/biometrics/reference-vitals",
+      "source": "src/server/routers/biometrics.ts",
+      "line": 1169
+    },
+    {
+      "method": "GET",
+      "path": "/api/biometrics/file-count",
+      "source": "src/server/routers/biometrics.ts",
+      "line": 1226
+    },
+    {
+      "method": "PUT",
+      "path": "/api/biometrics/sleep-records",
+      "source": "src/server/routers/biometrics.ts",
+      "line": 1255
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/biometrics/sleep-records",
+      "source": "src/server/routers/biometrics.ts",
+      "line": 1330
+    },
+    {
+      "method": "GET",
+      "path": "/api/biometrics/sleep-stages",
+      "source": "src/server/routers/biometrics.ts",
+      "line": 1362
+    },
+    {
+      "method": "GET",
+      "path": "/api/calibration/status",
+      "source": "src/server/routers/calibration.ts",
+      "line": 39
+    },
+    {
+      "method": "GET",
+      "path": "/api/calibration/history",
+      "source": "src/server/routers/calibration.ts",
+      "line": 80
+    },
+    {
+      "method": "POST",
+      "path": "/api/calibration/trigger",
+      "source": "src/server/routers/calibration.ts",
+      "line": 120
+    },
+    {
+      "method": "POST",
+      "path": "/api/calibration/trigger-all",
+      "source": "src/server/routers/calibration.ts",
+      "line": 174
+    },
+    {
+      "method": "GET",
+      "path": "/api/calibration/vitals-quality",
+      "source": "src/server/routers/calibration.ts",
+      "line": 207
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/capabilities",
+      "source": "src/server/routers/capabilities.ts",
+      "line": 8
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/comfort",
+      "source": "src/server/routers/comfort.ts",
+      "line": 12
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/comfort/configure",
+      "source": "src/server/routers/comfort.ts",
+      "line": 17
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/comfort/feedback",
+      "source": "src/server/routers/comfort.ts",
+      "line": 27
+    },
+    {
+      "method": "GET",
+      "path": "/api/curve-templates",
+      "source": "src/server/routers/curveTemplates.ts",
+      "line": 44
+    },
+    {
+      "method": "POST",
+      "path": "/api/curve-templates",
+      "source": "src/server/routers/curveTemplates.ts",
+      "line": 58
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/curve-templates",
+      "source": "src/server/routers/curveTemplates.ts",
+      "line": 86
+    },
+    {
+      "method": "GET",
+      "path": "/api/system/databases",
+      "source": "src/server/routers/databases.ts",
+      "line": 61
+    },
+    {
+      "method": "POST",
+      "path": "/api/system/databases/integrity",
+      "source": "src/server/routers/databases.ts",
+      "line": 152
+    },
+    {
+      "method": "GET",
+      "path": "/api/system/databases/rows",
+      "source": "src/server/routers/databases.ts",
+      "line": 170
+    },
+    {
+      "method": "GET",
+      "path": "/api/device/status",
+      "source": "src/server/routers/device.ts",
+      "line": 131
+    },
+    {
+      "method": "GET",
+      "path": "/api/device/temperature/control",
+      "source": "src/server/routers/device.ts",
+      "line": 272
+    },
+    {
+      "method": "POST",
+      "path": "/api/device/temperature/resume",
+      "source": "src/server/routers/device.ts",
+      "line": 278
+    },
+    {
+      "method": "POST",
+      "path": "/api/device/temperature",
+      "source": "src/server/routers/device.ts",
+      "line": 323
+    },
+    {
+      "method": "POST",
+      "path": "/api/device/power",
+      "source": "src/server/routers/device.ts",
+      "line": 407
+    },
+    {
+      "method": "POST",
+      "path": "/api/device/alarm",
+      "source": "src/server/routers/device.ts",
+      "line": 488
+    },
+    {
+      "method": "POST",
+      "path": "/api/device/alarm/clear",
+      "source": "src/server/routers/device.ts",
+      "line": 529
+    },
+    {
+      "method": "POST",
+      "path": "/api/device/alarm/snooze",
+      "source": "src/server/routers/device.ts",
+      "line": 552
+    },
+    {
+      "method": "POST",
+      "path": "/api/device/prime",
+      "source": "src/server/routers/device.ts",
+      "line": 610
+    },
+    {
+      "method": "POST",
+      "path": "/api/device/prime/dismiss",
+      "source": "src/server/routers/device.ts",
+      "line": 630
+    },
+    {
+      "method": "POST",
+      "path": "/api/device/execute",
+      "source": "src/server/routers/device.ts",
+      "line": 663
+    },
+    {
+      "method": "GET",
+      "path": "/api/environment/bed-temp",
+      "source": "src/server/routers/environment.ts",
+      "line": 29
+    },
+    {
+      "method": "GET",
+      "path": "/api/environment/freezer-temp",
+      "source": "src/server/routers/environment.ts",
+      "line": 85
+    },
+    {
+      "method": "GET",
+      "path": "/api/environment/bed-temp/latest",
+      "source": "src/server/routers/environment.ts",
+      "line": 131
+    },
+    {
+      "method": "GET",
+      "path": "/api/environment/freezer-temp/latest",
+      "source": "src/server/routers/environment.ts",
+      "line": 180
+    },
+    {
+      "method": "GET",
+      "path": "/api/environment/summary",
+      "source": "src/server/routers/environment.ts",
+      "line": 219
+    },
+    {
+      "method": "GET",
+      "path": "/api/environment/ambient-light",
+      "source": "src/server/routers/environment.ts",
+      "line": 324
+    },
+    {
+      "method": "GET",
+      "path": "/api/environment/ambient-light/latest",
+      "source": "src/server/routers/environment.ts",
+      "line": 362
+    },
+    {
+      "method": "GET",
+      "path": "/api/environment/ambient-light/summary",
+      "source": "src/server/routers/environment.ts",
+      "line": 388
+    },
+    {
+      "method": "GET",
+      "path": "/api/health/performance",
+      "source": "src/server/routers/health.ts",
+      "line": 49
+    },
+    {
+      "method": "GET",
+      "path": "/api/health/scheduler",
+      "source": "src/server/routers/health.ts",
+      "line": 74
+    },
+    {
+      "method": "GET",
+      "path": "/api/health/scheduler-timeline",
+      "source": "src/server/routers/health.ts",
+      "line": 188
+    },
+    {
+      "method": "GET",
+      "path": "/api/health/system",
+      "source": "src/server/routers/health.ts",
+      "line": 257
+    },
+    {
+      "method": "GET",
+      "path": "/api/health/dac-monitor",
+      "source": "src/server/routers/health.ts",
+      "line": 430
+    },
+    {
+      "method": "GET",
+      "path": "/api/health/hardware",
+      "source": "src/server/routers/health.ts",
+      "line": 454
+    },
+    {
+      "method": "GET",
+      "path": "/api/health/thermal",
+      "source": "src/server/routers/health.ts",
+      "line": 500
+    },
+    {
+      "method": "GET",
+      "path": "/api/health/data-path",
+      "source": "src/server/routers/health.ts",
+      "line": 532
+    },
+    {
+      "method": "GET",
+      "path": "/api/health/history",
+      "source": "src/server/routers/health.ts",
+      "line": 578
+    },
+    {
+      "method": "POST",
+      "path": "/api/health/restart-service",
+      "source": "src/server/routers/health.ts",
+      "line": 609
+    },
+    {
+      "method": "GET",
+      "path": "/api/health/maintenance",
+      "source": "src/server/routers/health.ts",
+      "line": 628
+    },
+    {
+      "method": "GET",
+      "path": "/api/health/thermal-history",
+      "source": "src/server/routers/health.ts",
+      "line": 666
+    },
+    {
+      "method": "GET",
+      "path": "/api/homekit/status",
+      "source": "src/server/routers/homekit.ts",
+      "line": 54
+    },
+    {
+      "method": "POST",
+      "path": "/api/homekit/enabled",
+      "source": "src/server/routers/homekit.ts",
+      "line": 60
+    },
+    {
+      "method": "POST",
+      "path": "/api/homekit/unpair",
+      "source": "src/server/routers/homekit.ts",
+      "line": 112
+    },
+    {
+      "method": "POST",
+      "path": "/api/homekit/regenerate",
+      "source": "src/server/routers/homekit.ts",
+      "line": 121
+    },
+    {
+      "method": "GET",
+      "path": "/api/homekit/seed-probe",
+      "source": "src/server/routers/homekit.ts",
+      "line": 133
+    },
+    {
+      "method": "GET",
+      "path": "/api/mqtt/settings",
+      "source": "src/server/routers/mqtt.ts",
+      "line": 67
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/mqtt/settings",
+      "source": "src/server/routers/mqtt.ts",
+      "line": 102
+    },
+    {
+      "method": "POST",
+      "path": "/api/mqtt/test-connection",
+      "source": "src/server/routers/mqtt.ts",
+      "line": 147
+    },
+    {
+      "method": "GET",
+      "path": "/api/mqtt/status",
+      "source": "src/server/routers/mqtt.ts",
+      "line": 169
+    },
+    {
+      "method": "GET",
+      "path": "/api/pump-alerts",
+      "source": "src/server/routers/pumpAlerts.ts",
+      "line": 56
+    },
+    {
+      "method": "GET",
+      "path": "/api/pump-alerts/capabilities",
+      "source": "src/server/routers/pumpAlerts.ts",
+      "line": 88
+    },
+    {
+      "method": "POST",
+      "path": "/api/pump-alerts/acknowledge",
+      "source": "src/server/routers/pumpAlerts.ts",
+      "line": 124
+    },
+    {
+      "method": "POST",
+      "path": "/api/pump-alerts/dismiss-notification",
+      "source": "src/server/routers/pumpAlerts.ts",
+      "line": 377
+    },
+    {
+      "method": "POST",
+      "path": "/api/pump-alerts/dismiss",
+      "source": "src/server/routers/pumpAlerts.ts",
+      "line": 439
+    },
+    {
+      "method": "GET",
+      "path": "/api/raw/files",
+      "source": "src/server/routers/raw.ts",
+      "line": 42
+    },
+    {
+      "method": "POST",
+      "path": "/api/raw/files/delete",
+      "source": "src/server/routers/raw.ts",
+      "line": 67
+    },
+    {
+      "method": "GET",
+      "path": "/api/raw/disk-usage",
+      "source": "src/server/routers/raw.ts",
+      "line": 112
+    },
+    {
+      "method": "POST",
+      "path": "/api/run-once/start",
+      "source": "src/server/routers/runOnce.ts",
+      "line": 26
+    },
+    {
+      "method": "GET",
+      "path": "/api/run-once/active",
+      "source": "src/server/routers/runOnce.ts",
+      "line": 127
+    },
+    {
+      "method": "POST",
+      "path": "/api/run-once/cancel",
+      "source": "src/server/routers/runOnce.ts",
+      "line": 177
+    },
+    {
+      "method": "GET",
+      "path": "/api/schedules",
+      "source": "src/server/routers/schedules.ts",
+      "line": 116
+    },
+    {
+      "method": "POST",
+      "path": "/api/schedules/temperature",
+      "source": "src/server/routers/schedules.ts",
+      "line": 163
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/schedules/temperature",
+      "source": "src/server/routers/schedules.ts",
+      "line": 209
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/schedules/temperature",
+      "source": "src/server/routers/schedules.ts",
+      "line": 261
+    },
+    {
+      "method": "POST",
+      "path": "/api/schedules/power",
+      "source": "src/server/routers/schedules.ts",
+      "line": 305
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/schedules/power",
+      "source": "src/server/routers/schedules.ts",
+      "line": 354
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/schedules/power",
+      "source": "src/server/routers/schedules.ts",
+      "line": 409
+    },
+    {
+      "method": "POST",
+      "path": "/api/schedules/alarm",
+      "source": "src/server/routers/schedules.ts",
+      "line": 453
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/schedules/alarm",
+      "source": "src/server/routers/schedules.ts",
+      "line": 503
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/schedules/alarm",
+      "source": "src/server/routers/schedules.ts",
+      "line": 559
+    },
+    {
+      "method": "GET",
+      "path": "/api/schedules/notes",
+      "source": "src/server/routers/schedules.ts",
+      "line": 603
+    },
+    {
+      "method": "POST",
+      "path": "/api/schedules/batch",
+      "source": "src/server/routers/schedules.ts",
+      "line": 627
+    },
+    {
+      "method": "GET",
+      "path": "/api/schedules/by-day",
+      "source": "src/server/routers/schedules.ts",
+      "line": 796
+    },
+    {
+      "method": "GET",
+      "path": "/api/settings",
+      "source": "src/server/routers/settings.ts",
+      "line": 167
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/settings/device",
+      "source": "src/server/routers/settings.ts",
+      "line": 225
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/settings/side",
+      "source": "src/server/routers/settings.ts",
+      "line": 475
+    },
+    {
+      "method": "POST",
+      "path": "/api/settings/always-on",
+      "source": "src/server/routers/settings.ts",
+      "line": 650
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/settings/gesture",
+      "source": "src/server/routers/settings.ts",
+      "line": 817
+    },
+    {
+      "method": "GET",
+      "path": "/api/sleep-stages/classifier",
+      "source": "src/server/routers/sleepStages.ts",
+      "line": 217
+    },
+    {
+      "method": "PUT",
+      "path": "/api/sleep-stages/classifier",
+      "source": "src/server/routers/sleepStages.ts",
+      "line": 263
+    },
+    {
+      "method": "POST",
+      "path": "/api/sleep-stages/classifier/preview",
+      "source": "src/server/routers/sleepStages.ts",
+      "line": 323
+    },
+    {
+      "method": "GET",
+      "path": "/api/system/internet-status",
+      "source": "src/server/routers/system.ts",
+      "line": 267
+    },
+    {
+      "method": "POST",
+      "path": "/api/system/internet-access",
+      "source": "src/server/routers/system.ts",
+      "line": 281
+    },
+    {
+      "method": "GET",
+      "path": "/api/system/wifi-status",
+      "source": "src/server/routers/system.ts",
+      "line": 311
+    },
+    {
+      "method": "POST",
+      "path": "/api/system/update",
+      "source": "src/server/routers/system.ts",
+      "line": 363
+    },
+    {
+      "method": "GET",
+      "path": "/api/system/log-sources",
+      "source": "src/server/routers/system.ts",
+      "line": 416
+    },
+    {
+      "method": "GET",
+      "path": "/api/system/logs",
+      "source": "src/server/routers/system.ts",
+      "line": 454
+    },
+    {
+      "method": "GET",
+      "path": "/api/system/disk-usage",
+      "source": "src/server/routers/system.ts",
+      "line": 547
+    },
+    {
+      "method": "GET",
+      "path": "/api/system/storage-breakdown",
+      "source": "src/server/routers/system.ts",
+      "line": 582
+    },
+    {
+      "method": "GET",
+      "path": "/api/system/storage",
+      "source": "src/server/routers/system.ts",
+      "line": 621
+    },
+    {
+      "method": "POST",
+      "path": "/api/system/storage/free",
+      "source": "src/server/routers/system.ts",
+      "line": 660
+    },
+    {
+      "method": "GET",
+      "path": "/api/system/version",
+      "source": "src/server/routers/system.ts",
+      "line": 680
+    },
+    {
+      "method": "GET",
+      "path": "/api/system/sensor-source",
+      "source": "src/server/routers/system.ts",
+      "line": 715
+    },
+    {
+      "method": "GET",
+      "path": "/api/water-level/history",
+      "source": "src/server/routers/waterLevel.ts",
+      "line": 14
+    },
+    {
+      "method": "GET",
+      "path": "/api/water-level/latest",
+      "source": "src/server/routers/waterLevel.ts",
+      "line": 55
+    },
+    {
+      "method": "GET",
+      "path": "/api/water-level/trend",
+      "source": "src/server/routers/waterLevel.ts",
+      "line": 85
+    },
+    {
+      "method": "GET",
+      "path": "/api/water-level/alerts",
+      "source": "src/server/routers/waterLevel.ts",
+      "line": 180
+    },
+    {
+      "method": "POST",
+      "path": "/api/water-level/alerts/dismiss",
+      "source": "src/server/routers/waterLevel.ts",
+      "line": 211
+    },
+    {
+      "method": "GET",
+      "path": "/api/water-level/flow",
+      "source": "src/server/routers/waterLevel.ts",
+      "line": 245
+    },
+    {
+      "method": "GET",
+      "path": "/api/water-level/flow/latest",
+      "source": "src/server/routers/waterLevel.ts",
+      "line": 280
+    }
+  ]
+}

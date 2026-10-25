@@ -1,0 +1,41 @@
+# Sleep and biometrics parity — in progress
+
+2026-10-25. This slice preserves the native Sleepypod Night/Week/Month screen and adds native sheets and chart navigation. The full parity audit and release are still open.
+
+## Implemented
+
+- Pod-timezone calendar windows, including 23/25-hour nights and after-midnight bedtimes. Open records preserve a missing wake time. Sleep-time edits validate the interval and check the original record before writing; deletion requires a scope-specific confirmation. Successful writes with failed refreshes are reported separately. This is a read-before-write conflict check, not a server compare-and-swap guarantee.
+- Range-aware CSV export for the selected night, week or month, separate vitals/sleep/movement tables, missing-value preservation, processing provenance and spreadsheet formula escaping. Capped metric queries split date ranges and deduplicate boundaries; unresolved caps report incomplete data.
+- Native RAW-file inventory, disk usage, active-file protection, delete confirmation, streamed downloads and archive export. The archive explains that it includes the full biometrics database for both sides as well as matching RAW files. Demo file downloads are disabled; CSV exports contain demo data.
+- Shared chart zoom/pan/reset, range selection and pinch support, point inspection, source/gap boundaries, nine-minute smoothing, interquartile shading, min/mean/max, original-record search and sort, and bounded rendering that retains raw samples for inspection/export. Nightly vital cards now open these charts and avoid combining processing runs in an average.
+- Core's five-minute in-bed movement buckets show position changes per hour. Live presence distinguishes unavailable and suspect signals. A stalled-vitals warning requires available, credible occupied status and missing/older-than-15-minute vitals. Live status refreshes every ten seconds and range data every minute while the scene is active.
+- Separate imported Apple Watch reference overlays and exports: heart rate, sleep stages, and capability-detected breathing/SDNN samples. The comparison screen can use this iPhone's Health data or the selected side's imported controller data. Watch SDNN and Pod IBI variability remain distinct; mixed processing runs do not receive combined comparison averages.
+- ZIP/XML import uses a private staged file, explicit sleeper/period/destination review, streamed upload, progress/cancellation, duplicate-safe retry explanation and legacy/modern result decoding. No upload occurs from file selection alone. Demo mode never uploads files.
+- Health sync now writes HRV into Apple's SDNN type only for records explicitly identified as recorded `hrv_sdnn`. Existing historical Health entries were not removed or rewritten.
+- Week view adds source-aware stage proportions, sleep/quality/bedtime/wake averages, vital trends and a selected-night drill-in. Month view adds totals, a duration calendar, weekly averages and a complete night list. Missing nights and changes in measurement method break trends. Naps count toward sleep totals; the longest session supplies stage/vital summaries. Clock averages are measured across midnight correctly.
+- Night grouping now uses Core's 6 am rollover. Exports select the same records, including morning naps, and extend raw readings through the last selected wake time. The separate biometrics Night chart retains its noon-to-noon window. Calendar arithmetic preserves daylight-saving transitions.
+- Collapsed chart axes allocate visible breaks between recorded sessions, keep true timestamps, and align reference/movement data to those sessions. Expanded time remains available. Gap selections snap to observed session edges; zoom/pan boundaries interpolate gaps so the requested zoom remains stable. Session cards show min/mean/max, source-separated Watch values, movement events and a chart-focus action.
+- Point inspection persists after touch release and can be cleared. Range focus clears old point selections. A focused short session can exceed the normal zoom limit without a subsequent pinch unexpectedly zooming out.
+
+## Evidence
+
+- `/tmp/SleepypodSleepParity5.xcresult`: all 14 initial Sleep data tests passed. Its UI search-dismissal test failed because the new OS labels the iPhone search-close control differently; the adaptive test was corrected.
+- `/tmp/SleepypodSleepUI6.xcresult`: both initial iPhone UI flows passed.
+- `/tmp/SleepypodWatchParity1.xcresult`: 14 Sleep data tests, 8 Watch reference/import tests and all 3 iPhone UI flows passed.
+- `/tmp/SleepypodSleepIPad2.xcresult`: all 3 iPad UI flows and all 11 existing Apple Watch comparison tests passed. Captures include the corrected selected-night export range and raw-log sorting.
+- iPhone and iPad screenshots are in `previews/sleep/`. The iPad set predates the new movement-bucket and live-presence cards.
+- `/tmp/SleepypodSleepFinalPhone.xcresult`: all 3 iPhone flows passed at normal text size after the final range, sorting, movement and presence refinements. Updated `iphone-*` captures were inspected; content fits, selected-night export dates are correct and source labels remain explicit.
+- `/tmp/SleepypodSleepLargest1.xcresult`: all 16 Sleep data tests (including movement transport and conservative stall detection), 8 Watch tests and 3 UI flows passed at maximum accessibility text size. Captures in `previews/sleep/largest-text-*` were inspected; date/time controls stack, chart buttons stack and content remains scrollable. The raw-sort direction label was subsequently shortened to avoid splitting a long word.
+- `Integration/verify_presentation.py` and `git diff --check` passed during this slice. No retired app shell, components or asset catalog is in the build.
+- `/tmp/SleepypodPeriod1.xcresult`: 16 existing Sleep data tests and 6 new period tests passed. `/tmp/SleepypodPeriod2.xcresult` and `/tmp/SleepypodPeriodIPad1.xcresult`: both Week/Month navigation flows passed. `/tmp/SleepypodPeriodStageLargest4.xcresult`: both flows passed at accessibility XXXL; screenshot review then identified crowding in the original segmented control and fixed-height trend axes. The shared control now stacks and weekly chart height grows at accessibility sizes. The follow-up Largest7 run passed all three flows; nine reviewed captures are stored as `largest-final-*`.
+- `/tmp/SleepypodBiometricAxis3.xcresult`: six axis/session/navigation tests and the night-export boundary test passed; the edit/export/file-list UI flow passed. Point inspection exposed the chart's release-clears-selection behavior, which was corrected.
+- `/tmp/SleepypodParityMerge1.xcresult`: **369 unit tests and one chart UI flow passed; five live-Pod tests skipped** without a configured controller. The UI flow covers session focus, persistent point inspection, pinch, range selection, focus and reset. Reviewed captures are in `previews/sleep/iphone-Sleep-biometric-*`. The short-session pinch/selection refinements passed the six axis tests in Largest6 and the full chart interaction at maximum text size in Largest7.
+
+- `/tmp/SleepypodParityIPadFinal.xcresult`: iPad Week/Month flows and eight Watch reference tests passed; the chart flow exposed a stale test locator after range mode rebuilt the chart. After refreshing that locator, `/tmp/SleepypodParityIPadChart2.xcresult` passed the complete chart interaction. Updated iPad captures are stored as `ipad-final-*`.
+
+## Remaining work and limits
+
+- Remote stage rules/model workflows are documented separately in `STAGE_VALIDATION.md`; advanced biometric profile controls remain part of the Settings audit.
+- Core fixtures and demo UI verify transport and presentation. No real Health export, RAW download/archive, controller deletion, Health-store write, Pod actuator command or processor adoption was performed for these checks.
+- A large real file transfer, device/network interruption and persisted-controller edits remain integration checks. Historical mislabeled Health HRV samples are not migrated by this change.
+- Final light/dark/accessibility/offline and cross-feature verification plus TestFlight release remain open. Version remains 0.2.0 (7).

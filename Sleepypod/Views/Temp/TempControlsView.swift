@@ -2,6 +2,8 @@ import SwiftUI
 
 struct TempControlsView: View {
     @Environment(DeviceManager.self) private var device
+    @Environment(UserProfile.self) private var profile
+    @Environment(SettingsManager.self) private var settings
     /// The stepper has its own − / +, so it only needs power here.
     var powerOnly = false
     private var target: Int { device.currentSideStatus?.targetTemperatureF ?? 80 }
@@ -35,13 +37,13 @@ struct TempControlsView: View {
     private func step(_ symbol: String, delta: Int) -> some View {
         Button {
             Haptics.light()
-            device.setTemperature(target + delta)
+            device.setTemperature(profile.temperatureDisplay.step(target, by: delta, unit: settings.temperatureFormat))
         } label: {
             Image(systemName: symbol).font(.system(size: 22, weight: .regular)).foregroundStyle(Theme.text1)
                 .frame(width: 64, height: 64).chromeSurface(Circle())
         }
         .accessibilityLabel(delta < 0 ? "Decrease temperature" : "Increase temperature")
-        .disabled(!device.isOn || (delta < 0 ? target <= 55 : target >= 110))
+        .disabled(device.controlsBlocked(for: device.selectedSide.primarySide) || (delta < 0 ? target <= 55 : target >= 110))
         .opacity(device.isOn ? 1 : 0.45)
     }
 }

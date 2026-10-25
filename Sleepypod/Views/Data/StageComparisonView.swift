@@ -79,7 +79,7 @@ struct StageComparisonView: View {
                         .font(.footnote).foregroundStyle(Theme.text3).fixedSize(horizontal: false, vertical: true).padding(.horizontal, 4)
                 }
                 modelCard
-                Text("Your Health data stays on this iPhone. sleepypod has no server: nothing is uploaded to the pod, to iCloud or to anyone else.")
+                Text("This comparison is calculated on your iPhone. It is not uploaded to your Pod or sent to a model.")
                     .font(.footnote).foregroundStyle(Theme.text3).fixedSize(horizontal: false, vertical: true).padding(.horizontal, 4)
             }
             .padding(.horizontal, 16)

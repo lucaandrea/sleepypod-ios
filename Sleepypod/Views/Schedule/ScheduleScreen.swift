@@ -1,4 +1,5 @@
 import SwiftUI
+import FreeSleepKit
 
 struct ScheduleScreen: View {
     @Environment(ScheduleManager.self) private var schedule
@@ -23,6 +24,11 @@ struct ScheduleScreen: View {
             ScrollView {
                 VStack(spacing: 16) {
                     DaySelectorView().padding(.horizontal, 4)
+                    if APIBackend.current != .freeSleep {
+                        NavigationLink { NativeCurveLibraryScreen() } label: {
+                            SettingsRow("Curves", icon: "waveform.path", chevron: true) { RowValue("View all") }
+                        }.buttonStyle(.plain).cardStyle(vertical: 0, horizontal: 0)
+                    }
                     if let daily {
                         curveCard(daily)
                         phaseList(daily)
@@ -55,6 +61,7 @@ struct ScheduleScreen: View {
                             }
                             .buttonStyle(.plain)
                         }
+                        if APIBackend.current != .freeSleep { NativeAlarmsSection(sides: schedule.selectedSide) }
                     } else if schedule.isLoading {
                         ProgressView().padding(.top, 40)
                     } else {
@@ -73,6 +80,17 @@ struct ScheduleScreen: View {
             .navigationTitle("Schedule")
             .settingsToolbar()
             .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Menu {
+                        if APIBackend.current != .freeSleep { NavigationLink("Curves") { NativeCurveLibraryScreen() } }
+                        NavigationLink("Alarms") {
+                            if APIBackend.current == .freeSleep { PodFeatureScreen(.alarms, side: schedule.selectedSide.primarySide.rawValue) }
+                            else { NativeAlarmsScreen(sides: schedule.selectedSide) }
+                        }
+                        NavigationLink("Routine editor") { PodFeatureScreen(.routines, side: schedule.selectedSide.primarySide.rawValue) }
+                    } label: { Image(systemName: "ellipsis") }
+                    .accessibilityLabel("Schedule options")
+                }
                 ToolbarItem(placement: .topBarLeading) {
                     Menu {
                         Picker("Side", selection: Binding(get: { schedule.selectedSide }, set: { schedule.selectedSide = $0 })) {
@@ -134,6 +152,7 @@ struct ScheduleScreen: View {
                 .buttonStyle(.plain)
                 .accessibilityHint("Edit set point")
             }
+            if APIBackend.current == .freeSleep {
             Button { alarmEditor = true } label: {
                 phaseRow(icon: "alarm",
                          name: "Wake",
@@ -142,6 +161,7 @@ struct ScheduleScreen: View {
             }
             .buttonStyle(.plain)
             .accessibilityHint("Edit alarm")
+            }
         }
     }
 

@@ -192,6 +192,8 @@ struct WelcomeScreen: View {
                 .padding(.horizontal, 12)
                 .padding(.top, 32)
 
+                NavigationLink("Connect with an owner key") { OwnerConnectionView() }
+                    .padding(.vertical, 16)
                 GroupedCard {
                     ForEach(discovery.discoveredPods) { pod in podRow(pod) }
                     Button {

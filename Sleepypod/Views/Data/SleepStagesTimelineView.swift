@@ -47,6 +47,9 @@ struct SleepStagesTimelineView: View {
     /// Where the stages came from; the model badge marks a night staged by a trained Core ML model.
     var source: SleepAnalyzer.StageSource = .rules
     var modelName: String?
+    var sourceLabel: String?
+    var gapTolerance: TimeInterval = 300
+    var showDurations = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -55,10 +58,11 @@ struct SleepStagesTimelineView: View {
                 Spacer()
                 if source == .model { StageSourceBadge(.model(modelName ?? "model")) }
             }
+            if let sourceLabel { Text(sourceLabel).font(.footnote).foregroundStyle(Theme.text2).fixedSize(horizontal: false, vertical: true) }
             if stages.isEmpty {
                 Text("Not enough data for stage analysis").font(.subheadline).foregroundStyle(Theme.text2)
             } else {
-                let segments = Self.segments(stages)
+                let segments = Self.segments(stages, maxGap: gapTolerance)
                 let start = segments.first?.start ?? Date()
                 let total = max(1, (segments.map(\.end).max() ?? start).timeIntervalSince(start))
                 Canvas { context, size in
@@ -85,9 +89,15 @@ struct SleepStagesTimelineView: View {
             : AnyLayout(HStackLayout(spacing: 0))
         return layout {
             ForEach(order, id: \.self) { stage in
-                HStack(spacing: 5) {
-                    RoundedRectangle(cornerRadius: 2).fill(stage.displayColor).frame(width: 7, height: 7)
-                    Text(stage.label)
+                VStack(alignment: .leading, spacing: 5) {
+                    HStack(spacing: 5) {
+                        RoundedRectangle(cornerRadius: 2).fill(stage.displayColor).frame(width: 7, height: 7)
+                        Text(stage.label)
+                    }
+                    if showDurations {
+                        let seconds = stages.filter { $0.stage == stage }.reduce(0) { $0 + $1.duration }
+                        Text(DisplayTime.duration(Int(seconds))).foregroundStyle(Theme.text1).monospacedDigit()
+                    }
                 }
                 .frame(maxWidth: dynamicTypeSize.isAccessibilitySize ? nil : .infinity, alignment: .leading)
             }
