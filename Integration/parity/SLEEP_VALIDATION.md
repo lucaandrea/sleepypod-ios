@@ -31,9 +31,10 @@
 - `/tmp/SleepypodBiometricAxis3.xcresult`: six axis/session/navigation tests and the night-export boundary test passed; the edit/export/file-list UI flow passed. Point inspection exposed the chart's release-clears-selection behavior, which was corrected.
 - `/tmp/SleepypodParityMerge1.xcresult`: **369 unit tests and one chart UI flow passed; five live-Pod tests skipped** without a configured controller. The UI flow covers session focus, persistent point inspection, pinch, range selection, focus and reset. Reviewed captures are in `previews/sleep/iphone-Sleep-biometric-*`. The short-session pinch/selection refinements passed the six axis tests in Largest6 and the full chart interaction at maximum text size in Largest7.
 
+- `/tmp/SleepypodParityIPadFinal.xcresult`: iPad Week/Month flows and eight Watch reference tests passed; the chart flow exposed a stale test locator after range mode rebuilt the chart. After refreshing that locator, `/tmp/SleepypodParityIPadChart2.xcresult` passed the complete chart interaction. Updated iPad captures are stored as `ipad-final-*`.
+
 ## Remaining work and limits
 
-- Final iPad chart-range interaction check. The iPad Week/Month flows and eight Watch reference tests passed in `/tmp/SleepypodParityIPadFinal.xcresult`; its chart flow exposed a stale test locator after range mode rebuilt the chart. The locator now refreshes after that mode change.
 - Remote stage rules/model workflows are documented separately in `STAGE_VALIDATION.md`; advanced biometric profile controls remain part of the Settings audit.
 - Core fixtures and demo UI verify transport and presentation. No real Health export, RAW download/archive, controller deletion, Health-store write, Pod actuator command or processor adoption was performed for these checks.
 - A large real file transfer, device/network interruption and persisted-controller edits remain integration checks. Historical mislabeled Health HRV samples are not migrated by this change.
