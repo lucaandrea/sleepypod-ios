@@ -35,6 +35,7 @@ jobs:
           -quiet
 
       - name: Unit and transport regression tests
+        timeout-minutes: 20
         run: |
           IOS_SIM_ID=$(xcrun simctl list devices available --json | python3 -c '
           import json, sys
@@ -46,7 +47,18 @@ jobs:
           xcodebuild test -project Sleepypod.xcodeproj -scheme Sleepypod \
             -destination "platform=iOS Simulator,id=$IOS_SIM_ID" \
             -only-testing:SleepypodTests -only-testing:FreeSleepKitTests \
-            -parallel-testing-enabled NO CODE_SIGNING_ALLOWED=NO -quiet
+            -resultBundlePath "$RUNNER_TEMP/SleepypodTests.xcresult" \
+            -collect-test-diagnostics never \
+            -parallel-testing-enabled NO CODE_SIGNING_ALLOWED=NO
+
+      - name: Preserve test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-unit-test-results
+          path: ${{ runner.temp }}/SleepypodTests.xcresult
+          if-no-files-found: ignore
+          retention-days: 7
 
   lint:
     runs-on: macos-15

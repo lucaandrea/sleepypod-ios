@@ -11,7 +11,7 @@ protocol HealthSyncStore {
     func authorize(write: Set<HKSampleType>, read: Set<HKObjectType>) async throws
     func save(_ samples: [HKSample]) async throws
     func delete(types: Set<HKSampleType>, deviceID: String, start: Date, end: Date, olderThan version: Int?) async throws
-    func deleteAll(types: Set<HKSampleType>, olderThan version: Int) async throws
+    func deleteAll(types: Set<HKSampleType>, deviceID: String, olderThan version: Int) async throws
     func sleepSamples(start: Date, end: Date) async throws -> [HKCategorySample]
     func quantitySamples(_ type: HKQuantityTypeIdentifier, start: Date, end: Date) async throws -> [HKQuantitySample]
 }
@@ -41,10 +41,11 @@ final class SystemHealthSyncStore: HealthSyncStore {
             _ = try await store.deleteObjects(of: type, predicate: predicate)
         }
     }
-    // Every pod, side and night this app wrote before `version`.
-    func deleteAll(types: Set<HKSampleType>, olderThan version: Int) async throws {
+    // Only the rebuilt Pod and side, including nights older than the replay window.
+    func deleteAll(types: Set<HKSampleType>, deviceID: String, olderThan version: Int) async throws {
         let predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [
             HKQuery.predicateForObjects(from: .default()),
+            HKQuery.predicateForObjects(withDeviceProperty: HKDevicePropertyKeyLocalIdentifier, allowedValues: [deviceID]),
             HKQuery.predicateForObjects(withMetadataKey: HKMetadataKeySyncVersion, operatorType: .lessThan, value: version)
         ])
         for type in types {
@@ -106,6 +107,7 @@ final class HealthSyncService {
     private(set) var readError: String?
     private let store: any HealthSyncStore
     private let persistence: UserDefaults
+    @ObservationIgnored private var rebuiltKeys = Set<String>()
 
     init(store: any HealthSyncStore = SystemHealthSyncStore(), defaults: UserDefaults = .standard) {
         self.store = store
@@ -232,24 +234,25 @@ final class HealthSyncService {
         _ = await sync(api: api, podID: podID, side: side, days: Self.recentDays)
     }
 
-    /// Rewrites the last `rebuildDays` nights with the current analysis, then deletes everything else
-    /// sleepypod ever wrote to Health. Each night is saved before its older samples go, and the final
-    /// sweep runs only once every night was handled, so a rebuild that stops partway (pod offline,
-    /// phone locked) leaves the earlier data in place instead of emptying Health.
+    /// Rewrites this Pod/side before removing its older samples. Incomplete analysis or writes
+    /// keep the old data; other Pods and sides are outside the cleanup scope.
     func rebuild(api: SleepypodProtocol, podID: String, side: Side, demo: Bool) async -> Bool {
         guard enabled, !demo, !isSyncing, !podID.isEmpty, store.available, !writeTypes.isEmpty else { return false }
         isSyncing = true
         rebuildProgress = (0, 0)
-        defer { isSyncing = false; rebuildProgress = nil }
-        let version = Int(Date().timeIntervalSince1970 * 1000)
-        receipts = [:]
-        failures = [:]
-        persistence.removeObject(forKey: "healthSyncReceipts")
-        guard await sync(api: api, podID: podID, side: side, days: Self.rebuildDays) else { return false }
+        defer { isSyncing = false; rebuildProgress = nil; rebuiltKeys.removeAll() }
+        let version = nextWriteVersion()
+        let deviceID = "\(podID)-\(side.rawValue)"
+        let keyPrefix = deviceID + "-"
+        failures = failures.filter { !$0.key.hasPrefix(keyPrefix) }
+        rebuiltKeys.removeAll()
+        guard await sync(api: api, podID: podID, side: side, days: Self.rebuildDays, forceRewrite: true) else { return false }
         // Types switched off since an earlier sync may still hold samples; only granted types can be deleted.
         let types = Set(Self.allWriteTypes.filter { store.authorizationStatus(for: $0) == .sharingAuthorized })
         do {
-            try await store.deleteAll(types: types, olderThan: version)
+            try await store.deleteAll(types: types, deviceID: deviceID, olderThan: version)
+            receipts = receipts.filter { !$0.key.hasPrefix(keyPrefix) || rebuiltKeys.contains($0.key) }
+            persistence.set(try JSONEncoder().encode(receipts), forKey: "healthSyncReceipts")
             Log.health.info("Rebuilt Health data")
             return true
         } catch {
@@ -281,7 +284,7 @@ final class HealthSyncService {
     }
 
     /// Returns false if the sync stopped early or any night failed to write, so a rebuild knows not to sweep.
-    private func sync(api: SleepypodProtocol, podID: String, side: Side, days: Int) async -> Bool {
+    private func sync(api: SleepypodProtocol, podID: String, side: Side, days: Int, forceRewrite: Bool = false) async -> Bool {
         let requestedPreferences = preferences
         let end = Date()
         let start = Calendar.current.date(byAdding: .day, value: -days, to: end) ?? end
@@ -296,7 +299,7 @@ final class HealthSyncService {
                 let key = Self.recordKey(podID: podID, record: record)
                 let syncable = Self.isSyncable(record)
                 // An excluded record with a receipt was written by an earlier version; only those need cleanup.
-                guard syncable ? receipt(podID: podID, record: record) == nil : receipts[key] != nil else { continue }
+                guard syncable ? (forceRewrite || receipt(podID: podID, record: record) == nil) : receipts[key] != nil else { continue }
                 do {
                     guard !Task.isCancelled, enabled, preferences == requestedPreferences else { return false }
                     guard writeTypes.allSatisfy({ store.authorizationStatus(for: $0) == .sharingAuthorized }) else {
@@ -333,12 +336,17 @@ final class HealthSyncService {
                     guard !Task.isCancelled, enabled, preferences == requestedPreferences else { return false }
                     guard !filtered.isEmpty, !preferences.sleep || !analyzer.stages.isEmpty else {
                         failures[key] = "Waiting for enough vitals to analyze this night."
+                        complete = false
                         continue
                     }
-                    let version = Int(Date().timeIntervalSince1970 * 1000)
+                    let version = nextWriteVersion()
                     let samples = Self.samples(record: record, epochs: analyzer.stages, podID: podID, preferences: requestedPreferences,
                                                vitals: filtered, version: version)
-                    guard !samples.isEmpty else { continue }
+                    guard !samples.isEmpty else {
+                        failures[key] = "No eligible Health samples for this night."
+                        complete = false
+                        continue
+                    }
                     try await store.save(samples)
                     // Save first, then drop whatever this write didn't replace, so a failed save never empties the night.
                     try await store.delete(types: writeTypes, deviceID: deviceID, start: clearStart, end: clearEnd, olderThan: version)
@@ -346,6 +354,7 @@ final class HealthSyncService {
                     receipts[key] = Receipt(date: Date(), signature: Self.receiptSignature(requestedPreferences, model: stagedBy),
                                             closedAt: record.leftBedDate, enteredAt: record.enteredBedDate)
                     failures[key] = nil
+                    if rebuildProgress != nil { rebuiltKeys.insert(key) }
                     persistence.set(try JSONEncoder().encode(receipts), forKey: "healthSyncReceipts")
                 } catch {
                     // A cancelled sync (scene change, backgrounding) retries next time; it isn't a failed night.
@@ -362,6 +371,13 @@ final class HealthSyncService {
             return false
         }
         return complete
+    }
+
+    /// HealthKit replacement versions must increase even within one millisecond or after a clock correction.
+    private func nextWriteVersion() -> Int {
+        let version = max(Int(Date().timeIntervalSince1970 * 1000), persistence.integer(forKey: "healthSyncLastVersion") + 1)
+        persistence.set(version, forKey: "healthSyncLastVersion")
+        return version
     }
 
     nonisolated static func isCancellation(_ error: Error) -> Bool {

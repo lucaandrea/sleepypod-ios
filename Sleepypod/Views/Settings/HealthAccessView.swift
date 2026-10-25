@@ -72,7 +72,7 @@ struct HealthAccessView: View {
         .confirmationDialog("Rebuild Apple Health data?", isPresented: $confirmRebuild, titleVisibility: .visible) {
             Button("Rebuild", role: .destructive) { rebuild() }
         } message: {
-            Text("Rewrites the last \(HealthSyncService.rebuildDays) nights from the pod with the current analysis, then deletes everything else sleepypod wrote to Health, including older nights. Apple Watch and other apps' data aren't touched. Keep the app open until it finishes.")
+            Text("Rewrites up to \(HealthSyncService.rebuildDays) days for \(settings.sideName(for: profile.defaultSide)) on this Pod, then removes its older sleepypod samples. Other sides, Pods, Apple Watch and other apps stay untouched. Keep the app open until it finishes.")
         }
     }
 
@@ -128,7 +128,7 @@ struct HealthAccessView: View {
     }
 
     private var rebuildTitle: String {
-        guard let progress = health.rebuildProgress else { return "Rebuild last \(HealthSyncService.rebuildDays) nights" }
+        guard let progress = health.rebuildProgress else { return "Rebuild last \(HealthSyncService.rebuildDays) days" }
         return progress.total == 0 ? "Finding nights…" : "Rebuilding \(progress.done) of \(progress.total) nights…"
     }
 
