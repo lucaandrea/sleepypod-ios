@@ -30,6 +30,11 @@ import XCTest
         let frame = element.frame
         return frame.height > 0 && visible.intersection(frame).height >= frame.height * 0.85
     }
+    private func heartChart(in app: XCUIApplication) -> XCUIElement {
+        let charts = app.otherElements.matching(identifier: "biometrics.chart.heartRate").allElementsBoundByIndex
+        return charts.filter { $0.frame.height > 50 }.min { $0.frame.height < $1.frame.height }
+            ?? app.otherElements["biometrics.chart.heartRate"]
+    }
     private func openBiometrics(_ app: XCUIApplication) {
         app.buttons["Sleep options"].tap()
         let option = app.buttons["sleep.openBiometrics"]
@@ -92,8 +97,7 @@ import XCTest
         capture(app, "Sleep-biometric-session-detail"); first.tap()
         XCTAssertTrue(app.buttons["Reset"].waitForExistence(timeout: 3))
         XCTAssertFalse(app.staticTexts["biometrics.zoomStatus"].label.hasPrefix("1×"))
-        let charts = app.otherElements.matching(identifier: "biometrics.chart.heartRate").allElementsBoundByIndex
-        let chart = charts.filter { $0.frame.height > 50 }.min { $0.frame.height < $1.frame.height } ?? app.otherElements["biometrics.chart.heartRate"]
+        var chart = heartChart(in: app)
         show(chart, in: app)
         chart.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).press(forDuration: 1)
         XCTAssertTrue(app.staticTexts["biometrics.reading.heartRate"].waitForExistence(timeout: 3))
@@ -103,6 +107,8 @@ import XCTest
         let zoomAfter = Double(app.staticTexts["biometrics.zoomStatus"].label.components(separatedBy: "×")[0]) ?? 0
         XCTAssertGreaterThanOrEqual(zoomAfter, zoomBefore)
         let select = app.switches["Select a range"]; show(select, in: app); select.tap()
+        // Range mode rebuilds the chart's accessibility subtree.
+        chart = heartChart(in: app)
         show(chart, in: app)
         chart.coordinate(withNormalizedOffset: CGVector(dx: 0.25, dy: 0.5))
             .press(forDuration: 0.1, thenDragTo: chart.coordinate(withNormalizedOffset: CGVector(dx: 0.7, dy: 0.5)))

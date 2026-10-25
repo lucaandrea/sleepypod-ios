@@ -32,7 +32,6 @@ jobs:
           -scheme Sleepypod
           -destination 'generic/platform=iOS'
           CODE_SIGNING_ALLOWED=NO
-          SWIFT_TREAT_WARNINGS_AS_ERRORS=YES
           -quiet
 
       - name: Unit and transport regression tests

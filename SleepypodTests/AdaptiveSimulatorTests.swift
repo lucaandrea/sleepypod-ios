@@ -70,7 +70,6 @@ struct AdaptiveSimulatorTests {
         let recs = AdaptiveSimulator.simulate(vitals: vitals, movement: movement)
 
         // Wake should pause — no temperature changes during high movement
-        let wakeRecs = recs.filter { $0.reason.contains("wake") }
         let activeChanges = recs.filter { $0.recommendedTemp != $0.currentTemp }
         // Most recs during wake should be pauses (no change filtered out), few active changes
         #expect(activeChanges.count <= 2)
