@@ -227,7 +227,7 @@ struct DeviceStatusFrame: Decodable, Sendable {
                 currentTemperatureF: leftSide.currentTemperature.map { Int($0.rounded()) },
                 targetTemperatureF: leftSide.targetTemperature.map { Int($0.rounded()) },
                 secondsRemaining: leftSide.heatingDuration,
-                isOn: leftSide.targetLevel != 0,
+                isOn: leftSide.heatingDuration > 0,
                 isAlarmVibrating: leftSide.isAlarmVibrating,
                 taps: existing?.left.taps
             ),
@@ -236,7 +236,7 @@ struct DeviceStatusFrame: Decodable, Sendable {
                 currentTemperatureF: rightSide.currentTemperature.map { Int($0.rounded()) },
                 targetTemperatureF: rightSide.targetTemperature.map { Int($0.rounded()) },
                 secondsRemaining: rightSide.heatingDuration,
-                isOn: rightSide.targetLevel != 0,
+                isOn: rightSide.heatingDuration > 0,
                 isAlarmVibrating: rightSide.isAlarmVibrating,
                 taps: existing?.right.taps
             ),
@@ -246,7 +246,15 @@ struct DeviceStatusFrame: Decodable, Sendable {
             coverVersion: existing?.coverVersion ?? "",
             hubVersion: existing?.hubVersion ?? "",
             freeSleep: existing?.freeSleep ?? FreeSleepInfo(version: "", branch: ""),
-            wifiStrength: existing?.wifiStrength ?? 0
+            wifiStrength: existing?.wifiStrength ?? 0,
+            temperatureControl: existing?.temperatureControl,
+            pumpStallNotifications: existing?.pumpStallNotifications,
+            primeCompletedNotification: existing?.primeCompletedNotification,
+            snooze: snooze.map { SidePair(
+                left: $0.left.map { AlarmSnooze(active: $0.active, snoozeUntil: $0.snoozeUntil.map(Double.init)) },
+                right: $0.right.map { AlarmSnooze(active: $0.active, snoozeUntil: $0.snoozeUntil.map(Double.init)) }
+            ) } ?? existing?.snooze,
+            roomClimate: existing?.roomClimate
         )
     }
 }

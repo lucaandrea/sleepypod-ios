@@ -1,0 +1,89 @@
+{
+  "preferences": {
+    "podID": "demo-user",
+    "timeZones": [
+      "UTC",
+      "America/Anchorage",
+      "America/Los_Angeles",
+      "Pacific/Honolulu",
+      "America/Denver",
+      "America/Chicago",
+      "America/New_York",
+      "America/Sao_Paulo",
+      "Atlantic/Reykjavik",
+      "Europe/London",
+      "Europe/Berlin",
+      "Europe/Moscow",
+      "Africa/Lagos",
+      "Africa/Johannesburg",
+      "Asia/Dubai",
+      "Asia/Kolkata",
+      "Asia/Shanghai",
+      "Asia/Tokyo",
+      "Australia/Sydney",
+      "Australia/Brisbane",
+      "Pacific/Auckland"
+    ],
+    "preferences": {
+      "timeZone": "America/Los_Angeles",
+      "temperatureFormat": "fahrenheit",
+      "left": {
+        "name": "Left side",
+        "awayMode": false
+      },
+      "right": {
+        "name": "Right side",
+        "awayMode": false
+      },
+      "primePodDaily": {
+        "enabled": false,
+        "time": "14:00"
+      },
+      "rebootDaily": true
+    }
+  },
+  "health": {
+    "franken": {
+      "name": "Pod connection",
+      "status": "healthy",
+      "description": "The local temperature controller is connected.",
+      "message": "",
+      "timestamp": "2026-10-14T18:00:00.000Z"
+    },
+    "database": {
+      "name": "Sleep database",
+      "status": "healthy",
+      "description": "Recorded episodes and vital readings are available.",
+      "message": "",
+      "timestamp": "2026-10-14T18:00:00.000Z"
+    },
+    "powerSchedule": {
+      "name": "Power routines",
+      "status": "healthy",
+      "description": "Scheduled power controls are ready.",
+      "message": "",
+      "timestamp": "2026-10-14T18:00:00.000Z"
+    },
+    "temperatureSchedule": {
+      "name": "Temperature routines",
+      "status": "healthy",
+      "description": "Scheduled temperature changes are ready.",
+      "message": "",
+      "timestamp": "2026-10-14T18:00:00.000Z"
+    },
+    "biometricsStream": {
+      "name": "Biometrics stream",
+      "status": "retrying",
+      "description": "Receives presence and vital readings from the Pod.",
+      "message": "Waiting for the next sample.",
+      "timestamp": "2026-10-14T18:00:00.000Z"
+    },
+    "primeSchedule": {
+      "name": "Daily priming",
+      "status": "not_started",
+      "description": "Primes the Pod at your chosen time.",
+      "message": "",
+      "timestamp": "2026-10-14T18:00:00.000Z"
+    }
+  }
+}

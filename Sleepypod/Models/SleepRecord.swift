@@ -1,6 +1,6 @@
 import Foundation
 
-struct SleepRecord: Codable, Sendable, Identifiable {
+struct SleepRecord: Codable, Sendable, Identifiable, Equatable {
     var id: Int
     var side: String
     var timesExitedBed: Int
@@ -9,7 +9,7 @@ struct SleepRecord: Codable, Sendable, Identifiable {
 
     // Handles both unix timestamp (free-sleep) and ISO8601 string (sleepypod-core)
     private var _enteredBedAt: TimeInterval
-    private var _leftBedAt: TimeInterval
+    private var _leftBedAt: TimeInterval?
     private var _sleepSeconds: Int
 
     enum CodingKeys: String, CodingKey {
@@ -38,7 +38,14 @@ struct SleepRecord: Codable, Sendable, Identifiable {
             ?? (try? c.decode(Int.self, forKey: .sleep_period_seconds)) ?? 0
 
         _enteredBedAt = Self.parseTimestamp(c, keys: [.enteredBedAt, .entered_bed_at])
-        _leftBedAt = Self.parseTimestamp(c, keys: [.leftBedAt, .left_bed_at])
+        let wake = Self.parseTimestamp(c, keys: [.leftBedAt, .left_bed_at])
+        _leftBedAt = wake > 0 ? wake : nil
+    }
+
+    init(id: Int, side: String, enteredBed: Date, leftBed: Date?, timesExitedBed: Int = 0) {
+        self.id = id; self.side = side; self.timesExitedBed = timesExitedBed
+        _enteredBedAt = enteredBed.timeIntervalSince1970; _leftBedAt = leftBed?.timeIntervalSince1970
+        _sleepSeconds = leftBed.map { max(0, Int($0.timeIntervalSince(enteredBed))) } ?? 0
     }
 
     func encode(to encoder: Encoder) throws {
@@ -47,6 +54,10 @@ struct SleepRecord: Codable, Sendable, Identifiable {
         try c.encode(side, forKey: .side)
         try c.encode(_sleepSeconds, forKey: .sleepDurationSeconds)
         try c.encode(timesExitedBed, forKey: .timesExitedBed)
+        try c.encode(Int(_enteredBedAt), forKey: .enteredBedAt)
+        try c.encodeIfPresent(_leftBedAt.map(Int.init), forKey: .leftBedAt)
+        try c.encodeIfPresent(presentIntervals, forKey: .presentIntervals)
+        try c.encodeIfPresent(notPresentIntervals, forKey: .notPresentIntervals)
     }
 
     private static func parseTimestamp(_ c: KeyedDecodingContainer<CodingKeys>, keys: [CodingKeys]) -> TimeInterval {
@@ -68,7 +79,9 @@ struct SleepRecord: Codable, Sendable, Identifiable {
     // MARK: - Computed
 
     var enteredBedDate: Date { Date(timeIntervalSince1970: _enteredBedAt) }
-    var leftBedDate: Date { Date(timeIntervalSince1970: _leftBedAt) }
+    var completedAt: Date? { _leftBedAt.map { Date(timeIntervalSince1970: $0) } }
+    var leftBedDate: Date { completedAt ?? enteredBedDate }
+    var isOngoing: Bool { completedAt == nil }
     var sleepPeriodSeconds: Int { _sleepSeconds }
 
     var durationHours: Double { Double(_sleepSeconds) / 3600.0 }
@@ -87,6 +100,7 @@ struct SleepRecord: Codable, Sendable, Identifiable {
     }
 
     var wakeTimeFormatted: String {
+        guard !isOngoing else { return "Still in bed" }
         let formatter = DateFormatter()
         formatter.locale = Locale(identifier: "en_US_POSIX")
         formatter.dateFormat = "h:mm a"

@@ -1,12 +1,15 @@
 import Foundation
 
-struct AlarmSchedule: Codable, Sendable {
+struct AlarmSchedule: Codable, Sendable, Equatable {
     var vibrationIntensity: Int
     var vibrationPattern: VibrationPattern
     var duration: Int
     var time: String  // "HH:mm"
     var enabled: Bool
     var alarmTemperature: Int
+    var wakeWindow: Int?
+    var snoozeDuration: Int?
+    var snoozeTaper: Int?
 }
 
 enum VibrationPattern: String, Codable, Sendable {
@@ -23,11 +26,12 @@ enum ScheduleEndAction: String, Codable, Sendable, CaseIterable {
     }
 }
 
-struct PowerSchedule: Codable, Sendable {
+struct PowerSchedule: Codable, Sendable, Equatable {
     var on: String   // "HH:mm"
     var off: String  // "HH:mm" — schedule boundary, even when maintaining
     // Optional so legacy cores and Free Sleep payloads continue to decode.
     var endAction: ScheduleEndAction?
+    var offDayOffset: Int?
     var onTemperature: Int
     var enabled: Bool
 }
@@ -46,6 +50,8 @@ struct SideSchedule: Codable, Sendable {
     var thursday: DailySchedule
     var friday: DailySchedule
     var saturday: DailySchedule
+    // Retain the complete Core rows so editing one native field cannot erase other rows.
+    var coreSnapshot: CoreScheduleRows?
 
     subscript(day: DayOfWeek) -> DailySchedule {
         get {

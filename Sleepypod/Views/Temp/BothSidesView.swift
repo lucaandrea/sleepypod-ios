@@ -3,6 +3,7 @@ import SwiftUI
 /// 1b: both sides at once, each a card with its own power, ± and a track marking bed temp.
 struct BothSidesView: View {
     @Environment(DeviceManager.self) private var device
+    @Environment(UserProfile.self) private var profile
     @Environment(SettingsManager.self) private var settings
     @Environment(SensorStreamService.self) private var sensor
     let curve: ActiveCurve?
@@ -12,7 +13,13 @@ struct BothSidesView: View {
             Text(subtitle).font(.mono(12, relativeTo: .caption)).foregroundStyle(Theme.text2)
                 .padding(.horizontal, 4).padding(.top, -4).padding(.bottom, 2)
             ForEach(Side.allCases) { side in SideTempCard(side: side) }
+            TemperatureOwnershipView()
             if let next { nextCard(next) }
+            if APIBackend.current != .freeSleep {
+                ForEach(Side.allCases) { side in
+                    GroupedSection(settings.sideName(for: side).uppercased()) { NextAlarmCard(side: side) }
+                }
+            }
         }
         .padding(.horizontal, 16)
         .padding(.bottom, 24)
@@ -53,6 +60,7 @@ struct BothSidesView: View {
 
 private struct SideTempCard: View {
     @Environment(DeviceManager.self) private var device
+    @Environment(UserProfile.self) private var profile
     @Environment(SettingsManager.self) private var settings
     @Environment(SensorStreamService.self) private var sensor
     let side: Side
@@ -84,7 +92,7 @@ private struct SideTempCard: View {
             }
             HStack(alignment: .bottom) {
                 VStack(alignment: .leading, spacing: 6) {
-                    Text(TemperatureConversion.valueText(target, format: settings.temperatureFormat))
+                    Text(profile.temperatureDisplay.text(target, unit: settings.temperatureFormat))
                         .font(.mono(60, weight: .light, relativeTo: .largeTitle)).tracking(-1.5)
                         .foregroundStyle(isOn ? Theme.text1 : Theme.text2)
                         .lineLimit(1).minimumScaleFactor(0.6)
@@ -124,14 +132,14 @@ private struct SideTempCard: View {
     private func step(_ symbol: String, delta: Int) -> some View {
         Button {
             Haptics.light()
-            device.setTemperature(target + delta, side: side)
+            device.setTemperature(profile.temperatureDisplay.step(target, by: delta, unit: settings.temperatureFormat), side: side)
         } label: {
             Image(systemName: symbol).font(.system(size: 20)).foregroundStyle(Theme.text1)
                 .frame(width: 52, height: 52)
                 .background(Theme.active, in: Circle())
         }
         .buttonStyle(.plain)
-        .disabled(!isOn || (delta < 0 ? target <= 55 : target >= 110))
+        .disabled(device.controlsBlocked(for: side) || (delta < 0 ? target <= 55 : target >= 110))
         .opacity(isOn ? 1 : 0.45)
         .accessibilityLabel("\(delta < 0 ? "Cooler" : "Warmer"), \(settings.sideName(for: side))")
     }

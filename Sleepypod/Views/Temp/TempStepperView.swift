@@ -16,6 +16,7 @@ enum StepperTab: Hashable {
 /// edit tonight's schedule through `NightPhasesStore`.
 struct TempStepperView: View {
     @Environment(DeviceManager.self) private var device
+    @Environment(UserProfile.self) private var profile
     @Environment(SettingsManager.self) private var settings
     @Environment(\.colorScheme) private var scheme
     let store: NightPhasesStore
@@ -73,14 +74,14 @@ struct TempStepperView: View {
             Spacer(minLength: 12)
             HStack(spacing: 16) {
                 stepButton(-1)
-                Text(off ? "Off" : value(selected).map { TemperatureConversion.valueText($0, format: format) } ?? "—")
+                Text(off ? "Off" : value(selected).map { profile.temperatureDisplay.text($0, unit: format) } ?? "—")
                     .font(.mono(52, weight: .light, relativeTo: .largeTitle))
                     .foregroundStyle(off ? Theme.text2 : Theme.text1)
                     .contentTransition(.numericText(value: Double(value(selected) ?? 0)))
                     .lineLimit(1).minimumScaleFactor(0.6)
                     .frame(minWidth: 118)
                     .accessibilityLabel("\(selected.title) temperature")
-                    .accessibilityValue(off ? "Off" : value(selected).map { TemperatureConversion.valueText($0, format: format) } ?? "unavailable")
+                    .accessibilityValue(off ? "Off" : value(selected).map { profile.temperatureDisplay.text($0, unit: format) } ?? "unavailable")
                     .accessibilityAdjustableAction { direction in step(direction == .increment ? 1 : -1) }
                 stepButton(1)
             }
@@ -110,7 +111,7 @@ struct TempStepperView: View {
                     } label: {
                         VStack(spacing: 6) {
                             if let v = value(item), available(item) {
-                                Text(TemperatureConversion.valueText(v, format: format))
+                                Text(profile.temperatureDisplay.text(v, unit: format))
                                     .foregroundStyle(TempHue.ink(v, scheme: scheme))
                                     .opacity(phases?.draft == true && item != .now ? 0.6 : 1)
                             } else {
@@ -126,7 +127,7 @@ struct TempStepperView: View {
                     .buttonStyle(.plain)
                     .disabled(!ok)
                     .accessibilityLabel(item.title)
-                    .accessibilityValue(value(item).map { TemperatureConversion.valueText($0, format: format) } ?? "")
+                    .accessibilityValue(value(item).map { profile.temperatureDisplay.text($0, unit: format) } ?? "")
                     .accessibilityAddTraits(isSelected ? .isSelected : [])
                 }
             }
@@ -169,7 +170,7 @@ struct TempStepperView: View {
     }
 
     private func stepButton(_ delta: Int) -> some View {
-        let disabled = off || value(selected) == nil
+        let disabled = (selected == .now && device.controlsBlocked(for: device.selectedSide.primarySide)) || value(selected) == nil
         return Button { step(delta) } label: {
             Image(systemName: delta < 0 ? "minus" : "plus").font(.system(size: 22))
                 .foregroundStyle(Theme.text1)
@@ -178,7 +179,7 @@ struct TempStepperView: View {
         }
         .buttonStyle(.plain)
         .disabled(disabled)
-        .opacity(off ? 0.35 : disabled ? 0.4 : 1)
+        .opacity(disabled ? 0.4 : 1)
         .accessibilityLabel("\(delta < 0 ? "Cooler" : "Warmer") \(selected.title.lowercased())")
     }
 
@@ -186,8 +187,8 @@ struct TempStepperView: View {
         guard !off else { return }
         Haptics.light()
         switch selected {
-        case .now: device.setTemperature(NightPhasesStore.step(target, delta: delta, format: format))
-        case .phase(let key): store.nudge(sides, phase: key, delta: delta, format: format)
+        case .now: device.setTemperature(profile.temperatureDisplay.step(target, by: delta, unit: format))
+        case .phase(let key): store.nudge(sides, phase: key, delta: delta, format: format, display: profile.temperatureDisplay)
         }
     }
 }

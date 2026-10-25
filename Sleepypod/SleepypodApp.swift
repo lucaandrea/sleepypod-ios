@@ -1,4 +1,10 @@
 import SwiftUI
+import FreeSleepKit
+import AppIntents
+
+struct UnifiedAppIntentsPackage: AppIntentsPackage {
+    static var includedPackages: [any AppIntentsPackage.Type] { [FreeSleepIntentsPackage.self] }
+}
 
 @main
 struct SleepypodApp: App {
@@ -7,6 +13,8 @@ struct SleepypodApp: App {
     @State private var metricsManager: MetricsManager
     @State private var statusManager: StatusManager
     @State private var settingsManager: SettingsManager
+    @State private var alarms = AlarmWorkspace()
+    @State private var curves = CurveWorkspace()
     @State private var updateChecker = UpdateChecker()
     @State private var podDiscovery = PodDiscovery()
     @State private var userProfile = UserProfile()
@@ -18,6 +26,14 @@ struct SleepypodApp: App {
     @State private var snoreCapture = SnoreCaptureService()
 
     init() {
+        UnifiedRuntime.initialize()
+        #if DEBUG
+        if APIBackend.current.isDemo && ProcessInfo.processInfo.arguments.contains("--reset-base-preferences") {
+            for key in ["mattress", "simple", "instantPresets", "linked", "cards", "scope"] {
+                UserDefaults.standard.removeObject(forKey: "base.\(key)")
+            }
+        }
+        #endif
         let client = APIBackend.current.createClient()
         let device = DeviceManager(api: client)
         let schedule = ScheduleManager(api: client)
@@ -44,6 +60,8 @@ struct SleepypodApp: App {
             ContentView()
                 .environment(deviceManager)
                 .environment(scheduleManager)
+                .environment(alarms)
+                .environment(curves)
                 .environment(metricsManager)
                 .environment(statusManager)
                 .environment(settingsManager)
@@ -70,6 +88,9 @@ struct SleepypodApp: App {
                     }
                 }
         }
+        .backgroundTask(.appRefresh("com.lucaandrea.freesleep.health.refresh")) {
+            await UnifiedRuntime.backgroundHealth()
+        }
         .backgroundTask(.appRefresh(HealthSyncService.backgroundTaskID)) { [healthSync] in
             // Queue the next wake-up first so a sync that runs out of time doesn't end the chain.
             HealthSyncService.scheduleBackgroundSync()
@@ -84,6 +105,8 @@ struct ContentView: View {
     @Environment(PodDiscovery.self) private var podDiscovery
     @Environment(SensorStreamService.self) private var sensorStream
     @Environment(ScheduleManager.self) private var scheduleManager
+    @Environment(AlarmWorkspace.self) private var alarms
+    @Environment(CurveWorkspace.self) private var curves
     @Environment(MetricsManager.self) private var metricsManager
     @Environment(StatusManager.self) private var statusManager
     @Environment(HealthSyncService.self) private var healthSync
@@ -91,6 +114,7 @@ struct ContentView: View {
     @Environment(\.scenePhase) private var scenePhase
     @State private var selectedTab = Self.initialTab
     @State private var showWelcome = false
+    @AppStorage("apiBackend") private var backendIdentity = ""
 
     private static var initialTab: String {
         switch DebugRoute.current {
@@ -120,18 +144,17 @@ struct ContentView: View {
                     TempScreen()
                 } label: { tabLabel("Temp", "thermometer.medium") }
                 Tab(value: "schedule") {
-                    if isConnected {
-                        ScheduleScreen()
-                    } else {
-                        NavigationStack { DisconnectedTabView(tab: "Schedule", selectedTab: $selectedTab).settingsToolbar() }
-                    }
+                    if isConnected { ScheduleScreen() }
+                    else { NavigationStack { DisconnectedTabView(tab: "Schedule", selectedTab: $selectedTab).settingsToolbar() } }
                 } label: { tabLabel("Schedule", "calendar") }
                 Tab(value: "sleep") {
                     if isConnected { SleepScreen() }
                     else { NavigationStack { DisconnectedTabView(tab: "Sleep", selectedTab: $selectedTab).settingsToolbar() } }
                 } label: { tabLabel("Sleep", "moon") }
             }
+            .id(backendIdentity)
             .tabBarMinimizeBehavior(.onScrollDown)
+            .onChange(of: backendIdentity) { alarms.configure(); curves.configure() }
             .onChange(of: selectedTab) {
                 Haptics.tap()
             }
@@ -187,6 +210,10 @@ struct ContentView: View {
                 do { try await Task.sleep(for: .seconds(60)) } catch { return }
             }
         }
+        .task(id: scenePhase) {
+            guard scenePhase == .active, !isDemo else { return }
+            await UnifiedRuntime.refreshHealth()
+        }
         .onChange(of: scenePhase) {
             if scenePhase == .background && healthSync.enabled && !isDemo {
                 HealthSyncService.scheduleBackgroundSync()
@@ -215,6 +242,10 @@ struct ContentView: View {
     // MARK: - Connection Flow
 
     private func startConnection() async {
+        if OwnerConnection.endpoint != nil {
+            await deviceManager.fetchStatus()
+            return
+        }
         // Probe the saved address alongside discovery so a DHCP change doesn't
         // cost a full request timeout before we can find the pod again.
         _ = await podDiscovery.autoConnect(settingsManager: settingsManager, deviceManager: deviceManager)
@@ -222,7 +253,7 @@ struct ContentView: View {
 
     /// Back to the real backend and the setup flow, so the pod can be found again.
     private func leaveDemoMode() {
-        APIBackend.current = .sleepypodCore
+        APIBackend.current = .restoredLiveBackend
         let client = APIBackend.current.createClient()
         sensorStream.disconnect()
         deviceManager.switchBackend(client)

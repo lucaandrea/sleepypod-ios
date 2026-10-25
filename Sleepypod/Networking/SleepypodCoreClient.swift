@@ -16,13 +16,14 @@ final class SleepypodCoreClient: SleepypodProtocol, @unchecked Sendable {
 
     private var baseURL: URL? {
         if let configuredBaseURL { return configuredBaseURL }
+        if let ownerURL = OwnerConnection.endpoint { return ownerURL }
         guard let ip = UserDefaults.standard.string(forKey: "podIPAddress"), !ip.isEmpty else {
             return nil
         }
         return URL(string: "http://\(ip):3000")
     }
 
-    init(session: URLSession = .shared, baseURL: URL? = nil) {
+    init(session: URLSession = OwnerConnection.session, baseURL: URL? = nil) {
         self.configuredBaseURL = baseURL
         self.session = session
         self.encoder = JSONEncoder()
@@ -41,7 +42,8 @@ final class SleepypodCoreClient: SleepypodProtocol, @unchecked Sendable {
                 currentTemperatureF: status.leftSide.currentTemperature.map { Int($0.rounded()) },
                 targetTemperatureF: status.leftSide.targetTemperature.map { Int($0.rounded()) },
                 secondsRemaining: status.leftSide.heatingDuration,
-                isOn: status.leftSide.targetLevel != 0,
+                // Neutral level zero is a valid powered target; remaining duration indicates power.
+                isOn: status.leftSide.heatingDuration > 0,
                 isAlarmVibrating: status.leftSide.isAlarmVibrating ?? false,
                 taps: mapGestures(status.gestures, side: .left)
             ),
@@ -50,7 +52,7 @@ final class SleepypodCoreClient: SleepypodProtocol, @unchecked Sendable {
                 currentTemperatureF: status.rightSide.currentTemperature.map { Int($0.rounded()) },
                 targetTemperatureF: status.rightSide.targetTemperature.map { Int($0.rounded()) },
                 secondsRemaining: status.rightSide.heatingDuration,
-                isOn: status.rightSide.targetLevel != 0,
+                isOn: status.rightSide.heatingDuration > 0,
                 isAlarmVibrating: status.rightSide.isAlarmVibrating ?? false,
                 taps: mapGestures(status.gestures, side: .right)
             ),
@@ -63,7 +65,12 @@ final class SleepypodCoreClient: SleepypodProtocol, @unchecked Sendable {
                 version: "core",
                 branch: "main"
             ),
-            wifiStrength: status.wifiStrength ?? 0
+            wifiStrength: status.wifiStrength ?? 0,
+            temperatureControl: status.temperatureControl,
+            pumpStallNotifications: status.pumpStallNotifications,
+            primeCompletedNotification: status.primeCompletedNotification,
+            snooze: status.snooze,
+            roomClimate: status.roomClimate
         )
     }
 
@@ -78,7 +85,7 @@ final class SleepypodCoreClient: SleepypodProtocol, @unchecked Sendable {
                 let _: TRPCSuccess = try await mutate("device.setPower", input: input)
             } else if let temperature = value.targetTemperatureF {
                 let _: TRPCSuccess = try await mutate("device.setTemperature", input: [
-                    "side": side, "temperature": temperature
+                    "side": side, "temperature": temperature, "holdMinutes": value.holdMinutes ?? 30
                 ])
             }
         }
@@ -125,125 +132,25 @@ final class SleepypodCoreClient: SleepypodProtocol, @unchecked Sendable {
     // MARK: - Schedules
 
     func getSchedules() async throws -> Schedules {
-        let leftScheds: TRPCScheduleSet = try await query("schedules.getAll", input: ["side": "left"])
-        let rightScheds: TRPCScheduleSet = try await query("schedules.getAll", input: ["side": "right"])
+        let leftScheds: CoreScheduleRows = try await query("schedules.getAll", input: ["side": "left", "unit": "F"])
+        let rightScheds: CoreScheduleRows = try await query("schedules.getAll", input: ["side": "right", "unit": "F"])
         return Schedules(
-            left: mapSchedulesToFreeFormat(leftScheds),
-            right: mapSchedulesToFreeFormat(rightScheds)
+            left: leftScheds.projected,
+            right: rightScheds.projected
         )
     }
 
     func updateSchedules(_ schedules: Schedules, days: Set<DayOfWeek>? = nil) async throws -> Schedules {
-        let daysToUpdate = days ?? Set(DayOfWeek.allCases)
-        let dayStrings = Set(daysToUpdate.map(\.rawValue))
-
-        var tempDeletes: [Int] = []
-        var powerDeletes: [Int] = []
-        var alarmDeletes: [Int] = []
-
-        var tempCreates: [[String: Any]] = []
-        var powerCreates: [[String: Any]] = []
-        var alarmCreates: [[String: Any]] = []
-
-        for side in [Side.left, .right] {
-            let existing: TRPCScheduleSet = try await query("schedules.getAll", input: ["side": side.rawValue])
-            let sideSchedule = schedules.schedule(for: side)
-
-            // Collect IDs to delete for the days being updated
-            tempDeletes.append(contentsOf: existing.temperature.filter { dayStrings.contains($0.dayOfWeek) }.map(\.id))
-            powerDeletes.append(contentsOf: existing.power.filter { dayStrings.contains($0.dayOfWeek) }.map(\.id))
-            alarmDeletes.append(contentsOf: existing.alarm.filter { dayStrings.contains($0.dayOfWeek) }.map(\.id))
-
-            for day in daysToUpdate {
-                let daily = sideSchedule[day]
-
-                for (time, tempF) in daily.temperatures {
-                    tempCreates.append([
-                        "side": side.rawValue,
-                        "dayOfWeek": day.rawValue,
-                        "time": time,
-                        "temperature": tempF,
-                        "enabled": true
-                    ])
-                }
-
-                // A returned endAction identifies cores supporting the new power
-                // model. Preserve their disabled rows and overnight windows;
-                // older cores retain the legacy same-day-only write path.
-                let on = minutesFromTime(daily.power.on)
-                let off = minutesFromTime(daily.power.off)
-                let legacyWindow = daily.power.enabled && on != nil && off != nil && on! < off!
-                if daily.power.endAction != nil || legacyWindow {
-                    var powerInput: [String: Any] = [
-                        "side": side.rawValue,
-                        "dayOfWeek": day.rawValue,
-                        "onTime": daily.power.on,
-                        "offTime": daily.power.off,
-                        "onTemperature": daily.power.onTemperature,
-                        "enabled": daily.power.enabled
-                    ]
-                    if let action = daily.power.endAction {
-                        powerInput["endAction"] = action.rawValue
-                    }
-                    powerCreates.append(powerInput)
-                }
-
-                if daily.alarm.enabled {
-                    alarmCreates.append([
-                        "side": side.rawValue,
-                        "dayOfWeek": day.rawValue,
-                        "time": daily.alarm.time,
-                        "vibrationIntensity": daily.alarm.vibrationIntensity,
-                        "vibrationPattern": daily.alarm.vibrationPattern.rawValue,
-                        "duration": daily.alarm.duration,
-                        "alarmTemperature": daily.alarm.alarmTemperature,
-                        "enabled": true
-                    ])
-                }
-            }
+        let selectedDays = days ?? Set(DayOfWeek.allCases)
+        var patch = CoreSchedulePatch()
+        for side in Side.allCases {
+            let latest: CoreScheduleRows = try await query("schedules.getAll", input: ["side": side.rawValue, "unit": "F"])
+            try patch.append(requested: schedules.schedule(for: side), latest: latest, side: side, days: selectedDays)
         }
-
-        // Server caps each delete/create array at max(100) per call. Chunk so no
-        // single array exceeds that limit; worst case for an "apply to all 7 days"
-        // with an AI curve is ~3 chunks, still far fewer round trips than the
-        // old N+1 per-schedule pattern.
-        let chunks = max(
-            1,
-            (tempDeletes.count + 99) / 100,
-            (powerDeletes.count + 99) / 100,
-            (alarmDeletes.count + 99) / 100,
-            (tempCreates.count + 99) / 100,
-            (powerCreates.count + 99) / 100,
-            (alarmCreates.count + 99) / 100
-        )
-
-        func slice<T>(_ arr: [T], chunk: Int) -> [T] {
-            let start = chunk * 100
-            guard start < arr.count else { return [] }
-            return Array(arr[start..<min(start + 100, arr.count)])
+        if !patch.isEmpty {
+            // Keep one transaction: a partial multi-request replacement can lose the user's alarms.
+            let _: TRPCSuccess = try await mutate("schedules.batchUpdate", input: patch.input)
         }
-
-        for i in 0..<chunks {
-            let batchInput: [String: Any] = [
-                "deletes": [
-                    "temperature": slice(tempDeletes, chunk: i),
-                    "power": slice(powerDeletes, chunk: i),
-                    "alarm": slice(alarmDeletes, chunk: i)
-                ],
-                "creates": [
-                    "temperature": slice(tempCreates, chunk: i),
-                    "power": slice(powerCreates, chunk: i),
-                    "alarm": slice(alarmCreates, chunk: i)
-                ],
-                "updates": [
-                    "temperature": [] as [Any],
-                    "power": [] as [Any],
-                    "alarm": [] as [Any]
-                ]
-            ]
-            let _: TRPCSuccess = try await mutate("schedules.batchUpdate", input: batchInput)
-        }
-
         return try await getSchedules()
     }
 
@@ -335,28 +242,31 @@ final class SleepypodCoreClient: SleepypodProtocol, @unchecked Sendable {
     // MARK: - Metrics
 
     func getSleepRecords(side: Side? = nil, start: Date? = nil, end: Date? = nil) async throws -> [SleepRecord] {
-        var input: [String: Any] = [:]
-        if let side { input["side"] = side.rawValue }
-        var dateKeys: [String] = []
-        if let start { input["startDate"] = ISO8601DateFormatter().string(from: start); dateKeys.append("startDate") }
-        if let end { input["endDate"] = ISO8601DateFormatter().string(from: end); dateKeys.append("endDate") }
-        return try await query("biometrics.getSleepRecords", input: input, dateKeys: dateKeys)
+        try await metricRecords("biometrics.getSleepRecords", side: side, start: start, end: end, limit: 100)
     }
 
     func getVitals(side: Side? = nil, start: Date? = nil, end: Date? = nil) async throws -> [VitalsRecord] {
-        // The core's default of 288 assumes 5-minute rows; vitals are now per-minute, so ask for its max.
-        var input: [String: Any] = ["limit": 20000]
-        if let side { input["side"] = side.rawValue }
-        var dateKeys: [String] = []
-        if let start { input["startDate"] = ISO8601DateFormatter().string(from: start); dateKeys.append("startDate") }
-        if let end { input["endDate"] = ISO8601DateFormatter().string(from: end); dateKeys.append("endDate") }
         do {
-            return try await query("biometrics.getVitals", input: input, dateKeys: dateKeys)
-        } catch APIError.serverError {
-            // Cores before the 20000 cap reject it in validation; 1000 was their max.
-            input["limit"] = 1000
-            return try await query("biometrics.getVitals", input: input, dateKeys: dateKeys)
+            return try await metricRecords("biometrics.getVitals", side: side, start: start, end: end, limit: 20000)
+        } catch APIError.serverError(let message) where message.localizedCaseInsensitiveContains("limit") {
+            return try await metricRecords("biometrics.getVitals", side: side, start: start, end: end, limit: 1000)
         }
+    }
+
+    // Date splitting handles older controllers' smaller limits without truncating an export or chart.
+    private func metricRecords<Record: Decodable & Identifiable & Sendable>(_ route: String, side: Side?, start: Date?, end: Date?, limit: Int) async throws -> [Record] where Record.ID: Sendable {
+        @Sendable func page(_ lower: Date?, _ upper: Date?) async throws -> [Record] {
+            var input: [String: Any] = ["limit": limit]
+            if let side { input["side"] = side.rawValue }
+            var dateKeys: [String] = []
+            if let lower { input["startDate"] = lower.ISO8601Format(); dateKeys.append("startDate") }
+            if let upper { input["endDate"] = upper.ISO8601Format(); dateKeys.append("endDate") }
+            return try await query(route, input: input, dateKeys: dateKeys)
+        }
+        if let start, let end {
+            return try await MetricRangeLoader.load(start: start, end: end, limit: limit) { lower, upper in try await page(lower, upper) }
+        }
+        return try await page(start, end)
     }
 
     func getVitalsSummary(side: Side? = nil, start: Date? = nil, end: Date? = nil) async throws -> VitalsSummary {
@@ -372,12 +282,7 @@ final class SleepypodCoreClient: SleepypodProtocol, @unchecked Sendable {
     }
 
     func getMovement(side: Side? = nil, start: Date? = nil, end: Date? = nil) async throws -> [MovementRecord] {
-        var input: [String: Any] = ["limit": 1000]
-        if let side { input["side"] = side.rawValue }
-        var dateKeys: [String] = []
-        if let start { input["startDate"] = ISO8601DateFormatter().string(from: start); dateKeys.append("startDate") }
-        if let end { input["endDate"] = ISO8601DateFormatter().string(from: end); dateKeys.append("endDate") }
-        return try await query("biometrics.getMovement", input: input, dateKeys: dateKeys)
+        try await metricRecords("biometrics.getMovement", side: side, start: start, end: end, limit: 1000)
     }
 
     func getStageModel(side: Side) async throws -> PodStageModelResponse {
@@ -676,6 +581,7 @@ final class SleepypodCoreClient: SleepypodProtocol, @unchecked Sendable {
     }
 
     private func performRequest(_ request: URLRequest) async throws -> (Data, URLResponse) {
+        let request = OwnerConnection.authorize(request)
         do {
             return try await session.data(for: request)
         } catch let error as URLError where request.httpMethod == "GET" && Self.isTransient(error) {
@@ -804,52 +710,6 @@ final class SleepypodCoreClient: SleepypodProtocol, @unchecked Sendable {
         )
     }
 
-    private func mapSchedulesToFreeFormat(_ scheds: TRPCScheduleSet) -> SideSchedule {
-        let emptyDaily = DailySchedule(
-            temperatures: [:],
-            alarm: AlarmSchedule(vibrationIntensity: 50, vibrationPattern: .rise, duration: 30, time: "07:00", enabled: false, alarmTemperature: 80),
-            power: PowerSchedule(on: "22:00", off: "07:00", onTemperature: 75, enabled: false)
-        )
-
-        var byDay: [String: DailySchedule] = [:]
-        for day in DayOfWeek.allCases {
-            byDay[day.rawValue] = emptyDaily
-        }
-
-        // Fill temperature schedules
-        for t in scheds.temperature where t.enabled {
-            byDay[t.dayOfWeek, default: emptyDaily].temperatures[t.time] = Int(t.temperature)
-        }
-
-        // Fill power schedules (take last one per day)
-        for p in scheds.power {
-            byDay[p.dayOfWeek, default: emptyDaily].power = PowerSchedule(
-                on: p.onTime, off: p.offTime, endAction: p.endAction, onTemperature: Int(p.onTemperature), enabled: p.enabled
-            )
-        }
-
-        // Fill alarm schedules (take last one per day)
-        for a in scheds.alarm where a.enabled {
-            byDay[a.dayOfWeek, default: emptyDaily].alarm = AlarmSchedule(
-                vibrationIntensity: a.vibrationIntensity,
-                vibrationPattern: VibrationPattern(rawValue: a.vibrationPattern) ?? .rise,
-                duration: a.duration,
-                time: a.time,
-                enabled: true,
-                alarmTemperature: Int(a.alarmTemperature)
-            )
-        }
-
-        return SideSchedule(
-            sunday: byDay["sunday"]!,
-            monday: byDay["monday"]!,
-            tuesday: byDay["tuesday"]!,
-            wednesday: byDay["wednesday"]!,
-            thursday: byDay["thursday"]!,
-            friday: byDay["friday"]!,
-            saturday: byDay["saturday"]!
-        )
-    }
 }
 
 // MARK: - tRPC Envelope Types
@@ -907,6 +767,11 @@ private struct TRPCDeviceStatus: Decodable {
     let sensorLabel: String
     let gestures: TRPCGestures?
     let wifiStrength: Int?
+    let temperatureControl: SidePair<TemperatureControlStatus>?
+    let pumpStallNotifications: SidePair<PumpStallNotice>?
+    let primeCompletedNotification: PrimeCompletion?
+    let snooze: SidePair<AlarmSnooze>?
+    let roomClimate: RoomClimate?
 }
 
 private struct TRPCDeviceSettings: Decodable {
@@ -983,44 +848,6 @@ private struct TRPCJobCounts: Decodable {
     let alarm: Int
     let prime: Int
     let reboot: Int
-}
-
-private struct TRPCTemperatureSchedule: Decodable {
-    let id: Int
-    let side: String
-    let dayOfWeek: String
-    let time: String
-    let temperature: Double
-    let enabled: Bool
-}
-
-private struct TRPCPowerSchedule: Decodable {
-    let endAction: ScheduleEndAction?
-    let id: Int
-    let side: String
-    let dayOfWeek: String
-    let onTime: String
-    let offTime: String
-    let onTemperature: Double
-    let enabled: Bool
-}
-
-private struct TRPCAlarmSchedule: Decodable {
-    let id: Int
-    let side: String
-    let dayOfWeek: String
-    let time: String
-    let vibrationIntensity: Int
-    let vibrationPattern: String
-    let duration: Int
-    let alarmTemperature: Double
-    let enabled: Bool
-}
-
-private struct TRPCScheduleSet: Decodable {
-    let temperature: [TRPCTemperatureSchedule]
-    let power: [TRPCPowerSchedule]
-    let alarm: [TRPCAlarmSchedule]
 }
 
 // Disk usage

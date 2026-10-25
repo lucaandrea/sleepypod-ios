@@ -2,6 +2,7 @@ import SwiftUI
 
 struct TemperatureDialView: View {
     @Environment(DeviceManager.self) private var device
+    @Environment(UserProfile.self) private var profile
     @Environment(SettingsManager.self) private var settings
     private let size: CGFloat = 300
     /// The source draws r=120 in a 280 viewBox scaled to 300pt.
@@ -11,10 +12,7 @@ struct TemperatureDialView: View {
     private var color: Color { TempColor.forDelta(target: target, current: bed) }
     private var progress: Double { Double(max(55, min(110, target)) - 55) / 55 }
     private var state: String { !device.isOn ? "OFF" : target < bed ? "COOLING" : target > bed ? "WARMING" : "HOLDING" }
-    private var value: String {
-        if settings.temperatureFormat == .relative { return TemperatureConversion.offsetDisplay(target - 80) }
-        return "\(settings.temperatureFormat == .celsius ? Int(TemperatureConversion.tempFToC(target).rounded()) : target)°"
-    }
+    private var value: String { profile.temperatureDisplay.text(target, unit: settings.temperatureFormat) }
     private var bedFormat: TemperatureFormat {
         settings.temperatureFormat == .relative ? .fahrenheit : settings.temperatureFormat
     }
@@ -44,19 +42,19 @@ struct TemperatureDialView: View {
         .contentShape(Circle())
         .animation(.snappy(duration: 0.2), value: target)
         .gesture(DragGesture(minimumDistance: 4).onChanged { drag in
-            guard device.isOn else { return }
+            guard !device.controlsBlocked(for: device.selectedSide.primarySide) else { return }
             var angle = atan2(drag.location.y - size / 2, drag.location.x - size / 2) * 180 / .pi
             if angle < 90 { angle += 360 }
             let clamped = min(405, max(135, angle))
-            let value = 55 + Int(((clamped - 135) / 270 * 55).rounded())
+            let value = profile.temperatureDisplay.target(at: (clamped - 135) / 270)
             if value != target { Haptics.light(); device.setTemperature(value) }
         })
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("Target temperature")
         .accessibilityValue("\(value), \(state.lowercased())")
         .accessibilityAdjustableAction { direction in
-            guard device.isOn else { return }
-            device.setTemperature(target + (direction == .increment ? 1 : -1))
+            guard !device.controlsBlocked(for: device.selectedSide.primarySide) else { return }
+            device.setTemperature(profile.temperatureDisplay.step(target, by: direction == .increment ? 1 : -1, unit: settings.temperatureFormat))
         }
     }
 }

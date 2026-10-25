@@ -3,6 +3,7 @@ import SwiftUI
 /// 1c: a tall thumb-drag pill like Control Center, easy to use half-asleep.
 struct TempSliderView: View {
     @Environment(DeviceManager.self) private var device
+    @Environment(UserProfile.self) private var profile
     @Environment(SettingsManager.self) private var settings
     let curve: ActiveCurve?
     let profileName: String
@@ -15,8 +16,8 @@ struct TempSliderView: View {
 
     var body: some View {
         GeometryReader { geo in
-            let pillHeight = min(500, max(260, geo.size.height - 64 - 28))
-            VStack(spacing: 28) {
+            let pillHeight = min(440, max(240, geo.size.height - 180))
+            ScrollView { VStack(spacing: 28) {
                 HStack(alignment: .top, spacing: 0) {
                     pill(height: pillHeight).padding(.leading, 12)
                     scaleLabels(height: pillHeight).padding(.leading, 8)
@@ -26,10 +27,13 @@ struct TempSliderView: View {
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }
                 .frame(height: pillHeight)
+                TemperatureOwnershipView()
                 tiles
+                if APIBackend.current != .freeSleep { NextAlarmCard(side: device.selectedSide.primarySide) }
             }
             .padding(.horizontal, 16)
             .frame(maxHeight: .infinity, alignment: .top)
+            }
         }
         .padding(.top, 16)
         .padding(.bottom, 12)
@@ -50,18 +54,18 @@ struct TempSliderView: View {
         .clipShape(RoundedRectangle(cornerRadius: 40, style: .continuous))
         .contentShape(RoundedRectangle(cornerRadius: 40, style: .continuous))
         .gesture(DragGesture(minimumDistance: 0).onChanged { drag in
-            guard device.isOn else { return }
+            guard !device.controlsBlocked(for: device.selectedSide.primarySide) else { return }
             let fraction = 1 - min(1, max(0, drag.location.y / height))
-            let value = 55 + Int((fraction * 55).rounded())
+            let value = profile.temperatureDisplay.target(at: fraction)
             if value != target { Haptics.light(); device.setTemperature(value) }
         })
         .animation(.snappy(duration: 0.15), value: target)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("Target temperature")
-        .accessibilityValue("\(TemperatureConversion.valueText(target, format: format)), \(TemperatureConversion.stateWord(target: target, bed: bed, isOn: device.isOn).lowercased())")
+        .accessibilityValue("\(profile.temperatureDisplay.text(target, unit: format)), \(TemperatureConversion.stateWord(target: target, bed: bed, isOn: device.isOn).lowercased())")
         .accessibilityAdjustableAction { direction in
-            guard device.isOn else { return }
-            device.setTemperature(target + (direction == .increment ? 1 : -1))
+            guard !device.controlsBlocked(for: device.selectedSide.primarySide) else { return }
+            device.setTemperature(profile.temperatureDisplay.step(target, by: direction == .increment ? 1 : -1, unit: settings.temperatureFormat))
         }
     }
 
@@ -83,7 +87,7 @@ struct TempSliderView: View {
         VStack(alignment: .leading, spacing: 10) {
             Text(TemperatureConversion.stateWord(target: target, bed: bed, isOn: device.isOn))
                 .font(.caption.weight(.semibold)).tracking(1.2).foregroundStyle(color)
-            Text(TemperatureConversion.valueText(target, format: format))
+            Text(profile.temperatureDisplay.text(target, unit: format))
                 .font(.mono(84, weight: .light, relativeTo: .largeTitle)).tracking(-3)
                 .lineLimit(1).minimumScaleFactor(0.5)
                 .contentTransition(.numericText(value: Double(target)))

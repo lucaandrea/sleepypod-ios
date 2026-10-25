@@ -8,13 +8,14 @@ final class FreeSleepClient: SleepypodProtocol, @unchecked Sendable {
 
     private var baseURL: URL? {
         if let configuredBaseURL { return configuredBaseURL }
+        if let ownerURL = OwnerConnection.endpoint { return ownerURL }
         guard let ip = UserDefaults.standard.string(forKey: "podIPAddress"), !ip.isEmpty else {
             return nil
         }
         return URL(string: "http://\(ip):3000")
     }
 
-    init(session: URLSession = .shared, baseURL: URL? = nil) {
+    init(session: URLSession = OwnerConnection.session, baseURL: URL? = nil) {
         self.configuredBaseURL = baseURL
         self.session = session
         self.encoder = JSONEncoder()
@@ -207,6 +208,7 @@ final class FreeSleepClient: SleepypodProtocol, @unchecked Sendable {
     }
 
     private func performRequest(_ request: URLRequest) async throws -> (Data, URLResponse) {
+        let request = OwnerConnection.authorize(request)
         do {
             return try await session.data(for: request)
         } catch {

@@ -115,6 +115,7 @@ final class SensorStreamService {
     }
 
     private var podURL: URL? {
+        if OwnerConnection.endpoint != nil { return OwnerConnection.streamURL }
         guard let ip = UserDefaults.standard.string(forKey: "podIPAddress"), !ip.isEmpty else { return nil }
         return URL(string: "ws://\(ip):3001")
     }
@@ -137,8 +138,8 @@ final class SensorStreamService {
         guard let url = podURL else { error = "No pod IP"; return }
         disconnect()
 
-        let session = URLSession(configuration: .default)
-        let ws = session.webSocketTask(with: url)
+        let session = OwnerConnection.session
+        let ws = session.webSocketTask(with: OwnerConnection.streamRequest(for: url))
         self.webSocketTask = ws
         streamURL = url
         ws.resume()

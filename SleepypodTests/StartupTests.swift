@@ -338,6 +338,20 @@ final class StartupTests: XCTestCase {
         XCTAssertNil(status.left.targetTemperatureF)
         XCTAssertNil(status.right.currentTemperatureF)
         XCTAssertFalse(status.left.isOn)
+        let neutral = json.replacingOccurrences(of: "\"heatingDuration\":0", with: "\"heatingDuration\":3600")
+        let poweredFrame = try JSONDecoder().decode(DeviceStatusFrame.self, from: Data(neutral.utf8))
+        XCTAssertTrue(poweredFrame.toDeviceStatus(preserving: nil).left.isOn)
+    }
+
+    func testNeutralTemperatureIsStillPoweredOn() async throws {
+        let config = URLSessionConfiguration.ephemeral
+        config.protocolClasses = [StatusFixtureProtocol.self]
+        let session = URLSession(configuration: config)
+        defer { session.invalidateAndCancel() }
+        let client = SleepypodCoreClient(session: session, baseURL: URL(string: "http://neutral.test:3000"))
+        let status = try await client.getDeviceStatus()
+        XCTAssertTrue(status.left.isOn)
+        XCTAssertEqual(status.left.secondsRemaining, 3600)
     }
 
     func testRebootDoesNotPrimeHardware() async throws {
@@ -366,7 +380,8 @@ private final class StatusFixtureProtocol: URLProtocol, @unchecked Sendable {
         "waterLevel":"ok","isPriming":false,"podVersion":"J00","sensorLabel":"20600","wifiStrength":52}}}}
         """
         client?.urlProtocol(self, didReceive: HTTPURLResponse(url: url, statusCode: 200, httpVersion: nil, headerFields: nil)!, cacheStoragePolicy: .notAllowed)
-        client?.urlProtocol(self, didLoad: Data(json.utf8))
+        let body = url.host == "neutral.test" ? json.replacingOccurrences(of: "\"heatingDuration\":0", with: "\"heatingDuration\":3600") : json
+        client?.urlProtocol(self, didLoad: Data(body.utf8))
         client?.urlProtocolDidFinishLoading(self)
     }
     override func stopLoading() { }

@@ -22,7 +22,7 @@ struct ModernizationTests {
                                       stage: stage, heartRate: 62, hrv: 45, breathingRate: 14)
         }
         let samples = HealthSyncService.samples(record: record, epochs: epochs, podID: "pod-a", preferences: .init())
-        #expect(samples.count == 17)
+        #expect(samples.count == 13) // Unknown HRV definitions must not be written as SDNN.
         let sleep = samples.compactMap { $0 as? HKCategorySample }
         #expect(Set(sleep.map(\.value)) == Set([HKCategoryValueSleepAnalysis.inBed.rawValue,
             HKCategoryValueSleepAnalysis.awake.rawValue, HKCategoryValueSleepAnalysis.asleepREM.rawValue,

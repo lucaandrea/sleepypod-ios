@@ -54,12 +54,12 @@ final class SettingsManager {
     // MARK: - Computed
 
     var temperatureFormat: TemperatureFormat {
-        // Relative is local-only (API only knows F/C)
+        // Comfort display is independent; migrate the old relative setting through UserProfile.
         if let local = UserDefaults.standard.string(forKey: "temperatureFormat"),
            let format = TemperatureFormat(rawValue: local) {
-            return format
+            return format.degreeUnit
         }
-        return settings?.temperatureFormat ?? .fahrenheit
+        return (settings?.temperatureFormat ?? .fahrenheit).degreeUnit
     }
 
     var timeZone: String {

@@ -409,7 +409,7 @@ final class HealthSyncService {
             let id = String(Int(vital.date.timeIntervalSince1970))
             let quantities: [(Bool, HKQuantityTypeIdentifier, Double?, HKUnit, ClosedRange<Double>)] = [
                 (preferences.heartRate, .heartRate, vital.heartRate, .count().unitDivided(by: .minute()), 45...130),
-                (preferences.hrv, .heartRateVariabilitySDNN, vital.hrv, .secondUnit(with: .milli), 0.001...300),
+                (preferences.hrv && vital.canWriteSDNN, .heartRateVariabilitySDNN, vital.hrv, .secondUnit(with: .milli), 0.001...300),
                 (preferences.respiration, .respiratoryRate, vital.breathingRate, .count().unitDivided(by: .minute()), 8...25)
             ]
             for (enabled, type, value, unit, range) in quantities {

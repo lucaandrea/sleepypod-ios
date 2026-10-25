@@ -40,10 +40,10 @@ final class NightPhasesStore {
     }
 
     /// ± one display step on a phase for each side (both when linked); writes after a short pause.
-    func nudge(_ sides: [Side], phase: NightPhaseKey, delta: Int, format: TemperatureFormat) {
+    func nudge(_ sides: [Side], phase: NightPhaseKey, delta: Int, format: TemperatureFormat, display: TemperatureDisplay = .degrees) {
         for side in sides {
             guard let base = value(side, phase) else { continue }
-            let next = Self.step(base, delta: delta, format: format)
+            let next = display.step(base, by: delta, unit: format)
             pending[side, default: [:]][phase] = next
             let key = "\(side.rawValue)-\(phase.rawValue)"
             timers[key]?.cancel()

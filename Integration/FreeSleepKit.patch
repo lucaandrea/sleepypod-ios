@@ -1,0 +1,150 @@
+--- a/FreeSleepKit/App/AppMode.swift
++++ b/FreeSleepKit/App/AppMode.swift
+@@ -3,9 +3,9 @@
+ enum AppMode {
+     static var isDemo: Bool {
+         #if DEBUG
+-        ProcessInfo.processInfo.arguments.contains("--demo")
++        ProcessInfo.processInfo.arguments.contains("--demo") || UserDefaults.standard.string(forKey: "apiBackend") == "demo"
+         #else
+-        false
++        UserDefaults.standard.string(forKey: "apiBackend") == "demo"
+         #endif
+     }
+     static func requireLiveConnection() throws {
+--- a/FreeSleepKit/App/AppModel.swift
++++ b/FreeSleepKit/App/AppModel.swift
+@@ -97,7 +97,10 @@
+                 analyticsKey = key; analyticsRefreshedAt = Date()
+                 analyticsError = analytics == nil ? "Sleep analytics are unavailable. Check the Pod connection." : nil
+             }
+-            message = device == nil ? "Your Pod is unavailable. Check its address and token in Settings." : nil
++            message = device == nil
++                ? (UserDefaults.standard.string(forKey: "podNativeAPIPrefix") == "native/v1"
++                    ? "These features are unavailable on this Core controller. Check that its native service is installed."
++                    : "Your Pod is unavailable. Check its address and token in Settings.") : nil
+         } catch { device = nil; base = nil; analytics = nil; analyticsError = error.localizedDescription; message = error.localizedDescription }
+     }
+ 
+--- a/FreeSleepKit/Features/ConnectionsView.swift
++++ b/FreeSleepKit/Features/ConnectionsView.swift
+@@ -2,16 +2,12 @@
+ 
+ struct ConnectionsView: View {
+     @Environment(AppModel.self) private var model
+-    @AppStorage("appearance") private var appearance = "light"
+     var body: some View {
+         NavigationStack {
+         SleepPage(title: "Make it yours.", narrow: true) {
+-            PodConnectionCard(demo: model.demo)
+-            SleepCard(title: "Appearance", eyebrow: "YOUR SPACE") {
+-                SleepFormField(title: "Color theme") {
+-                    Picker("Color theme", selection: $appearance) { Text("Daylight").tag("light"); Text("Quiet night").tag("dark") }
+-                        .pickerStyle(.menu).labelsHidden().tint(SleepTheme.text).accessibilityLabel("Color theme")
+-                }
++            SleepCard(title: "Pod connection") {
++                Text("Manage the controller address, owner key and backend in More → Pod connection.")
++                    .foregroundStyle(SleepTheme.secondary)
+             }
+             SleepCard(title: "Routines & wake alarms") {
+                 NavigationLink("Edit your routines") { RoutinesView() }.buttonStyle(SleepButtonStyle())
+--- a/FreeSleepKit/Intents/SetTemperatureIntent.swift
++++ b/FreeSleepKit/Intents/SetTemperatureIntent.swift
+@@ -2,7 +2,7 @@
+ 
+ struct SetTemperatureIntent: AppIntent {
+     static let title: LocalizedStringResource = "Set bed temperature"
+-    static let description = IntentDescription("Set the target temperature for one side of your Free Sleep Pod.")
++    static let description = IntentDescription("Set the target temperature for one side of your Pod.")
+     @Parameter(title: "Side", default: .left) var side: BedSide
+     @Parameter(title: "Temperature in Fahrenheit", default: 80) var temperature: Double
+     static var parameterSummary: some ParameterSummary { Summary("Set \(\.$side) bed temperature to \(\.$temperature)°F") }
+--- a/FreeSleepKit/Intents/SyncHealthIntent.swift
++++ b/FreeSleepKit/Intents/SyncHealthIntent.swift
+@@ -2,7 +2,7 @@
+ 
+ struct SyncHealthIntent: AppIntent {
+     static let title: LocalizedStringResource = "Sync Apple Health"
+-    static let description = IntentDescription("Sync the last thirty days for your personal Health side, saved in Free Sleep Settings.")
++    static let description = IntentDescription("Sync the last thirty days for your personal Health side, saved in sleepypod Settings.")
+     static let authenticationPolicy: IntentAuthenticationPolicy = .requiresLocalDeviceAuthentication
+     static var parameterSummary: some ParameterSummary { Summary("Sync the last 30 days for my linked Health side") }
+     @MainActor
+--- a/FreeSleepKit/Services/AppleHomeService.swift
++++ b/FreeSleepKit/Services/AppleHomeService.swift
+@@ -16,8 +16,8 @@
+         switch self {
+         case .idle: "Authorize Apple Home access on this iPhone to list and run your existing scenes."
+         case .waiting: "Waiting for Apple Home access…"
+-        case .restricted: "Apple Home access is unavailable. Check Free Sleep in iPhone Settings; device restrictions may also apply."
+-        case .denied: "Apple Home access is off. Enable it for Free Sleep in iPhone Settings, then return here."
++        case .restricted: "Apple Home access is unavailable. Check sleepypod in iPhone Settings; device restrictions may also apply."
++        case .denied: "Apple Home access is off. Enable it for sleepypod in iPhone Settings, then return here."
+         case .loading: "Loading your homes…"
+         case .empty: "Apple Home access is allowed. Create or join a home in the Home app to use scenes."
+         case .ready: "Choose an existing scene to run. Its actions may affect other accessories in your home."
+--- a/FreeSleepKit/Services/ConnectionSetup.swift
++++ b/FreeSleepKit/Services/ConnectionSetup.swift
+@@ -10,7 +10,7 @@
+     init(settings: PodSettings) throws {
+         guard !settings.id.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+               TimeZone(identifier: settings.timeZone) != nil, ["celsius", "fahrenheit"].contains(settings.temperatureFormat) else {
+-            throw PodError.message("This address did not return valid Free Sleep settings.")
++            throw PodError.message("This address did not return valid Pod settings.")
+         }
+         id = settings.id; timeZone = settings.timeZone
+     }
+--- a/FreeSleepKit/Services/HealthSyncService.swift
++++ b/FreeSleepKit/Services/HealthSyncService.swift
+@@ -85,7 +85,7 @@
+         try AppMode.requireLiveConnection()
+         guard available else { throw PodError.message("Apple Health is unavailable on this device.") }
+         guard !busy else { throw PodError.message("A Health operation is already running.") }
+-        guard var preferences = settings else { throw PodError.message("Save your personal Health side in Free Sleep Settings first.") }
++        guard var preferences = settings else { throw PodError.message("Save your personal Health side in sleepypod Settings first.") }
+         guard let range = HealthSyncPlan.window(settings: preferences, trigger: trigger, now: .now) else { return nil }
+         busy = true; message = "Syncing your \(preferences.side.rawValue) side…"
+         defer { busy = false; operation = nil }
+--- a/FreeSleepKit/Services/PodClient.swift
++++ b/FreeSleepKit/Services/PodClient.swift
+@@ -5,20 +5,25 @@
+     let baseURL: URL
+     let token: String
+     private let transport: URLSession
++    private let apiPrefix: String
+ 
+     static func configured() throws -> PodClient {
+         let address = UserDefaults.standard.string(forKey: "podURL") ?? ""
+-        return try PodClient(address: address, token: TokenStore.read(for: address))
++        let prefix = UserDefaults.standard.string(forKey: "podNativeAPIPrefix") ?? ""
++        return try PodClient(address: address, token: TokenStore.read(for: address), apiPrefix: prefix)
+     }
+-    init(address: String, token: String) throws {
+-        try self.init(address: address, token: token, session: Self.session)
++    init(address: String, token: String, apiPrefix: String = "") throws {
++        try self.init(address: address, token: token, session: Self.session, apiPrefix: apiPrefix)
+     }
+-    init(address: String, token: String, session: URLSession) throws {
++    init(address: String, token: String, session: URLSession, apiPrefix: String = "") throws {
+         baseURL = try ConnectionEndpoint.url(address); self.token = token; transport = session
++        // Keep the selected API contract stable for the lifetime of this connection.
++        self.apiPrefix = apiPrefix
+     }
+ 
+     private func request(_ route: String, method: String, query: [URLQueryItem] = [], body: Data? = nil) async throws -> Data {
+-        var components = URLComponents(url: baseURL.appending(path: "api").appending(path: route), resolvingAgainstBaseURL: false)!
++        try AppMode.requireLiveConnection()
++        var components = URLComponents(url: baseURL.appending(path: "api").appending(path: apiPrefix).appending(path: route), resolvingAgainstBaseURL: false)!
+         if !query.isEmpty { components.queryItems = query }
+         var request = URLRequest(url: components.url!)
+         request.httpMethod = method; request.httpBody = body; request.timeoutInterval = route == "ai/coach" ? 50 : 15
+@@ -29,6 +34,9 @@
+         guard (200..<300).contains(response.statusCode) else {
+             if response.statusCode == 401 || response.statusCode == 403 { throw PodError.message("The connection token was not accepted.") }
+             if response.statusCode == 503 { throw PodError.message("The server is reachable, but the Pod is unavailable.") }
++            if response.statusCode == 404, apiPrefix == "native/v1" {
++                throw PodError.message("This Core controller has not enabled this feature service yet. Temperature, alarms and bed position remain available in the main controls.")
++            }
+             let failure = try? JSONDecoder().decode(APIError.self, from: data)
+             throw PodError.message(failure?.error.message ?? "The Pod returned an error (\(response.statusCode)).")
+         }

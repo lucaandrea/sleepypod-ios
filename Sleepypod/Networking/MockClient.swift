@@ -18,6 +18,9 @@ final class MockClient: SleepypodProtocol, @unchecked Sendable {
 
     private var settings: PodSettings
     private var schedules: Schedules
+    private let sleepLock = NSLock()
+    private var sleepEdits: [Int: SleepRecord] = [:]
+    private var deletedSleepIDs: Set<Int> = []
 
     // MARK: - Init
 
@@ -207,7 +210,7 @@ final class MockClient: SleepypodProtocol, @unchecked Sendable {
             let waketime = bedtime.addingTimeInterval(TimeInterval(sleepSec))
 
             let json: [String: Any] = [
-                "id": 1000 + i,
+                "id": ((side ?? .left) == .left ? 1000 : 2000) + i,
                 "side": (side ?? .left).rawValue,
                 "enteredBedAt": Int(bedtime.timeIntervalSince1970),
                 "leftBedAt": Int(waketime.timeIntervalSince1970),
@@ -218,7 +221,14 @@ final class MockClient: SleepypodProtocol, @unchecked Sendable {
             let record = try JSONDecoder().decode(SleepRecord.self, from: data)
             records.append(record)
         }
-        return records
+        let snapshot = sleepLock.withLock { (sleepEdits, deletedSleepIDs) }
+        return records.compactMap { record -> SleepRecord? in
+            guard !snapshot.1.contains(record.id) else { return nil }
+            let current = snapshot.0[record.id] ?? record
+            guard start.map({ current.enteredBedDate >= $0 }) ?? true,
+                  end.map({ current.enteredBedDate <= $0 }) ?? true else { return nil }
+            return current
+        }
     }
 
     // MARK: - Vitals
@@ -346,15 +356,16 @@ final class MockClient: SleepypodProtocol, @unchecked Sendable {
         let vitals = try await getVitals(side: side, start: record.enteredBedDate, end: record.leftBedDate)
             .filter { $0.date >= record.enteredBedDate && $0.date < record.leftBedDate }
         let movement = try await getMovement(side: side, start: record.enteredBedDate, end: record.leftBedDate)
-        let blocks = await MainActor.run {
+        let staged = await MainActor.run {
             let analyzer = SleepAnalyzer()
             analyzer.analyze(vitals: vitals, movement: movement)
-            return SleepStagesTimelineView.segments(analyzer.stages).map { segment in
+            let blocks = SleepStagesTimelineView.segments(analyzer.stages).map { segment in
                 PodSleepStages.Block(start: segment.start.timeIntervalSince1970 * 1000, end: segment.end.timeIntervalSince1970 * 1000,
                                      stage: segment.stage.rawValue.lowercased())
             }
+            return (blocks, analyzer.qualityScore)
         }
-        return PodSleepStages(blocks: blocks, sleepRecordId: record.id)
+        return PodSleepStages(blocks: staged.0, sleepRecordId: record.id, qualityScore: staged.1.map(Double.init), stagedBy: .init(engine: "rules", version: nil))
     }
 
     // MARK: - Actions (no-ops)
@@ -537,12 +548,16 @@ final class MockClient: SleepypodProtocol, @unchecked Sendable {
     }
 
     func updateSleepRecord(id: Int, enteredBedAt: Date?, leftBedAt: Date?) async throws {
-        // no-op in demo
+        let side: Side = id >= 2000 ? .right : .left
+        guard let original = try await getSleepRecords(side: side).first(where: { $0.id == id }) else {
+            throw APIError.serverError(message: "This sleep record no longer exists.")
+        }
+        let updated = SleepRecord(id: id, side: original.side, enteredBed: enteredBedAt ?? original.enteredBedDate,
+                                  leftBed: leftBedAt ?? original.completedAt, timesExitedBed: original.timesExitedBed)
+        sleepLock.withLock { sleepEdits[id] = updated }
     }
 
-    func deleteSleepRecord(id: Int) async throws {
-        // no-op in demo
-    }
+    func deleteSleepRecord(id: Int) async throws { sleepLock.withLock { _ = deletedSleepIDs.insert(id); sleepEdits.removeValue(forKey: id) } }
 
     func dismissPrimeNotification() async throws {
         // no-op in demo

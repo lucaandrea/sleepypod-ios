@@ -3,22 +3,49 @@ import Charts
 
 /// One night of the pod's stages and vitals set against what an Apple Watch recorded on the same side.
 struct WatchComparisonView: View {
+    enum ReferenceSource: String, CaseIterable, Identifiable {
+        case health = "This iPhone", controller = "Imported on Pod"
+        var id: String { rawValue }
+    }
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(HealthSyncService.self) private var health
     let record: SleepRecord
     let epochs: [SleepAnalyzer.SleepEpoch]
     let vitals: [VitalsRecord]
+    let stageSourceLabel: String?
+    let stageGapTolerance: TimeInterval
     @State private var comparison: WatchComparison?
     @State private var loaded = false
+    @State private var source: ReferenceSource
+    @State private var referenceError: String?
+    @State private var showImport = false
+    @State private var reload = 0
+    private let referenceClient: any WatchReferenceClient
     /// The touched minute, shared so every chart marks the same moment.
     @State private var selection: Date?
 
     private let order: [SleepAnalyzer.SleepStage] = [.wake, .rem, .light, .deep]
     private static let watchColor = Theme.text2
 
+    init(record: SleepRecord, epochs: [SleepAnalyzer.SleepEpoch], vitals: [VitalsRecord], source: ReferenceSource = .health, stageSourceLabel: String? = nil, stageGapTolerance: TimeInterval = 300) {
+        self.record = record; self.epochs = epochs; self.vitals = vitals
+        self.stageSourceLabel = stageSourceLabel; self.stageGapTolerance = stageGapTolerance
+        _source = State(initialValue: source)
+        referenceClient = APIBackend.current.isDemo ? DemoWatchReferenceClient() : CoreWatchReferenceClient()
+    }
+
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 12) {
+                if let stageSourceLabel { Text("Stage source: \(stageSourceLabel)").font(.footnote).foregroundStyle(Theme.text2) }
+                if APIBackend.current != .freeSleep {
+                    Picker("Reference source", selection: $source) { ForEach(ReferenceSource.allCases) { Text($0.rawValue).tag($0) } }.pickerStyle(.segmented)
+                    if source == .controller {
+                        Text("Apple Watch data imported for the \(record.side) side. These references are stored on your controller and are separate from this iPhone’s Health data.")
+                            .font(.footnote).foregroundStyle(Theme.text2)
+                        Button("Import Apple Watch data", systemImage: "arrow.up.doc") { showImport = true }
+                    }
+                }
                 Text(record.enteredBedDate.formatted(.dateTime.weekday(.wide).month(.abbreviated).day()))
                     .font(.mono(12, relativeTo: .caption)).foregroundStyle(Theme.text2).padding(.horizontal, 4)
                 if let comparison, comparison.hasWatchData {
@@ -28,12 +55,15 @@ struct WatchComparisonView: View {
                     vitalCard(heartRateMetric(comparison))
                     vitalCard(hrvMetric(comparison))
                     vitalCard(breathingMetric(comparison))
-                    Text("Touch and hold any chart to read both sources at that minute. sleepypod reports HRV as RMSSD and the Watch as SDNN from a few spot readings, so compare how they move, not their level. Agreement counts only minutes where the Watch recorded a stage.")
+                    Text("Touch and hold any chart to read both sources at that minute. The Pod’s current HRV is a window IBI variability index; older readings may have an unknown definition. Apple Watch reports SDNN. Their absolute HRV values are not interchangeable. Agreement counts only minutes where the Watch recorded a stage.")
                         .font(.footnote).foregroundStyle(Theme.text3).fixedSize(horizontal: false, vertical: true).padding(.horizontal, 4)
                 } else if loaded {
                     ContentUnavailableView("No Apple Watch data", systemImage: "applewatch",
-                                           description: Text(health.readError.map { "Health read failed: \($0)" }
-                                               ?? "Wear your Watch to bed with Sleep tracking on, and allow sleepypod to read Sleep, Heart Rate, HRV and Respiratory Rate in Health."))
+                                           description: Text(source == .controller
+                                               ? referenceError ?? "No imported Watch data overlaps this night. Import this sleeper’s Health export to compare it."
+                                               : health.readError.map { "Health read failed: \($0)" }
+                                                 ?? "Wear your Watch to bed with Sleep tracking on, and allow sleepypod to read Sleep, Heart Rate, HRV and Respiratory Rate in Health."))
+                    if referenceError != nil { Button("Retry") { reload += 1 } }
                 } else {
                     ProgressView().frame(maxWidth: .infinity).padding(.top, 40)
                 }
@@ -44,10 +74,21 @@ struct WatchComparisonView: View {
         .background(Theme.background)
         .navigationTitle("Apple Watch")
         .navigationBarTitleDisplayMode(.inline)
-        .task(id: record.id) {
-            comparison = APIBackend.current.isDemo
-                ? WatchComparison.demo(record: record, epochs: epochs, vitals: vitals)
-                : await health.watchComparison(record: record, epochs: epochs, vitals: vitals)
+        .sheet(isPresented: $showImport) { WatchImportSheet(side: Side(rawValue: record.side) ?? .left) { reload += 1 } }
+        .task(id: "\(record.id)-\(source.rawValue)-\(reload)") {
+            loaded = false; comparison = nil; referenceError = nil
+            if source == .controller {
+                do {
+                    let reference = try await referenceClient.load(side: Side(rawValue: record.side) ?? .left,
+                        window: DateInterval(start: record.enteredBedDate, end: max(record.leftBedDate, record.enteredBedDate.addingTimeInterval(60))))
+                    guard !Task.isCancelled else { return }
+                    comparison = reference.comparison(epochs: epochs, vitals: vitals)
+                } catch { guard !Task.isCancelled else { return }; referenceError = error.localizedDescription }
+            } else {
+                let result = APIBackend.current.isDemo ? WatchComparison.demo(record: record, epochs: epochs, vitals: vitals)
+                    : await health.watchComparison(record: record, epochs: epochs, vitals: vitals)
+                guard !Task.isCancelled else { return }; comparison = result
+            }
             loaded = true
         }
     }
@@ -94,7 +135,7 @@ struct WatchComparisonView: View {
     /// sleepypod's stages as coloured blocks with the Watch's hypnogram drawn through them, so a line
     /// leaving its block is a disagreement at that minute. The strip beneath marks every compared minute.
     private func stagesCard(_ comparison: WatchComparison) -> some View {
-        let ours = SleepStagesTimelineView.segments(epochs).map { WatchComparison.StageSample(start: $0.start, end: $0.end, stage: $0.stage) }
+        let ours = SleepStagesTimelineView.segments(epochs, maxGap: stageGapTolerance).map { WatchComparison.StageSample(start: $0.start, end: $0.end, stage: $0.stage) }
         let theirs = WatchComparison.merged(comparison.watchStages, maxGap: 0)
         let agreement = agreementRuns(theirs)
         return VStack(alignment: .leading, spacing: 10) {
@@ -296,7 +337,7 @@ struct WatchComparisonView: View {
                ours: podReadings(\.hrv), watch: comparison.watchHRV, watchTolerance: 20 * 60,
                stat: averagesText(comparison.hrv, decimals: 0, unit: "ms"),
                accessibility: averagesSummary("HRV", comparison.hrv, decimals: 0, unit: "milliseconds"),
-               footer: "RMSSD vs SDNN")
+               footer: "Pod variability index · Watch SDNN")
     }
 
     private func breathingMetric(_ comparison: WatchComparison) -> Metric {
