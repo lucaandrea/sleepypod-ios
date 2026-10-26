@@ -33,7 +33,6 @@ struct SystemThermalScreen: View {
                     .disabled(model.loadingSnapshot || model.loadingHistory)
             }.padding(16)
         }.accessibilityIdentifier("thermal.content").background(Theme.background).navigationTitle("Thermal").navigationBarTitleDisplayMode(.inline)
-            .preference(key: ExpandedSettingsPresentationKey.self, value: true)
             .task(id: scenePhase) {
                 guard scenePhase == .active else { return }
                 repeat {

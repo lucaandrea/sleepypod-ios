@@ -32,7 +32,6 @@ struct SystemHealthScreen: View {
                 Button("Refresh health") { Task { await model.refresh(history: true) } }.disabled(model.loading)
             }.padding(16)
         }.accessibilityIdentifier("health.content").background(Theme.background)
-            .preference(key: ExpandedSettingsPresentationKey.self, value: true)
             .navigationTitle("Health").navigationBarTitleDisplayMode(.inline)
             .task(id: scenePhase) {
                 guard scenePhase == .active else { return }

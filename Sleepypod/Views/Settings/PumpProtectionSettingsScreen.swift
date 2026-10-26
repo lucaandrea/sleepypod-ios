@@ -30,7 +30,7 @@ struct PumpProtectionSettingsScreen: View {
                 Button("Reload saved settings") { Task { await model.load() } }.disabled(model.busy)
                 if model.changed { Text("Reloading replaces unsaved edits.").font(.caption).foregroundStyle(Theme.text2) }
             }.padding(16)
-        }.accessibilityIdentifier("pump.content").background(Theme.background).navigationTitle("Pump protection").navigationBarTitleDisplayMode(.inline).preference(key: ExpandedSettingsPresentationKey.self, value: true).task { await model.load() }
+        }.accessibilityIdentifier("pump.content").background(Theme.background).navigationTitle("Pump protection").navigationBarTitleDisplayMode(.inline).task { await model.load() }
     }
     // Keep the control separate from a wrapping label at accessibility text sizes.
     private func valueControl(_ title: String, unit: String, value: Binding<Int>, range: ClosedRange<Int>, step: Int = 1, identifier: String) -> some View {

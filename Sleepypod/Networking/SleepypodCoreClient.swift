@@ -179,12 +179,18 @@ final class SleepypodCoreClient: SleepypodProtocol, @unchecked Sendable {
         let dbStatus: ServiceStatus = health.database.status == "ok" ? .healthy : .failed
         let schedStatus: ServiceStatus = scheduler.healthy ? .healthy : .failed
 
-        // Hardware status from real endpoints
-        let hwStatus: ServiceStatus = hardware?.status == "ok" ? .healthy : (hardware != nil ? .failed : .healthy)
-        let hwLatency = hardware.map { String(format: "%.1fms", $0.latencyMs ?? 0) } ?? "OK"
-
-        let dacStatus: ServiceStatus = dacMonitor?.status == "running" ? .healthy : (dacMonitor != nil ? .failed : .healthy)
-        let dacMsg = dacMonitor.map { "\($0.status)\($0.gesturesSupported == true ? " · gestures" : "")" } ?? "OK"
+        // A missing optional endpoint is unknown, never evidence that hardware is healthy.
+        let hwStatus: ServiceStatus = hardware.map { $0.status == "ok" ? .healthy : .failed } ?? .notStarted
+        let hwLatency = hardware.map { $0.error ?? $0.latencyMs.map { String(format: "%.1fms", $0) } ?? "Latency unavailable" } ?? "Hardware status unavailable"
+        let dacStatus: ServiceStatus
+        switch dacMonitor?.status {
+        case "running", "polling", "connected": dacStatus = .healthy
+        case "error", "disconnected": dacStatus = .failed
+        default: dacStatus = .notStarted
+        }
+        let dacMsg = dacMonitor.map { "\($0.status)\($0.gesturesSupported == true ? " · gestures" : "")" } ?? "DAC monitor status unavailable"
+        let wifiStatus: ServiceStatus = wifi.map { $0.connected ? .healthy : .failed } ?? .notStarted
+        let wifiMessage = wifi.map { $0.connected ? $0.signal.map { "\($0)% signal" } ?? "Connected · signal unavailable" : "Disconnected" } ?? "Wi-Fi status unavailable"
 
         return ServerStatus(
             alarmSchedule: info("Alarm Schedule", status: schedStatus, desc: "Wake-up alarm scheduler", msg: "\(scheduler.jobCounts.alarm) alarms"),
@@ -193,9 +199,8 @@ final class SleepypodCoreClient: SleepypodProtocol, @unchecked Sendable {
             podSocket: info("Hardware Socket", status: hwStatus, desc: "DAC communication", msg: hwLatency),
             podSocketMonitor: info("DAC Monitor", status: dacStatus, desc: "Hardware watchdog", msg: dacMsg),
             jobs: info("Job Scheduler", status: schedStatus, desc: "Background task runner", msg: "Jobs: \(scheduler.jobCounts.total)"),
-            logger: info("Wifi", status: wifi?.connected == true ? .healthy : .failed,
-                         desc: wifi?.ssid ?? "Wireless connection",
-                         msg: wifi.map { $0.connected ? "\($0.signal ?? 0)% signal" : "Disconnected" } ?? "Unknown"),
+            logger: info("Wifi", status: wifiStatus,
+                         desc: wifi?.ssid ?? "Wireless connection", msg: wifiMessage),
             powerSchedule: info("Power Schedule", status: schedStatus, desc: "Auto on/off scheduler", msg: "\(scheduler.jobCounts.powerOn + scheduler.jobCounts.powerOff) power jobs"),
             primeSchedule: info("Prime Schedule", status: schedStatus, desc: "Daily prime scheduler", msg: "\(scheduler.jobCounts.prime) prime jobs"),
             rebootSchedule: info("Reboot Schedule", status: schedStatus, desc: "Daily reboot scheduler", msg: "\(scheduler.jobCounts.reboot) reboot jobs"),
@@ -902,6 +907,7 @@ private struct TRPCHardwareHealth: Decodable {
     let status: String
     let socketPath: String?
     let latencyMs: Double?
+    let error: String?
 }
 
 private struct TRPCDacMonitor: Decodable {

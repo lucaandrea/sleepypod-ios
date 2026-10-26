@@ -30,6 +30,14 @@ struct StatusScreen: View {
                             SettingsRow("Thermal", subtitle: "Temperature history and pump protection", icon: "thermometer.medium", iconColor: Theme.warm, chevron: true)
                         }.accessibilityIdentifier("system.thermal")
                         Divider()
+                        NavigationLink { HardwareVibrationScreen() } label: {
+                            SettingsRow("Hardware", subtitle: "Test cover vibration on one side", icon: "waveform", iconColor: Theme.purple, chevron: true)
+                        }.accessibilityIdentifier("system.hardware")
+                        Divider()
+                        NavigationLink { SystemStorageScreen() } label: {
+                            SettingsRow("Storage", subtitle: "Usage, raw history and eligible cleanup", icon: "internaldrive", iconColor: Theme.amber, chevron: true)
+                        }.accessibilityIdentifier("system.storage")
+                        Divider()
                         NavigationLink { SensorCalibrationScreen() } label: {
                             SettingsRow("Calibration", subtitle: "Sensor baselines, signals and validity", icon: "tuningfork", iconColor: Theme.cool, chevron: true)
                         }.accessibilityIdentifier("system.calibration")
@@ -109,7 +117,6 @@ struct StatusScreen: View {
             .padding(.bottom, 20)
         }
         .background(Theme.background)
-        .preference(key: ExpandedSettingsPresentationKey.self, value: true)
         .task {
             statusManager.startPolling()
             await scheduleManager.fetchSchedules()
