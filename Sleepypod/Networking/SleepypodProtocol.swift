@@ -45,13 +45,8 @@ protocol SleepypodProtocol: Sendable {
     func getActiveRunOnce(side: Side) async throws -> RunOnceSession?
     func cancelRunOnce(side: Side) async throws
 
-    // Night / Dawn phases of tonight's schedule (sleepypod-core schedules.getNightPhases)
-    func getNightPhases(side: Side) async throws -> NightPhases?
-    func setNightPhase(side: Side, phase: NightPhaseKey, temperatureF: Int) async throws -> NightPhases?
-
-    // The pod's rule-based stages for one record (sleepypod-core biometrics.getSleepStages)
+    // The Pod's stage classification and personal model.
     func getSleepStages(side: Side, sleepRecordId: Int) async throws -> PodSleepStages
-    // The personal stage model stored on the pod for a side, trained on a Mac (sleepypod-core sleepStages.getModel)
     func getStageModel(side: Side) async throws -> PodStageModelResponse
 }
 
@@ -71,10 +66,7 @@ struct LogSource: Codable, Sendable, Identifiable {
 extension SleepypodProtocol {
     func updateSettings(_ settings: PodSettings, original: PodSettings) async throws -> PodSettings { try await updateSettings(settings) }
     func startPriming() async throws { throw URLError(.unsupportedURL) }
-    func getNightPhases(side: Side) async throws -> NightPhases? { throw URLError(.unsupportedURL) }
-    func setNightPhase(side: Side, phase: NightPhaseKey, temperatureF: Int) async throws -> NightPhases? {
-        throw URLError(.unsupportedURL)
-    }
+
     func getSleepStages(side: Side, sleepRecordId: Int) async throws -> PodSleepStages { throw URLError(.unsupportedURL) }
     func getStageModel(side: Side) async throws -> PodStageModelResponse { throw URLError(.unsupportedURL) }
 }

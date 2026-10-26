@@ -5,7 +5,7 @@ enum NightPhaseKey: String, Codable, Sendable, CaseIterable {
     var title: String { rawValue.capitalized }
 }
 
-/// One Night/Dawn phase of tonight's schedule (`schedules.getNightPhases` on sleepypod-core).
+/// One time-weighted Night/Dawn phase derived from Core's saved schedule rows.
 struct NightPhase: Codable, Sendable, Equatable {
     /// Time-weighted mean of the phase's set points, °F.
     let temperatureF: Double

@@ -38,15 +38,17 @@ struct TemperatureTimeline {
                             result.append(Event(side: side, date: date, temperature: temperature, powered: nil))
                         }
                     }
-                    if schedule.power.enabled,
-                       let on = Self.date(schedule.power.on, on: day, calendar: calendar),
-                       let sameDayOff = Self.date(schedule.power.off, on: day, calendar: calendar) {
-                        // Core stores the wake day's offset explicitly, including windows longer than 24 hours.
-                        let offset = schedule.power.offDayOffset ?? (sameDayOff <= on ? 1 : 0)
-                        guard (0...1).contains(offset), let off = calendar.date(byAdding: .day, value: offset, to: sameDayOff) else { continue }
+                    if schedule.power.enabled, let on = Self.date(schedule.power.on, on: day, calendar: calendar) {
                         result.append(Event(side: side, date: on, temperature: schedule.power.onTemperature, powered: true))
-                        if schedule.power.endAction != .maintain {
-                            result.append(Event(side: side, date: off, temperature: nil, powered: false))
+                        if schedule.power.endAction != .maintain,
+                           let offMinutes = AlarmDraft.clockMinutes(schedule.power.off), let onMinutes = AlarmDraft.clockMinutes(schedule.power.on) {
+                            let offset = schedule.power.offDayOffset ?? (offMinutes <= onMinutes ? 1 : 0)
+                            // Resolve the off clock on its actual calendar day; shifting a DST-adjusted
+                            // clock from the on day can otherwise carry the wrong hour into tomorrow.
+                            if (0...1).contains(offset), let offDay = calendar.date(byAdding: .day, value: offset, to: day),
+                               let off = Self.date(schedule.power.off, on: offDay, calendar: calendar) {
+                                result.append(Event(side: side, date: off, temperature: nil, powered: false))
+                            }
                         }
                     }
                 }
@@ -94,6 +96,24 @@ struct TemperatureTimeline {
     static func date(_ clock: String, on day: Date, calendar: Calendar) -> Date? {
         let parts = clock.split(separator: ":").compactMap { Int($0) }
         guard parts.count == 2, (0...23).contains(parts[0]), (0...59).contains(parts[1]) else { return nil }
-        return calendar.date(bySettingHour: parts[0], minute: parts[1], second: 0, of: day)
+        // Resolve wall time using both offsets, matching Core's cron expansion. Foundation's
+        // setting-hour shortcut can drop the requested minutes when that hour does not exist.
+        let midnight = calendar.startOfDay(for: day)
+        guard let nextDay = calendar.date(byAdding: .day, value: 1, to: midnight) else { return nil }
+        var wall = calendar.dateComponents([.year, .month, .day], from: day)
+        wall.hour = parts[0]; wall.minute = parts[1]; wall.second = 0
+        var utc = Calendar(identifier: .gregorian); utc.timeZone = TimeZone(secondsFromGMT: 0)!
+        guard let nominal = utc.date(from: wall) else { return nil }
+        let before = calendar.timeZone.secondsFromGMT(for: midnight.addingTimeInterval(-3 * 3600))
+        let after = calendar.timeZone.secondsFromGMT(for: nextDay.addingTimeInterval(-1))
+        let candidates = Set([before, after]).map { nominal.addingTimeInterval(-Double($0)) }.filter { candidate in
+            calendar.isDate(candidate, inSameDayAs: day)
+                && calendar.component(.hour, from: candidate) == parts[0]
+                && calendar.component(.minute, from: candidate) == parts[1]
+        }
+        if let first = candidates.min() { return first }
+        // Ordinary spring gaps move forward without losing minutes. Midnight gaps are skipped.
+        let shifted = nominal.addingTimeInterval(-Double(before))
+        return parts[0] != 0 && calendar.isDate(shifted, inSameDayAs: day) ? shifted : nil
     }
 }

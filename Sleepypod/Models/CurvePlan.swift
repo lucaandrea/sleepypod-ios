@@ -118,21 +118,9 @@ struct CurveDraft: Identifiable, Sendable {
         coolest = minimum; warmest = maximum
     }
     mutating func generate(_ intensity: CoolingIntensity) {
-        // Use a fixed, non-DST date so native preset generation produces Pod wall-clock times.
-        var calendar = Calendar(identifier: .gregorian); calendar.timeZone = TimeZone(secondsFromGMT: 0)!
-        let anchor = calendar.date(from: DateComponents(year: 2026, month: 1, day: 15))!
-        let start = anchor.addingTimeInterval(Double(AlarmDraft.clockMinutes(bedtime) ?? 1320) * 60)
-        let end = anchor.addingTimeInterval(Double(AlarmDraft.clockMinutes(wake) ?? 420) * 60)
-        let generated = SleepCurve.generate(bedtime: start, wakeTime: end, coolingIntensity: intensity, minTempF: coolest, maxTempF: warmest, calendar: calendar)
-        var byTime: [String: Double] = [:]
-        for point in generated {
-            let clock = Self.clock(point.time, in: calendar)
-            byTime[clock] = Double(min(warmest, max(coolest, 80 + point.tempOffset)))
-        }
-        points = CurvePoint.ordered(byTime.map { CurvePoint(time: $0.key, temperature: $0.value) })
-    }
-    private static func clock(_ date: Date, in calendar: Calendar) -> String {
-        CurvePoint.clock(calendar.component(.hour, from: date) * 60 + calendar.component(.minute, from: date))
+        let generated = ScheduleCurveAlgorithm.temperatures(bedtimeMinutes: AlarmDraft.clockMinutes(bedtime) ?? 1320,
+            wakeMinutes: AlarmDraft.clockMinutes(wake) ?? 420, intensity: intensity, minimum: coolest, maximum: warmest)
+        points = ScheduleCurveAlgorithm.simplify(generated.map { CurvePoint(time: $0.key, temperature: min(110, max(55, $0.value))) })
     }
 }
 

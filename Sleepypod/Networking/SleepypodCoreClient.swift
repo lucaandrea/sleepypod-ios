@@ -418,14 +418,6 @@ final class SleepypodCoreClient: SleepypodProtocol, @unchecked Sendable {
         guard result.success == true else { throw APIError.serverError(message: "The controller did not confirm run-once cancellation. Refresh its status before trying again.") }
     }
 
-    func getNightPhases(side: Side) async throws -> NightPhases? {
-        try await query("schedules.getNightPhases", input: ["side": side.rawValue])
-    }
-
-    func setNightPhase(side: Side, phase: NightPhaseKey, temperatureF: Int) async throws -> NightPhases? {
-        try await mutate("schedules.setNightPhase", input: ["side": side.rawValue, "phase": phase.rawValue, "temperature": temperatureF])
-    }
-
     func getDiskUsage() async throws -> DiskUsage {
         try await query("system.getDiskUsage")
     }
