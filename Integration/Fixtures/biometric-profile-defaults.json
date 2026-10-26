@@ -1,0 +1,154 @@
+{
+  "resolved": {
+    "heart_rate": {
+      "trackingToleranceBpm": 15,
+      "trackingHistoryLength": 5
+    },
+    "breathing_rate": {
+      "intervalLowerRatio": 0.5,
+      "intervalUpperRatio": 1.5
+    },
+    "hrv_index": {
+      "harmonicTolerance": 0.18,
+      "minimumWindows": 10
+    },
+    "sleep_stages": {
+      "engine": "rules",
+      "ruleset": {
+        "outliers": {
+          "heartRate": {
+            "min": 45,
+            "max": 130
+          },
+          "hrv": {
+            "min": 1,
+            "max": 300
+          },
+          "breathingRate": {
+            "min": 8,
+            "max": 25
+          },
+          "heartRateSpikeStdDevs": 2
+        },
+        "lowSignalBelow": 0.3,
+        "lowSignalRules": [
+          {
+            "stage": "wake",
+            "when": [
+              {
+                "metric": "movement",
+                "op": ">",
+                "value": 200
+              }
+            ]
+          }
+        ],
+        "rules": [
+          {
+            "stage": "wake",
+            "when": [
+              {
+                "metric": "movement",
+                "op": ">",
+                "value": 200
+              }
+            ]
+          },
+          {
+            "stage": "deep",
+            "when": [
+              {
+                "metric": "hrRatio",
+                "op": "<",
+                "value": 0.92
+              }
+            ]
+          },
+          {
+            "stage": "rem",
+            "when": [
+              {
+                "metric": "hrRatio",
+                "op": ">=",
+                "value": 0.95
+              },
+              {
+                "metric": "hrv",
+                "op": "<",
+                "value": 25
+              },
+              {
+                "metric": "movement",
+                "op": "<",
+                "value": 30
+              }
+            ]
+          },
+          {
+            "stage": "rem",
+            "when": [
+              {
+                "metric": "hrRatio",
+                "op": ">=",
+                "value": 0.95
+              },
+              {
+                "metric": "movement",
+                "op": "<",
+                "value": 50
+              },
+              {
+                "metric": "hrv",
+                "op": "<",
+                "value": 40
+              }
+            ]
+          },
+          {
+            "stage": "wake",
+            "when": [
+              {
+                "metric": "hrRatio",
+                "op": ">=",
+                "value": 0.95
+              },
+              {
+                "metric": "movement",
+                "op": ">",
+                "value": 100
+              }
+            ]
+          }
+        ],
+        "fallback": "light",
+        "smoothIsolatedEpochs": true,
+        "transitions": [
+          {
+            "from": "wake",
+            "to": "deep",
+            "via": "light"
+          },
+          {
+            "from": "deep",
+            "to": "wake",
+            "via": "light"
+          },
+          {
+            "from": "deep",
+            "to": "rem",
+            "via": "light"
+          },
+          {
+            "from": "rem",
+            "to": "deep",
+            "via": "light"
+          }
+        ]
+      }
+    }
+  },
+  "overrides": [],
+  "provenance": {},
+  "hash": "933fb4329b8c24091565b43388576d641f2806e0fda52bad44f2a2968b997aba",
+  "manifestHash": "0a8260ae6d3bed227cf5d45a7b955af353dda71363266778b3af135924d1db45"
+}
