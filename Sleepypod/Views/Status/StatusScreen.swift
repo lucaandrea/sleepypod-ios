@@ -22,6 +22,14 @@ struct StatusScreen: View {
 
                 if APIBackend.current != .freeSleep {
                     GroupedCard {
+                        NavigationLink { SystemHealthScreen() } label: {
+                            SettingsRow("Health", subtitle: "Data path, recovery and recorded checks", icon: "point.3.connected.trianglepath.dotted", iconColor: Theme.green, chevron: true)
+                        }.accessibilityIdentifier("system.health")
+                        Divider()
+                        NavigationLink { SystemThermalScreen() } label: {
+                            SettingsRow("Thermal", subtitle: "Temperature history and pump protection", icon: "thermometer.medium", iconColor: Theme.warm, chevron: true)
+                        }.accessibilityIdentifier("system.thermal")
+                        Divider()
                         NavigationLink { SensorCalibrationScreen() } label: {
                             SettingsRow("Calibration", subtitle: "Sensor baselines, signals and validity", icon: "tuningfork", iconColor: Theme.cool, chevron: true)
                         }.accessibilityIdentifier("system.calibration")
