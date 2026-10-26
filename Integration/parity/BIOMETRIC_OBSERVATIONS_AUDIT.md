@@ -18,3 +18,5 @@ Focused validation:
 The fixture generator uses Core `4673112` pure contracts and reports, not a database or personal readings. The literal report hashes are `2e782676e1dcc31a7a9f40981a8cfc65aa8f657d65a9202e9470457edbfd4a86` and `d79f60770602c73891a7b5b233d7bb8dac39b1aaeeeff3260be3adf306ca7996`. All eight REST routes are asserted. No real worker scheduling or execution is established.
 
 GitHub validation/merge remain pending. App version/build remain 0.2.0 (7); full parity and TestFlight delivery are still in progress.
+
+PR #25 passed build, contract-test, lint and done, then merged at `4a7ecb87bc4951e9fefe133a4d7b857b0430958c` on 2026-10-26. The feature branch was removed.

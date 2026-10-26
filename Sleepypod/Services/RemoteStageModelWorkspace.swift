@@ -6,8 +6,8 @@ import Observation
     private(set) var state: RemoteStageModelState?
     private(set) var prepared: RemoteStageModelDocument?
     private(set) var filename: String?
-    var choice: Int?
-    var nights = 7
+    var choice: Int? { didSet { if choice != oldValue { clearPreview() } } }
+    var nights = 7 { didSet { if nights != oldValue { clearPreview() } } }
     private(set) var preview: RemoteStageModelPreview?
     private(set) var busy = false
     private(set) var previewing = false
@@ -17,6 +17,8 @@ import Observation
     private var revision = 0
     private var previewRevision = 0
     var chosen: RemoteStageModelItem? { state?.library.first { $0.id == choice } }
+    var canPreview: Bool { !busy && !previewing && state?.previewSupported == true && (prepared != nil || chosen != nil) }
+    var previewTitle: String { prepared?.version ?? chosen?.version ?? "Choose a model" }
     var canApply: Bool { !busy && state?.supported == true && (choice == nil ? state?.selection?.active == true : chosen != nil && chosen?.active == false) }
     init(side: Side, client: any RemoteStageModelClient) { self.side = side; self.client = client }
     func load(side: Side? = nil) async {
@@ -77,13 +79,15 @@ import Observation
         } catch { self.error = error.localizedDescription }
     }
     func previewModel() async {
-        guard !busy, state?.previewSupported == true, prepared != nil || state?.selection?.model != nil else { return }
+        guard canPreview else { return }
         previewRevision += 1; let request = previewRevision
-        let selected = side; let document = prepared; let window = nights
+        let selected = side; let document = prepared; let window = nights; let selectedID = choice
+        let modelId = document == nil ? selectedID : nil
         previewing = true; error = nil; preview = nil
         do {
-            let result = try await client.preview(side: selected, document: document, nights: window)
-            guard previewRevision == request, side == selected, nights == window, prepared == document, !Task.isCancelled else { return }
+            let result = try await client.preview(side: selected, document: document, modelId: modelId, nights: window)
+            guard previewRevision == request, side == selected, choice == selectedID, nights == window, prepared == document, !Task.isCancelled else { return }
+            try result.validate(expectedVersion: document?.version ?? chosen?.version ?? "", maximumNights: window)
             preview = result
         } catch { if previewRevision == request, !Task.isCancelled { self.error = error.localizedDescription } }
         if previewRevision == request { previewing = false }

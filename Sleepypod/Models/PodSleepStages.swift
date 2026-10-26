@@ -29,7 +29,22 @@ struct PodSleepStages: Decodable, Sendable {
     let totalSleepMs: Double?
     let stagedBy: StagedBy?
     let stageView: StageView?
-    struct StagedBy: Decodable, Sendable { let engine: String; let version: String? }
+    struct StagedBy: Decodable, Sendable {
+        let engine: String
+        let version: String?
+        let modelHash: String?
+        let reason: String?
+        init(engine: String, version: String?, modelHash: String? = nil, reason: String? = nil) {
+            self.engine = engine; self.version = version; self.modelHash = modelHash; self.reason = reason
+        }
+        var fallbackExplanation: String? {
+            switch reason {
+            case "no_model_epochs": "Rules were used because the selected model produced no usable epochs."
+            case "model_evaluation_failed": "Rules were used because model evaluation failed."
+            default: nil
+            }
+        }
+    }
     struct StageView: Decodable, Sendable { let provenance: RemoteStageState.Provenance }
 
     init(blocks: [Block], sleepRecordId: Int?, qualityScore: Double? = nil, totalSleepMs: Double? = nil, stagedBy: StagedBy? = nil, stageView: StageView? = nil) {

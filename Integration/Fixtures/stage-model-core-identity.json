@@ -1,0 +1,328 @@
+{
+  "source": "Core pure schema and stageNight; synthetic readings, no database or real records",
+  "maximumBytes": 4194304,
+  "model": {
+    "version": "Demo forest",
+    "kind": "forest",
+    "classes": [
+      "wake",
+      "light",
+      "deep",
+      "rem"
+    ],
+    "featureContract": [
+      "hrZ",
+      "hrStdZ",
+      "motionZ",
+      "nightFraction"
+    ],
+    "epochSeconds": 300,
+    "trees": [
+      {
+        "f": [
+          0,
+          -1,
+          2,
+          -1,
+          -1
+        ],
+        "t": [
+          -0.5,
+          0,
+          1,
+          0,
+          0
+        ],
+        "l": [
+          1,
+          -1,
+          3,
+          -1,
+          -1
+        ],
+        "r": [
+          2,
+          -1,
+          4,
+          -1,
+          -1
+        ],
+        "v": [
+          [
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            1,
+            9,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            1,
+            8,
+            1,
+            0
+          ],
+          [
+            7,
+            2,
+            1,
+            0
+          ]
+        ]
+      }
+    ],
+    "metrics": {
+      "nestedSelection": {
+        "nights": 10,
+        "kappa": 0.62,
+        "accuracy": 0.8,
+        "recall": {
+          "wake": 0.7,
+          "light": 0.82,
+          "deep": 0.77,
+          "rem": 0.64
+        }
+      },
+      "rules": {
+        "kappa": 0.4
+      },
+      "demo": "Synthetic scores for interface demonstration only"
+    },
+    "source": "Synthetic demo fixture",
+    "testVectors": [
+      {
+        "inputs": {
+          "hrZ": -1,
+          "hrStdZ": 0,
+          "motionZ": 0,
+          "nightFraction": 0.5
+        },
+        "expected": 2
+      },
+      {
+        "inputs": {
+          "hrZ": 0,
+          "hrStdZ": 0,
+          "motionZ": 2,
+          "nightFraction": 0.5
+        },
+        "expected": 0
+      }
+    ]
+  },
+  "modelHash": "8a5032bd96d24ea97d5c122da89e804d6c7a72be757c87829974a185d3b5d54e",
+  "selection": {
+    "model": {
+      "version": "Demo forest",
+      "kind": "forest",
+      "classes": [
+        "wake",
+        "light",
+        "deep",
+        "rem"
+      ],
+      "featureContract": [
+        "hrZ",
+        "hrStdZ",
+        "motionZ",
+        "nightFraction"
+      ],
+      "epochSeconds": 300,
+      "trees": [
+        {
+          "f": [
+            0,
+            -1,
+            2,
+            -1,
+            -1
+          ],
+          "t": [
+            -0.5,
+            0,
+            1,
+            0,
+            0
+          ],
+          "l": [
+            1,
+            -1,
+            3,
+            -1,
+            -1
+          ],
+          "r": [
+            2,
+            -1,
+            4,
+            -1,
+            -1
+          ],
+          "v": [
+            [
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              1,
+              9,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              1,
+              8,
+              1,
+              0
+            ],
+            [
+              7,
+              2,
+              1,
+              0
+            ]
+          ]
+        }
+      ],
+      "metrics": {
+        "nestedSelection": {
+          "nights": 10,
+          "kappa": 0.62,
+          "accuracy": 0.8,
+          "recall": {
+            "wake": 0.7,
+            "light": 0.82,
+            "deep": 0.77,
+            "rem": 0.64
+          }
+        },
+        "rules": {
+          "kappa": 0.4
+        },
+        "demo": "Synthetic scores for interface demonstration only"
+      },
+      "source": "Synthetic demo fixture",
+      "testVectors": [
+        {
+          "inputs": {
+            "hrZ": -1,
+            "hrStdZ": 0,
+            "motionZ": 0,
+            "nightFraction": 0.5
+          },
+          "expected": 2
+        },
+        {
+          "inputs": {
+            "hrZ": 0,
+            "hrStdZ": 0,
+            "motionZ": 2,
+            "nightFraction": 0.5
+          },
+          "expected": 0
+        }
+      ]
+    },
+    "uploadedAt": 1790816400000,
+    "active": true,
+    "modelHash": "8a5032bd96d24ea97d5c122da89e804d6c7a72be757c87829974a185d3b5d54e"
+  },
+  "library": [
+    {
+      "id": 11,
+      "version": "Demo forest",
+      "kind": "forest",
+      "uploadedAt": 1790816400000,
+      "metrics": {
+        "nestedSelection": {
+          "nights": 10,
+          "kappa": 0.62,
+          "accuracy": 0.8,
+          "recall": {
+            "wake": 0.7,
+            "light": 0.82,
+            "deep": 0.77,
+            "rem": 0.64
+          }
+        },
+        "rules": {
+          "kappa": 0.4
+        },
+        "demo": "Synthetic scores for interface demonstration only"
+      },
+      "selected": true,
+      "active": true,
+      "modelHash": "8a5032bd96d24ea97d5c122da89e804d6c7a72be757c87829974a185d3b5d54e"
+    }
+  ],
+  "active": {
+    "blocks": [
+      {
+        "start": 1790816400000,
+        "end": 1790818200000,
+        "stage": "light"
+      }
+    ],
+    "sleepRecordId": 41,
+    "stagedBy": {
+      "engine": "model",
+      "version": "Demo forest",
+      "modelHash": "8a5032bd96d24ea97d5c122da89e804d6c7a72be757c87829974a185d3b5d54e",
+      "reason": "active_model"
+    }
+  },
+  "rules": {
+    "blocks": [
+      {
+        "start": 1790816400000,
+        "end": 1790817000000,
+        "stage": "light"
+      },
+      {
+        "start": 1790817000000,
+        "end": 1790817300000,
+        "stage": "deep"
+      },
+      {
+        "start": 1790817300000,
+        "end": 1790818440000,
+        "stage": "light"
+      }
+    ],
+    "sleepRecordId": 41,
+    "stagedBy": {
+      "engine": "rules",
+      "version": null,
+      "modelHash": null,
+      "reason": "rules_selected"
+    }
+  },
+  "noEpochs": {
+    "blocks": [],
+    "sleepRecordId": 41,
+    "stagedBy": {
+      "engine": "rules",
+      "version": null,
+      "modelHash": null,
+      "reason": "no_model_epochs"
+    }
+  }
+}
