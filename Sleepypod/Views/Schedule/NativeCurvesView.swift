@@ -180,7 +180,7 @@ struct NativeCurveEditor: View {
                         }.buttonStyle(.bordered).accessibilityIdentifier("curve.preset")
                     }.cardStyle()
                     if !draft.points.isEmpty {
-                        TemperatureCurve(points: draft.ordered.map { RunOnceSetPoint(time: $0.time, temperature: $0.temperature) }, bedtime: draft.ordered.first?.time ?? draft.bedtime, wake: draft.ordered.last?.time ?? draft.wake).cardStyle()
+                        EditableTemperatureCurve(points: $draft.points) { pointEditor = $0 }
                     }
                     VStack(alignment: .leading, spacing: 10) {
                         Eyebrow("SET POINTS")
@@ -213,7 +213,7 @@ struct NativeCurveEditor: View {
                     if let validation = draft.validation { Text(validation).font(.footnote).foregroundStyle(Theme.text2).fixedSize(horizontal: false, vertical: true) }
                     CurveFeedback()
                 }.frame(maxWidth: 720).padding(16).frame(maxWidth: .infinity)
-            }.scrollDismissesKeyboard(.interactively).background(Theme.background).environment(\.timeZone, timeZone)
+            }.accessibilityIdentifier("curve.editor.scroll").scrollDismissesKeyboard(.interactively).background(Theme.background).environment(\.timeZone, timeZone)
             .navigationTitle(draft.original == nil ? "New curve" : "Edit curve").navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() }.disabled(model.saving) }

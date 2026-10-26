@@ -11,12 +11,13 @@ struct TemperatureOwnershipView: View {
             VStack(alignment: .leading, spacing: 12) {
                 ForEach(device.isLinked ? Side.allCases : device.selectedSide.sides) { side in
                     if let control = device.deviceStatus?.temperatureControl?[side] {
-                        HStack(alignment: .firstTextBaseline) {
+                        let ownershipLayout = typeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: 8)) : AnyLayout(HStackLayout(alignment: .firstTextBaseline))
+                        ownershipLayout {
                             VStack(alignment: .leading, spacing: 4) {
                                 Text(device.isLinked ? "\(settings.sideName(for: side)) · \(control.title)" : control.title)
                                 if let date = control.holdDate { Text("Until \(clock(date))").foregroundStyle(Theme.text2) }
                             }.font(.mono(12, relativeTo: .caption))
-                            Spacer(minLength: 8)
+                            if !typeSize.isAccessibilitySize { Spacer(minLength: 8) }
                             if control.holdUntil != nil {
                                 Button("Resume") { device.resumeTemperature(side: side) }
                                     .disabled(device.isSendingMutation || device.controlsBlocked(for: side))
@@ -30,7 +31,7 @@ struct TemperatureOwnershipView: View {
                     if !typeSize.isAccessibilitySize { Spacer(minLength: 8) }
                     Picker("Temperature hold duration", selection: $device.holdMinutes) {
                         ForEach(TemperatureHold.options) { Text($0.title).tag($0.minutes) }
-                    }.labelsHidden().pickerStyle(.menu).tint(Theme.text1)
+                    }.labelsHidden().pickerStyle(.menu).tint(Theme.text1).accessibilityIdentifier("temperature.hold").accessibilityValue(TemperatureHold(minutes: device.holdMinutes).title)
                 }
             }.padding(.horizontal, 4)
         }
@@ -46,6 +47,7 @@ struct TemperatureOwnershipView: View {
 struct TemperatureNoticesView: View {
     @Environment(DeviceManager.self) private var device
     @Environment(SettingsManager.self) private var settings
+    @Environment(\.dynamicTypeSize) private var typeSize
 
     var body: some View {
         VStack(spacing: 8) {
@@ -65,8 +67,7 @@ struct TemperatureNoticesView: View {
             if device.deviceStatus?.isPriming == true {
                 notice("Priming", detail: "Temperature controls resume when it finishes.", icon: "drop", color: Theme.cool) { EmptyView() }
             } else if let completion = device.deviceStatus?.primeCompletedNotification {
-                let seconds = completion.timestamp > 1e12 ? completion.timestamp / 1000 : completion.timestamp
-                if Date().timeIntervalSince1970 - seconds < 3600 {
+                if completion.isRecent() {
                     notice("Priming complete", detail: "Your Pod is ready.", icon: "checkmark.circle", color: Theme.green) {
                         Button("Dismiss") { device.dismissPrimeCompletion() }
                     }
@@ -94,7 +95,8 @@ struct TemperatureNoticesView: View {
         VStack(alignment: .leading, spacing: 8) {
             Label(title, systemImage: icon).font(.subheadline.weight(.semibold)).foregroundStyle(color)
             Text(detail).font(.footnote).foregroundStyle(Theme.text2)
-            HStack(spacing: 20) { actions() }.font(.subheadline.weight(.semibold)).disabled(device.isSendingMutation)
+            let layout = typeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: 14)) : AnyLayout(HStackLayout(spacing: 20))
+            layout { actions() }.font(.subheadline.weight(.semibold)).disabled(device.isSendingMutation)
         }.frame(maxWidth: .infinity, alignment: .leading).cardStyle(vertical: 12)
     }
 }

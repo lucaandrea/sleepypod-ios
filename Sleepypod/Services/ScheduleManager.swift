@@ -8,16 +8,23 @@ final class ScheduleManager {
     var selectedDay: DayOfWeek = .monday
     var selectedDays: Set<DayOfWeek> = [.monday]
     var selectedSide: SideSelection = .left
-    var isLoading = false
+    private(set) var isLoading = false
+    private(set) var isSaving = false
+    private(set) var revision = 0
     var error: String?
 
     private var api: SleepypodProtocol
+    private var generation = 0
+    private var readRevision = 0
 
     init(api: SleepypodProtocol) {
         self.api = api
     }
 
-    func switchBackend(_ client: SleepypodProtocol) { api = client; schedules = nil; error = nil }
+    func switchBackend(_ client: SleepypodProtocol) {
+        generation += 1; readRevision += 1; api = client
+        schedules = nil; error = nil; isLoading = false; isSaving = false
+    }
 
     // MARK: - Current Schedule
 
@@ -68,8 +75,7 @@ final class ScheduleManager {
             }
             updated.setSchedule(sideSchedule, for: side)
         }
-        do { schedules = try await api.updateSchedules(updated, days: selectedDays); error = nil; return true }
-        catch { self.error = error.localizedDescription; return false }
+        return await persist(updated, days: selectedDays)
     }
 
     func editPhase(oldTime: String, newTime: String, temperature: Int) async -> Bool {
@@ -88,24 +94,44 @@ final class ScheduleManager {
             }
             updated.setSchedule(sideSchedule, for: side)
         }
-        do {
-            schedules = try await api.updateSchedules(updated, days: selectedDays)
-            error = nil
-            return true
-        } catch { self.error = error.localizedDescription; return false }
+        return await persist(updated, days: selectedDays)
     }
 
     // MARK: - Fetch
 
     func fetchSchedules(preservingError: Bool = false) async {
+        guard !isSaving else { return }
+        let operation = generation, client = api
+        readRevision += 1; let request = readRevision
         isLoading = true
         if !preservingError { error = nil }
+        defer { if operation == generation && request == readRevision { isLoading = false } }
         do {
-            schedules = try await api.getSchedules()
+            let received = try await client.getSchedules()
+            guard operation == generation, request == readRevision, !Task.isCancelled else { return }
+            schedules = received; revision += 1
         } catch {
-            self.error = error.localizedDescription
+            if operation == generation && request == readRevision { self.error = error.localizedDescription }
         }
-        isLoading = false
+    }
+
+    /// Serialize saves and ignore old-controller replies; recovery reads never repeat a write.
+    private func persist(_ desired: Schedules, days: Set<DayOfWeek>) async -> Bool {
+        guard !isSaving else { return false }
+        let operation = generation, client = api
+        readRevision += 1; isLoading = false; isSaving = true; error = nil
+        defer { if operation == generation { isSaving = false } }
+        do {
+            let received = try await client.updateSchedules(desired, days: days)
+            guard operation == generation, !Task.isCancelled else { return false }
+            schedules = received; revision += 1
+            return true
+        } catch {
+            guard operation == generation else { return false }
+            self.error = error.localizedDescription
+            if let received = try? await client.getSchedules(), operation == generation { schedules = received; revision += 1 }
+            return false
+        }
     }
 
     // MARK: - Toggle Power Schedule
@@ -131,14 +157,7 @@ final class ScheduleManager {
             schedules.setSchedule(otherSide, for: other)
         }
 
-        self.schedules = schedules
-
-        do {
-            self.schedules = try await api.updateSchedules(schedules, days: [selectedDay])
-        } catch {
-            self.error = error.localizedDescription
-            await fetchSchedules(preservingError: true)
-        }
+        _ = await persist(schedules, days: [selectedDay])
     }
 
     func togglePowerSchedule() async {
@@ -159,14 +178,7 @@ final class ScheduleManager {
             schedules.setSchedule(otherSide, for: side == .left ? .right : .left)
         }
 
-        self.schedules = schedules
-
-        do {
-            self.schedules = try await api.updateSchedules(schedules, days: [selectedDay])
-        } catch {
-            self.error = error.localizedDescription
-            await fetchSchedules(preservingError: true)
-        }
+        _ = await persist(schedules, days: [selectedDay])
     }
 
     // MARK: - Update Alarm Time
@@ -190,13 +202,7 @@ final class ScheduleManager {
             schedules.setSchedule(other, for: side == .left ? .right : .left)
         }
 
-        self.schedules = schedules
-        do {
-            self.schedules = try await api.updateSchedules(schedules, days: [selectedDay])
-        } catch {
-            self.error = error.localizedDescription
-            await fetchSchedules(preservingError: true)
-        }
+        _ = await persist(schedules, days: [selectedDay])
     }
 
     // MARK: - Update Bedtime
@@ -220,13 +226,7 @@ final class ScheduleManager {
             schedules.setSchedule(other, for: side == .left ? .right : .left)
         }
 
-        self.schedules = schedules
-        do {
-            self.schedules = try await api.updateSchedules(schedules, days: [selectedDay])
-        } catch {
-            self.error = error.localizedDescription
-            await fetchSchedules(preservingError: true)
-        }
+        _ = await persist(schedules, days: [selectedDay])
     }
 
     // MARK: - Update Temperature
@@ -252,14 +252,7 @@ final class ScheduleManager {
             schedules.setSchedule(otherSide, for: side == .left ? .right : .left)
         }
 
-        self.schedules = schedules
-
-        do {
-            self.schedules = try await api.updateSchedules(schedules, days: [selectedDay])
-        } catch {
-            self.error = error.localizedDescription
-            await fetchSchedules(preservingError: true)
-        }
+        _ = await persist(schedules, days: [selectedDay])
     }
 
     // MARK: - Update Power Schedule
@@ -284,13 +277,7 @@ final class ScheduleManager {
             }
         }
 
-        self.schedules = schedules
-        do {
-            self.schedules = try await api.updateSchedules(schedules, days: selectedDays)
-        } catch {
-            self.error = error.localizedDescription
-            await fetchSchedules(preservingError: true)
-        }
+        _ = await persist(schedules, days: selectedDays)
     }
 
     // MARK: - Update Alarm Schedule
@@ -315,13 +302,7 @@ final class ScheduleManager {
             }
         }
 
-        self.schedules = schedules
-        do {
-            self.schedules = try await api.updateSchedules(schedules, days: selectedDays)
-        } catch {
-            self.error = error.localizedDescription
-            await fetchSchedules(preservingError: true)
-        }
+        _ = await persist(schedules, days: selectedDays)
     }
 
     // MARK: - Profile Presets
@@ -342,10 +323,7 @@ final class ScheduleManager {
             }
             updated.setSchedule(sideSchedule, for: side)
         }
-        do {
-            schedules = try await api.updateSchedules(updated, days: selectedDays)
-            error = nil
-        } catch { self.error = error.localizedDescription }
+        _ = await persist(updated, days: selectedDays)
     }
 
 }

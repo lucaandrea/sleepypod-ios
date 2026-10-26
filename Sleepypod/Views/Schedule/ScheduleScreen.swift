@@ -25,6 +25,7 @@ struct ScheduleScreen: View {
                 VStack(spacing: 16) {
                     DaySelectorView().padding(.horizontal, 4)
                     if APIBackend.current != .freeSleep {
+                        CalendarScheduleControls()
                         NavigationLink { NativeCurveLibraryScreen() } label: {
                             SettingsRow("Curves", icon: "waveform.path", chevron: true) { RowValue("View all") }
                         }.buttonStyle(.plain).cardStyle(vertical: 0, horizontal: 0)

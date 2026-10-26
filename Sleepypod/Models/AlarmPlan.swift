@@ -23,9 +23,14 @@ struct AlarmGroup: Identifiable, Equatable, Sendable {
     func nextDate(after now: Date, timeZone: TimeZone) -> Date? {
         var calendar = Calendar(identifier: .gregorian); calendar.timeZone = timeZone
         return rows.filter(\.enabled).compactMap { row -> Date? in
-            guard let clock = AlarmDraft.clockMinutes(row.time), let weekday = DayOfWeek.allCases.firstIndex(of: row.dayOfWeek) else { return nil }
-            return calendar.nextDate(after: now, matching: DateComponents(hour: clock / 60, minute: clock % 60, weekday: weekday + 1),
-                                     matchingPolicy: .nextTime, repeatedTimePolicy: .first)
+            let today = calendar.startOfDay(for: now)
+            // Core fires once in a repeated hour and preserves minutes across an ordinary gap.
+            return (0...14).compactMap { offset -> Date? in
+                guard let day = calendar.date(byAdding: .day, value: offset, to: today),
+                      DayOfWeek.allCases[calendar.component(.weekday, from: day) - 1] == row.dayOfWeek,
+                      let occurrence = TemperatureTimeline.date(row.time, on: day, calendar: calendar), occurrence > now else { return nil }
+                return occurrence
+            }.min()
         }.min()
     }
 }

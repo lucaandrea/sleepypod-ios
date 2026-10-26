@@ -3,6 +3,7 @@ import XCTest
 @MainActor
 final class CurveParityUITests: XCTestCase {
     private func launch(_ appearance: String = "Dark") -> XCUIApplication {
+        continueAfterFailure = false
         let app = XCUIApplication()
         app.launchArguments = ["-apiBackend", "demo", "--demo", "-onboardingComplete", "YES", "-appearance", appearance,
                                "-healthSyncEnabled", "NO", "-uiRoute", "schedule"]
@@ -57,6 +58,33 @@ final class CurveParityUITests: XCTestCase {
         capture(app, "Curves-responsive-preset")
         reveal(app.buttons["Edit set point at 22:00"], app: app)
         capture(app, "Curves-responsive-points")
+        app.navigationBars.buttons["Cancel"].tap()
+    }
+    private func revealGraphPoint(_ point: XCUIElement, app: XCUIApplication) {
+        let scroll = app.scrollViews["curve.editor.scroll"]
+        for _ in 0..<25 {
+            let bounds = scroll.frame.insetBy(dx: 8, dy: 64)
+            if point.exists, point.isHittable, bounds.contains(point.frame) { return }
+            let direction = !point.exists || point.frame.midY > bounds.midY ? 1.0 : -1.0
+            scroll.coordinate(withNormalizedOffset: .init(dx: 0.02, dy: 0.5 + direction * 0.18)).press(forDuration: 0.05, thenDragTo: scroll.coordinate(withNormalizedOffset: .init(dx: 0.02, dy: 0.5 - direction * 0.18)))
+        }
+        XCTFail("The graph point is not fully visible")
+    }
+    func testGraphPointDragRemainsADraftUntilSaved() {
+        let app = launch("Light")
+        app.buttons["curve.edit.1"].tap()
+        let point = app.buttons["curve.handle.1"]
+        revealGraphPoint(point, app: app)
+        let original = point.value as? String; XCTAssertNotNil(original)
+        capture(app, "Curves-drag-before")
+        point.coordinate(withNormalizedOffset: .init(dx: 0.5, dy: 0.5)).press(forDuration: 0.1, thenDragTo: point.coordinate(withNormalizedOffset: .init(dx: 2, dy: -0.5)))
+        XCTAssertNotEqual(point.value as? String, original)
+        XCTAssertTrue(app.staticTexts["curve.dragValue"].exists)
+        capture(app, "Curves-drag-draft")
+        app.navigationBars.buttons["Cancel"].tap()
+        let edit = app.buttons["curve.edit.1"]; reveal(edit, app: app); edit.tap()
+        revealGraphPoint(app.buttons["curve.handle.1"], app: app)
+        XCTAssertEqual(app.buttons["curve.handle.1"].value as? String, original, "Cancelling must not save the dragged point")
         app.navigationBars.buttons["Cancel"].tap()
     }
 }

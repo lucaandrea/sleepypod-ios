@@ -18,6 +18,7 @@ struct TempSliderView: View {
         GeometryReader { geo in
             let pillHeight = min(440, max(240, geo.size.height - 180))
             ScrollView { VStack(spacing: 28) {
+                TemperatureNoticesView()
                 HStack(alignment: .top, spacing: 0) {
                     pill(height: pillHeight).padding(.leading, 12)
                     scaleLabels(height: pillHeight).padding(.leading, 8)

@@ -61,7 +61,7 @@ final class MockClient: SleepypodProtocol, @unchecked Sendable {
     // MARK: - Device Status
 
     func getDeviceStatus() async throws -> DeviceStatus {
-        DeviceStatus(
+        var status = DeviceStatus(
             left: SideStatus(
                 currentTemperatureLevel: 0,
                 currentTemperatureF: leftCurrentF,
@@ -88,6 +88,18 @@ final class MockClient: SleepypodProtocol, @unchecked Sendable {
             freeSleep: FreeSleepInfo(version: "demo", branch: "demo"),
             wifiStrength: 82
         )
+        #if DEBUG
+        if DebugRoute.temperatureContextScenario == "notices" {
+            // Read-only UI fixtures never change ordinary Demo or a connected controller.
+            let now = Date().timeIntervalSince1970
+            status.temperatureControl = .init(left: .init(source: "manual", holdUntil: (now + 1800) * 1000), right: .init(source: "schedule", blocked: "safety"))
+            status.right.isOn = false
+            status.pumpStallNotifications = .init(right: .init(alertId: 1, trippedAt: now * 1000, rpm: 0, restore: .init(targetTemperature: 68, durationSeconds: 3600)))
+            status.primeCompletedNotification = .init(timestamp: now - 60)
+            status.left.isAlarmVibrating = true
+        }
+        #endif
+        return status
     }
 
     func updateDeviceStatus(_ update: DeviceStatusUpdate) async throws {

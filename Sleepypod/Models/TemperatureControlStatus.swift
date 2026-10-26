@@ -41,7 +41,15 @@ struct PumpStallNotice: Codable, Sendable {
         let durationSeconds: Double
     }
 }
-struct PrimeCompletion: Codable, Sendable { let timestamp: Double }
+struct PrimeCompletion: Codable, Sendable {
+    let timestamp: Double
+    func isRecent(now: Date = .now) -> Bool {
+        guard timestamp.isFinite else { return false }
+        let seconds = timestamp > 1e12 ? timestamp / 1000 : timestamp
+        let age = now.timeIntervalSince1970 - seconds
+        return age >= 0 && age < 3600
+    }
+}
 struct AlarmSnooze: Codable, Sendable {
     var active: Bool
     var snoozeUntil: Double?

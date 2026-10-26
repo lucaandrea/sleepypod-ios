@@ -200,6 +200,7 @@ struct ThermalBedSceneView: UIViewRepresentable {
 
     func makeUIView(context: Context) -> SCNView {
         let view = SCNView(frame: .zero)
+        view.accessibilityIdentifier = "thermalBed.scene"
         view.scene = context.coordinator.scene
         view.pointOfView = context.coordinator.camera
         view.backgroundColor = .clear
@@ -265,6 +266,15 @@ struct ThermalBedSceneView: UIViewRepresentable {
         func configure(interactive: Bool, selectedSide: Side?, autoReturn: Bool, reset: Int, onSelect: ((Side) -> Void)?) {
             self.autoReturn = autoReturn
             self.onSelect = onSelect
+            view?.isAccessibilityElement = interactive
+            view?.accessibilityCustomActions = interactive ? [
+                UIAccessibilityCustomAction(name: "Rotate left", target: self, selector: #selector(rotateLeft)),
+                UIAccessibilityCustomAction(name: "Rotate right", target: self, selector: #selector(rotateRight)),
+                UIAccessibilityCustomAction(name: "Zoom in", target: self, selector: #selector(zoomIn)),
+                UIAccessibilityCustomAction(name: "Zoom out", target: self, selector: #selector(zoomOut)),
+                UIAccessibilityCustomAction(name: "Reset view", target: self, selector: #selector(resetView))
+            ] : nil
+            updateAccessibility()
             if !autoReturn { autoReturnTask?.cancel() }
             if lastReset != reset { lastReset = reset; returnCamera() }
             for (side, node) in sideBodies {
@@ -309,16 +319,27 @@ struct ThermalBedSceneView: UIViewRepresentable {
             SCNTransaction.begin()
             SCNTransaction.animationDuration = animated ? 0.7 : 0
             camera.position = SCNVector3(sin(yaw) * cos(elevation) * distance, sin(elevation) * distance, cos(yaw) * cos(elevation) * distance)
-            camera.look(at: SCNVector3(0, 0.3, 0))
+            // Keep the horizon fixed; the convenience overload reuses the previous camera up vector.
+            camera.look(at: SCNVector3(0, 0.3, 0), up: SCNVector3(0, 1, 0), localFront: SCNVector3(0, 0, -1))
             SCNTransaction.commit()
             view?.setNeedsDisplay()
+            updateAccessibility()
         }
+        private func updateAccessibility() {
+            view?.accessibilityValue = "Rotation \(Int((Double(yaw) * 180 / .pi).rounded())) degrees, zoom \(Int((5.8 / distance * 100).rounded())) percent"
+        }
+        @objc func rotateLeft() -> Bool { yaw -= .pi / 8; positionCamera(); scheduleReturn(); return true }
+        @objc func rotateRight() -> Bool { yaw += .pi / 8; positionCamera(); scheduleReturn(); return true }
+        @objc func zoomIn() -> Bool { distance = max(4.4, distance - 0.5); positionCamera(); scheduleReturn(); return true }
+        @objc func zoomOut() -> Bool { distance = min(8, distance + 0.5); positionCamera(); scheduleReturn(); return true }
+        @objc func resetView() -> Bool { returnCamera(); return true }
         private func returnCamera() {
             autoReturnTask?.cancel()
             yaw = -0.3; elevation = 0.68; distance = 5.8
             positionCamera(animated: true)
         }
         private func scheduleReturn() {
+            autoReturnTask?.cancel()
             guard autoReturn else { return }
             autoReturnTask = Task { [weak self] in
                 try? await Task.sleep(for: .seconds(6))

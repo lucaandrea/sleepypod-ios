@@ -37,9 +37,19 @@ final class AlarmParityTests: XCTestCase {
         let formatter = ISO8601DateFormatter()
         let now = try XCTUnwrap(formatter.date(from: "2026-03-08T09:00:00Z"))
         let next = try XCTUnwrap(group.nextDate(after: now, timeZone: TimeZone(identifier: "America/Los_Angeles")!))
-        XCTAssertEqual(formatter.string(from: next), "2026-03-08T10:00:00Z", "Spring-forward 02:30 advances to the next valid local time")
+        XCTAssertEqual(formatter.string(from: next), "2026-03-08T10:30:00Z", "Core shifts spring-forward 02:30 without dropping its minutes")
         sunday.enabled = false
         XCTAssertNil(AlarmGroup(rows: [sunday]).nextDate(after: now, timeZone: .gmt))
+    }
+    func testNextAlarmDoesNotRepeatTheFallBackHourAndSkipsMissingCalendarMidnight() throws {
+        let formatter = ISO8601DateFormatter()
+        var sunday = row(day: .sunday); sunday.time = "01:30"
+        let losAngeles = TimeZone(identifier: "America/Los_Angeles")!
+        let next = try XCTUnwrap(AlarmGroup(rows: [sunday]).nextDate(after: formatter.date(from: "2026-11-01T08:45:00Z")!, timeZone: losAngeles))
+        XCTAssertEqual(formatter.string(from: next), "2026-11-08T09:30:00Z", "Core runs the first repeated wall-clock occurrence only")
+        sunday.time = "00:30"
+        let missingMidnight = try XCTUnwrap(AlarmGroup(rows: [sunday]).nextDate(after: formatter.date(from: "2018-11-04T02:00:00Z")!, timeZone: TimeZone(identifier: "America/Sao_Paulo")!))
+        XCTAssertEqual(formatter.string(from: missingMidnight), "2018-11-11T02:30:00Z")
     }
     func testCurvePatchPreservesExtraPausedAlarmsAndUntouchedPowerRows() throws {
         let rows = CoreScheduleRows(temperature: [CoreTemperatureRow(id: 20, side: "left", dayOfWeek: "monday", time: "22:00", temperature: 72, enabled: true)],

@@ -28,7 +28,7 @@ final class BaseWorkspace {
     init(api: (any BaseClient)? = nil, demo: Bool = false, now: @escaping () -> Date = { .now }) {
         self.demo = demo; self.now = now
         if let api { self.api = api }
-        else if demo { self.api = DemoBaseClient() }
+        else if demo { self.api = DemoBaseClient(scenario: DebugRoute.baseScenario) }
         else { self.api = (try? CoreRESTClient.configured()).map { CoreBaseClient(client: $0) } }
     }
     var independent: Bool { status?.independentControl == true }

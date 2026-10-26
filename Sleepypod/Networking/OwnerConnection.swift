@@ -2,6 +2,11 @@ import Foundation
 import FreeSleepKit
 
 enum OwnerConnection {
+    /// Includes key revisions without reading or retaining the key itself.
+    static var revision: [String] {
+        ["apiBackend", "podURL", "podIPAddress", "ownerConnectionRevision"].map { UserDefaults.standard.string(forKey: $0) ?? "" }
+    }
+
     static var endpoint: URL? {
         guard let saved = UserDefaults.standard.string(forKey: "podURL"), !saved.isEmpty else { return nil }
         return URL(string: saved)
