@@ -23,3 +23,5 @@ Visual inspection found and corrected the original stale cover theme. iPad inspe
 ## Remaining Stage work
 
 Source reconciliation found that native `ThermalBedSceneView.Coordinator.scheduleReturn` waits six seconds and does not gate on selection; web waits eight seconds with nothing selected. Native Stage uses the global control side as scene selection, so it lacks an independent unselected scene state. Resolve camera timing, reduced-motion handling, scene selection and zone rendering in the remaining Temperature/Stage audit. Settings help intentionally describes the preference without promising an unimplemented timing rule.
+
+The camera gap above is resolved by `FINAL_RECONCILIATION.md`: eight idle seconds, separate scene selection, selection-only zones and Reduced Motion handling, with final phone/iPad/maximum-text evidence.

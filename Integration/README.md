@@ -36,11 +36,11 @@ The existing routines, alarm actions, journal drafts, record edits, Health engin
 
 Sleepypod Core uses authenticated `/api/trpc` and `/api` endpoints. Imported personal features use the existing Pod API or an explicitly advertised `/api/native/v1` contract. On Core, server-dependent detail editors first check `/api/v1/capabilities`; absent, unready or unknown compatibility contracts show unavailable without mounting the editor. Local Health history and model setup remain accessible independently.
 
-Core personal comfort, routine editing, imported history and morning check-ins now use their accepted versioned APIs through the native screens. The journal preserves Pod wake dates and source boundaries; conflicts and unconfirmed saves require explicit readback. Other personal integrations remain tracked in `parity/PLAN.md`.
+Core personal comfort, routine editing, imported history and morning check-ins now use their accepted versioned APIs through the native screens. The journal preserves Pod wake dates and source boundaries; conflicts and unconfirmed saves require explicit readback. Personal Shortcuts now use versioned command receipts, while reports and coaching use bounded native presence and source-qualified vital summaries. Optional temperature application history remains distinct from command receipts. Current verification is tracked in `parity/PLAN.md`.
 
 Controller migration remains owned by the coordinated backend chat. This iOS update does not migrate a Pod. Origin-scoped Keychain keys, rejected redirects, HTTPS requirements and same-host WebSocket validation are retained. Demo mode issues no live commands.
 
-Both existing Health workflows remain opt-in. Choose one export workflow per record source to avoid duplicate samples. Hardware movement, alarm vibration, Health/Home authorization and Siri still require attended checks; simulator screenshots use synthetic data.
+Health export remains opt-in. Core foreground, background and Shortcut exports share one native writer and selective consent; the legacy export path is inactive for Core. Hardware movement, alarm vibration, Health/Home authorization and Siri still require attended checks; simulator screenshots use synthetic data.
 
 ## Build and release
 

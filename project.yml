@@ -39,6 +39,8 @@ targets:
       - path: SleepypodUI
       - path: Sleepypod/Models/Haptics.swift
       - path: Integration/UnifiedWorkspace.swift
+      - path: FreeSleepKit/Resources/PrivacyInfo.xcprivacy
+        buildPhase: resources
     dependencies:
       - package: AIProxy
     settings:

@@ -90,10 +90,10 @@ Each item needs source/API coverage, accessible native UI, loading/error/offline
 
 ### Validation and delivery
 
-- [ ] Continue demo exploration through Base, Schedule, Sleep, System's ten tabs and Settings' eleven sections; reconcile findings into this checklist.
-- [ ] Add meaningful conversion/transport/model tests, captured Core fixtures and request assertions; never send live actuator mutations for tests.
-- [ ] Exercise native routes on iPhone and iPad, light/dark, large text, offline/missing/stale cases; capture rendered artifacts.
-- [ ] Re-run existing Health, Shortcuts, schedule and feature integration checks; review privacy/entitlements/licenses.
+- [x] Continue demo exploration through Base, Schedule, Sleep, System's ten tabs and Settings' eleven sections; reconcile findings into this checklist.
+- [x] Add meaningful conversion/transport/model tests, captured Core fixtures and request assertions; never send live actuator mutations for tests.
+- [x] Exercise native routes on iPhone and iPad, light/dark, large text, offline/missing/stale cases; capture rendered artifacts.
+- [x] Re-run existing Health, Shortcuts, schedule and feature integration checks; review privacy/entitlements/licenses.
 - [ ] Update version/build and release notes only after the complete parity audit; archive, validate signatures and upload using Xcode.
 - [ ] In **Safari**, confirm the new build in App Store Connect, assign Free Sleep Internal and individual ciao@luca.ooo, and verify processing/testing status.
 - [ ] Publish truthful final evidence and copyable commit title/description; do not claim physical Pod behavior from fixtures.
@@ -105,7 +105,7 @@ Each item needs source/API coverage, accessible native UI, loading/error/offline
 - [x] One-occurrence wake controls: exact revision-bound skip/time/restore; weekly schedules remain separate. Accepted Core contract is main `f0c40fa`, `docs/NEXT_ALARMS.md`; focused tests and phone/iPad/maximum-text flows pass (`NEXT_ALARM_AUDIT.md`).
 - [x] Map personal App Intents to accepted Core controls/receipts, including atomic comfort modes; retain explicit errors for unsupported routes. See `PERSONAL_ACTIONS_AUDIT.md`; Health and summary intents remain with their separate integration items below.
 - [x] Consolidate Core Health export through one writer, preserving selective consent, disjoint bed presence, source-qualified samples and the promised Shortcut window. See `PERSONAL_HEALTH_AUDIT.md`; real-device Health authorization/write acceptance remains separate.
-- [ ] Adopt optional read-only temperature application history from Core PR #42 (`5c7601d`, `docs/TEMPERATURE_APPLICATIONS.md`), keeping requested targets, accepted calls and physical readings separate.
+- [x] Adopt optional read-only temperature application history from Core PR #42 (`5c7601d`, `docs/TEMPERATURE_APPLICATIONS.md`), keeping requested targets, accepted calls and physical readings separate.
 - [x] Reconcile personal reports/coach with Core's actual bounded source data and the existing reviewed local/cloud intelligence path. Focused logic and phone/iPad/maximum-text evidence: `PERSONAL_REPORTS_AUDIT.md`.
 - [ ] Provision the ESP with the final live Core LAN endpoint/key and verify read-only live status after the owned controller cutover. Wi-Fi and Preview-off are already confirmed.
 
@@ -171,3 +171,6 @@ Alarm context and curve recovery PR #31 passed all four GitHub checks (run `4031
 Imported history PR #32 passed all four GitHub checks (run `40319708069`) and merged into owner main at `7d1efb59acca9ace94033c3c367b23b1a7be971d` on October 26. Its feature branch is removed. Autopilot diagnostics and uncertain-save recovery are tracked in `AUTOPILOT_DIAGNOSTICS_AUDIT.md`; the journal, personal API/Shortcuts, Health consolidation and final release validation remain in progress.
 
 Autopilot diagnostics and save recovery PR #33 passed all four GitHub checks (run `40324282986`) and merged into owner main at `b889a208cfdc1c8795bba81acfac5d79c6c3a8ce` on October 26. Its feature branch is removed. The Xcode 26 compiler workaround and local evidence are in `AUTOPILOT_DIAGNOSTICS_AUDIT.md`.
+
+
+Final native source, Stage, privacy and combined regression reconciliation is recorded in `FINAL_RECONCILIATION.md`. The combined local run passes 925 tests with five live-Pod tests skipped; the optional history audit is `TEMPERATURE_APPLICATIONS_AUDIT.md`. Pending PRs will be integrated together through a final branch checked against main. Release and physical controller acceptance remain open.

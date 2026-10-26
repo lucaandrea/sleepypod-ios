@@ -194,7 +194,8 @@ struct ThermalBedSceneView: UIViewRepresentable {
     var selectedSide: Side?
     var autoReturn = false
     var resetCamera = 0
-    var onSelect: ((Side) -> Void)?
+    var onSelect: ((Side?) -> Void)?
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     func makeCoordinator() -> Coordinator { Coordinator() }
 
@@ -208,14 +209,14 @@ struct ThermalBedSceneView: UIViewRepresentable {
         view.rendersContinuously = false
         view.isUserInteractionEnabled = interactive
         context.coordinator.installGestures(on: view)
-        context.coordinator.configure(interactive: interactive, selectedSide: selectedSide, autoReturn: autoReturn, reset: resetCamera, onSelect: onSelect)
+        context.coordinator.configure(interactive: interactive, selectedSide: selectedSide, autoReturn: autoReturn, reset: resetCamera, onSelect: onSelect, reduceMotion: reduceMotion)
         context.coordinator.update(left: left, right: right)
         return view
     }
 
     func updateUIView(_ view: SCNView, context: Context) {
         view.isUserInteractionEnabled = interactive
-        context.coordinator.configure(interactive: interactive, selectedSide: selectedSide, autoReturn: autoReturn, reset: resetCamera, onSelect: onSelect)
+        context.coordinator.configure(interactive: interactive, selectedSide: selectedSide, autoReturn: autoReturn, reset: resetCamera, onSelect: onSelect, reduceMotion: reduceMotion)
         context.coordinator.update(left: left, right: right)
     }
 
@@ -227,7 +228,10 @@ struct ThermalBedSceneView: UIViewRepresentable {
         private var autoReturnTask: Task<Void, Never>?
         private var autoReturn = false
         private var lastReset = 0
-        private var onSelect: ((Side) -> Void)?
+        private var onSelect: ((Side?) -> Void)?
+        private var selectedSide: Side?
+        private var reduceMotion = false
+        private let returnDelay: Duration
         private var yaw: Float = -0.3
         private var elevation: Float = 0.68
         private var distance: Float = 5.8
@@ -243,7 +247,8 @@ struct ThermalBedSceneView: UIViewRepresentable {
         private static let mattress = (width: 0.95, length: 2.0, height: 0.26, chamfer: 0.05)
         private static let seam = 0.015
 
-        override init() {
+        init(returnDelay: Duration = .seconds(8)) {
+            self.returnDelay = returnDelay
             super.init()
             build()
         }
@@ -263,8 +268,12 @@ struct ThermalBedSceneView: UIViewRepresentable {
             view.addGestureRecognizer(tap)
         }
 
-        func configure(interactive: Bool, selectedSide: Side?, autoReturn: Bool, reset: Int, onSelect: ((Side) -> Void)?) {
-            self.autoReturn = autoReturn
+        func configure(interactive: Bool, selectedSide: Side?, autoReturn: Bool, reset: Int, onSelect: ((Side?) -> Void)?, reduceMotion: Bool = false) {
+            let selectionChanged = self.selectedSide != selectedSide
+            let returnChanged = self.autoReturn != (autoReturn && interactive)
+            self.autoReturn = autoReturn && interactive
+            self.selectedSide = selectedSide
+            self.reduceMotion = reduceMotion
             self.onSelect = onSelect
             view?.isAccessibilityElement = interactive
             view?.accessibilityCustomActions = interactive ? [
@@ -275,7 +284,8 @@ struct ThermalBedSceneView: UIViewRepresentable {
                 UIAccessibilityCustomAction(name: "Reset view", target: self, selector: #selector(resetView))
             ] : nil
             updateAccessibility()
-            if !autoReturn { autoReturnTask?.cancel() }
+            if !self.autoReturn || selectedSide != nil { autoReturnTask?.cancel() }
+            else if selectionChanged || returnChanged { scheduleReturn() }
             if lastReset != reset { lastReset = reset; returnCamera() }
             for (side, node) in sideBodies {
                 node.geometry?.firstMaterial?.emission.contents = selectedSide == side ? UIColor(white: 0.13, alpha: 1) : UIColor.black
@@ -311,13 +321,13 @@ struct ThermalBedSceneView: UIViewRepresentable {
         @objc private func select(_ gesture: UITapGestureRecognizer) {
             guard let view else { return }
             let hit = view.hitTest(gesture.location(in: view), options: [.firstFoundOnly: false])
-            if let side = hit.compactMap({ $0.node.name.flatMap(Side.init(rawValue:)) }).first { onSelect?(side) }
+            onSelect?(hit.compactMap { $0.node.name.flatMap(Side.init(rawValue:)) }.first)
         }
 
         /// Idle redraws stop; only gestures and a short camera return animate the scene.
         private func positionCamera(animated: Bool = false) {
             SCNTransaction.begin()
-            SCNTransaction.animationDuration = animated ? 0.7 : 0
+            SCNTransaction.animationDuration = animated && !reduceMotion ? 0.7 : 0
             camera.position = SCNVector3(sin(yaw) * cos(elevation) * distance, sin(elevation) * distance, cos(yaw) * cos(elevation) * distance)
             // Keep the horizon fixed; the convenience overload reuses the previous camera up vector.
             camera.look(at: SCNVector3(0, 0.3, 0), up: SCNVector3(0, 1, 0), localFront: SCNVector3(0, 0, -1))
@@ -340,10 +350,11 @@ struct ThermalBedSceneView: UIViewRepresentable {
         }
         private func scheduleReturn() {
             autoReturnTask?.cancel()
-            guard autoReturn else { return }
+            guard autoReturn, selectedSide == nil else { return }
+            let delay = returnDelay
             autoReturnTask = Task { [weak self] in
-                try? await Task.sleep(for: .seconds(6))
-                guard !Task.isCancelled else { return }
+                try? await Task.sleep(for: delay)
+                guard !Task.isCancelled, self?.autoReturn == true, self?.selectedSide == nil else { return }
                 self?.returnCamera()
             }
         }

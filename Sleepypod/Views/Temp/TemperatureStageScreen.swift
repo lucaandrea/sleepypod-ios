@@ -17,6 +17,7 @@ struct TemperatureStageScreen: View {
     @State private var history = TemperatureHistoryWorkspace()
     private var historyScope: String { "\(backend)|\(podURL)|\(podIP)|\(ownerRevision)" }
     @State private var cameraReset = 0
+    @State private var sceneSelection: Side?
     @State private var previewFraction: Double?
 
     var body: some View {
@@ -35,20 +36,20 @@ struct TemperatureStageScreen: View {
                     }
                     ZStack(alignment: .bottomTrailing) {
                         ThermalBedSceneView(left: left, right: right, interactive: true,
-                                            selectedSide: device.isLinked ? nil : device.selectedSide.primarySide,
+                                            selectedSide: sceneSelection,
                                             autoReturn: profile.stageAutoReturn, resetCamera: cameraReset) { side in
-                            if !device.isLinked { device.selectSide(side == .left ? .left : .right) }
+                            selectScene(side)
                         }
                         .frame(height: 310)
                         .accessibilityLabel("Interactive mattress")
-                        .accessibilityHint("Drag sideways to rotate. Drag with two fingers to tilt. Pinch to zoom. Select a side using the buttons above.")
-                        Button("Reset view", systemImage: "arrow.counterclockwise") { cameraReset += 1 }
+                        .accessibilityHint("Drag sideways to rotate. Drag with two fingers to tilt. Pinch to zoom. Select a side using the buttons above. Tap it again to clear the selection.")
+                        Button("Reset view", systemImage: "arrow.counterclockwise") { sceneSelection = nil; cameraReset += 1 }
                             .font(.caption).buttonStyle(.bordered).padding(8)
                     }
                     .background(Theme.card).clipShape(RoundedRectangle(cornerRadius: 24))
                     ZStack {
                         VStack(spacing: 18) {
-                            if profile.stageZones != .off {
+                            if profile.stageZones == .always || (profile.stageZones == .selected && sceneSelection != nil) {
                                 zoneReadings(left: left, right: right)
                                 Text(stale ? "Measured regions · no fresh readings" : "Measured regions · outer, center, inner on each side")
                                     .font(.caption2).foregroundStyle(Theme.text3)
@@ -118,9 +119,9 @@ struct TemperatureStageScreen: View {
     private func sideLabel(_ side: Side, preview: TemperatureTimeline.State?) -> some View {
         let status = device.deviceStatus?.status(for: side)
         let target = preview == nil ? status?.targetTemperatureF : preview?.temperature
-        let selected = device.isLinked || device.selectedSide.primarySide == side
+        let selected = sceneSelection != nil && (device.isLinked || sceneSelection == side)
         return Button {
-            if !device.isLinked { device.selectSide(side == .left ? .left : .right) }
+            selectScene(side)
         } label: {
             VStack(spacing: 5) {
                 Text(settings.sideName(for: side)).font(.subheadline.weight(.semibold))
@@ -136,6 +137,11 @@ struct TemperatureStageScreen: View {
             .accessibilityValue(target.map { profile.temperatureDisplay.text($0, unit: settings.temperatureFormat, includeUnit: true) } ?? "Unknown")
             .accessibilityAddTraits(selected ? .isSelected : [])
     }
+    /// Scene inspection is separate from the control side; clearing it never changes a target.
+    private func selectScene(_ side: Side?) {
+        sceneSelection = side == sceneSelection ? nil : side
+        if let side, !device.isLinked { device.selectSide(side == .left ? .left : .right) }
+    }
     private func stateWord(status: SideStatus?, preview: TemperatureTimeline.State?) -> String {
         if let preview { return preview.powered == false ? "SCHEDULED OFF" : "PLANNED TARGET" }
         guard let status else { return "UNAVAILABLE" }
@@ -145,7 +151,7 @@ struct TemperatureStageScreen: View {
     }
     private func zoneReadings(left: [Double?], right: [Double?]) -> some View {
         VStack(spacing: 8) {
-            ForEach(Side.allCases.filter { profile.stageZones == .always || device.isLinked || device.selectedSide.primarySide == $0 }) { side in
+            ForEach(Side.allCases.filter { profile.stageZones == .always || (sceneSelection != nil && (device.isLinked || sceneSelection == $0)) }) { side in
                 let readings = side == .left ? left : right
                 zoneLayout {
                     ForEach(0..<3, id: \.self) { index in

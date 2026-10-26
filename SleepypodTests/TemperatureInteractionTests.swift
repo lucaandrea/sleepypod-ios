@@ -53,5 +53,23 @@ import XCTest
         XCTAssertEqual(abs(simd_dot(base.camera.simdOrientation.vector, baseOrientation.vector)), 1, accuracy: 0.0001)
     }
 
+    func testSelectedCameraDoesNotReturnAndClearingSelectionStartsFreshDelay() async throws {
+        let scene = ThermalBedSceneView.Coordinator(returnDelay: .milliseconds(30))
+        scene.configure(interactive: true, selectedSide: nil, autoReturn: true, reset: 0, onSelect: nil)
+        let original = scene.camera.position
+        _ = scene.rotateLeft()
+        scene.configure(interactive: true, selectedSide: .right, autoReturn: true, reset: 0, onSelect: nil)
+        try await Task.sleep(for: .milliseconds(60))
+        XCTAssertNotEqual(scene.camera.position.x, original.x)
+        scene.configure(interactive: true, selectedSide: nil, autoReturn: true, reset: 0, onSelect: nil)
+        try await Task.sleep(for: .milliseconds(60))
+        XCTAssertEqual(scene.camera.position.x, original.x, accuracy: 0.001)
+        _ = scene.rotateRight()
+        scene.configure(interactive: true, selectedSide: nil, autoReturn: false, reset: 0, onSelect: nil)
+        try await Task.sleep(for: .milliseconds(60))
+        XCTAssertNotEqual(scene.camera.position.x, original.x)
+        scene.stop()
+    }
+
     private func length(_ vector: SCNVector3) -> Float { sqrt(vector.x * vector.x + vector.y * vector.y + vector.z * vector.z) }
 }

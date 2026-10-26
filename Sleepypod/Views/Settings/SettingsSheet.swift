@@ -14,6 +14,7 @@ struct SettingsSheet: View {
     @State private var showAllSettings = DebugRoute.current == "allsettings"
     @State private var showHealth = DebugRoute.current == "health"
     @State private var showPersonalReport = ["reports", "coach"].contains(DebugRoute.current)
+    @State private var showTemperatureApplications = DebugRoute.current == "temperatureApplications"
     @State private var confirmPrime = false
     @State private var primeError: String?
     @State private var showBase = false
@@ -118,6 +119,7 @@ struct SettingsSheet: View {
                 Button("Cancel", role: .cancel) {}
             } message: { Text("Water will circulate through the pod to remove trapped air.") }
             .task { await settings.fetchSettings(); await status.fetchAll() }
+            .navigationDestination(isPresented: $showTemperatureApplications) { TemperatureApplicationScreen() }
             .navigationDestination(isPresented: $showHealth) { HealthAccessView() }
             .navigationDestination(isPresented: $showPersonalReport) {
                 PodFeatureScreen(DebugRoute.current == "coach" ? .coach : .reports, side: device.selectedSide.primarySide.rawValue, nativeActions: nativeActions.bridge)
@@ -298,6 +300,9 @@ struct AllSettingsScreen: View {
                             NavigationLink { NativeCommandHistoryScreen() } label: {
                                 SettingsRow("Command history", icon: "clock.arrow.circlepath", tile: true, chevron: true)
                             }.accessibilityIdentifier("settings.commandHistory")
+                            NavigationLink { TemperatureApplicationScreen() } label: {
+                                SettingsRow("Temperature applications", icon: "thermometer.medium", tile: true, chevron: true)
+                            }.accessibilityIdentifier("settings.temperatureApplications")
                         }
                         if APIBackend.current != .freeSleep {
                             NavigationLink { HomeRoomScreen() } label: {

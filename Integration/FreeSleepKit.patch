@@ -1,20 +1,38 @@
+diff --git a/FreeSleepKit/App/AppMode.swift b/FreeSleepKit/App/AppMode.swift
+index f019ca0..ebdb202 100644
 --- a/FreeSleepKit/App/AppMode.swift
 +++ b/FreeSleepKit/App/AppMode.swift
-@@ -3,9 +3,9 @@
+@@ -1,11 +1,23 @@
+ import Foundation
+ 
  enum AppMode {
++    // Task-scoped test configuration avoids changing another invocation’s saved backend.
++    @TaskLocal static var suppliedBackend: String?
++    static var isCore: Bool {
++        if let suppliedBackend { return suppliedBackend == "sleepypod-core" }
++        if isDemo { return false }
++        if let backend = UserDefaults.standard.string(forKey: "apiBackend"), ["free-sleep", "sleepypod-core"].contains(backend) {
++            return backend == "sleepypod-core"
++        }
++        return !(UserDefaults.standard.string(forKey: "podURL")?.isEmpty == false
++            && (UserDefaults.standard.string(forKey: "podNativeAPIPrefix") ?? "").isEmpty)
++    }
      static var isDemo: Bool {
++        if let suppliedBackend { return suppliedBackend == "demo" }
          #if DEBUG
 -        ProcessInfo.processInfo.arguments.contains("--demo")
-+        ProcessInfo.processInfo.arguments.contains("--demo") || UserDefaults.standard.string(forKey: "apiBackend") == "demo"
++        return ProcessInfo.processInfo.arguments.contains("--demo") || UserDefaults.standard.string(forKey: "apiBackend") == "demo"
          #else
 -        false
-+        UserDefaults.standard.string(forKey: "apiBackend") == "demo"
++        return UserDefaults.standard.string(forKey: "apiBackend") == "demo"
          #endif
      }
      static func requireLiveConnection() throws {
+diff --git a/FreeSleepKit/App/AppModel.swift b/FreeSleepKit/App/AppModel.swift
+index b2ebbb6..cfae8fa 100644
 --- a/FreeSleepKit/App/AppModel.swift
 +++ b/FreeSleepKit/App/AppModel.swift
-@@ -97,7 +97,10 @@
+@@ -97,7 +97,10 @@ final class AppModel {
                  analyticsKey = key; analyticsRefreshedAt = Date()
                  analyticsError = analytics == nil ? "Sleep analytics are unavailable. Check the Pod connection." : nil
              }
@@ -26,9 +44,11 @@
          } catch { device = nil; base = nil; analytics = nil; analyticsError = error.localizedDescription; message = error.localizedDescription }
      }
  
+diff --git a/FreeSleepKit/Features/ConnectionsView.swift b/FreeSleepKit/Features/ConnectionsView.swift
+index bf16c36..1bc23a1 100644
 --- a/FreeSleepKit/Features/ConnectionsView.swift
 +++ b/FreeSleepKit/Features/ConnectionsView.swift
-@@ -2,16 +2,12 @@
+@@ -2,16 +2,12 @@ import SwiftUI
  
  struct ConnectionsView: View {
      @Environment(AppModel.self) private var model
@@ -48,9 +68,276 @@
              }
              SleepCard(title: "Routines & wake alarms") {
                  NavigationLink("Edit your routines") { RoutinesView() }.buttonStyle(SleepButtonStyle())
+diff --git a/FreeSleepKit/Intelligence/IntelligenceWorkspace.swift b/FreeSleepKit/Intelligence/IntelligenceWorkspace.swift
+index 71835d7..02e1a15 100644
+--- a/FreeSleepKit/Intelligence/IntelligenceWorkspace.swift
++++ b/FreeSleepKit/Intelligence/IntelligenceWorkspace.swift
+@@ -24,9 +24,12 @@ final class IntelligenceWorkspace {
+     private var operation: Task<Void, Never>?
+     private var lastRefreshAttempt = Date.distantPast
+     private var restored = false
++    private let generateModel: @Sendable (ModelRequest) async throws -> ModelReply
+ 
+-    init(defaults: UserDefaults = .standard, store: PersonalIntelligenceStore = .init()) {
++    init(defaults: UserDefaults = .standard, store: PersonalIntelligenceStore = .init(),
++         generateModel: @escaping @Sendable (ModelRequest) async throws -> ModelReply = { try await NativeModelClient().generate($0) }) {
+         self.defaults = defaults; self.store = store
++        self.generateModel = generateModel
+         let selected = IntelligenceProvider(rawValue: defaults.string(forKey: "intelligence.provider") ?? "") ?? .apple
+         provider = selected
+         let savedModels = defaults.dictionary(forKey: "intelligence.models") as? [String: String] ?? [:]
+@@ -105,18 +108,22 @@ final class IntelligenceWorkspace {
+               Date.now.timeIntervalSince(lastRefreshAttempt) >= 15 * 60 else { return }
+         await importHistory(authorize: false)
+     }
+-    func generate(facts: [SleepFact], consent: Bool) {
+-        guard !busy, !facts.isEmpty, !AppMode.isDemo, !provider.leavesDevice || consent else { return }
++    func generate(facts: [SleepFact], consent: Bool, sourceName: String? = nil, valid: @escaping @MainActor () -> Bool = { true }) {
++        guard !busy, !facts.isEmpty, !AppMode.isDemo, !provider.leavesDevice || consent, valid() else { return }
+         busy = true; message = nil
+-        let sourceName = source?.name ?? "Pod"
++        let sourceName = sourceName ?? source?.name ?? "Pod"
++        let context = reportContext
+         do {
+             let input = try request(prompt: PersonalReportPrompt.make(facts: facts, question: question))
+             try reserve(provider: input.provider)
+             operation = Task {
+                 defer { busy = false; operation = nil }
+                 do {
+-                    let reply = try await NativeModelClient().generate(input)
+                     try Task.checkCancellation()
++                    guard context == reportContext, valid() else { throw CancellationError() }
++                    let reply = try await generateModel(input)
++                    try Task.checkCancellation()
++                    guard context == reportContext, valid() else { throw CancellationError() }
+                     let report = PersonalSleepReport(id: UUID(), createdAt: .now, provider: input.provider, model: reply.model,
+                         source: sourceName, facts: facts, text: reply.text, inputTokens: reply.inputTokens, outputTokens: reply.outputTokens)
+                     var updated = archive; updated.reports = Array(([report] + updated.reports).prefix(30))
+@@ -127,6 +134,7 @@ final class IntelligenceWorkspace {
+         } catch { busy = false; message = error.localizedDescription }
+     }
+     func cancel() { operation?.cancel() }
++    private var reportContext: [String] { [provider.rawValue, modelID, localAddress, question] }
+     func forgetHistory() {
+         guard !busy else { return }
+         do {
+diff --git a/FreeSleepKit/Intelligence/PersonalEvidenceWorkspace.swift b/FreeSleepKit/Intelligence/PersonalEvidenceWorkspace.swift
+new file mode 100644
+index 0000000..32121ae
+--- /dev/null
++++ b/FreeSleepKit/Intelligence/PersonalEvidenceWorkspace.swift
+@@ -0,0 +1,46 @@
++import Foundation
++import Observation
++
++/// A generation token prevents a late read from repopulating another person's evidence.
++@MainActor @Observable final class PersonalEvidenceWorkspace {
++    private(set) var facts: [SleepFact] = []
++    private(set) var summary: String?
++    private(set) var hasObservations = false
++    private(set) var loading = false
++    private(set) var error: String?
++    private(set) var example = false
++    private var generation = UUID()
++
++    func invalidate() {
++        generation = UUID(); facts = []; summary = nil; hasObservations = false; loading = false; error = nil; example = false
++    }
++    func load(side: String, days: Int, reader: @MainActor () async throws -> NativePodEvidence) async {
++        invalidate(); loading = true
++        let request = generation
++        defer { if request == generation { loading = false } }
++        do {
++            let value = try await reader()
++            try Task.checkCancellation()
++            guard request == generation else { return }
++            guard value.side == side, value.days == days, value.start < value.end,
++                  TimeZone(identifier: value.timeZone) != nil, value.facts.count <= 50,
++                  Set(value.facts.map(\.id)).count == value.facts.count,
++                  value.facts.allSatisfy({ $0.id.hasPrefix("pod.") && $0.text.utf8.count <= 4000 }) else {
++                throw PodError.message("The Pod summary does not match the selected person and range.")
++            }
++            facts = value.facts.map { SleepFact(id: $0.id, text: $0.text) }; summary = value.summary; hasObservations = value.hasObservations
++        } catch {
++            if request == generation && !Task.isCancelled { self.error = "Pod summary is unavailable. Check the connection or use Health history alone. \(error.localizedDescription)" }
++        }
++    }
++    func showExample(side: String, days: Int, empty: Bool = false) {
++        invalidate(); example = true
++        facts = [.init(id: "pod.range", text: "Example only · \(side) side · \(days)-day range. These are synthetic records, not readings from your bed."),
++                 .init(id: "pod.coverage", text: empty ? "No eligible completed presence records. Missing dates are unknown, not zero sleep."
++                    : "Six eligible records across five wake dates. Gaps are unknown; bed presence is not measured sleep."),
++                 .init(id: "pod.processing", text: "Example processing provenance: original observations from two configurations. Means are not one consistently reprocessed baseline.")]
++        if !empty { facts.append(.init(id: "pod.presence", text: "Mean reported presence: 430 minutes per recorded wake date, preserving exits. Presence does not establish sleep stages or quality.")) }
++        summary = empty ? "No eligible completed presence records." : "Example: 430 average presence minutes across five recorded wake dates."
++        hasObservations = !empty
++    }
++}
+diff --git a/FreeSleepKit/Intents/AlarmIntents.swift b/FreeSleepKit/Intents/AlarmIntents.swift
+index 7941fdd..7768acb 100644
+--- a/FreeSleepKit/Intents/AlarmIntents.swift
++++ b/FreeSleepKit/Intents/AlarmIntents.swift
+@@ -5,7 +5,12 @@ struct GetNextAlarmIntent: AppIntent {
+     static let description = IntentDescription("Read the next vibration alarm, its date and the Pod timezone for one side.")
+     @Parameter(title: "Side", default: .left) var side: BedSide
+     static var parameterSummary: some ParameterSummary { Summary("Get the next \(\.$side) bed alarm") }
++    @Dependency(default: NativePodActionBridge.unavailable) var nativeActions: NativePodActionBridge
+     func perform() async throws -> some IntentResult & ReturnsValue<String> & ProvidesDialog {
++        if AppMode.isCore {
++            let summary = try await nativeActions.message(.nextAlarm(side: side.rawValue))
++            return .result(value: summary, dialog: IntentDialog(stringLiteral: summary))
++        }
+         let preview = try await PodActions.nextAlarm(side: side)
+         let summary = "\(side.rawValue.capitalized) side: \(preview.title). \(preview.detail)"
+         return .result(value: summary, dialog: "\(summary)")
+@@ -18,7 +23,9 @@ struct ChangeNextAlarmIntent: AppIntent {
+     @Parameter(title: "Side", default: .left) var side: BedSide
+     @Parameter(title: "Time (HH:mm)") var time: String
+     static var parameterSummary: some ParameterSummary { Summary("Change \(\.$side) next alarm to \(\.$time)") }
++    @Dependency(default: NativePodActionBridge.unavailable) var nativeActions: NativePodActionBridge
+     func perform() async throws -> some IntentResult & ProvidesDialog {
++        if AppMode.isCore { return .result(dialog: IntentDialog(stringLiteral: try await nativeActions.message(.changeAlarm(side: side.rawValue, action: "time", time: time)))) }
+         let preview = try await PodActions.changeAlarm(side: side, action: .time, time: time)
+         return .result(dialog: "\(side.rawValue.capitalized) alarm saved for \(preview.title). \(preview.detail). Vibration requires this side to be on.")
+     }
+@@ -29,7 +36,9 @@ struct SkipNextAlarmIntent: AppIntent {
+     static let description = IntentDescription("Skip the next vibration alarm once, keeping the weekly routine.")
+     @Parameter(title: "Side", default: .left) var side: BedSide
+     static var parameterSummary: some ParameterSummary { Summary("Skip the next \(\.$side) bed alarm once") }
++    @Dependency(default: NativePodActionBridge.unavailable) var nativeActions: NativePodActionBridge
+     func perform() async throws -> some IntentResult & ProvidesDialog {
++        if AppMode.isCore { return .result(dialog: IntentDialog(stringLiteral: try await nativeActions.message(.changeAlarm(side: side.rawValue, action: "skip", time: nil)))) }
+         _ = try await PodActions.changeAlarm(side: side, action: .disable)
+         return .result(dialog: "The next \(side.rawValue) alarm is skipped. Your weekly routine is unchanged.")
+     }
+@@ -40,7 +49,9 @@ struct RestoreAlarmRoutineIntent: AppIntent {
+     static let description = IntentDescription("Clear the current one-time alarm change or skip for one side.")
+     @Parameter(title: "Side", default: .left) var side: BedSide
+     static var parameterSummary: some ParameterSummary { Summary("Restore the \(\.$side) alarm routine") }
++    @Dependency(default: NativePodActionBridge.unavailable) var nativeActions: NativePodActionBridge
+     func perform() async throws -> some IntentResult & ProvidesDialog {
++        if AppMode.isCore { return .result(dialog: IntentDialog(stringLiteral: try await nativeActions.message(.changeAlarm(side: side.rawValue, action: "restore", time: nil)))) }
+         let preview = try await PodActions.changeAlarm(side: side, action: .restore)
+         return .result(dialog: "\(side.rawValue.capitalized) alarm routine restored. \(preview.title). \(preview.detail)")
+     }
+diff --git a/FreeSleepKit/Intents/DismissAlarmIntent.swift b/FreeSleepKit/Intents/DismissAlarmIntent.swift
+index a530f65..6331dd0 100644
+--- a/FreeSleepKit/Intents/DismissAlarmIntent.swift
++++ b/FreeSleepKit/Intents/DismissAlarmIntent.swift
+@@ -4,7 +4,9 @@ struct DismissAlarmIntent: AppIntent {
+     static let title: LocalizedStringResource = "Dismiss bed alarm"
+     @Parameter(title: "Side", default: .left) var side: BedSide
+     static var parameterSummary: some ParameterSummary { Summary("Dismiss the \(\.$side) bed alarm") }
++    @Dependency(default: NativePodActionBridge.unavailable) var nativeActions: NativePodActionBridge
+     func perform() async throws -> some IntentResult & ProvidesDialog {
++        if AppMode.isCore { return .result(dialog: IntentDialog(stringLiteral: try await nativeActions.message(.dismissAlarm(side: side.rawValue)))) }
+         try await PodActions.client().post("deviceStatus", body: [side.rawValue: ["isAlarmVibrating": false]])
+         return .result(dialog: "The alarm dismissal command was sent to your \(side.rawValue) side.")
+     }
+diff --git a/FreeSleepKit/Intents/GetTemperatureIntent.swift b/FreeSleepKit/Intents/GetTemperatureIntent.swift
+index 529f330..44d102f 100644
+--- a/FreeSleepKit/Intents/GetTemperatureIntent.swift
++++ b/FreeSleepKit/Intents/GetTemperatureIntent.swift
+@@ -6,7 +6,9 @@ struct GetTemperatureIntent: AppIntent {
+     @Parameter(title: "Side", default: .left) var side: BedSide
+     @Parameter(title: "Reading", default: .current) var reading: TemperatureReading
+     static var parameterSummary: some ParameterSummary { Summary("Get the \(\.$side) bed’s \(\.$reading) temperature in Fahrenheit") }
++    @Dependency(default: NativePodActionBridge.unavailable) var nativeActions: NativePodActionBridge
+     func perform() async throws -> some IntentResult & ReturnsValue<Double> {
+-        .result(value: try await PodActions.temperature(side: side, reading: reading))
++        if AppMode.isCore { return .result(value: try await nativeActions.number(.readTemperature(side: side.rawValue, current: reading == .current))) }
++        return .result(value: try await PodActions.temperature(side: side, reading: reading))
+     }
+ }
+diff --git a/FreeSleepKit/Intents/PrimePodIntent.swift b/FreeSleepKit/Intents/PrimePodIntent.swift
+index 846cfbc..4fd1a7a 100644
+--- a/FreeSleepKit/Intents/PrimePodIntent.swift
++++ b/FreeSleepKit/Intents/PrimePodIntent.swift
+@@ -4,7 +4,9 @@ struct PrimePodIntent: AppIntent {
+     static let title: LocalizedStringResource = "Prime the Pod"
+     static let description = IntentDescription("Start a water priming cycle for the whole Pod.")
+     static var parameterSummary: some ParameterSummary { Summary("Start a priming cycle for the whole Pod") }
++    @Dependency(default: NativePodActionBridge.unavailable) var nativeActions: NativePodActionBridge
+     func perform() async throws -> some IntentResult & ProvidesDialog {
++        if AppMode.isCore { return .result(dialog: IntentDialog(stringLiteral: try await nativeActions.message(.prime))) }
+         try await PodActions.client().post("deviceStatus", body: ["isPriming": true])
+         return .result(dialog: "A priming command was sent to your Pod.")
+     }
+diff --git a/FreeSleepKit/Intents/SetAwayModeIntent.swift b/FreeSleepKit/Intents/SetAwayModeIntent.swift
+index c922a3c..dbb0040 100644
+--- a/FreeSleepKit/Intents/SetAwayModeIntent.swift
++++ b/FreeSleepKit/Intents/SetAwayModeIntent.swift
+@@ -6,7 +6,9 @@ struct SetAwayModeIntent: AppIntent {
+     @Parameter(title: "Side", default: .left) var side: BedSide
+     @Parameter(title: "Away", default: true) var away: Bool
+     static var parameterSummary: some ParameterSummary { Summary("Set \(\.$side) Away mode to \(\.$away)") }
++    @Dependency(default: NativePodActionBridge.unavailable) var nativeActions: NativePodActionBridge
+     func perform() async throws -> some IntentResult & ProvidesDialog {
++        if AppMode.isCore { return .result(dialog: IntentDialog(stringLiteral: try await nativeActions.message(.away(side: side.rawValue, enabled: away)))) }
+         try await PodActions.client().post("settings", body: [side.rawValue: ["awayMode": away]])
+         return .result(dialog: "Away mode is \(away ? "on" : "off") for your \(side.rawValue) side.")
+     }
+diff --git a/FreeSleepKit/Intents/SetBaseAnglesIntent.swift b/FreeSleepKit/Intents/SetBaseAnglesIntent.swift
+index 653088d..b83c9d4 100644
+--- a/FreeSleepKit/Intents/SetBaseAnglesIntent.swift
++++ b/FreeSleepKit/Intents/SetBaseAnglesIntent.swift
+@@ -6,7 +6,9 @@ struct SetBaseAnglesIntent: AppIntent {
+     @Parameter(title: "Head degrees", default: 0) var head: Int
+     @Parameter(title: "Feet degrees", default: 0) var feet: Int
+     static var parameterSummary: some ParameterSummary { Summary("Move the whole bed to head \(\.$head)° and feet \(\.$feet)°") }
++    @Dependency(default: NativePodActionBridge.unavailable) var nativeActions: NativePodActionBridge
+     func perform() async throws -> some IntentResult & ProvidesDialog {
++        if AppMode.isCore { return .result(dialog: IntentDialog(stringLiteral: try await nativeActions.message(.position(head: head, feet: feet)))) }
+         guard (0...60).contains(head), (0...45).contains(feet) else { throw PodError.message("Head must be 0–60° and feet 0–45°.") }
+         try await PodActions.client().post("base/position", body: ["head": head, "feet": feet, "speed": 50])
+         return .result(dialog: "The position command was sent to your base.")
+diff --git a/FreeSleepKit/Intents/SetBasePresetIntent.swift b/FreeSleepKit/Intents/SetBasePresetIntent.swift
+index 5c02bb9..29810f0 100644
+--- a/FreeSleepKit/Intents/SetBasePresetIntent.swift
++++ b/FreeSleepKit/Intents/SetBasePresetIntent.swift
+@@ -5,7 +5,9 @@ struct SetBasePresetIntent: AppIntent {
+     static let description = IntentDescription("Move the whole adjustable base to a preset. Both sides move together.")
+     @Parameter(title: "Position", default: .flat) var preset: BasePreset
+     static var parameterSummary: some ParameterSummary { Summary("Move the whole bed to \(\.$preset)") }
++    @Dependency(default: NativePodActionBridge.unavailable) var nativeActions: NativePodActionBridge
+     func perform() async throws -> some IntentResult & ProvidesDialog {
++        if AppMode.isCore { return .result(dialog: IntentDialog(stringLiteral: try await nativeActions.message(.preset(preset.rawValue)))) }
+         try await PodActions.client().post("base/preset", body: ["preset": preset.rawValue])
+         return .result(dialog: "The \(preset.rawValue) position command was sent. Both sides move together.")
+     }
+diff --git a/FreeSleepKit/Intents/SetComfortIntent.swift b/FreeSleepKit/Intents/SetComfortIntent.swift
+index cfe80c9..8b78985 100644
+--- a/FreeSleepKit/Intents/SetComfortIntent.swift
++++ b/FreeSleepKit/Intents/SetComfortIntent.swift
+@@ -6,7 +6,9 @@ struct SetComfortIntent: AppIntent {
+     @Parameter(title: "Side", default: .left) var side: BedSide
+     @Parameter(title: "Mode", default: .preview) var mode: ComfortMode
+     static var parameterSummary: some ParameterSummary { Summary("Set \(\.$side) adaptive comfort to \(\.$mode)") }
++    @Dependency(default: NativePodActionBridge.unavailable) var nativeActions: NativePodActionBridge
+     func perform() async throws -> some IntentResult & ProvidesDialog {
++        if AppMode.isCore { return .result(dialog: IntentDialog(stringLiteral: try await nativeActions.message(.comfort(side: side.rawValue, mode: mode.rawValue)))) }
+         try await PodActions.setComfort(side: side, mode: mode)
+         return .result(dialog: "Adaptive comfort is set to \(mode.rawValue) for your \(side.rawValue) side.")
+     }
+diff --git a/FreeSleepKit/Intents/SetPowerIntent.swift b/FreeSleepKit/Intents/SetPowerIntent.swift
+index 317a1d6..45ca7d0 100644
+--- a/FreeSleepKit/Intents/SetPowerIntent.swift
++++ b/FreeSleepKit/Intents/SetPowerIntent.swift
+@@ -5,7 +5,9 @@ struct SetPowerIntent: AppIntent {
+     @Parameter(title: "Side", default: .left) var side: BedSide
+     @Parameter(title: "Turn on", default: true) var enabled: Bool
+     static var parameterSummary: some ParameterSummary { Summary("Set \(\.$side) bed power to \(\.$enabled)") }
++    @Dependency(default: NativePodActionBridge.unavailable) var nativeActions: NativePodActionBridge
+     func perform() async throws -> some IntentResult & ProvidesDialog {
++        if AppMode.isCore { return .result(dialog: IntentDialog(stringLiteral: try await nativeActions.message(.power(side: side.rawValue, enabled: enabled)))) }
+         try await PodActions.client().post("deviceStatus", body: [side.rawValue: ["isOn": enabled]])
+         return .result(dialog: "Your bed power command was sent.")
+     }
+diff --git a/FreeSleepKit/Intents/SetTemperatureIntent.swift b/FreeSleepKit/Intents/SetTemperatureIntent.swift
+index 1e2c2d0..9c1f7c3 100644
 --- a/FreeSleepKit/Intents/SetTemperatureIntent.swift
 +++ b/FreeSleepKit/Intents/SetTemperatureIntent.swift
-@@ -2,7 +2,7 @@
+@@ -2,11 +2,13 @@ import AppIntents
  
  struct SetTemperatureIntent: AppIntent {
      static let title: LocalizedStringResource = "Set bed temperature"
@@ -59,9 +346,50 @@
      @Parameter(title: "Side", default: .left) var side: BedSide
      @Parameter(title: "Temperature in Fahrenheit", default: 80) var temperature: Double
      static var parameterSummary: some ParameterSummary { Summary("Set \(\.$side) bed temperature to \(\.$temperature)°F") }
+-    func perform() async throws -> some IntentResult & ProvidesDialog {
++    @Dependency(default: NativePodActionBridge.unavailable) var nativeActions: NativePodActionBridge
++    func perform() async throws -> IntentResultContainer<Never, Never, Never, IntentDialog> {
++        if AppMode.isCore { return .result(dialog: IntentDialog(stringLiteral: try await nativeActions.message(.temperature(side: side.rawValue, value: temperature)))) }
+         guard temperature.isFinite, (55...110).contains(temperature) else { throw PodError.message("Choose a temperature from 55 to 110°F.") }
+         try await PodActions.client().post("deviceStatus", body: [side.rawValue: ["targetTemperatureF": temperature]])
+         return .result(dialog: "The \(side.rawValue) target temperature was sent to your Pod.")
+diff --git a/FreeSleepKit/Intents/SleepSummaryIntent.swift b/FreeSleepKit/Intents/SleepSummaryIntent.swift
+index 9e1f04a..335ebe6 100644
+--- a/FreeSleepKit/Intents/SleepSummaryIntent.swift
++++ b/FreeSleepKit/Intents/SleepSummaryIntent.swift
+@@ -5,8 +5,13 @@ struct SleepSummaryIntent: AppIntent {
+     static let title: LocalizedStringResource = "Get sleep routine summary"
+     static let authenticationPolicy: IntentAuthenticationPolicy = .requiresLocalDeviceAuthentication
+     @Parameter(title: "Side", default: .left) var side: BedSide
++    @Dependency(default: NativePodActionBridge.unavailable) var nativeActions: NativePodActionBridge
+     static var parameterSummary: some ParameterSummary { Summary("Get the \(\.$side) bed presence summary") }
+     func perform() async throws -> some IntentResult & ReturnsValue<String> & ProvidesDialog {
++        if AppMode.isCore {
++            let summary = try await nativeActions.message(.summary(side: side.rawValue))
++            return .result(value: summary, dialog: IntentDialog(stringLiteral: summary))
++        }
+         let analytics: SleepAnalytics = try await PodActions.client().get("analytics", query: [URLQueryItem(name: "side", value: side.rawValue)])
+         let summary = "Recent bed presence: \(SleepAnalytics.duration(analytics.summary.averageOccupiedMinutes)). "
+             + "\(analytics.summary.recordedNights) recorded nights. Presence is not measured sleep."
+diff --git a/FreeSleepKit/Intents/StopBaseIntent.swift b/FreeSleepKit/Intents/StopBaseIntent.swift
+index 9083a77..2bd5e13 100644
+--- a/FreeSleepKit/Intents/StopBaseIntent.swift
++++ b/FreeSleepKit/Intents/StopBaseIntent.swift
+@@ -3,7 +3,9 @@ import AppIntents
+ struct StopBaseIntent: AppIntent {
+     static let title: LocalizedStringResource = "Stop bed movement"
+     static var parameterSummary: some ParameterSummary { Summary("Send Stop to the whole bed") }
++    @Dependency(default: NativePodActionBridge.unavailable) var nativeActions: NativePodActionBridge
+     func perform() async throws -> some IntentResult & ProvidesDialog {
++        if AppMode.isCore { return .result(dialog: IntentDialog(stringLiteral: try await nativeActions.message(.stopBase))) }
+         try await PodActions.client().action("base/stop")
+         return .result(dialog: "Stop was sent to your base.")
+     }
+diff --git a/FreeSleepKit/Intents/SyncHealthIntent.swift b/FreeSleepKit/Intents/SyncHealthIntent.swift
+index d6c9881..812589a 100644
 --- a/FreeSleepKit/Intents/SyncHealthIntent.swift
 +++ b/FreeSleepKit/Intents/SyncHealthIntent.swift
-@@ -2,7 +2,7 @@
+@@ -2,12 +2,18 @@ import AppIntents
  
  struct SyncHealthIntent: AppIntent {
      static let title: LocalizedStringResource = "Sync Apple Health"
@@ -69,10 +397,54 @@
 +    static let description = IntentDescription("Sync the last thirty days for your personal Health side, saved in sleepypod Settings.")
      static let authenticationPolicy: IntentAuthenticationPolicy = .requiresLocalDeviceAuthentication
      static var parameterSummary: some ParameterSummary { Summary("Sync the last 30 days for my linked Health side") }
++    @Dependency(default: NativePodActionBridge.unavailable) var nativeActions: NativePodActionBridge
      @MainActor
+     func perform() async throws -> some IntentResult & ReturnsValue<Int> & ProvidesDialog {
+-        let count = try await HealthSyncService.shared.synchronize() ?? 0
++        let count: Int
++        if AppMode.isCore { count = try await nativeActions.syncHealth() }
++        else {
++            guard let saved = try await HealthSyncService.shared.synchronize() else { throw PodError.message("Health sync did not finish. Review Apple Health settings in the app.") }
++            count = saved
++        }
+         return .result(value: count, dialog: "Wrote or updated \(count) Apple Health samples for your linked side.")
+     }
+ }
+diff --git a/FreeSleepKit/Models/NativePodEvidence.swift b/FreeSleepKit/Models/NativePodEvidence.swift
+new file mode 100644
+index 0000000..e3d6778
+--- /dev/null
++++ b/FreeSleepKit/Models/NativePodEvidence.swift
+@@ -0,0 +1,24 @@
++import Foundation
++
++/// Calculated, reviewable evidence crosses the module boundary; raw records and credentials do not.
++public struct NativeSleepFact: Sendable, Equatable, Identifiable {
++    public let id: String
++    public let text: String
++    public init(id: String, text: String) { self.id = id; self.text = text }
++}
++
++public struct NativePodEvidence: Sendable, Equatable {
++    public let side: String
++    public let days: Int
++    public let timeZone: String
++    public let start: Date
++    public let end: Date
++    public let facts: [NativeSleepFact]
++    public let summary: String
++    public let hasObservations: Bool
++    public init(side: String, days: Int, timeZone: String, start: Date, end: Date,
++                facts: [NativeSleepFact], summary: String, hasObservations: Bool) {
++        self.side = side; self.days = days; self.timeZone = timeZone; self.start = start; self.end = end
++        self.facts = facts; self.summary = summary; self.hasObservations = hasObservations
++    }
++}
+diff --git a/FreeSleepKit/Services/AppleHomeService.swift b/FreeSleepKit/Services/AppleHomeService.swift
+index 6216f06..c211e6b 100644
 --- a/FreeSleepKit/Services/AppleHomeService.swift
 +++ b/FreeSleepKit/Services/AppleHomeService.swift
-@@ -16,8 +16,8 @@
+@@ -16,8 +16,8 @@ enum HomeAccessState: Equatable {
          switch self {
          case .idle: "Authorize Apple Home access on this iPhone to list and run your existing scenes."
          case .waiting: "Waiting for Apple Home access…"
@@ -83,9 +455,11 @@
          case .loading: "Loading your homes…"
          case .empty: "Apple Home access is allowed. Create or join a home in the Home app to use scenes."
          case .ready: "Choose an existing scene to run. Its actions may affect other accessories in your home."
+diff --git a/FreeSleepKit/Services/ConnectionSetup.swift b/FreeSleepKit/Services/ConnectionSetup.swift
+index 0c7ed0b..a7eb515 100644
 --- a/FreeSleepKit/Services/ConnectionSetup.swift
 +++ b/FreeSleepKit/Services/ConnectionSetup.swift
-@@ -10,7 +10,7 @@
+@@ -10,7 +10,7 @@ struct ConnectionIdentity: Equatable, Sendable {
      init(settings: PodSettings) throws {
          guard !settings.id.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
                TimeZone(identifier: settings.timeZone) != nil, ["celsius", "fahrenheit"].contains(settings.temperatureFormat) else {
@@ -94,9 +468,11 @@
          }
          id = settings.id; timeZone = settings.timeZone
      }
+diff --git a/FreeSleepKit/Services/HealthSyncService.swift b/FreeSleepKit/Services/HealthSyncService.swift
+index 6ab8f45..9c8e25b 100644
 --- a/FreeSleepKit/Services/HealthSyncService.swift
 +++ b/FreeSleepKit/Services/HealthSyncService.swift
-@@ -85,7 +85,7 @@
+@@ -85,7 +85,7 @@ final class HealthSyncService {
          try AppMode.requireLiveConnection()
          guard available else { throw PodError.message("Apple Health is unavailable on this device.") }
          guard !busy else { throw PodError.message("A Health operation is already running.") }
@@ -105,9 +481,108 @@
          guard let range = HealthSyncPlan.window(settings: preferences, trigger: trigger, now: .now) else { return nil }
          busy = true; message = "Syncing your \(preferences.side.rawValue) side…"
          defer { busy = false; operation = nil }
+diff --git a/FreeSleepKit/Services/JournalWorkspace.swift b/FreeSleepKit/Services/JournalWorkspace.swift
+index a6c4686..ca54ea6 100644
+--- a/FreeSleepKit/Services/JournalWorkspace.swift
++++ b/FreeSleepKit/Services/JournalWorkspace.swift
+@@ -27,17 +27,23 @@ final class JournalWorkspace {
+             return (entry, presence)
+         }
+         let habits: [(String, KeyPath<JournalEntry, Bool>)] = [("caffeine", \.caffeine), ("alcohol", \.alcohol), ("exercise", \.exercise)]
+-        let associations: [Journal.Patterns.Association] = habits.compactMap { name, property in
+-            let withHabit = matches.filter { $0.0[keyPath: property] }; let withoutHabit = matches.filter { !$0.0[keyPath: property] }
+-            guard withHabit.count >= 5, withoutHabit.count >= 5 else { return nil }
+-            let difference = withHabit.reduce(0) { $0 + $1.1 } / Double(withHabit.count)
+-                - withoutHabit.reduce(0) { $0 + $1.1 } / Double(withoutHabit.count)
+-            return .init(habit: name, withCount: withHabit.count, withoutCount: withoutHabit.count,
+-                         presenceDifferenceMinutes: Int(floor(difference + 0.5)))
+-        }
++        let associations = habits.compactMap { habit in Self.association(name: habit.0, property: habit.1, matches: matches) }
+         return Journal(entries: Array(entries), selectedDate: date, selected: demoEntries[key], timeZone: "America/Los_Angeles",
+                        patterns: .init(associations: associations, note: Journal.patternNote))
+     }
++    /// Keep the two sample means explicit for older Swift type-checkers; retain the five-per-group threshold.
++    private static func association(name: String, property: KeyPath<JournalEntry, Bool>,
++                                    matches: [(JournalEntry, Double)]) -> Journal.Patterns.Association? {
++        let withHabit = matches.filter { $0.0[keyPath: property] }
++        let withoutHabit = matches.filter { !$0.0[keyPath: property] }
++        guard withHabit.count >= 5, withoutHabit.count >= 5 else { return nil }
++        let withTotal: Double = withHabit.reduce(0.0) { total, match in total + match.1 }
++        let withoutTotal: Double = withoutHabit.reduce(0.0) { total, match in total + match.1 }
++        let withMean = withTotal / Double(withHabit.count)
++        let withoutMean = withoutTotal / Double(withoutHabit.count)
++        return .init(habit: name, withCount: withHabit.count, withoutCount: withoutHabit.count,
++                     presenceDifferenceMinutes: Int(floor(withMean - withoutMean + 0.5)))
++    }
+ }
+ 
+ enum JournalDate {
+diff --git a/FreeSleepKit/Services/NativePodActionBridge.swift b/FreeSleepKit/Services/NativePodActionBridge.swift
+new file mode 100644
+index 0000000..e0f8a09
+--- /dev/null
++++ b/FreeSleepKit/Services/NativePodActionBridge.swift
+@@ -0,0 +1,55 @@
++import Foundation
++
++/// The framework exposes intent values; native services own Core contracts and Health writes.
++public enum NativePodAction: Sendable, Equatable {
++    case temperature(side: String, value: Double)
++    case readTemperature(side: String, current: Bool)
++    case power(side: String, enabled: Bool)
++    case position(head: Int, feet: Int)
++    case preset(String)
++    case stopBase
++    case dismissAlarm(side: String)
++    case away(side: String, enabled: Bool)
++    case prime
++    case comfort(side: String, mode: String)
++    case nextAlarm(side: String)
++    case changeAlarm(side: String, action: String, time: String?)
++    case summary(side: String)
++    case evidence(side: String, days: Int)
++    case syncHealth
++}
++
++public enum NativePodActionReply: Sendable, Equatable {
++    case message(String)
++    case number(Double)
++    case healthSamples(Int)
++    case evidence(NativePodEvidence)
++}
++
++public struct NativePodActionBridge: Sendable {
++    private let handler: @MainActor @Sendable (NativePodAction) async throws -> NativePodActionReply
++    public init(handler: @escaping @MainActor @Sendable (NativePodAction) async throws -> NativePodActionReply) { self.handler = handler }
++    public static let unavailable = Self { _ in throw PodError.message("Open sleepypod once to initialize your native actions, then try again.") }
++    public func perform(_ action: NativePodAction) async throws -> NativePodActionReply {
++        try AppMode.requireLiveConnection()
++        try Task.checkCancellation()
++        return try await handler(action)
++    }
++    public func message(_ action: NativePodAction) async throws -> String {
++        guard case .message(let message) = try await perform(action) else { throw PodError.message("The action returned an unexpected result.") }
++        return message
++    }
++    public func number(_ action: NativePodAction) async throws -> Double {
++        guard case .number(let value) = try await perform(action), value.isFinite else { throw PodError.message("The requested measurement is unavailable.") }
++        return value
++    }
++    public func syncHealth() async throws -> Int {
++        guard case .healthSamples(let count) = try await perform(.syncHealth), count >= 0 else { throw PodError.message("The Health sync could not be confirmed.") }
++        return count
++    }
++    public func evidence(side: String, days: Int) async throws -> NativePodEvidence {
++        guard case .evidence(let value) = try await perform(.evidence(side: side, days: days)),
++              value.side == side, value.days == days else { throw PodError.message("The Pod evidence did not match the selected person and range.") }
++        return value
++    }
++}
+diff --git a/FreeSleepKit/Services/PodClient.swift b/FreeSleepKit/Services/PodClient.swift
+index 203e7ed..b93e462 100644
 --- a/FreeSleepKit/Services/PodClient.swift
 +++ b/FreeSleepKit/Services/PodClient.swift
-@@ -5,20 +5,25 @@
+@@ -5,20 +5,25 @@ struct PodClient: Sendable {
      let baseURL: URL
      let token: String
      private let transport: URLSession
@@ -138,7 +613,7 @@
          if !query.isEmpty { components.queryItems = query }
          var request = URLRequest(url: components.url!)
          request.httpMethod = method; request.httpBody = body; request.timeoutInterval = route == "ai/coach" ? 50 : 15
-@@ -29,6 +34,9 @@
+@@ -29,6 +34,9 @@ struct PodClient: Sendable {
          guard (200..<300).contains(response.statusCode) else {
              if response.statusCode == 401 || response.statusCode == 403 { throw PodError.message("The connection token was not accepted.") }
              if response.statusCode == 503 { throw PodError.message("The server is reachable, but the Pod is unavailable.") }

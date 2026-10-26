@@ -12,6 +12,10 @@ import XCTest
         let app = launch()
         let scene = app.otherElements["thermalBed.scene"].firstMatch
         XCTAssertTrue(scene.waitForExistence(timeout: 8)); reveal(scene, app)
+        let selection = app.buttons["Select Right"]
+        reveal(selection, app); selection.tap(); XCTAssertTrue(selection.isSelected)
+        selection.tap(); XCTAssertFalse(selection.isSelected)
+        reveal(scene, app)
         let original = scene.value as? String; XCTAssertNotNil(original)
         scene.pinch(withScale: 1.2, velocity: 1)
         XCTAssertNotEqual(scene.value as? String, original); capture(app, "Controls-stage-zoomed")
