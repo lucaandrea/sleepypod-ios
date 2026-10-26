@@ -1,0 +1,243 @@
+{
+  "sourceCommit": "7fa390a75ce3358e39d59ac016b66c0d38144ac3",
+  "synthetic": true,
+  "steps": [
+    {
+      "page": {
+        "apiVersion": 1,
+        "generatedAt": 1800000000000,
+        "newestId": 3,
+        "nextBeforeId": null,
+        "unreadCount": 2,
+        "items": [
+          {
+            "id": 3,
+            "source": "automation",
+            "sourceId": 12,
+            "title": "Synthetic reminder",
+            "message": "Literal <example> message",
+            "createdAt": 1799999999000,
+            "expiresAt": 1800000899000,
+            "acknowledgedAt": null
+          },
+          {
+            "id": 2,
+            "source": "automation",
+            "sourceId": 12,
+            "title": "Synthetic reminder",
+            "message": "Literal <example> message",
+            "createdAt": 1799999999000,
+            "expiresAt": 1800000899000,
+            "acknowledgedAt": null
+          }
+        ],
+        "delivery": {
+          "foregroundInbox": true,
+          "backgroundPush": false
+        }
+      },
+      "expected": {
+        "cursor": 3,
+        "items": []
+      }
+    },
+    {
+      "page": {
+        "apiVersion": 1,
+        "generatedAt": 1800000000000,
+        "newestId": 5,
+        "nextBeforeId": null,
+        "unreadCount": 2,
+        "items": [
+          {
+            "id": 5,
+            "source": "automation",
+            "sourceId": 12,
+            "title": "Synthetic reminder",
+            "message": "Literal <example> message",
+            "createdAt": 1799999999000,
+            "expiresAt": 1800000899000,
+            "acknowledgedAt": null
+          },
+          {
+            "id": 4,
+            "source": "automation",
+            "sourceId": 12,
+            "title": "Synthetic reminder",
+            "message": "Literal <example> message",
+            "createdAt": 1799999999000,
+            "expiresAt": 1800000899000,
+            "acknowledgedAt": 1800000000000
+          },
+          {
+            "id": 3,
+            "source": "automation",
+            "sourceId": 12,
+            "title": "Synthetic reminder",
+            "message": "Literal <example> message",
+            "createdAt": 1799999999000,
+            "expiresAt": 1800000899000,
+            "acknowledgedAt": null
+          }
+        ],
+        "delivery": {
+          "foregroundInbox": true,
+          "backgroundPush": false
+        }
+      },
+      "expected": {
+        "cursor": 5,
+        "items": [
+          {
+            "id": 5,
+            "source": "automation",
+            "sourceId": 12,
+            "title": "Synthetic reminder",
+            "message": "Literal <example> message",
+            "createdAt": 1799999999000,
+            "expiresAt": 1800000899000,
+            "acknowledgedAt": null
+          }
+        ]
+      }
+    },
+    {
+      "page": {
+        "apiVersion": 1,
+        "generatedAt": 1800000000000,
+        "newestId": 2,
+        "nextBeforeId": null,
+        "unreadCount": 2,
+        "items": [
+          {
+            "id": 2,
+            "source": "automation",
+            "sourceId": 12,
+            "title": "Synthetic reminder",
+            "message": "Literal <example> message",
+            "createdAt": 1799999999000,
+            "expiresAt": 1800000899000,
+            "acknowledgedAt": null
+          },
+          {
+            "id": 1,
+            "source": "automation",
+            "sourceId": 12,
+            "title": "Synthetic reminder",
+            "message": "Literal <example> message",
+            "createdAt": 1799999999000,
+            "expiresAt": 1800000899000,
+            "acknowledgedAt": null
+          }
+        ],
+        "delivery": {
+          "foregroundInbox": true,
+          "backgroundPush": false
+        }
+      },
+      "expected": {
+        "cursor": 5,
+        "items": []
+      }
+    },
+    {
+      "page": {
+        "apiVersion": 1,
+        "generatedAt": 1800000000000,
+        "newestId": 5,
+        "nextBeforeId": null,
+        "unreadCount": 3,
+        "items": [
+          {
+            "id": 5,
+            "source": "automation",
+            "sourceId": 12,
+            "title": "Synthetic reminder",
+            "message": "Literal <example> message",
+            "createdAt": 1799999999000,
+            "expiresAt": 1800000899000,
+            "acknowledgedAt": null
+          },
+          {
+            "id": 4,
+            "source": "automation",
+            "sourceId": 12,
+            "title": "Synthetic reminder",
+            "message": "Literal <example> message",
+            "createdAt": 1799999999000,
+            "expiresAt": 1800000899000,
+            "acknowledgedAt": null
+          },
+          {
+            "id": 3,
+            "source": "automation",
+            "sourceId": 12,
+            "title": "Synthetic reminder",
+            "message": "Literal <example> message",
+            "createdAt": 1799999999000,
+            "expiresAt": 1800000899000,
+            "acknowledgedAt": null
+          }
+        ],
+        "delivery": {
+          "foregroundInbox": true,
+          "backgroundPush": false
+        }
+      },
+      "expected": {
+        "cursor": 5,
+        "items": []
+      }
+    },
+    {
+      "page": {
+        "apiVersion": 1,
+        "generatedAt": 1800000000000,
+        "newestId": 6,
+        "nextBeforeId": null,
+        "unreadCount": 2,
+        "items": [
+          {
+            "id": 6,
+            "source": "automation",
+            "sourceId": 12,
+            "title": "Synthetic reminder",
+            "message": "Literal <example> message",
+            "createdAt": 1799999999000,
+            "expiresAt": 1800000899000,
+            "acknowledgedAt": null
+          },
+          {
+            "id": 5,
+            "source": "automation",
+            "sourceId": 12,
+            "title": "Synthetic reminder",
+            "message": "Literal <example> message",
+            "createdAt": 1799999999000,
+            "expiresAt": 1800000899000,
+            "acknowledgedAt": null
+          }
+        ],
+        "delivery": {
+          "foregroundInbox": true,
+          "backgroundPush": false
+        }
+      },
+      "expected": {
+        "cursor": 6,
+        "items": [
+          {
+            "id": 6,
+            "source": "automation",
+            "sourceId": 12,
+            "title": "Synthetic reminder",
+            "message": "Literal <example> message",
+            "createdAt": 1799999999000,
+            "expiresAt": 1800000899000,
+            "acknowledgedAt": null
+          }
+        ]
+      }
+    }
+  ]
+}

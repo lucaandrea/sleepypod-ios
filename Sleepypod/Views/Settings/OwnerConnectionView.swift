@@ -72,6 +72,7 @@ struct OwnerConnectionView: View {
             try UnifiedRuntime.configure(address: candidate, token: key, core: backend == .sleepypodCore)
             UserDefaults.standard.set(streamAddress, forKey: "podStreamURL")
             APIBackend.current = backend
+            UserDefaults.standard.set(UUID().uuidString, forKey: "ownerConnectionRevision")
             settings.podIP = OwnerConnection.endpoint?.host ?? ""
             stream.disconnect()
             let client = backend.createClient()

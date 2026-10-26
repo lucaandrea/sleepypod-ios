@@ -3,6 +3,7 @@ import SwiftUI
 /// Shared context for Cards, Stage, Slider and the two-side layout.
 struct TemperatureContextCards: View {
     let side: Side
+    @Environment(HomeRoomSession.self) private var homeRoom
     @Environment(SettingsManager.self) private var settings
     @Environment(\.scenePhase) private var scenePhase
     @State private var workspace = TemperatureContextWorkspace()
@@ -10,6 +11,7 @@ struct TemperatureContextCards: View {
 
     var body: some View {
         VStack(spacing: 16) {
+            if homeRoom.workspace?.status?.config.mappings.isEmpty == false { HomeRoomSummaryCard(compact: true) }
             if workspace.side != side || (workspace.loading && workspace.result == nil) {
                 ProgressView("Loading room and sleep…").frame(maxWidth: .infinity).cardStyle()
             } else if let result = workspace.result {

@@ -188,7 +188,6 @@ struct AllSettingsScreen: View {
     @Environment(SettingsManager.self) private var settings
     @Environment(DeviceManager.self) private var device
     @Environment(StatusManager.self) private var status
-    @Environment(UpdateChecker.self) private var updates
     @Environment(HealthSyncService.self) private var health
     @Environment(SnoreCaptureService.self) private var snore
     @State private var showWater = false
@@ -209,6 +208,7 @@ struct AllSettingsScreen: View {
                         }
                         if APIBackend.current != .freeSleep {
                             NavigationLink { AutopilotScreen() } label: { SettingsRow("Autopilot", icon: "sparkles", tile: true, chevron: true) }
+                            AlertInboxLink(tile: true)
                         }
                         PodFeatureLink(.comfort, icon: "sparkles", tile: true)
                         PodFeatureLink(.routines, icon: "calendar", tile: true)
@@ -282,6 +282,9 @@ struct AllSettingsScreen: View {
                         }
                         PodFeatureLink(.home, icon: "house", tile: true)
                         if APIBackend.current != .freeSleep {
+                            NavigationLink { HomeRoomScreen() } label: {
+                                SettingsRow("Room sensors", icon: "house", tile: true, chevron: true)
+                            }.accessibilityIdentifier("settings.room")
                             NavigationLink { HomeKitBridgeScreen() } label: {
                                 SettingsRow("HomeKit bridge", icon: "house", tile: true, chevron: true)
                             }.accessibilityIdentifier("settings.homekitBridge")
@@ -322,17 +325,9 @@ struct AllSettingsScreen: View {
                         Button { showWater = true } label: {
                             SettingsRow("Water & priming", icon: "drop", tile: true, chevron: true)
                         }
-                        NavigationLink {
-                            ScrollView { UpdateCardView().padding(16) }.background(Theme.background).navigationTitle("Updates")
-                        } label: {
-                            SettingsRow("Updates", icon: "arrow.down.circle", tile: true, chevron: true) {
-                                if updates.updateAvailable {
-                                    Text("1").font(.footnote.weight(.semibold)).foregroundStyle(.white)
-                                        .frame(minWidth: 22, minHeight: 22).background(Theme.red, in: Capsule())
-                                        .accessibilityLabel("Update available")
-                                }
-                            }
-                        }
+                        NavigationLink { ControllerUpdatesScreen() } label: {
+                            SettingsRow("Updates", icon: "arrow.down.circle", tile: true, chevron: true)
+                        }.accessibilityIdentifier("settings.updates")
                     }
                 }
 

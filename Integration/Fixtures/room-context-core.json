@@ -1,0 +1,130 @@
+{
+  "sourceCommit": "cbb0e5bd45c723888e44e8506ef91fdf9b380630",
+  "synthetic": true,
+  "status": {
+    "apiVersion": 1,
+    "generatedAt": 1800000000000,
+    "revision": 7,
+    "config": {
+      "enabled": true,
+      "roomName": "Synthetic bedroom",
+      "mappings": [
+        {
+          "metric": "temperature",
+          "entityId": "sensor.example_temperature",
+          "unit": "°C",
+          "timestampAttribute": "measured_at",
+          "timestampFormat": "iso8601",
+          "maxAgeSeconds": 120
+        },
+        {
+          "metric": "humidity",
+          "entityId": "sensor.example_humidity",
+          "unit": "%",
+          "timestampAttribute": "measured_at",
+          "timestampFormat": "iso8601",
+          "maxAgeSeconds": 120
+        },
+        {
+          "metric": "co2",
+          "entityId": "sensor.example_co2",
+          "unit": "ppm",
+          "timestampAttribute": "measured_at",
+          "timestampFormat": "iso8601",
+          "maxAgeSeconds": 120
+        }
+      ]
+    },
+    "connected": true,
+    "topic": "example/controller/room/report",
+    "observations": [
+      {
+        "metric": "temperature",
+        "entityId": "sensor.example_temperature",
+        "unit": "°F",
+        "value": 71.6,
+        "lastValue": 71.6,
+        "measuredAt": 1799999990000,
+        "reportedAt": 1799999991000,
+        "receivedAt": 1799999992000,
+        "expiresAt": 1800000110000,
+        "status": "fresh"
+      },
+      {
+        "metric": "humidity",
+        "entityId": "sensor.example_humidity",
+        "unit": "%",
+        "value": 45,
+        "lastValue": 45,
+        "measuredAt": 1799999990000,
+        "reportedAt": 1799999991000,
+        "receivedAt": 1799999992000,
+        "expiresAt": 1800000110000,
+        "status": "fresh"
+      },
+      {
+        "metric": "co2",
+        "entityId": "sensor.example_co2",
+        "unit": "ppm",
+        "value": 650,
+        "lastValue": 650,
+        "measuredAt": 1799999990000,
+        "reportedAt": 1799999991000,
+        "receivedAt": 1799999992000,
+        "expiresAt": 1800000110000,
+        "status": "fresh"
+      }
+    ]
+  },
+  "history": {
+    "apiVersion": 1,
+    "generatedAt": 1800000000000,
+    "nextBeforeId": null,
+    "items": [
+      {
+        "metric": "temperature",
+        "entityId": "sensor.example_temperature",
+        "unit": "°F",
+        "measuredAt": 1799999990000,
+        "reportedAt": 1799999991000,
+        "receivedAt": 1799999992000,
+        "id": 10,
+        "revision": 7,
+        "value": 71.6,
+        "available": true
+      },
+      {
+        "metric": "humidity",
+        "entityId": "sensor.example_humidity",
+        "unit": "%",
+        "measuredAt": 1799999990000,
+        "reportedAt": 1799999991000,
+        "receivedAt": 1799999992000,
+        "id": 9,
+        "revision": 7,
+        "value": 45,
+        "available": true
+      },
+      {
+        "metric": "co2",
+        "entityId": "sensor.example_co2",
+        "unit": "ppm",
+        "measuredAt": 1799999990000,
+        "reportedAt": 1799999991000,
+        "receivedAt": 1799999992000,
+        "id": 8,
+        "revision": 7,
+        "value": 650,
+        "available": true
+      }
+    ]
+  },
+  "publishers": {
+    "revision": 7,
+    "automations": [
+      "{\n  \"alias\": \"SleepyPod Synthetic bedroom temperature\",\n  \"description\": \"Read-only sensor publisher. Verify the timestamp attribute is the source measurement time before enabling. Does not control the Pod or accessories.\",\n  \"triggers\": [\n    {\n      \"trigger\": \"state\",\n      \"entity_id\": \"sensor.example_temperature\"\n    },\n    {\n      \"trigger\": \"time_pattern\",\n      \"seconds\": \"/30\"\n    }\n  ],\n  \"actions\": [\n    {\n      \"action\": \"mqtt.publish\",\n      \"data\": {\n        \"topic\": \"example/controller/room/report\",\n        \"qos\": 0,\n        \"retain\": false,\n        \"payload\": \"{% set raw_time = as_timestamp(state_attr('sensor.example_temperature', 'measured_at'), none) %}\\n{% set measurement = (raw_time * 1000) | int if raw_time is not none else none %}\\n{% set raw_value = states('sensor.example_temperature') | float(none) %}\\n{% set usable = raw_value is not none and measurement is not none and state_attr('sensor.example_temperature', 'unit_of_measurement') == '°C' %}\\n{{ {'schemaVersion': 1, 'source': 'home_assistant', 'revision': 7, 'metric': 'temperature', 'entityId': 'sensor.example_temperature', 'unit': '°C', 'reportedAt': (as_timestamp(now()) * 1000) | int, 'measuredAt': measurement if usable else none, 'available': usable, 'value': raw_value if usable else none} | to_json }}\"\n      }\n    }\n  ],\n  \"mode\": \"single\"\n}",
+      "{\n  \"alias\": \"SleepyPod Synthetic bedroom humidity\",\n  \"description\": \"Read-only sensor publisher. Verify the timestamp attribute is the source measurement time before enabling. Does not control the Pod or accessories.\",\n  \"triggers\": [\n    {\n      \"trigger\": \"state\",\n      \"entity_id\": \"sensor.example_humidity\"\n    },\n    {\n      \"trigger\": \"time_pattern\",\n      \"seconds\": \"/30\"\n    }\n  ],\n  \"actions\": [\n    {\n      \"action\": \"mqtt.publish\",\n      \"data\": {\n        \"topic\": \"example/controller/room/report\",\n        \"qos\": 0,\n        \"retain\": false,\n        \"payload\": \"{% set raw_time = as_timestamp(state_attr('sensor.example_humidity', 'measured_at'), none) %}\\n{% set measurement = (raw_time * 1000) | int if raw_time is not none else none %}\\n{% set raw_value = states('sensor.example_humidity') | float(none) %}\\n{% set usable = raw_value is not none and measurement is not none and state_attr('sensor.example_humidity', 'unit_of_measurement') == '%' %}\\n{{ {'schemaVersion': 1, 'source': 'home_assistant', 'revision': 7, 'metric': 'humidity', 'entityId': 'sensor.example_humidity', 'unit': '%', 'reportedAt': (as_timestamp(now()) * 1000) | int, 'measuredAt': measurement if usable else none, 'available': usable, 'value': raw_value if usable else none} | to_json }}\"\n      }\n    }\n  ],\n  \"mode\": \"single\"\n}",
+      "{\n  \"alias\": \"SleepyPod Synthetic bedroom co2\",\n  \"description\": \"Read-only sensor publisher. Verify the timestamp attribute is the source measurement time before enabling. Does not control the Pod or accessories.\",\n  \"triggers\": [\n    {\n      \"trigger\": \"state\",\n      \"entity_id\": \"sensor.example_co2\"\n    },\n    {\n      \"trigger\": \"time_pattern\",\n      \"seconds\": \"/30\"\n    }\n  ],\n  \"actions\": [\n    {\n      \"action\": \"mqtt.publish\",\n      \"data\": {\n        \"topic\": \"example/controller/room/report\",\n        \"qos\": 0,\n        \"retain\": false,\n        \"payload\": \"{% set raw_time = as_timestamp(state_attr('sensor.example_co2', 'measured_at'), none) %}\\n{% set measurement = (raw_time * 1000) | int if raw_time is not none else none %}\\n{% set raw_value = states('sensor.example_co2') | float(none) %}\\n{% set usable = raw_value is not none and measurement is not none and state_attr('sensor.example_co2', 'unit_of_measurement') == 'ppm' %}\\n{{ {'schemaVersion': 1, 'source': 'home_assistant', 'revision': 7, 'metric': 'co2', 'entityId': 'sensor.example_co2', 'unit': 'ppm', 'reportedAt': (as_timestamp(now()) * 1000) | int, 'measuredAt': measurement if usable else none, 'available': usable, 'value': raw_value if usable else none} | to_json }}\"\n      }\n    }\n  ],\n  \"mode\": \"single\"\n}"
+    ]
+  }
+}

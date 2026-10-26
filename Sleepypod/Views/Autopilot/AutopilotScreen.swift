@@ -25,6 +25,7 @@ struct AutopilotScreen: View {
                 if let notice = model.notice { Text(notice).font(.footnote).foregroundStyle(Theme.text2) }
                 Picker("View", selection: $page) { Text("Automations").tag("Automations"); Text("Diagnostics").tag("Diagnostics") }.pickerStyle(.segmented)
                 NavigationLink { AutomationHistoryScreen(client: model.client) } label: { Label("Activity history", systemImage: "clock.arrow.circlepath") }
+                AlertInboxLink()
                 if page == "Automations" { rules; tonight }
                 else { diagnostics }
                 NavigationLink { PodFeatureScreen(.comfort, side: device.selectedSide.primarySide.rawValue) } label: {
