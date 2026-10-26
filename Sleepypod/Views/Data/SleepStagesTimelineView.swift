@@ -68,9 +68,10 @@ struct SleepStagesTimelineView: View {
                 Canvas { context, size in
                     for segment in segments {
                         guard let lane = order.firstIndex(of: segment.stage) else { continue }
-                        let x = size.width * segment.start.timeIntervalSince(start) / total
-                        let width = max(2, size.width * segment.end.timeIntervalSince(segment.start) / total)
-                        let rect = CGRect(x: x, y: CGFloat(lane) * 23 + 2, width: width, height: 14)
+                        let offset = size.width * CGFloat(segment.start.timeIntervalSince(start) / total)
+                        let width = max(CGFloat(2), size.width * CGFloat(segment.end.timeIntervalSince(segment.start) / total))
+                        let verticalOffset = CGFloat(lane * 23 + 2)
+                        let rect = CGRect(x: offset, y: verticalOffset, width: width, height: 14)
                         context.fill(Path(roundedRect: rect, cornerRadius: 2), with: .color(segment.stage.displayColor))
                     }
                 }

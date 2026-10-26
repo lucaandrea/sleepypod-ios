@@ -18,7 +18,7 @@ The deterministic selection/cancellation regression passes, as do actual Stage s
 
 `Parity-final-regression-v1.xcresult`: **925 passed, 5 skipped, 0 failed, 930 total**. This combines all Sleepypod and imported-feature unit/transport tests with the phone Stage interaction. The five skipped tests explicitly require a live Pod. Health consent/export/cleanup, Shortcuts, owner changes, schedule contracts, journal/report integrity and all existing native feature regressions are included. Focused history and Stage runs cover iPad and maximum Dynamic Type. Strict lint, `git diff --check`, source reconstruction and the compiled presentation guard pass.
 
-Remote Xcode 26.3 revealed two type-checker timeouts absent from Xcode 27.1. Explicit journal sums/means and separate presence-chart sizing/rendering helpers preserve behavior while reducing compiler complexity. The final integrated GitHub checks remain the merge gate.
+Remote Xcode 26.3 revealed two type-checker timeouts absent from Xcode 27.1. Explicit journal sums/means and separate presence-chart sizing/rendering helpers preserve behavior while reducing compiler complexity. The Intel runner also exposed ambiguous mixed CGFloat/Double rectangle arithmetic in the existing stage timeline; all Canvas coordinates now use explicit CGFloat values. The final integrated GitHub checks remain the merge gate.
 
 ## Privacy, signing and distribution
 
