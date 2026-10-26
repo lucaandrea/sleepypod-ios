@@ -194,7 +194,7 @@ final class SleepypodCoreClient: SleepypodProtocol, @unchecked Sendable {
 
         return ServerStatus(
             alarmSchedule: info("Alarm Schedule", status: schedStatus, desc: "Wake-up alarm scheduler", msg: "\(scheduler.jobCounts.alarm) alarms"),
-            database: info("Database", status: dbStatus, desc: "SQLite database", msg: health.database.error ?? "\(String(format: "%.1fms", health.database.latencyMs ?? 0)) latency"),
+            database: info("Database", status: dbStatus, desc: "SQLite database", msg: health.database.error ?? health.database.latencyMs.map { String(format: "%.1fms latency", $0) } ?? "Latency unavailable"),
             express: info("sleepypod core", status: .healthy, desc: "API and hardware bridge"),
             podSocket: info("Hardware Socket", status: hwStatus, desc: "DAC communication", msg: hwLatency),
             podSocketMonitor: info("DAC Monitor", status: dacStatus, desc: "Hardware watchdog", msg: dacMsg),
@@ -205,7 +205,9 @@ final class SleepypodCoreClient: SleepypodProtocol, @unchecked Sendable {
             primeSchedule: info("Prime Schedule", status: schedStatus, desc: "Daily prime scheduler", msg: "\(scheduler.jobCounts.prime) prime jobs"),
             rebootSchedule: info("Reboot Schedule", status: schedStatus, desc: "Daily reboot scheduler", msg: "\(scheduler.jobCounts.reboot) reboot jobs"),
             systemDate: info("Biometrics", status: .notStarted, desc: "Sleep data processing", msg: "Status unavailable"),
-            temperatureSchedule: info("Temperature Schedule", status: schedStatus, desc: "Temperature curve scheduler", msg: "\(scheduler.jobCounts.temperature) temp jobs")
+            temperatureSchedule: info("Temperature Schedule", status: schedStatus, desc: "Temperature curve scheduler", msg: "\(scheduler.jobCounts.temperature) temp jobs"),
+            coreFirewall: health.iptables,
+            coreWiFi: wifi.map { .init(connected: $0.connected, ssid: $0.ssid, signal: $0.signal) }
         )
     }
 
@@ -434,11 +436,13 @@ final class SleepypodCoreClient: SleepypodProtocol, @unchecked Sendable {
     }
 
     func setInternetAccess(blocked: Bool) async throws {
-        let _: TRPCInternetStatus = try await mutate("system.setInternetAccess", input: ["blocked": blocked])
+        let result: TRPCInternetStatus = try await mutate("system.setInternetAccess", input: ["blocked": blocked])
+        guard result.blocked == blocked else { throw APIError.serverError(message: "The reported internet setting does not match the request.") }
     }
 
     func startPriming() async throws {
-        let _: TRPCSuccess = try await mutate("device.startPriming", input: [:] as [String: String])
+        let result: TRPCSuccess = try await mutate("device.startPriming", input: [:] as [String: String])
+        guard result.success == true else { throw APIError.serverError(message: "The controller did not accept the prime request.") }
     }
 
     func reboot() async throws {
@@ -691,6 +695,7 @@ final class SleepypodCoreClient: SleepypodProtocol, @unchecked Sendable {
         }
 
         return PodSettings(
+            bedMode: device?.bedMode,
             defaultScheduleEndAction: device?.defaultScheduleEndAction,
             id: "1",
             timeZone: device?.timezone ?? TimeZone.current.identifier,
@@ -781,6 +786,7 @@ private struct TRPCDeviceStatus: Decodable {
 }
 
 private struct TRPCDeviceSettings: Decodable {
+    let bedMode: String?
     let defaultScheduleEndAction: ScheduleEndAction?
     let timezone: String?
     let temperatureUnit: String?
@@ -824,6 +830,7 @@ private struct TRPCSettingsGestures: Decodable {
 }
 
 private struct TRPCSystemHealth: Decodable {
+    let iptables: ServerStatus.Firewall?
     let status: String
     let database: TRPCDBHealth
     let scheduler: TRPCSchedulerBrief

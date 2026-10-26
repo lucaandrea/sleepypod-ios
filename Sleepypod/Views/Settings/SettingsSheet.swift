@@ -335,10 +335,14 @@ struct AllSettingsScreen: View {
                             NavigationLink { HapticsTestView() } label: {
                                 SettingsRow("Haptics test", icon: "iphone.radiowaves.left.and.right", tile: true, chevron: true)
                             }
-                            SettingsRow("Internet access", icon: "globe", tile: true) {
-                                Toggle("Internet access", isOn: Binding(get: { !status.isInternetBlocked }, set: { enabled in
-                                    Task { await status.setInternetAccess(blocked: !enabled) }
-                                })).labelsHidden()
+                            SettingsRow("Internet access", subtitle: status.internetIsFresh() ? nil : "Refresh to read the current setting", icon: "globe", tile: true) {
+                                if status.internetIsFresh() || status.isChangingInternet {
+                                    Toggle("Internet access", isOn: Binding(get: { !status.isInternetBlocked }, set: { enabled in
+                                        Task { await status.setInternetAccess(blocked: !enabled) }
+                                    })).labelsHidden().disabled(status.isChangingInternet)
+                                } else {
+                                    Button("Refresh") { Task { await status.fetchAll() } }.disabled(status.isLoading)
+                                }
                             }
                         }
                     }

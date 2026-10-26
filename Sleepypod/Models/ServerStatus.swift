@@ -34,6 +34,8 @@ struct StatusInfo: Codable, Sendable, Identifiable {
 }
 
 struct ServerStatus: Codable, Sendable {
+    struct Firewall: Codable, Sendable { let ok: Bool; let missing: [String] }
+    struct WiFi: Codable, Sendable { let connected: Bool; let ssid: String?; let signal: Int? }
     var alarmSchedule: StatusInfo
     var database: StatusInfo
     var express: StatusInfo
@@ -52,6 +54,10 @@ struct ServerStatus: Codable, Sendable {
     var biometricsStream: StatusInfo?
     var biometricsCalibrationLeft: StatusInfo?
     var biometricsCalibrationRight: StatusInfo?
+
+    // Core-only observations are not written into the legacy server's wire format.
+    var coreFirewall: Firewall?
+    var coreWiFi: WiFi?
 
     enum CodingKeys: String, CodingKey {
         case alarmSchedule, database, express

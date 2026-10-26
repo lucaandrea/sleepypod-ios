@@ -26,7 +26,7 @@ struct HealthCircleView: View {
                         .frame(width: 44, height: 44)
                     Circle()
                         .trim(from: 0, to: progress)
-                        .stroke(progress == 1.0 ? Theme.healthy : Theme.amber,
+                        .stroke(progress == 1.0 && statusManager.statusIsFresh() ? Theme.healthy : Theme.amber,
                                 style: StrokeStyle(lineWidth: 4, lineCap: .round))
                         .frame(width: 44, height: 44)
                         .rotationEffect(.degrees(-90))
@@ -44,7 +44,7 @@ struct HealthCircleView: View {
                             .foregroundColor(Theme.text1)
 
                         if let status {
-                            Text(podModelName(status.hubVersion))
+                            Text(status.podModelName)
                                 .font(.system(size: 10, weight: .semibold))
                                 .foregroundColor(Theme.accent)
                                 .padding(.horizontal, 6)
@@ -54,7 +54,7 @@ struct HealthCircleView: View {
                         }
                     }
 
-                    Text("\(statusManager.healthyCount) of \(statusManager.totalCount) services healthy")
+                    Text(statusManager.statusIsFresh() ? "\(statusManager.healthyCount) of \(statusManager.totalCount) services healthy" : "Service readings unavailable or stale")
                         .font(.caption)
                         .foregroundColor(Theme.textSecondary)
                 }
@@ -78,19 +78,21 @@ struct HealthCircleView: View {
 
                     Spacer()
 
-                    // Wifi signal
-                    HStack(spacing: 3) {
-                        Image(systemName: "wifi")
-                            .font(.system(size: 10))
-                        Text("\(deviceManager.deviceStatus?.wifiStrength ?? 0)%")
-                            .font(.caption2)
+                    // Core's optional Wi-Fi observation must not turn missing signal into zero.
+                    if APIBackend.current == .freeSleep {
+                        Label("\(status.wifiStrength)%", systemImage: "wifi")
+                            .font(.caption2).foregroundStyle(wifiColor(status.wifiStrength))
+                    } else if statusManager.statusIsFresh(), let wifi = statusManager.serverStatus?.coreWiFi {
+                        Label(wifi.connected ? wifi.signal.map { "\($0)%" } ?? "Signal unavailable" : "Offline", systemImage: "wifi")
+                            .font(.caption2).foregroundStyle(wifi.connected ? Theme.text2 : Theme.amber)
+                    } else {
+                        Label("Wi-Fi unknown", systemImage: "wifi").font(.caption2).foregroundStyle(Theme.text2)
                     }
-                    .foregroundColor(wifiColor(deviceManager.deviceStatus?.wifiStrength ?? 0))
 
                     Text("·")
                         .foregroundColor(Theme.textMuted)
 
-                    Label(isInternetBlocked ? "Local only" : "Internet", systemImage: isInternetBlocked ? "lock.shield.fill" : "globe")
+                    Label(statusManager.internetIsFresh() ? (isInternetBlocked ? "Local only" : "Internet") : "Internet unknown", systemImage: isInternetBlocked ? "lock.shield.fill" : "globe")
                         .font(.caption2).foregroundStyle(Theme.text2)
                 }
 
@@ -221,16 +223,6 @@ struct HealthCircleView: View {
                 .presentationDragIndicator(.visible)
         }
 
-    }
-
-    private func podModelName(_ version: String) -> String {
-        // Matches sleepypod-core src/hardware/pods.ts POD_CAPS.
-        switch version.uppercased() {
-        case "H00": "Pod 3"
-        case "I00": "Pod 4"
-        case "J00": "Pod 5"
-        default: version
-        }
     }
 
     private func wifiColor(_ strength: Int) -> Color {

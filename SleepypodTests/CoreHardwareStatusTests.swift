@@ -11,6 +11,8 @@ final class CoreHardwareStatusTests: XCTestCase {
         XCTAssertEqual(status.podSocketMonitor.message, "DAC monitor status unavailable")
         XCTAssertEqual(status.logger.message, "Wi-Fi status unavailable")
         XCTAssertTrue(status.database.status.isHealthy)
+        XCTAssertNil(status.coreWiFi)
+        XCTAssertNil(status.coreFirewall)
     }
     func testMalformedAndUnrecognizedHardwareReadingsRemainUnknown() async throws {
         let status = try await read("malformed")
@@ -26,6 +28,9 @@ final class CoreHardwareStatusTests: XCTestCase {
             XCTAssertTrue(status.logger.status.isHealthy)
             XCTAssertEqual(status.podSocket.message, "Latency unavailable")
             XCTAssertEqual(status.logger.message, "Connected · signal unavailable")
+            XCTAssertEqual(status.coreWiFi?.connected, true)
+            XCTAssertNil(status.coreWiFi?.signal)
+            XCTAssertEqual(status.coreFirewall?.ok, true)
         }
     }
     func testRealHardwareFailureAndDisconnectedWifiRemainVisible() async throws {
@@ -35,6 +40,9 @@ final class CoreHardwareStatusTests: XCTestCase {
         XCTAssertEqual(status.podSocketMonitor.status, .failed)
         XCTAssertEqual(status.logger.status, .failed)
         XCTAssertEqual(status.logger.message, "Disconnected")
+        XCTAssertEqual(status.coreFirewall?.ok, false)
+        XCTAssertEqual(status.coreFirewall?.missing, ["OUTPUT"])
+        XCTAssertEqual(status.coreWiFi?.connected, false)
     }
     private func read(_ variant: String) async throws -> ServerStatus {
         let configuration = URLSessionConfiguration.ephemeral
@@ -52,7 +60,8 @@ private final class CoreHardwareStatusProtocol: URLProtocol, @unchecked Sendable
         let variant = url.host?.components(separatedBy: ".").first ?? "missing"
         XCTAssertEqual(request.httpMethod, "GET")
         XCTAssertEqual(url.path, "/api/trpc/health.system,health.scheduler,health.hardware,health.dacMonitor,system.wifiStatus")
-        let healthySystem: [String: Any] = ["status": "ok", "database": ["status": "ok", "latencyMs": 2], "scheduler": ["enabled": true, "jobCount": 3]]
+        var healthySystem: [String: Any] = ["status": "ok", "database": ["status": "ok", "latencyMs": 2], "scheduler": ["enabled": true, "jobCount": 3]]
+        if variant != "missing" { healthySystem["iptables"] = ["ok": variant != "failed", "missing": variant == "failed" ? ["OUTPUT"] : []] }
         let scheduler: [String: Any] = ["enabled": true, "healthy": true, "jobCounts": ["total": 3, "temperature": 1, "powerOn": 1, "powerOff": 1, "alarm": 0, "prime": 0, "reboot": 0]]
         let wrap: ([String: Any]) -> [String: Any] = { ["result": ["data": ["json": $0]]] }
         let optional: [[String: Any]]

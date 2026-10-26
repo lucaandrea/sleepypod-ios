@@ -1,6 +1,6 @@
 # Native storage workflow
 
-Status: implemented and validated on iPhone, iPad and maximum Dynamic Type; local validation complete; CI pending. No real Pod cleanup or vibration command has been sent.
+Status: implemented and validated on iPhone, iPad and maximum Dynamic Type; merged into owner main after all CI checks passed. No real Pod cleanup or vibration command has been sent.
 
 Compared against Core `System/StorageTab.tsx`, `system.getStorage`, `system.freeStorage` `podStorage.ts`, and the `scripts/bin/sp-storage-cleanup` allowlist.
 
@@ -23,3 +23,5 @@ The accompanying hardware change replaces the obsolete intensity/pattern test UI
 - `HardwareVibration-phone-menu.xcresult`: the final hardware flow passed after the test tapped the menu option's center, waited for dismissal, and verified the Play target before proceeding. The production vibration code is unchanged by this test correction.
 
 - `SystemStorage-ipad-final.xcresult`: final iPad Storage flow passed after the accessibility/copy adjustment. Twenty-one final screenshots cover seven states on each of iPhone dark, iPad light and maximum-text iPhone.
+
+Publication: [PR #9](https://github.com/lucaandrea/sleepypod-ios/pull/9) merged into owner main at `a606419c6a097b5edf819c7699260c7af41f0e2e` on 2026-10-25 after all four CI checks passed (run `40260543487`).

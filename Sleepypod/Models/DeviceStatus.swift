@@ -46,10 +46,9 @@ struct DeviceStatus: Codable, Sendable {
 
     var podModelName: String {
         switch hubVersion.uppercased() {
-        case "H00": "Pod 5"
-        case "H01": "Pod 4"
-        case "H02": "Pod 3"
-        case "H03": "Pod 2"
+        case "H00": "Pod 3"
+        case "I00": "Pod 4"
+        case "J00": "Pod 5"
         case "2", "3", "4", "5": "Pod \(hubVersion)"
         default: "Pod"
         }
