@@ -16,7 +16,7 @@ struct SettingsSheet: View {
     @State private var primeError: String?
     @State private var showBase = false
     @State private var showStatus = false
-    @State private var showComfort = false
+    @State private var showComfort = DebugRoute.current == "comfort"
     @State private var showAutopilot = DebugRoute.current == "autopilot"
 
     private var podName: String { device.deviceStatus?.podModelName ?? "Pod" }
@@ -140,7 +140,7 @@ struct SettingsSheet: View {
         }
         .fullScreenCover(isPresented: $showComfort) {
             NavigationStack {
-                PodFeatureScreen(.comfort, side: device.selectedSide.primarySide.rawValue).toolbar {
+                PersonalComfortDestination(side: device.selectedSide.primarySide).toolbar {
                     ToolbarItem(placement: .topBarTrailing) { Button("Done") { showComfort = false } }
                 }
             }

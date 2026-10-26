@@ -2,6 +2,13 @@ import Foundation
 
 /// DEBUG-only deep link for design QA: `-uiRoute schedule|sleep|week|weektrend|month|watch|stages|settings|allsettings|health|onboard1|onboard2`.
 enum DebugRoute {
+    static var personalComfortExample: Bool {
+        #if DEBUG
+        UserDefaults.standard.bool(forKey: "uiComfortExample")
+        #else
+        false
+        #endif
+    }
     static var automationReplayFixture: Bool {
         #if DEBUG
         UserDefaults.standard.bool(forKey: "uiAutomationReplay")
