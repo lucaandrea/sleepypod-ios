@@ -1,0 +1,228 @@
+{
+  "at": 1792969200000,
+  "hoursFrom": 1792882800000,
+  "dataDir": "/demo",
+  "disk": {
+    "totalBytes": 8000000000,
+    "availableBytes": 2400000000
+  },
+  "lastBackupAt": null,
+  "occupiedHours": [
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21
+  ],
+  "databases": [
+    {
+      "fileBytes": 2800000,
+      "walBytes": 1048576,
+      "pageSize": 4096,
+      "freePages": 120,
+      "walAutocheckpoint": 1000,
+      "integrity": {
+        "scheduled": {
+          "status": "ok",
+          "checkedAt": "2026-10-25T20:00:00Z",
+          "latencyMs": 18
+        },
+        "manual": null
+      },
+      "migrations": {
+        "applied": 12,
+        "known": 12,
+        "latestTag": "0012_demo",
+        "appliedTag": "0012_demo"
+      },
+      "key": "sleepypod",
+      "path": "/demo/sleepypod.db",
+      "tables": [
+        {
+          "name": "automation_runs",
+          "rows": 480,
+          "bytes": 46080,
+          "timeColumn": "timestamp",
+          "timeInMs": false,
+          "lastWriteAt": 1792969020000,
+          "oldestAt": 1792364400000,
+          "hourly": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            23,
+            28,
+            30,
+            24,
+            18,
+            0,
+            0,
+            31,
+            18,
+            22,
+            10,
+            4
+          ],
+          "rows24h": 96,
+          "retention": {
+            "days": 30,
+            "by": "automation runs retention pass"
+          }
+        },
+        {
+          "name": "settings",
+          "rows": 23,
+          "bytes": 2208,
+          "timeColumn": "timestamp",
+          "timeInMs": false,
+          "lastWriteAt": 1792969020000,
+          "oldestAt": 1792364400000,
+          "hourly": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            23,
+            28,
+            30,
+            24,
+            18,
+            0,
+            0,
+            31,
+            18,
+            22,
+            10,
+            4
+          ],
+          "rows24h": 0,
+          "retention": null
+        }
+      ]
+    },
+    {
+      "fileBytes": 2800000,
+      "walBytes": 1048576,
+      "pageSize": 4096,
+      "freePages": 120,
+      "walAutocheckpoint": 1000,
+      "integrity": {
+        "scheduled": {
+          "status": "ok",
+          "checkedAt": "2026-10-25T20:00:00Z",
+          "latencyMs": 18
+        },
+        "manual": null
+      },
+      "migrations": {
+        "applied": 12,
+        "known": 12,
+        "latestTag": "0012_demo",
+        "appliedTag": "0012_demo"
+      },
+      "key": "biometrics",
+      "path": "/demo/biometrics.db",
+      "tables": [
+        {
+          "name": "vitals",
+          "rows": 14400,
+          "bytes": 1382400,
+          "timeColumn": "timestamp",
+          "timeInMs": false,
+          "lastWriteAt": 1792969020000,
+          "oldestAt": 1792364400000,
+          "hourly": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            23,
+            28,
+            30,
+            24,
+            18,
+            0,
+            0,
+            31,
+            18,
+            22,
+            10,
+            4
+          ],
+          "rows24h": 1440,
+          "retention": {
+            "days": 90,
+            "by": "daily retention pass"
+          }
+        },
+        {
+          "name": "sleep_records",
+          "rows": 360,
+          "bytes": 34560,
+          "timeColumn": "timestamp",
+          "timeInMs": false,
+          "lastWriteAt": 1792969020000,
+          "oldestAt": 1792364400000,
+          "hourly": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            23,
+            28,
+            30,
+            24,
+            18,
+            0,
+            0,
+            31,
+            18,
+            22,
+            10,
+            4
+          ],
+          "rows24h": 2,
+          "retention": null
+        }
+      ]
+    }
+  ]
+}
