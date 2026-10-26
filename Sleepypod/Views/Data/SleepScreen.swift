@@ -13,6 +13,7 @@ struct SleepScreen: View {
     @Environment(SettingsManager.self) private var settings
     @Environment(UserProfile.self) private var profile
     @Environment(HealthSyncService.self) private var health
+    @Environment(NativeActionSession.self) private var nativeActions
     @Environment(StageModelStore.self) private var stageModels
     @State private var selectedDate = SleepCalendar.previousNight(
         calendar: SleepCalendar.calendar(
@@ -267,8 +268,8 @@ struct SleepScreen: View {
     private var personalOptions: some View {
         Group {
             NavigationLink("Morning check-in") { MorningJournalDestination(side: metrics.selectedSide) }
-            NavigationLink("Personal reports") { PodFeatureScreen(.reports, side: metrics.selectedSide.rawValue) }
-            NavigationLink("Sleep coach") { PodFeatureScreen(.coach, side: metrics.selectedSide.rawValue) }
+            NavigationLink("Personal reports") { PodFeatureScreen(.reports, side: metrics.selectedSide.rawValue, nativeActions: nativeActions.bridge) }
+            NavigationLink("Sleep coach") { PodFeatureScreen(.coach, side: metrics.selectedSide.rawValue, nativeActions: nativeActions.bridge) }
             if APIBackend.current == .freeSleep {
                 NavigationLink("Recorded episodes") { PodFeatureScreen(.history, side: metrics.selectedSide.rawValue) }
             } else {

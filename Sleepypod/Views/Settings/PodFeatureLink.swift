@@ -6,6 +6,7 @@ struct PodFeatureLink: View {
     let icon: String
     var tile = false
     @Environment(DeviceManager.self) private var device
+    @Environment(NativeActionSession.self) private var nativeActions
     init(_ feature: PodFeature, icon: String, tile: Bool = false) {
         self.feature = feature; self.icon = icon; self.tile = tile
     }
@@ -20,7 +21,8 @@ struct PodFeatureLink: View {
                 else if feature == .history, APIBackend.current != .freeSleep { ImportedHistoryScreen(side: device.selectedSide.primarySide) }
                 else {
                     PodFeatureScreen(feature, side: device.selectedSide.primarySide.rawValue,
-                                     homeContent: feature == .home && APIBackend.current != .freeSleep ? AnyView(HomeRoomSummaryCard(compact: true)) : nil)
+                                     homeContent: feature == .home && APIBackend.current != .freeSleep ? AnyView(HomeRoomSummaryCard(compact: true)) : nil,
+                                     nativeActions: nativeActions.bridge)
                 }
             }.toolbar(.visible, for: .navigationBar)
         } label: {

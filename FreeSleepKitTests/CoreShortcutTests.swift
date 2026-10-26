@@ -58,6 +58,16 @@ import Testing
         }
         #expect(recorded.actions == [.readTemperature(side: "right", current: false), .nextAlarm(side: "right")])
     }
+    @Test func summaryUsesNativeEvidenceAndKeepsItsChosenSide() async throws {
+        let recorded = CoreActionCapture()
+        try await AppMode.$suppliedBackend.withValue("sleepypod-core") {
+            let intent = SleepSummaryIntent(); intent.side = .right
+            intent.nativeActions = .init { action in recorded.actions.append(action); return .message("Presence is not measured sleep.") }
+            let value = try await intent.perform().value
+            #expect(value == "Presence is not measured sleep.")
+        }
+        #expect(recorded.actions == [.summary(side: "right")])
+    }
     @Test func healthShortcutUsesTheRegisteredWriterAndPreservesErrors() async throws {
         let recorded = CoreActionCapture()
         try await AppMode.$suppliedBackend.withValue("sleepypod-core") {

@@ -5,8 +5,13 @@ struct SleepSummaryIntent: AppIntent {
     static let title: LocalizedStringResource = "Get sleep routine summary"
     static let authenticationPolicy: IntentAuthenticationPolicy = .requiresLocalDeviceAuthentication
     @Parameter(title: "Side", default: .left) var side: BedSide
+    @Dependency(default: NativePodActionBridge.unavailable) var nativeActions: NativePodActionBridge
     static var parameterSummary: some ParameterSummary { Summary("Get the \(\.$side) bed presence summary") }
     func perform() async throws -> some IntentResult & ReturnsValue<String> & ProvidesDialog {
+        if AppMode.isCore {
+            let summary = try await nativeActions.message(.summary(side: side.rawValue))
+            return .result(value: summary, dialog: IntentDialog(stringLiteral: summary))
+        }
         let analytics: SleepAnalytics = try await PodActions.client().get("analytics", query: [URLQueryItem(name: "side", value: side.rawValue)])
         let summary = "Recent bed presence: \(SleepAnalytics.duration(analytics.summary.averageOccupiedMinutes)). "
             + "\(analytics.summary.recordedNights) recorded nights. Presence is not measured sleep."

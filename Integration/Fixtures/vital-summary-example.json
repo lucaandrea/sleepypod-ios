@@ -1,0 +1,76 @@
+{
+  "synthetic": true,
+  "sourceCommit": "87ec31f37dbd59de6f85babf82d08268472ea923",
+  "cases": {
+    "recorded": {
+      "interpretation": "original_observations",
+      "configurationCount": 1,
+      "unknownConfigurationRows": 0,
+      "hrvRows": 8,
+      "hrvDefinitionCount": 1,
+      "unknownHrvRows": 0,
+      "hrvMetricId": "hrv_sdnn",
+      "hrvAggregation": "single_definition"
+    },
+    "mixedConfiguration": {
+      "interpretation": "original_observations",
+      "configurationCount": 2,
+      "unknownConfigurationRows": 1,
+      "hrvRows": 8,
+      "hrvDefinitionCount": 1,
+      "unknownHrvRows": 0,
+      "hrvMetricId": "hrv_sdnn",
+      "hrvAggregation": "single_definition"
+    },
+    "legacy": {
+      "interpretation": "original_observations",
+      "configurationCount": 0,
+      "unknownConfigurationRows": 10,
+      "hrvRows": 8,
+      "hrvDefinitionCount": 0,
+      "unknownHrvRows": 8,
+      "hrvMetricId": null,
+      "hrvAggregation": "legacy_unverified"
+    },
+    "incompatible": {
+      "interpretation": "original_observations",
+      "configurationCount": 1,
+      "unknownConfigurationRows": 0,
+      "hrvRows": 8,
+      "hrvDefinitionCount": 2,
+      "unknownHrvRows": 0,
+      "hrvMetricId": null,
+      "hrvAggregation": "incompatible_definitions"
+    },
+    "mixedKnownUnknown": {
+      "interpretation": "original_observations",
+      "configurationCount": 1,
+      "unknownConfigurationRows": 0,
+      "hrvRows": 8,
+      "hrvDefinitionCount": 1,
+      "unknownHrvRows": 1,
+      "hrvMetricId": null,
+      "hrvAggregation": "incompatible_definitions"
+    },
+    "otherMetric": {
+      "interpretation": "original_observations",
+      "configurationCount": 1,
+      "unknownConfigurationRows": 0,
+      "hrvRows": 8,
+      "hrvDefinitionCount": 1,
+      "unknownHrvRows": 0,
+      "hrvMetricId": "hrv_index",
+      "hrvAggregation": "single_definition"
+    },
+    "empty": {
+      "interpretation": "original_observations",
+      "configurationCount": 1,
+      "unknownConfigurationRows": 0,
+      "hrvRows": 0,
+      "hrvDefinitionCount": 0,
+      "unknownHrvRows": 0,
+      "hrvMetricId": null,
+      "hrvAggregation": "no_readings"
+    }
+  }
+}

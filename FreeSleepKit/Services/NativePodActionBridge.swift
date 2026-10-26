@@ -15,6 +15,7 @@ public enum NativePodAction: Sendable, Equatable {
     case nextAlarm(side: String)
     case changeAlarm(side: String, action: String, time: String?)
     case summary(side: String)
+    case evidence(side: String, days: Int)
     case syncHealth
 }
 
@@ -22,6 +23,7 @@ public enum NativePodActionReply: Sendable, Equatable {
     case message(String)
     case number(Double)
     case healthSamples(Int)
+    case evidence(NativePodEvidence)
 }
 
 public struct NativePodActionBridge: Sendable {
@@ -44,5 +46,10 @@ public struct NativePodActionBridge: Sendable {
     public func syncHealth() async throws -> Int {
         guard case .healthSamples(let count) = try await perform(.syncHealth), count >= 0 else { throw PodError.message("The Health sync could not be confirmed.") }
         return count
+    }
+    public func evidence(side: String, days: Int) async throws -> NativePodEvidence {
+        guard case .evidence(let value) = try await perform(.evidence(side: side, days: days)),
+              value.side == side, value.days == days else { throw PodError.message("The Pod evidence did not match the selected person and range.") }
+        return value
     }
 }

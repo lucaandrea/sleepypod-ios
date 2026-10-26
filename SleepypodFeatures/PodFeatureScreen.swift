@@ -32,6 +32,7 @@ public struct PodFeatureScreen: View {
     private let feature: PodFeature
     private let side: String
     private let homeContent: AnyView?
+    private let nativeActions: NativePodActionBridge
     @State private var model = AppModel()
     @State private var health = HealthSyncService.shared
     @State private var availability: String?
@@ -39,32 +40,35 @@ public struct PodFeatureScreen: View {
     @Environment(\.scenePhase) private var phase
     @AppStorage("podURL") private var address = ""
     @AppStorage("podNativeAPIPrefix") private var prefix = ""
+    @AppStorage("ownerConnectionRevision") private var ownerRevision = ""
+    private var needsLegacyPod: Bool { feature.needsPod && !(feature == .coach && (AppMode.isCore || AppMode.isDemo)) }
 
-    public init(_ feature: PodFeature, side: String = "left", homeContent: AnyView? = nil) {
+    public init(_ feature: PodFeature, side: String = "left", homeContent: AnyView? = nil, nativeActions: NativePodActionBridge = .unavailable) {
         self.feature = feature
         self.side = side
         self.homeContent = homeContent
+        self.nativeActions = nativeActions
     }
 
     public var body: some View {
         Group {
-            if checking && feature.needsPod {
+            if checking && needsLegacyPod {
                 ProgressView("Connecting…").frame(maxWidth: .infinity, maxHeight: .infinity)
-            } else if let availability, feature.needsPod {
+            } else if let availability, needsLegacyPod {
                 ContentUnavailableView(feature.title, systemImage: "network.slash", description: Text(availability))
             } else { content }
         }
         .background(Theme.background).foregroundStyle(Theme.text1).tint(Theme.text1)
         .navigationTitle(feature.title).navigationBarTitleDisplayMode(.inline)
         .environment(model).environment(health)
-        .task(id: "\(address)|\(prefix)|\(side)|\(phase)") {
+        .task(id: "\(address)|\(prefix)|\(side)|\(phase)|\(ownerRevision)") {
             guard phase == .active else { return }
             model.side = BedSide(rawValue: side) ?? .left
             model.connectionChanged()
             checking = true
             availability = await compatibilityMessage()
             checking = false
-            guard availability == nil, feature.needsPod else { return }
+            guard availability == nil, needsLegacyPod else { return }
             while !Task.isCancelled {
                 await model.refresh(includeAnalytics: feature == .history)
                 do { try await Task.sleep(for: .seconds(5)) } catch { return }
@@ -77,14 +81,16 @@ public struct PodFeatureScreen: View {
         case .comfort: FeaturePage(title: feature.title) { SidePicker(); ComfortCard().id(model.side) }
         case .journal: FeaturePage(title: feature.title) { SidePicker(); JournalCard().id(model.side) }
         case .history: RecordedEpisodesScreen()
-        case .reports: PersonalReportsScreen()
+        case .reports: PersonalReportsScreen(nativeActions: nativeActions)
         case .models: ModelConnectionScreen()
         case .healthHistory: ImportedHealthScreen()
         case .healthSync: FeaturePage(title: feature.title) { HealthConnectionCard() }
         case .home: HomeShortcutsScreen(homeContent: homeContent)
         case .routines: RoutinesView()
         case .alarms: FeaturePage(title: feature.title) { SidePicker(); AlarmCard(side: model.side).id(model.side) }
-        case .coach: CoachView()
+        case .coach:
+            if AppMode.isCore || AppMode.isDemo { PersonalReportsScreen(coach: true, nativeActions: nativeActions) }
+            else { CoachView() }
         case .preferences: DevicePreferencesView()
         case .services: SystemHealthView()
         case .base: LegacyBaseScreen()
@@ -93,7 +99,7 @@ public struct PodFeatureScreen: View {
 
     // Core advertises this optional contract. Never mount an editor against missing routes.
     private func compatibilityMessage() async -> String? {
-        guard !model.demo, feature.needsPod, prefix == "native/v1" else { return nil }
+        guard !model.demo, needsLegacyPod, prefix == "native/v1" else { return nil }
         do {
             let client = try PodClient(address: address, token: TokenStore.read(for: address), apiPrefix: "v1")
             let capabilities: NativeCapabilities = try await client.get("capabilities")

@@ -81,7 +81,7 @@ struct FeatureSegments<Value: Hashable>: View {
             }
         } else {
             SegmentedControl(segments: options.map { .init(value: $0, title: label($0)) }, selection: $selection)
-                .accessibilityLabel(title)
+                .accessibilityElement(children: .contain).accessibilityLabel(title)
         }
     }
 }

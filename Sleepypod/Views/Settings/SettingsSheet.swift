@@ -10,8 +10,10 @@ struct SettingsSheet: View {
     @Environment(StatusManager.self) private var status
     @Environment(HealthSyncService.self) private var health
     @Environment(UserProfile.self) private var profile
+    @Environment(NativeActionSession.self) private var nativeActions
     @State private var showAllSettings = DebugRoute.current == "allsettings"
     @State private var showHealth = DebugRoute.current == "health"
+    @State private var showPersonalReport = ["reports", "coach"].contains(DebugRoute.current)
     @State private var confirmPrime = false
     @State private var primeError: String?
     @State private var showBase = false
@@ -117,6 +119,9 @@ struct SettingsSheet: View {
             } message: { Text("Water will circulate through the pod to remove trapped air.") }
             .task { await settings.fetchSettings(); await status.fetchAll() }
             .navigationDestination(isPresented: $showHealth) { HealthAccessView() }
+            .navigationDestination(isPresented: $showPersonalReport) {
+                PodFeatureScreen(DebugRoute.current == "coach" ? .coach : .reports, side: device.selectedSide.primarySide.rawValue, nativeActions: nativeActions.bridge)
+            }
         }
         .tint(Theme.text1)
         .presentationDetents([.medium, .large])

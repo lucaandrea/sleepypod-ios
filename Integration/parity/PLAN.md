@@ -106,7 +106,7 @@ Each item needs source/API coverage, accessible native UI, loading/error/offline
 - [x] Map personal App Intents to accepted Core controls/receipts, including atomic comfort modes; retain explicit errors for unsupported routes. See `PERSONAL_ACTIONS_AUDIT.md`; Health and summary intents remain with their separate integration items below.
 - [x] Consolidate Core Health export through one writer, preserving selective consent, disjoint bed presence, source-qualified samples and the promised Shortcut window. See `PERSONAL_HEALTH_AUDIT.md`; real-device Health authorization/write acceptance remains separate.
 - [ ] Adopt optional read-only temperature application history from Core PR #42 (`5c7601d`, `docs/TEMPERATURE_APPLICATIONS.md`), keeping requested targets, accepted calls and physical readings separate.
-- [ ] Reconcile personal reports/coach with Core's actual bounded source data and the existing reviewed local/cloud intelligence path.
+- [x] Reconcile personal reports/coach with Core's actual bounded source data and the existing reviewed local/cloud intelligence path. Focused logic and phone/iPad/maximum-text evidence: `PERSONAL_REPORTS_AUDIT.md`.
 - [ ] Provision the ESP with the final live Core LAN endpoint/key and verify read-only live status after the owned controller cutover. Wi-Fi and Preview-off are already confirmed.
 
 ## Current implementation evidence

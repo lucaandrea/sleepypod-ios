@@ -314,7 +314,7 @@ final class SleepypodCoreClient: SleepypodProtocol, @unchecked Sendable {
         input["startDate"] = fmt.string(from: resolvedStart)
         input["endDate"] = fmt.string(from: resolvedEnd)
         let result: VitalsSummary? = try await query("biometrics.getVitalsSummary", input: input, dateKeys: ["startDate", "endDate"])
-        return result ?? VitalsSummary(avgHeartRate: nil, minHeartRate: nil, maxHeartRate: nil, avgHRV: nil, avgBreathingRate: nil)
+        return result ?? VitalsSummary(recordCount: 0)
     }
 
     func getMovement(side: Side? = nil, start: Date? = nil, end: Date? = nil) async throws -> [MovementRecord] {

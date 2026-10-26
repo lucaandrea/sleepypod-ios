@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct SettingsToolbar: ViewModifier {
-    @State private var presented = ["settings", "allsettings", "health", "autopilot", "comfort", "routines"].contains(DebugRoute.current)
+    @State private var presented = ["settings", "allsettings", "health", "autopilot", "comfort", "routines", "reports", "coach"].contains(DebugRoute.current)
     func body(content: Content) -> some View {
         content.toolbar {
             ToolbarItem(placement: .topBarTrailing) {

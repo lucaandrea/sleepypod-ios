@@ -12,17 +12,19 @@ import Observation
     private let owner: @MainActor () -> [String]
     private let live: @MainActor () -> Bool
     private let healthSync: @MainActor () async throws -> Int
+    private let evidence: NativeSleepEvidence
     var bridge: NativePodActionBridge { .init { [self] in try await perform($0) } }
 
     init(historyExample: Bool = false, controls: Result<NativeControlService, Error>,
          personal: @escaping @MainActor () throws -> any NativePersonalActionClient,
          alarms: @escaping @MainActor () throws -> any NextAlarmClient,
          comfort: @escaping @MainActor () throws -> any PersonalComfortClient,
+         evidence: NativeSleepEvidence = .configured(),
          healthSync: @escaping @MainActor () async throws -> Int = { throw APIError.serverError(message: "Open Apple Health settings in sleepypod to configure sync.") },
          owner: @escaping @MainActor () -> [String] = { OwnerConnection.revision },
          live: @escaping @MainActor () -> Bool = { APIBackend.current == .sleepypodCore }) {
         self.historyExample = historyExample; self.controls = controls; self.personal = personal; self.alarms = alarms; self.comfort = comfort
-        self.owner = owner; self.live = live; self.healthSync = healthSync
+        self.owner = owner; self.live = live; self.healthSync = healthSync; self.evidence = evidence
     }
     static func configured(healthSync: @escaping @MainActor () async throws -> Int) -> NativeActionSession {
         var example = false
@@ -94,7 +96,8 @@ import Observation
             try result.validate(side: side); return .message(Self.alarmSummary(result))
         case .changeAlarm(let value, let action, let time): return try await changeAlarm(side: Self.side(value), action: action, time: time, scope: scope)
         case .syncHealth: return .healthSamples(try await healthSync())
-        case .summary: throw APIError.serverError(message: "Open the app to use your personal Health integration.")
+        case .summary(let value): return .message(try await evidence.load(side: Self.side(value), days: 30).summary)
+        case .evidence(let value, let days): return .evidence(try await evidence.load(side: Self.side(value), days: days))
         default: throw NativeControlFailure.invalid
         }
     }

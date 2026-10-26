@@ -87,6 +87,23 @@ struct VitalsSummary: Codable, Sendable {
     var maxHeartRate: Double?
     var avgHRV: Double?
     var avgBreathingRate: Double?
+    var recordCount: Int?
+    var provenance: VitalSummaryProvenance?
+}
+
+struct VitalSummaryProvenance: Codable, Sendable {
+    let interpretation: String
+    let configurationCount: Int
+    let unknownConfigurationRows: Int
+    let hrvRows: Int
+    let hrvDefinitionCount: Int
+    let unknownHrvRows: Int
+    let hrvMetricId: String?
+    let hrvAggregation: String
+    var hasKnownSDNN: Bool {
+        interpretation == "original_observations" && hrvRows > 0 && hrvDefinitionCount == 1
+            && unknownHrvRows == 0 && hrvMetricId == "hrv_sdnn" && hrvAggregation == "single_definition"
+    }
 }
 
 struct VitalProvenance: Codable, Sendable, Equatable {

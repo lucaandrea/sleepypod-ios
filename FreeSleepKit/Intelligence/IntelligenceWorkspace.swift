@@ -24,9 +24,12 @@ final class IntelligenceWorkspace {
     private var operation: Task<Void, Never>?
     private var lastRefreshAttempt = Date.distantPast
     private var restored = false
+    private let generateModel: @Sendable (ModelRequest) async throws -> ModelReply
 
-    init(defaults: UserDefaults = .standard, store: PersonalIntelligenceStore = .init()) {
+    init(defaults: UserDefaults = .standard, store: PersonalIntelligenceStore = .init(),
+         generateModel: @escaping @Sendable (ModelRequest) async throws -> ModelReply = { try await NativeModelClient().generate($0) }) {
         self.defaults = defaults; self.store = store
+        self.generateModel = generateModel
         let selected = IntelligenceProvider(rawValue: defaults.string(forKey: "intelligence.provider") ?? "") ?? .apple
         provider = selected
         let savedModels = defaults.dictionary(forKey: "intelligence.models") as? [String: String] ?? [:]
@@ -105,18 +108,22 @@ final class IntelligenceWorkspace {
               Date.now.timeIntervalSince(lastRefreshAttempt) >= 15 * 60 else { return }
         await importHistory(authorize: false)
     }
-    func generate(facts: [SleepFact], consent: Bool) {
-        guard !busy, !facts.isEmpty, !AppMode.isDemo, !provider.leavesDevice || consent else { return }
+    func generate(facts: [SleepFact], consent: Bool, sourceName: String? = nil, valid: @escaping @MainActor () -> Bool = { true }) {
+        guard !busy, !facts.isEmpty, !AppMode.isDemo, !provider.leavesDevice || consent, valid() else { return }
         busy = true; message = nil
-        let sourceName = source?.name ?? "Pod"
+        let sourceName = sourceName ?? source?.name ?? "Pod"
+        let context = reportContext
         do {
             let input = try request(prompt: PersonalReportPrompt.make(facts: facts, question: question))
             try reserve(provider: input.provider)
             operation = Task {
                 defer { busy = false; operation = nil }
                 do {
-                    let reply = try await NativeModelClient().generate(input)
                     try Task.checkCancellation()
+                    guard context == reportContext, valid() else { throw CancellationError() }
+                    let reply = try await generateModel(input)
+                    try Task.checkCancellation()
+                    guard context == reportContext, valid() else { throw CancellationError() }
                     let report = PersonalSleepReport(id: UUID(), createdAt: .now, provider: input.provider, model: reply.model,
                         source: sourceName, facts: facts, text: reply.text, inputTokens: reply.inputTokens, outputTokens: reply.outputTokens)
                     var updated = archive; updated.reports = Array(([report] + updated.reports).prefix(30))
@@ -127,6 +134,7 @@ final class IntelligenceWorkspace {
         } catch { busy = false; message = error.localizedDescription }
     }
     func cancel() { operation?.cancel() }
+    private var reportContext: [String] { [provider.rawValue, modelID, localAddress, question] }
     func forgetHistory() {
         guard !busy else { return }
         do {
