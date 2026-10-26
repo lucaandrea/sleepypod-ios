@@ -107,6 +107,7 @@ Each item needs source/API coverage, accessible native UI, loading/error/offline
 - [x] Consolidate Core Health export through one writer, preserving selective consent, disjoint bed presence, source-qualified samples and the promised Shortcut window. See `PERSONAL_HEALTH_AUDIT.md`; real-device Health authorization/write acceptance remains separate.
 - [x] Adopt optional read-only temperature application history from Core PR #42 (`5c7601d`, `docs/TEMPERATURE_APPLICATIONS.md`), keeping requested targets, accepted calls and physical readings separate.
 - [x] Reconcile personal reports/coach with Core's actual bounded source data and the existing reviewed local/cloud intelligence path. Focused logic and phone/iPad/maximum-text evidence: `PERSONAL_REPORTS_AUDIT.md`.
+- [ ] Adopt Core PR #44's additive owner-activation status and qualification/review/recovery workflow; preserve server qualification, expiry and uncertain-result checks in native UI.
 - [ ] Provision the ESP with the final live Core LAN endpoint/key and verify read-only live status after the owned controller cutover. Wi-Fi and Preview-off are already confirmed.
 
 ## Current implementation evidence

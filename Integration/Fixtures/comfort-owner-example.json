@@ -1,0 +1,4726 @@
+{
+  "synthetic": true,
+  "sourceCommit": "41d6f9389bffb6448d06f49584a810cabfbe97a1",
+  "statuses": {
+    "initial": {
+      "apiVersion": 1,
+      "generatedAt": 1793901600000,
+      "side": "left",
+      "identity": {
+        "hardware": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+        "calibration": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "schedule": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "build": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "policy": {
+          "minimumF": 70,
+          "maximumF": 95,
+          "sensorAware": false,
+          "followBedtime": false
+        }
+      },
+      "qualifications": [],
+      "nights": [],
+      "reasons": [
+        "Empty-side presence needs attended confirmation for this configuration.",
+        "Occupied-side presence needs attended confirmation for this configuration.",
+        "Cooling response needs attended confirmation for this configuration.",
+        "Warming response needs attended confirmation for this configuration.",
+        "Manual stop needs attended confirmation for this configuration.",
+        "Offline routine and wake alarm needs attended confirmation for this configuration.",
+        "0 of 7 matching reviewed nights. Each requires four hours of eligible observation intervals on this Pod, build, calibration, routine and policy."
+      ],
+      "active": false,
+      "canActivate": false,
+      "application": null
+    },
+    "right": {
+      "apiVersion": 1,
+      "generatedAt": 1793901600000,
+      "side": "right",
+      "identity": {
+        "hardware": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+        "calibration": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "schedule": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "build": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "policy": {
+          "minimumF": 70,
+          "maximumF": 95,
+          "sensorAware": false,
+          "followBedtime": false
+        }
+      },
+      "qualifications": [],
+      "nights": [],
+      "reasons": [
+        "Start Preview before preparing activation.",
+        "Empty-side presence needs attended confirmation for this configuration.",
+        "Occupied-side presence needs attended confirmation for this configuration.",
+        "Cooling response needs attended confirmation for this configuration.",
+        "Warming response needs attended confirmation for this configuration.",
+        "Manual stop needs attended confirmation for this configuration.",
+        "Offline routine and wake alarm needs attended confirmation for this configuration.",
+        "0 of 7 matching reviewed nights. Each requires four hours of eligible observation intervals on this Pod, build, calibration, routine and policy."
+      ],
+      "active": false,
+      "canActivate": false,
+      "application": null
+    },
+    "ready": {
+      "apiVersion": 1,
+      "generatedAt": 1793901600000,
+      "side": "left",
+      "identity": {
+        "hardware": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+        "calibration": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "schedule": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "build": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "policy": {
+          "minimumF": 70,
+          "maximumF": 95,
+          "sensorAware": false,
+          "followBedtime": false
+        }
+      },
+      "qualifications": [
+        {
+          "id": "f096d61b-a34f-4a7d-bbea-ef907041e2b0",
+          "kind": "presence_empty",
+          "at": 1793901600000,
+          "outcome": "confirmed",
+          "note": "Synthetic owner observation in an isolated test.",
+          "evidence": {
+            "identity": {
+              "hardware": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+              "calibration": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "schedule": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "build": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "policy": {
+                "minimumF": 70,
+                "maximumF": 95,
+                "sensorAware": false,
+                "followBedtime": false
+              }
+            },
+            "observedAt": 1793901600000,
+            "presenceAt": 1793901600000,
+            "presence": "empty",
+            "powered": false,
+            "offConfirmed": true,
+            "targetF": 75,
+            "applicationId": null,
+            "applicationAt": null,
+            "alarmAt": null,
+            "pausedUntil": 0
+          }
+        },
+        {
+          "id": "2af3a6fa-6d33-4324-83b9-b7ed0637513e",
+          "kind": "presence_occupied",
+          "at": 1793901600000,
+          "outcome": "confirmed",
+          "note": "Synthetic owner observation in an isolated test.",
+          "evidence": {
+            "identity": {
+              "hardware": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+              "calibration": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "schedule": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "build": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "policy": {
+                "minimumF": 70,
+                "maximumF": 95,
+                "sensorAware": false,
+                "followBedtime": false
+              }
+            },
+            "observedAt": 1793901600000,
+            "presenceAt": 1793901600000,
+            "presence": "occupied",
+            "powered": false,
+            "offConfirmed": true,
+            "targetF": 75,
+            "applicationId": null,
+            "applicationAt": null,
+            "alarmAt": null,
+            "pausedUntil": 0
+          }
+        },
+        {
+          "id": "6e257c2e-c16f-4a9e-8cf3-9c5eeaa24148",
+          "kind": "cooling",
+          "at": 1793901600000,
+          "outcome": "confirmed",
+          "note": "Synthetic owner observation in an isolated test.",
+          "evidence": {
+            "identity": {
+              "hardware": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+              "calibration": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "schedule": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "build": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "policy": {
+                "minimumF": 70,
+                "maximumF": 95,
+                "sensorAware": false,
+                "followBedtime": false
+              }
+            },
+            "observedAt": 1793901600000,
+            "presenceAt": 1793901600000,
+            "presence": "occupied",
+            "powered": true,
+            "offConfirmed": true,
+            "targetF": 73,
+            "applicationId": "c00d7067-15e5-4649-999b-ca17a3593400",
+            "applicationAt": 1793901480000,
+            "alarmAt": null,
+            "pausedUntil": 0
+          }
+        },
+        {
+          "id": "3bf4a64d-cb1c-4b4c-b821-cfee2b6d1e02",
+          "kind": "warming",
+          "at": 1793901600000,
+          "outcome": "confirmed",
+          "note": "Synthetic owner observation in an isolated test.",
+          "evidence": {
+            "identity": {
+              "hardware": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+              "calibration": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "schedule": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "build": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "policy": {
+                "minimumF": 70,
+                "maximumF": 95,
+                "sensorAware": false,
+                "followBedtime": false
+              }
+            },
+            "observedAt": 1793901600000,
+            "presenceAt": 1793901600000,
+            "presence": "occupied",
+            "powered": true,
+            "offConfirmed": true,
+            "targetF": 77,
+            "applicationId": "1b24669c-179e-4864-ba19-82d5597bbcb6",
+            "applicationAt": 1793901480000,
+            "alarmAt": null,
+            "pausedUntil": 0
+          }
+        },
+        {
+          "id": "faa66784-7bd1-47f4-987f-38b7a716848f",
+          "kind": "manual_stop",
+          "at": 1793901600000,
+          "outcome": "confirmed",
+          "note": "Synthetic owner observation in an isolated test.",
+          "evidence": {
+            "identity": {
+              "hardware": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+              "calibration": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "schedule": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "build": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "policy": {
+                "minimumF": 70,
+                "maximumF": 95,
+                "sensorAware": false,
+                "followBedtime": false
+              }
+            },
+            "observedAt": 1793901600000,
+            "presenceAt": 1793901600000,
+            "presence": "occupied",
+            "powered": false,
+            "offConfirmed": true,
+            "targetF": 77,
+            "applicationId": null,
+            "applicationAt": null,
+            "alarmAt": null,
+            "pausedUntil": 1793923200000
+          }
+        },
+        {
+          "id": "d75f0daa-3a18-47c1-b69b-2d36cc3fcb85",
+          "kind": "offline_routine",
+          "at": 1793901600000,
+          "outcome": "confirmed",
+          "note": "Synthetic owner observation in an isolated test.",
+          "evidence": {
+            "identity": {
+              "hardware": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+              "calibration": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "schedule": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "build": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "policy": {
+                "minimumF": 70,
+                "maximumF": 95,
+                "sensorAware": false,
+                "followBedtime": false
+              }
+            },
+            "observedAt": 1793901600000,
+            "presenceAt": 1793901600000,
+            "presence": "occupied",
+            "powered": false,
+            "offConfirmed": true,
+            "targetF": 77,
+            "applicationId": "6c0d2ba3-385c-4ebd-b3c5-a840b0441f42",
+            "applicationAt": 1793901480000,
+            "alarmAt": 1793901599000,
+            "pausedUntil": 1793923200000
+          }
+        }
+      ],
+      "nights": [
+        {
+          "summary": {
+            "id": "99e8c8a2780606ad67cf24617feefcce099a04273e428614c14d8639d2d59c20",
+            "digest": "96f9d4f58eb784b85a0ea9369351712e6e9badec29ec4bf6e9361141452b6ed4",
+            "metadata": {
+              "session": "synthetic:1793296800000",
+              "start": 1793296800000,
+              "end": 1793325600000,
+              "timezone": "America/Los_Angeles"
+            },
+            "localDate": "2026-10-29",
+            "state": "closed",
+            "firstAt": 1793296800000,
+            "lastAt": 1793311200000,
+            "observationCount": 241,
+            "occupiedObservationMs": 14400000,
+            "minimumOccupiedObservationMs": 14400000,
+            "occupiedCount": 241,
+            "eligibleCount": 241,
+            "sensorReadyCount": 0,
+            "deviceFreshCount": 241,
+            "manualPauseCount": 0,
+            "proposedRangeF": {
+              "minimum": 74,
+              "maximum": 74
+            },
+            "reportedRangeF": {
+              "minimum": 75,
+              "maximum": 75
+            },
+            "reasons": [
+              {
+                "message": "Synthetic preview.",
+                "count": 241
+              }
+            ],
+            "gaps": [
+              {
+                "from": 1793311200000,
+                "to": 1793325600000
+              }
+            ],
+            "gapCount": 1,
+            "configurations": 1,
+            "runs": 1,
+            "builds": [
+              "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            ],
+            "issues": [],
+            "reviewable": true
+          },
+          "reviewId": 1,
+          "lastObservationId": 241,
+          "eligibleMs": 14400000
+        },
+        {
+          "summary": {
+            "id": "55fde66a151b302fe37946fd4d9e7c622cef65173f6073f2e3099c99ebaad536",
+            "digest": "3f004ae3e39a9c869fc8b6e14b24e205235408406af9d5b9cfa38098e12e0c3f",
+            "metadata": {
+              "session": "synthetic:1793383200000",
+              "start": 1793383200000,
+              "end": 1793412000000,
+              "timezone": "America/Los_Angeles"
+            },
+            "localDate": "2026-10-30",
+            "state": "closed",
+            "firstAt": 1793383200000,
+            "lastAt": 1793397600000,
+            "observationCount": 241,
+            "occupiedObservationMs": 14400000,
+            "minimumOccupiedObservationMs": 14400000,
+            "occupiedCount": 241,
+            "eligibleCount": 241,
+            "sensorReadyCount": 0,
+            "deviceFreshCount": 241,
+            "manualPauseCount": 0,
+            "proposedRangeF": {
+              "minimum": 74,
+              "maximum": 74
+            },
+            "reportedRangeF": {
+              "minimum": 75,
+              "maximum": 75
+            },
+            "reasons": [
+              {
+                "message": "Synthetic preview.",
+                "count": 241
+              }
+            ],
+            "gaps": [
+              {
+                "from": 1793397600000,
+                "to": 1793412000000
+              }
+            ],
+            "gapCount": 1,
+            "configurations": 1,
+            "runs": 1,
+            "builds": [
+              "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            ],
+            "issues": [],
+            "reviewable": true
+          },
+          "reviewId": 2,
+          "lastObservationId": 482,
+          "eligibleMs": 14400000
+        },
+        {
+          "summary": {
+            "id": "96e659d1db34ca90f66b421b8081a8ceee29cdf293291a1c6dfdbfbee7c4b687",
+            "digest": "a65626ac9fa034e2d1f6940bbc85feb4b4e1376645ac7d73d55a2040e5722330",
+            "metadata": {
+              "session": "synthetic:1793469600000",
+              "start": 1793469600000,
+              "end": 1793498400000,
+              "timezone": "America/Los_Angeles"
+            },
+            "localDate": "2026-10-31",
+            "state": "closed",
+            "firstAt": 1793469600000,
+            "lastAt": 1793484000000,
+            "observationCount": 241,
+            "occupiedObservationMs": 14400000,
+            "minimumOccupiedObservationMs": 14400000,
+            "occupiedCount": 241,
+            "eligibleCount": 241,
+            "sensorReadyCount": 0,
+            "deviceFreshCount": 241,
+            "manualPauseCount": 0,
+            "proposedRangeF": {
+              "minimum": 74,
+              "maximum": 74
+            },
+            "reportedRangeF": {
+              "minimum": 75,
+              "maximum": 75
+            },
+            "reasons": [
+              {
+                "message": "Synthetic preview.",
+                "count": 241
+              }
+            ],
+            "gaps": [
+              {
+                "from": 1793484000000,
+                "to": 1793498400000
+              }
+            ],
+            "gapCount": 1,
+            "configurations": 1,
+            "runs": 1,
+            "builds": [
+              "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            ],
+            "issues": [],
+            "reviewable": true
+          },
+          "reviewId": 3,
+          "lastObservationId": 723,
+          "eligibleMs": 14400000
+        },
+        {
+          "summary": {
+            "id": "e46db44878ec08f0d3e82cc3ab1b76c6bd26c5cddec4c698634243eac0100344",
+            "digest": "32067200b1de703533e2267645e98abb2f20912f9230c5a0d061b7a58ebb9d98",
+            "metadata": {
+              "session": "synthetic:1793556000000",
+              "start": 1793556000000,
+              "end": 1793584800000,
+              "timezone": "America/Los_Angeles"
+            },
+            "localDate": "2026-11-01",
+            "state": "closed",
+            "firstAt": 1793556000000,
+            "lastAt": 1793570400000,
+            "observationCount": 241,
+            "occupiedObservationMs": 14400000,
+            "minimumOccupiedObservationMs": 14400000,
+            "occupiedCount": 241,
+            "eligibleCount": 241,
+            "sensorReadyCount": 0,
+            "deviceFreshCount": 241,
+            "manualPauseCount": 0,
+            "proposedRangeF": {
+              "minimum": 74,
+              "maximum": 74
+            },
+            "reportedRangeF": {
+              "minimum": 75,
+              "maximum": 75
+            },
+            "reasons": [
+              {
+                "message": "Synthetic preview.",
+                "count": 241
+              }
+            ],
+            "gaps": [
+              {
+                "from": 1793570400000,
+                "to": 1793584800000
+              }
+            ],
+            "gapCount": 1,
+            "configurations": 1,
+            "runs": 1,
+            "builds": [
+              "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            ],
+            "issues": [],
+            "reviewable": true
+          },
+          "reviewId": 4,
+          "lastObservationId": 964,
+          "eligibleMs": 14400000
+        },
+        {
+          "summary": {
+            "id": "ca3b05c5dd5acc9c08dccc9758eaeb1729b7ee3c841d000d54888dc932b2db25",
+            "digest": "16c3057ee65c00dda75a5111d9d4d30b5fcbed04647ff8686bd17c7cf48baada",
+            "metadata": {
+              "session": "synthetic:1793642400000",
+              "start": 1793642400000,
+              "end": 1793671200000,
+              "timezone": "America/Los_Angeles"
+            },
+            "localDate": "2026-11-02",
+            "state": "closed",
+            "firstAt": 1793642400000,
+            "lastAt": 1793656800000,
+            "observationCount": 241,
+            "occupiedObservationMs": 14400000,
+            "minimumOccupiedObservationMs": 14400000,
+            "occupiedCount": 241,
+            "eligibleCount": 241,
+            "sensorReadyCount": 0,
+            "deviceFreshCount": 241,
+            "manualPauseCount": 0,
+            "proposedRangeF": {
+              "minimum": 74,
+              "maximum": 74
+            },
+            "reportedRangeF": {
+              "minimum": 75,
+              "maximum": 75
+            },
+            "reasons": [
+              {
+                "message": "Synthetic preview.",
+                "count": 241
+              }
+            ],
+            "gaps": [
+              {
+                "from": 1793656800000,
+                "to": 1793671200000
+              }
+            ],
+            "gapCount": 1,
+            "configurations": 1,
+            "runs": 1,
+            "builds": [
+              "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            ],
+            "issues": [],
+            "reviewable": true
+          },
+          "reviewId": 5,
+          "lastObservationId": 1205,
+          "eligibleMs": 14400000
+        },
+        {
+          "summary": {
+            "id": "469334c3bdbeb4bb235f03d6dc9cad8fc831ce7dc94326c0e9f35c8ff53f2d70",
+            "digest": "374890ccc4ef507d11cecf4ce4a619326b04061f41a3ec1d2e84e5fcbe91b727",
+            "metadata": {
+              "session": "synthetic:1793728800000",
+              "start": 1793728800000,
+              "end": 1793757600000,
+              "timezone": "America/Los_Angeles"
+            },
+            "localDate": "2026-11-03",
+            "state": "closed",
+            "firstAt": 1793728800000,
+            "lastAt": 1793743200000,
+            "observationCount": 241,
+            "occupiedObservationMs": 14400000,
+            "minimumOccupiedObservationMs": 14400000,
+            "occupiedCount": 241,
+            "eligibleCount": 241,
+            "sensorReadyCount": 0,
+            "deviceFreshCount": 241,
+            "manualPauseCount": 0,
+            "proposedRangeF": {
+              "minimum": 74,
+              "maximum": 74
+            },
+            "reportedRangeF": {
+              "minimum": 75,
+              "maximum": 75
+            },
+            "reasons": [
+              {
+                "message": "Synthetic preview.",
+                "count": 241
+              }
+            ],
+            "gaps": [
+              {
+                "from": 1793743200000,
+                "to": 1793757600000
+              }
+            ],
+            "gapCount": 1,
+            "configurations": 1,
+            "runs": 1,
+            "builds": [
+              "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            ],
+            "issues": [],
+            "reviewable": true
+          },
+          "reviewId": 6,
+          "lastObservationId": 1446,
+          "eligibleMs": 14400000
+        },
+        {
+          "summary": {
+            "id": "ca2e1b7a71769faee7d905278301f3f85b5964a9960125bab73a334752939941",
+            "digest": "3ac2f62257fcdba0cb4c61476c55b091ff42cc4fb5f7bbd0134f54ad1d07c239",
+            "metadata": {
+              "session": "synthetic:1793815200000",
+              "start": 1793815200000,
+              "end": 1793844000000,
+              "timezone": "America/Los_Angeles"
+            },
+            "localDate": "2026-11-04",
+            "state": "closed",
+            "firstAt": 1793815200000,
+            "lastAt": 1793829600000,
+            "observationCount": 241,
+            "occupiedObservationMs": 14400000,
+            "minimumOccupiedObservationMs": 14400000,
+            "occupiedCount": 241,
+            "eligibleCount": 241,
+            "sensorReadyCount": 0,
+            "deviceFreshCount": 241,
+            "manualPauseCount": 0,
+            "proposedRangeF": {
+              "minimum": 74,
+              "maximum": 74
+            },
+            "reportedRangeF": {
+              "minimum": 75,
+              "maximum": 75
+            },
+            "reasons": [
+              {
+                "message": "Synthetic preview.",
+                "count": 241
+              }
+            ],
+            "gaps": [
+              {
+                "from": 1793829600000,
+                "to": 1793844000000
+              }
+            ],
+            "gapCount": 1,
+            "configurations": 1,
+            "runs": 1,
+            "builds": [
+              "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            ],
+            "issues": [],
+            "reviewable": true
+          },
+          "reviewId": 7,
+          "lastObservationId": 1687,
+          "eligibleMs": 14400000
+        }
+      ],
+      "reasons": [],
+      "active": false,
+      "canActivate": true,
+      "application": null
+    },
+    "active": {
+      "apiVersion": 1,
+      "generatedAt": 1793901600000,
+      "side": "left",
+      "identity": {
+        "hardware": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+        "calibration": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "schedule": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "build": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "policy": {
+          "minimumF": 70,
+          "maximumF": 95,
+          "sensorAware": false,
+          "followBedtime": false
+        }
+      },
+      "qualifications": [
+        {
+          "id": "f096d61b-a34f-4a7d-bbea-ef907041e2b0",
+          "kind": "presence_empty",
+          "at": 1793901600000,
+          "outcome": "confirmed",
+          "note": "Synthetic owner observation in an isolated test.",
+          "evidence": {
+            "identity": {
+              "hardware": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+              "calibration": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "schedule": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "build": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "policy": {
+                "minimumF": 70,
+                "maximumF": 95,
+                "sensorAware": false,
+                "followBedtime": false
+              }
+            },
+            "observedAt": 1793901600000,
+            "presenceAt": 1793901600000,
+            "presence": "empty",
+            "powered": false,
+            "offConfirmed": true,
+            "targetF": 75,
+            "applicationId": null,
+            "applicationAt": null,
+            "alarmAt": null,
+            "pausedUntil": 0
+          }
+        },
+        {
+          "id": "2af3a6fa-6d33-4324-83b9-b7ed0637513e",
+          "kind": "presence_occupied",
+          "at": 1793901600000,
+          "outcome": "confirmed",
+          "note": "Synthetic owner observation in an isolated test.",
+          "evidence": {
+            "identity": {
+              "hardware": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+              "calibration": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "schedule": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "build": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "policy": {
+                "minimumF": 70,
+                "maximumF": 95,
+                "sensorAware": false,
+                "followBedtime": false
+              }
+            },
+            "observedAt": 1793901600000,
+            "presenceAt": 1793901600000,
+            "presence": "occupied",
+            "powered": false,
+            "offConfirmed": true,
+            "targetF": 75,
+            "applicationId": null,
+            "applicationAt": null,
+            "alarmAt": null,
+            "pausedUntil": 0
+          }
+        },
+        {
+          "id": "6e257c2e-c16f-4a9e-8cf3-9c5eeaa24148",
+          "kind": "cooling",
+          "at": 1793901600000,
+          "outcome": "confirmed",
+          "note": "Synthetic owner observation in an isolated test.",
+          "evidence": {
+            "identity": {
+              "hardware": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+              "calibration": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "schedule": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "build": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "policy": {
+                "minimumF": 70,
+                "maximumF": 95,
+                "sensorAware": false,
+                "followBedtime": false
+              }
+            },
+            "observedAt": 1793901600000,
+            "presenceAt": 1793901600000,
+            "presence": "occupied",
+            "powered": true,
+            "offConfirmed": true,
+            "targetF": 73,
+            "applicationId": "c00d7067-15e5-4649-999b-ca17a3593400",
+            "applicationAt": 1793901480000,
+            "alarmAt": null,
+            "pausedUntil": 0
+          }
+        },
+        {
+          "id": "3bf4a64d-cb1c-4b4c-b821-cfee2b6d1e02",
+          "kind": "warming",
+          "at": 1793901600000,
+          "outcome": "confirmed",
+          "note": "Synthetic owner observation in an isolated test.",
+          "evidence": {
+            "identity": {
+              "hardware": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+              "calibration": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "schedule": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "build": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "policy": {
+                "minimumF": 70,
+                "maximumF": 95,
+                "sensorAware": false,
+                "followBedtime": false
+              }
+            },
+            "observedAt": 1793901600000,
+            "presenceAt": 1793901600000,
+            "presence": "occupied",
+            "powered": true,
+            "offConfirmed": true,
+            "targetF": 77,
+            "applicationId": "1b24669c-179e-4864-ba19-82d5597bbcb6",
+            "applicationAt": 1793901480000,
+            "alarmAt": null,
+            "pausedUntil": 0
+          }
+        },
+        {
+          "id": "faa66784-7bd1-47f4-987f-38b7a716848f",
+          "kind": "manual_stop",
+          "at": 1793901600000,
+          "outcome": "confirmed",
+          "note": "Synthetic owner observation in an isolated test.",
+          "evidence": {
+            "identity": {
+              "hardware": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+              "calibration": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "schedule": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "build": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "policy": {
+                "minimumF": 70,
+                "maximumF": 95,
+                "sensorAware": false,
+                "followBedtime": false
+              }
+            },
+            "observedAt": 1793901600000,
+            "presenceAt": 1793901600000,
+            "presence": "occupied",
+            "powered": false,
+            "offConfirmed": true,
+            "targetF": 77,
+            "applicationId": null,
+            "applicationAt": null,
+            "alarmAt": null,
+            "pausedUntil": 1793923200000
+          }
+        },
+        {
+          "id": "d75f0daa-3a18-47c1-b69b-2d36cc3fcb85",
+          "kind": "offline_routine",
+          "at": 1793901600000,
+          "outcome": "confirmed",
+          "note": "Synthetic owner observation in an isolated test.",
+          "evidence": {
+            "identity": {
+              "hardware": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+              "calibration": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "schedule": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "build": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "policy": {
+                "minimumF": 70,
+                "maximumF": 95,
+                "sensorAware": false,
+                "followBedtime": false
+              }
+            },
+            "observedAt": 1793901600000,
+            "presenceAt": 1793901600000,
+            "presence": "occupied",
+            "powered": false,
+            "offConfirmed": true,
+            "targetF": 77,
+            "applicationId": "6c0d2ba3-385c-4ebd-b3c5-a840b0441f42",
+            "applicationAt": 1793901480000,
+            "alarmAt": 1793901599000,
+            "pausedUntil": 1793923200000
+          }
+        }
+      ],
+      "nights": [
+        {
+          "summary": {
+            "id": "99e8c8a2780606ad67cf24617feefcce099a04273e428614c14d8639d2d59c20",
+            "digest": "96f9d4f58eb784b85a0ea9369351712e6e9badec29ec4bf6e9361141452b6ed4",
+            "metadata": {
+              "session": "synthetic:1793296800000",
+              "start": 1793296800000,
+              "end": 1793325600000,
+              "timezone": "America/Los_Angeles"
+            },
+            "localDate": "2026-10-29",
+            "state": "closed",
+            "firstAt": 1793296800000,
+            "lastAt": 1793311200000,
+            "observationCount": 241,
+            "occupiedObservationMs": 14400000,
+            "minimumOccupiedObservationMs": 14400000,
+            "occupiedCount": 241,
+            "eligibleCount": 241,
+            "sensorReadyCount": 0,
+            "deviceFreshCount": 241,
+            "manualPauseCount": 0,
+            "proposedRangeF": {
+              "minimum": 74,
+              "maximum": 74
+            },
+            "reportedRangeF": {
+              "minimum": 75,
+              "maximum": 75
+            },
+            "reasons": [
+              {
+                "message": "Synthetic preview.",
+                "count": 241
+              }
+            ],
+            "gaps": [
+              {
+                "from": 1793311200000,
+                "to": 1793325600000
+              }
+            ],
+            "gapCount": 1,
+            "configurations": 1,
+            "runs": 1,
+            "builds": [
+              "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            ],
+            "issues": [],
+            "reviewable": true
+          },
+          "reviewId": 1,
+          "lastObservationId": 241,
+          "eligibleMs": 14400000
+        },
+        {
+          "summary": {
+            "id": "55fde66a151b302fe37946fd4d9e7c622cef65173f6073f2e3099c99ebaad536",
+            "digest": "3f004ae3e39a9c869fc8b6e14b24e205235408406af9d5b9cfa38098e12e0c3f",
+            "metadata": {
+              "session": "synthetic:1793383200000",
+              "start": 1793383200000,
+              "end": 1793412000000,
+              "timezone": "America/Los_Angeles"
+            },
+            "localDate": "2026-10-30",
+            "state": "closed",
+            "firstAt": 1793383200000,
+            "lastAt": 1793397600000,
+            "observationCount": 241,
+            "occupiedObservationMs": 14400000,
+            "minimumOccupiedObservationMs": 14400000,
+            "occupiedCount": 241,
+            "eligibleCount": 241,
+            "sensorReadyCount": 0,
+            "deviceFreshCount": 241,
+            "manualPauseCount": 0,
+            "proposedRangeF": {
+              "minimum": 74,
+              "maximum": 74
+            },
+            "reportedRangeF": {
+              "minimum": 75,
+              "maximum": 75
+            },
+            "reasons": [
+              {
+                "message": "Synthetic preview.",
+                "count": 241
+              }
+            ],
+            "gaps": [
+              {
+                "from": 1793397600000,
+                "to": 1793412000000
+              }
+            ],
+            "gapCount": 1,
+            "configurations": 1,
+            "runs": 1,
+            "builds": [
+              "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            ],
+            "issues": [],
+            "reviewable": true
+          },
+          "reviewId": 2,
+          "lastObservationId": 482,
+          "eligibleMs": 14400000
+        },
+        {
+          "summary": {
+            "id": "96e659d1db34ca90f66b421b8081a8ceee29cdf293291a1c6dfdbfbee7c4b687",
+            "digest": "a65626ac9fa034e2d1f6940bbc85feb4b4e1376645ac7d73d55a2040e5722330",
+            "metadata": {
+              "session": "synthetic:1793469600000",
+              "start": 1793469600000,
+              "end": 1793498400000,
+              "timezone": "America/Los_Angeles"
+            },
+            "localDate": "2026-10-31",
+            "state": "closed",
+            "firstAt": 1793469600000,
+            "lastAt": 1793484000000,
+            "observationCount": 241,
+            "occupiedObservationMs": 14400000,
+            "minimumOccupiedObservationMs": 14400000,
+            "occupiedCount": 241,
+            "eligibleCount": 241,
+            "sensorReadyCount": 0,
+            "deviceFreshCount": 241,
+            "manualPauseCount": 0,
+            "proposedRangeF": {
+              "minimum": 74,
+              "maximum": 74
+            },
+            "reportedRangeF": {
+              "minimum": 75,
+              "maximum": 75
+            },
+            "reasons": [
+              {
+                "message": "Synthetic preview.",
+                "count": 241
+              }
+            ],
+            "gaps": [
+              {
+                "from": 1793484000000,
+                "to": 1793498400000
+              }
+            ],
+            "gapCount": 1,
+            "configurations": 1,
+            "runs": 1,
+            "builds": [
+              "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            ],
+            "issues": [],
+            "reviewable": true
+          },
+          "reviewId": 3,
+          "lastObservationId": 723,
+          "eligibleMs": 14400000
+        },
+        {
+          "summary": {
+            "id": "e46db44878ec08f0d3e82cc3ab1b76c6bd26c5cddec4c698634243eac0100344",
+            "digest": "32067200b1de703533e2267645e98abb2f20912f9230c5a0d061b7a58ebb9d98",
+            "metadata": {
+              "session": "synthetic:1793556000000",
+              "start": 1793556000000,
+              "end": 1793584800000,
+              "timezone": "America/Los_Angeles"
+            },
+            "localDate": "2026-11-01",
+            "state": "closed",
+            "firstAt": 1793556000000,
+            "lastAt": 1793570400000,
+            "observationCount": 241,
+            "occupiedObservationMs": 14400000,
+            "minimumOccupiedObservationMs": 14400000,
+            "occupiedCount": 241,
+            "eligibleCount": 241,
+            "sensorReadyCount": 0,
+            "deviceFreshCount": 241,
+            "manualPauseCount": 0,
+            "proposedRangeF": {
+              "minimum": 74,
+              "maximum": 74
+            },
+            "reportedRangeF": {
+              "minimum": 75,
+              "maximum": 75
+            },
+            "reasons": [
+              {
+                "message": "Synthetic preview.",
+                "count": 241
+              }
+            ],
+            "gaps": [
+              {
+                "from": 1793570400000,
+                "to": 1793584800000
+              }
+            ],
+            "gapCount": 1,
+            "configurations": 1,
+            "runs": 1,
+            "builds": [
+              "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            ],
+            "issues": [],
+            "reviewable": true
+          },
+          "reviewId": 4,
+          "lastObservationId": 964,
+          "eligibleMs": 14400000
+        },
+        {
+          "summary": {
+            "id": "ca3b05c5dd5acc9c08dccc9758eaeb1729b7ee3c841d000d54888dc932b2db25",
+            "digest": "16c3057ee65c00dda75a5111d9d4d30b5fcbed04647ff8686bd17c7cf48baada",
+            "metadata": {
+              "session": "synthetic:1793642400000",
+              "start": 1793642400000,
+              "end": 1793671200000,
+              "timezone": "America/Los_Angeles"
+            },
+            "localDate": "2026-11-02",
+            "state": "closed",
+            "firstAt": 1793642400000,
+            "lastAt": 1793656800000,
+            "observationCount": 241,
+            "occupiedObservationMs": 14400000,
+            "minimumOccupiedObservationMs": 14400000,
+            "occupiedCount": 241,
+            "eligibleCount": 241,
+            "sensorReadyCount": 0,
+            "deviceFreshCount": 241,
+            "manualPauseCount": 0,
+            "proposedRangeF": {
+              "minimum": 74,
+              "maximum": 74
+            },
+            "reportedRangeF": {
+              "minimum": 75,
+              "maximum": 75
+            },
+            "reasons": [
+              {
+                "message": "Synthetic preview.",
+                "count": 241
+              }
+            ],
+            "gaps": [
+              {
+                "from": 1793656800000,
+                "to": 1793671200000
+              }
+            ],
+            "gapCount": 1,
+            "configurations": 1,
+            "runs": 1,
+            "builds": [
+              "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            ],
+            "issues": [],
+            "reviewable": true
+          },
+          "reviewId": 5,
+          "lastObservationId": 1205,
+          "eligibleMs": 14400000
+        },
+        {
+          "summary": {
+            "id": "469334c3bdbeb4bb235f03d6dc9cad8fc831ce7dc94326c0e9f35c8ff53f2d70",
+            "digest": "374890ccc4ef507d11cecf4ce4a619326b04061f41a3ec1d2e84e5fcbe91b727",
+            "metadata": {
+              "session": "synthetic:1793728800000",
+              "start": 1793728800000,
+              "end": 1793757600000,
+              "timezone": "America/Los_Angeles"
+            },
+            "localDate": "2026-11-03",
+            "state": "closed",
+            "firstAt": 1793728800000,
+            "lastAt": 1793743200000,
+            "observationCount": 241,
+            "occupiedObservationMs": 14400000,
+            "minimumOccupiedObservationMs": 14400000,
+            "occupiedCount": 241,
+            "eligibleCount": 241,
+            "sensorReadyCount": 0,
+            "deviceFreshCount": 241,
+            "manualPauseCount": 0,
+            "proposedRangeF": {
+              "minimum": 74,
+              "maximum": 74
+            },
+            "reportedRangeF": {
+              "minimum": 75,
+              "maximum": 75
+            },
+            "reasons": [
+              {
+                "message": "Synthetic preview.",
+                "count": 241
+              }
+            ],
+            "gaps": [
+              {
+                "from": 1793743200000,
+                "to": 1793757600000
+              }
+            ],
+            "gapCount": 1,
+            "configurations": 1,
+            "runs": 1,
+            "builds": [
+              "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            ],
+            "issues": [],
+            "reviewable": true
+          },
+          "reviewId": 6,
+          "lastObservationId": 1446,
+          "eligibleMs": 14400000
+        },
+        {
+          "summary": {
+            "id": "ca2e1b7a71769faee7d905278301f3f85b5964a9960125bab73a334752939941",
+            "digest": "3ac2f62257fcdba0cb4c61476c55b091ff42cc4fb5f7bbd0134f54ad1d07c239",
+            "metadata": {
+              "session": "synthetic:1793815200000",
+              "start": 1793815200000,
+              "end": 1793844000000,
+              "timezone": "America/Los_Angeles"
+            },
+            "localDate": "2026-11-04",
+            "state": "closed",
+            "firstAt": 1793815200000,
+            "lastAt": 1793829600000,
+            "observationCount": 241,
+            "occupiedObservationMs": 14400000,
+            "minimumOccupiedObservationMs": 14400000,
+            "occupiedCount": 241,
+            "eligibleCount": 241,
+            "sensorReadyCount": 0,
+            "deviceFreshCount": 241,
+            "manualPauseCount": 0,
+            "proposedRangeF": {
+              "minimum": 74,
+              "maximum": 74
+            },
+            "reportedRangeF": {
+              "minimum": 75,
+              "maximum": 75
+            },
+            "reasons": [
+              {
+                "message": "Synthetic preview.",
+                "count": 241
+              }
+            ],
+            "gaps": [
+              {
+                "from": 1793829600000,
+                "to": 1793844000000
+              }
+            ],
+            "gapCount": 1,
+            "configurations": 1,
+            "runs": 1,
+            "builds": [
+              "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            ],
+            "issues": [],
+            "reviewable": true
+          },
+          "reviewId": 7,
+          "lastObservationId": 1687,
+          "eligibleMs": 14400000
+        }
+      ],
+      "reasons": [],
+      "active": true,
+      "canActivate": false,
+      "application": null
+    },
+    "retest": {
+      "apiVersion": 1,
+      "generatedAt": 1793901600000,
+      "side": "left",
+      "identity": {
+        "hardware": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+        "calibration": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "schedule": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "build": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "policy": {
+          "minimumF": 70,
+          "maximumF": 95,
+          "sensorAware": false,
+          "followBedtime": false
+        }
+      },
+      "qualifications": [
+        {
+          "id": "f0736438-5af9-4b30-9105-a5c175d76815",
+          "kind": "presence_empty",
+          "at": 1793901600000,
+          "outcome": "needs_retest",
+          "note": "Synthetic owner observation in an isolated test.",
+          "evidence": {
+            "identity": {
+              "hardware": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+              "calibration": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "schedule": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "build": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "policy": {
+                "minimumF": 70,
+                "maximumF": 95,
+                "sensorAware": false,
+                "followBedtime": false
+              }
+            },
+            "observedAt": 1793901600000,
+            "presenceAt": 1793901600000,
+            "presence": "empty",
+            "powered": false,
+            "offConfirmed": true,
+            "targetF": 75,
+            "applicationId": null,
+            "applicationAt": null,
+            "alarmAt": null,
+            "pausedUntil": 0
+          }
+        },
+        {
+          "id": "2af3a6fa-6d33-4324-83b9-b7ed0637513e",
+          "kind": "presence_occupied",
+          "at": 1793901600000,
+          "outcome": "confirmed",
+          "note": "Synthetic owner observation in an isolated test.",
+          "evidence": {
+            "identity": {
+              "hardware": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+              "calibration": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "schedule": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "build": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "policy": {
+                "minimumF": 70,
+                "maximumF": 95,
+                "sensorAware": false,
+                "followBedtime": false
+              }
+            },
+            "observedAt": 1793901600000,
+            "presenceAt": 1793901600000,
+            "presence": "occupied",
+            "powered": false,
+            "offConfirmed": true,
+            "targetF": 75,
+            "applicationId": null,
+            "applicationAt": null,
+            "alarmAt": null,
+            "pausedUntil": 0
+          }
+        },
+        {
+          "id": "6e257c2e-c16f-4a9e-8cf3-9c5eeaa24148",
+          "kind": "cooling",
+          "at": 1793901600000,
+          "outcome": "confirmed",
+          "note": "Synthetic owner observation in an isolated test.",
+          "evidence": {
+            "identity": {
+              "hardware": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+              "calibration": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "schedule": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "build": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "policy": {
+                "minimumF": 70,
+                "maximumF": 95,
+                "sensorAware": false,
+                "followBedtime": false
+              }
+            },
+            "observedAt": 1793901600000,
+            "presenceAt": 1793901600000,
+            "presence": "occupied",
+            "powered": true,
+            "offConfirmed": true,
+            "targetF": 73,
+            "applicationId": "c00d7067-15e5-4649-999b-ca17a3593400",
+            "applicationAt": 1793901480000,
+            "alarmAt": null,
+            "pausedUntil": 0
+          }
+        },
+        {
+          "id": "3bf4a64d-cb1c-4b4c-b821-cfee2b6d1e02",
+          "kind": "warming",
+          "at": 1793901600000,
+          "outcome": "confirmed",
+          "note": "Synthetic owner observation in an isolated test.",
+          "evidence": {
+            "identity": {
+              "hardware": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+              "calibration": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "schedule": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "build": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "policy": {
+                "minimumF": 70,
+                "maximumF": 95,
+                "sensorAware": false,
+                "followBedtime": false
+              }
+            },
+            "observedAt": 1793901600000,
+            "presenceAt": 1793901600000,
+            "presence": "occupied",
+            "powered": true,
+            "offConfirmed": true,
+            "targetF": 77,
+            "applicationId": "1b24669c-179e-4864-ba19-82d5597bbcb6",
+            "applicationAt": 1793901480000,
+            "alarmAt": null,
+            "pausedUntil": 0
+          }
+        },
+        {
+          "id": "faa66784-7bd1-47f4-987f-38b7a716848f",
+          "kind": "manual_stop",
+          "at": 1793901600000,
+          "outcome": "confirmed",
+          "note": "Synthetic owner observation in an isolated test.",
+          "evidence": {
+            "identity": {
+              "hardware": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+              "calibration": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "schedule": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "build": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "policy": {
+                "minimumF": 70,
+                "maximumF": 95,
+                "sensorAware": false,
+                "followBedtime": false
+              }
+            },
+            "observedAt": 1793901600000,
+            "presenceAt": 1793901600000,
+            "presence": "occupied",
+            "powered": false,
+            "offConfirmed": true,
+            "targetF": 77,
+            "applicationId": null,
+            "applicationAt": null,
+            "alarmAt": null,
+            "pausedUntil": 1793923200000
+          }
+        },
+        {
+          "id": "d75f0daa-3a18-47c1-b69b-2d36cc3fcb85",
+          "kind": "offline_routine",
+          "at": 1793901600000,
+          "outcome": "confirmed",
+          "note": "Synthetic owner observation in an isolated test.",
+          "evidence": {
+            "identity": {
+              "hardware": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+              "calibration": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "schedule": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "build": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "policy": {
+                "minimumF": 70,
+                "maximumF": 95,
+                "sensorAware": false,
+                "followBedtime": false
+              }
+            },
+            "observedAt": 1793901600000,
+            "presenceAt": 1793901600000,
+            "presence": "occupied",
+            "powered": false,
+            "offConfirmed": true,
+            "targetF": 77,
+            "applicationId": "6c0d2ba3-385c-4ebd-b3c5-a840b0441f42",
+            "applicationAt": 1793901480000,
+            "alarmAt": 1793901599000,
+            "pausedUntil": 1793923200000
+          }
+        }
+      ],
+      "nights": [
+        {
+          "summary": {
+            "id": "99e8c8a2780606ad67cf24617feefcce099a04273e428614c14d8639d2d59c20",
+            "digest": "96f9d4f58eb784b85a0ea9369351712e6e9badec29ec4bf6e9361141452b6ed4",
+            "metadata": {
+              "session": "synthetic:1793296800000",
+              "start": 1793296800000,
+              "end": 1793325600000,
+              "timezone": "America/Los_Angeles"
+            },
+            "localDate": "2026-10-29",
+            "state": "closed",
+            "firstAt": 1793296800000,
+            "lastAt": 1793311200000,
+            "observationCount": 241,
+            "occupiedObservationMs": 14400000,
+            "minimumOccupiedObservationMs": 14400000,
+            "occupiedCount": 241,
+            "eligibleCount": 241,
+            "sensorReadyCount": 0,
+            "deviceFreshCount": 241,
+            "manualPauseCount": 0,
+            "proposedRangeF": {
+              "minimum": 74,
+              "maximum": 74
+            },
+            "reportedRangeF": {
+              "minimum": 75,
+              "maximum": 75
+            },
+            "reasons": [
+              {
+                "message": "Synthetic preview.",
+                "count": 241
+              }
+            ],
+            "gaps": [
+              {
+                "from": 1793311200000,
+                "to": 1793325600000
+              }
+            ],
+            "gapCount": 1,
+            "configurations": 1,
+            "runs": 1,
+            "builds": [
+              "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            ],
+            "issues": [],
+            "reviewable": true
+          },
+          "reviewId": 1,
+          "lastObservationId": 241,
+          "eligibleMs": 14400000
+        },
+        {
+          "summary": {
+            "id": "55fde66a151b302fe37946fd4d9e7c622cef65173f6073f2e3099c99ebaad536",
+            "digest": "3f004ae3e39a9c869fc8b6e14b24e205235408406af9d5b9cfa38098e12e0c3f",
+            "metadata": {
+              "session": "synthetic:1793383200000",
+              "start": 1793383200000,
+              "end": 1793412000000,
+              "timezone": "America/Los_Angeles"
+            },
+            "localDate": "2026-10-30",
+            "state": "closed",
+            "firstAt": 1793383200000,
+            "lastAt": 1793397600000,
+            "observationCount": 241,
+            "occupiedObservationMs": 14400000,
+            "minimumOccupiedObservationMs": 14400000,
+            "occupiedCount": 241,
+            "eligibleCount": 241,
+            "sensorReadyCount": 0,
+            "deviceFreshCount": 241,
+            "manualPauseCount": 0,
+            "proposedRangeF": {
+              "minimum": 74,
+              "maximum": 74
+            },
+            "reportedRangeF": {
+              "minimum": 75,
+              "maximum": 75
+            },
+            "reasons": [
+              {
+                "message": "Synthetic preview.",
+                "count": 241
+              }
+            ],
+            "gaps": [
+              {
+                "from": 1793397600000,
+                "to": 1793412000000
+              }
+            ],
+            "gapCount": 1,
+            "configurations": 1,
+            "runs": 1,
+            "builds": [
+              "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            ],
+            "issues": [],
+            "reviewable": true
+          },
+          "reviewId": 2,
+          "lastObservationId": 482,
+          "eligibleMs": 14400000
+        },
+        {
+          "summary": {
+            "id": "96e659d1db34ca90f66b421b8081a8ceee29cdf293291a1c6dfdbfbee7c4b687",
+            "digest": "a65626ac9fa034e2d1f6940bbc85feb4b4e1376645ac7d73d55a2040e5722330",
+            "metadata": {
+              "session": "synthetic:1793469600000",
+              "start": 1793469600000,
+              "end": 1793498400000,
+              "timezone": "America/Los_Angeles"
+            },
+            "localDate": "2026-10-31",
+            "state": "closed",
+            "firstAt": 1793469600000,
+            "lastAt": 1793484000000,
+            "observationCount": 241,
+            "occupiedObservationMs": 14400000,
+            "minimumOccupiedObservationMs": 14400000,
+            "occupiedCount": 241,
+            "eligibleCount": 241,
+            "sensorReadyCount": 0,
+            "deviceFreshCount": 241,
+            "manualPauseCount": 0,
+            "proposedRangeF": {
+              "minimum": 74,
+              "maximum": 74
+            },
+            "reportedRangeF": {
+              "minimum": 75,
+              "maximum": 75
+            },
+            "reasons": [
+              {
+                "message": "Synthetic preview.",
+                "count": 241
+              }
+            ],
+            "gaps": [
+              {
+                "from": 1793484000000,
+                "to": 1793498400000
+              }
+            ],
+            "gapCount": 1,
+            "configurations": 1,
+            "runs": 1,
+            "builds": [
+              "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            ],
+            "issues": [],
+            "reviewable": true
+          },
+          "reviewId": 3,
+          "lastObservationId": 723,
+          "eligibleMs": 14400000
+        },
+        {
+          "summary": {
+            "id": "e46db44878ec08f0d3e82cc3ab1b76c6bd26c5cddec4c698634243eac0100344",
+            "digest": "32067200b1de703533e2267645e98abb2f20912f9230c5a0d061b7a58ebb9d98",
+            "metadata": {
+              "session": "synthetic:1793556000000",
+              "start": 1793556000000,
+              "end": 1793584800000,
+              "timezone": "America/Los_Angeles"
+            },
+            "localDate": "2026-11-01",
+            "state": "closed",
+            "firstAt": 1793556000000,
+            "lastAt": 1793570400000,
+            "observationCount": 241,
+            "occupiedObservationMs": 14400000,
+            "minimumOccupiedObservationMs": 14400000,
+            "occupiedCount": 241,
+            "eligibleCount": 241,
+            "sensorReadyCount": 0,
+            "deviceFreshCount": 241,
+            "manualPauseCount": 0,
+            "proposedRangeF": {
+              "minimum": 74,
+              "maximum": 74
+            },
+            "reportedRangeF": {
+              "minimum": 75,
+              "maximum": 75
+            },
+            "reasons": [
+              {
+                "message": "Synthetic preview.",
+                "count": 241
+              }
+            ],
+            "gaps": [
+              {
+                "from": 1793570400000,
+                "to": 1793584800000
+              }
+            ],
+            "gapCount": 1,
+            "configurations": 1,
+            "runs": 1,
+            "builds": [
+              "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            ],
+            "issues": [],
+            "reviewable": true
+          },
+          "reviewId": 4,
+          "lastObservationId": 964,
+          "eligibleMs": 14400000
+        },
+        {
+          "summary": {
+            "id": "ca3b05c5dd5acc9c08dccc9758eaeb1729b7ee3c841d000d54888dc932b2db25",
+            "digest": "16c3057ee65c00dda75a5111d9d4d30b5fcbed04647ff8686bd17c7cf48baada",
+            "metadata": {
+              "session": "synthetic:1793642400000",
+              "start": 1793642400000,
+              "end": 1793671200000,
+              "timezone": "America/Los_Angeles"
+            },
+            "localDate": "2026-11-02",
+            "state": "closed",
+            "firstAt": 1793642400000,
+            "lastAt": 1793656800000,
+            "observationCount": 241,
+            "occupiedObservationMs": 14400000,
+            "minimumOccupiedObservationMs": 14400000,
+            "occupiedCount": 241,
+            "eligibleCount": 241,
+            "sensorReadyCount": 0,
+            "deviceFreshCount": 241,
+            "manualPauseCount": 0,
+            "proposedRangeF": {
+              "minimum": 74,
+              "maximum": 74
+            },
+            "reportedRangeF": {
+              "minimum": 75,
+              "maximum": 75
+            },
+            "reasons": [
+              {
+                "message": "Synthetic preview.",
+                "count": 241
+              }
+            ],
+            "gaps": [
+              {
+                "from": 1793656800000,
+                "to": 1793671200000
+              }
+            ],
+            "gapCount": 1,
+            "configurations": 1,
+            "runs": 1,
+            "builds": [
+              "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            ],
+            "issues": [],
+            "reviewable": true
+          },
+          "reviewId": 5,
+          "lastObservationId": 1205,
+          "eligibleMs": 14400000
+        },
+        {
+          "summary": {
+            "id": "469334c3bdbeb4bb235f03d6dc9cad8fc831ce7dc94326c0e9f35c8ff53f2d70",
+            "digest": "374890ccc4ef507d11cecf4ce4a619326b04061f41a3ec1d2e84e5fcbe91b727",
+            "metadata": {
+              "session": "synthetic:1793728800000",
+              "start": 1793728800000,
+              "end": 1793757600000,
+              "timezone": "America/Los_Angeles"
+            },
+            "localDate": "2026-11-03",
+            "state": "closed",
+            "firstAt": 1793728800000,
+            "lastAt": 1793743200000,
+            "observationCount": 241,
+            "occupiedObservationMs": 14400000,
+            "minimumOccupiedObservationMs": 14400000,
+            "occupiedCount": 241,
+            "eligibleCount": 241,
+            "sensorReadyCount": 0,
+            "deviceFreshCount": 241,
+            "manualPauseCount": 0,
+            "proposedRangeF": {
+              "minimum": 74,
+              "maximum": 74
+            },
+            "reportedRangeF": {
+              "minimum": 75,
+              "maximum": 75
+            },
+            "reasons": [
+              {
+                "message": "Synthetic preview.",
+                "count": 241
+              }
+            ],
+            "gaps": [
+              {
+                "from": 1793743200000,
+                "to": 1793757600000
+              }
+            ],
+            "gapCount": 1,
+            "configurations": 1,
+            "runs": 1,
+            "builds": [
+              "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            ],
+            "issues": [],
+            "reviewable": true
+          },
+          "reviewId": 6,
+          "lastObservationId": 1446,
+          "eligibleMs": 14400000
+        },
+        {
+          "summary": {
+            "id": "ca2e1b7a71769faee7d905278301f3f85b5964a9960125bab73a334752939941",
+            "digest": "3ac2f62257fcdba0cb4c61476c55b091ff42cc4fb5f7bbd0134f54ad1d07c239",
+            "metadata": {
+              "session": "synthetic:1793815200000",
+              "start": 1793815200000,
+              "end": 1793844000000,
+              "timezone": "America/Los_Angeles"
+            },
+            "localDate": "2026-11-04",
+            "state": "closed",
+            "firstAt": 1793815200000,
+            "lastAt": 1793829600000,
+            "observationCount": 241,
+            "occupiedObservationMs": 14400000,
+            "minimumOccupiedObservationMs": 14400000,
+            "occupiedCount": 241,
+            "eligibleCount": 241,
+            "sensorReadyCount": 0,
+            "deviceFreshCount": 241,
+            "manualPauseCount": 0,
+            "proposedRangeF": {
+              "minimum": 74,
+              "maximum": 74
+            },
+            "reportedRangeF": {
+              "minimum": 75,
+              "maximum": 75
+            },
+            "reasons": [
+              {
+                "message": "Synthetic preview.",
+                "count": 241
+              }
+            ],
+            "gaps": [
+              {
+                "from": 1793829600000,
+                "to": 1793844000000
+              }
+            ],
+            "gapCount": 1,
+            "configurations": 1,
+            "runs": 1,
+            "builds": [
+              "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            ],
+            "issues": [],
+            "reviewable": true
+          },
+          "reviewId": 7,
+          "lastObservationId": 1687,
+          "eligibleMs": 14400000
+        }
+      ],
+      "reasons": [
+        "Empty-side presence needs attended confirmation for this configuration."
+      ],
+      "active": false,
+      "canActivate": false,
+      "application": null
+    },
+    "uncertain": {
+      "apiVersion": 1,
+      "generatedAt": 1793901600000,
+      "side": "left",
+      "identity": {
+        "hardware": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+        "calibration": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "schedule": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "build": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "policy": {
+          "minimumF": 70,
+          "maximumF": 95,
+          "sensorAware": false,
+          "followBedtime": false
+        }
+      },
+      "qualifications": [
+        {
+          "id": "f0736438-5af9-4b30-9105-a5c175d76815",
+          "kind": "presence_empty",
+          "at": 1793901600000,
+          "outcome": "needs_retest",
+          "note": "Synthetic owner observation in an isolated test.",
+          "evidence": {
+            "identity": {
+              "hardware": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+              "calibration": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "schedule": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "build": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "policy": {
+                "minimumF": 70,
+                "maximumF": 95,
+                "sensorAware": false,
+                "followBedtime": false
+              }
+            },
+            "observedAt": 1793901600000,
+            "presenceAt": 1793901600000,
+            "presence": "empty",
+            "powered": false,
+            "offConfirmed": true,
+            "targetF": 75,
+            "applicationId": null,
+            "applicationAt": null,
+            "alarmAt": null,
+            "pausedUntil": 0
+          }
+        },
+        {
+          "id": "2af3a6fa-6d33-4324-83b9-b7ed0637513e",
+          "kind": "presence_occupied",
+          "at": 1793901600000,
+          "outcome": "confirmed",
+          "note": "Synthetic owner observation in an isolated test.",
+          "evidence": {
+            "identity": {
+              "hardware": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+              "calibration": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "schedule": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "build": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "policy": {
+                "minimumF": 70,
+                "maximumF": 95,
+                "sensorAware": false,
+                "followBedtime": false
+              }
+            },
+            "observedAt": 1793901600000,
+            "presenceAt": 1793901600000,
+            "presence": "occupied",
+            "powered": false,
+            "offConfirmed": true,
+            "targetF": 75,
+            "applicationId": null,
+            "applicationAt": null,
+            "alarmAt": null,
+            "pausedUntil": 0
+          }
+        },
+        {
+          "id": "6e257c2e-c16f-4a9e-8cf3-9c5eeaa24148",
+          "kind": "cooling",
+          "at": 1793901600000,
+          "outcome": "confirmed",
+          "note": "Synthetic owner observation in an isolated test.",
+          "evidence": {
+            "identity": {
+              "hardware": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+              "calibration": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "schedule": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "build": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "policy": {
+                "minimumF": 70,
+                "maximumF": 95,
+                "sensorAware": false,
+                "followBedtime": false
+              }
+            },
+            "observedAt": 1793901600000,
+            "presenceAt": 1793901600000,
+            "presence": "occupied",
+            "powered": true,
+            "offConfirmed": true,
+            "targetF": 73,
+            "applicationId": "c00d7067-15e5-4649-999b-ca17a3593400",
+            "applicationAt": 1793901480000,
+            "alarmAt": null,
+            "pausedUntil": 0
+          }
+        },
+        {
+          "id": "3bf4a64d-cb1c-4b4c-b821-cfee2b6d1e02",
+          "kind": "warming",
+          "at": 1793901600000,
+          "outcome": "confirmed",
+          "note": "Synthetic owner observation in an isolated test.",
+          "evidence": {
+            "identity": {
+              "hardware": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+              "calibration": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "schedule": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "build": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "policy": {
+                "minimumF": 70,
+                "maximumF": 95,
+                "sensorAware": false,
+                "followBedtime": false
+              }
+            },
+            "observedAt": 1793901600000,
+            "presenceAt": 1793901600000,
+            "presence": "occupied",
+            "powered": true,
+            "offConfirmed": true,
+            "targetF": 77,
+            "applicationId": "1b24669c-179e-4864-ba19-82d5597bbcb6",
+            "applicationAt": 1793901480000,
+            "alarmAt": null,
+            "pausedUntil": 0
+          }
+        },
+        {
+          "id": "faa66784-7bd1-47f4-987f-38b7a716848f",
+          "kind": "manual_stop",
+          "at": 1793901600000,
+          "outcome": "confirmed",
+          "note": "Synthetic owner observation in an isolated test.",
+          "evidence": {
+            "identity": {
+              "hardware": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+              "calibration": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "schedule": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "build": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "policy": {
+                "minimumF": 70,
+                "maximumF": 95,
+                "sensorAware": false,
+                "followBedtime": false
+              }
+            },
+            "observedAt": 1793901600000,
+            "presenceAt": 1793901600000,
+            "presence": "occupied",
+            "powered": false,
+            "offConfirmed": true,
+            "targetF": 77,
+            "applicationId": null,
+            "applicationAt": null,
+            "alarmAt": null,
+            "pausedUntil": 1793923200000
+          }
+        },
+        {
+          "id": "d75f0daa-3a18-47c1-b69b-2d36cc3fcb85",
+          "kind": "offline_routine",
+          "at": 1793901600000,
+          "outcome": "confirmed",
+          "note": "Synthetic owner observation in an isolated test.",
+          "evidence": {
+            "identity": {
+              "hardware": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+              "calibration": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "schedule": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "build": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "policy": {
+                "minimumF": 70,
+                "maximumF": 95,
+                "sensorAware": false,
+                "followBedtime": false
+              }
+            },
+            "observedAt": 1793901600000,
+            "presenceAt": 1793901600000,
+            "presence": "occupied",
+            "powered": false,
+            "offConfirmed": true,
+            "targetF": 77,
+            "applicationId": "6c0d2ba3-385c-4ebd-b3c5-a840b0441f42",
+            "applicationAt": 1793901480000,
+            "alarmAt": 1793901599000,
+            "pausedUntil": 1793923200000
+          }
+        }
+      ],
+      "nights": [
+        {
+          "summary": {
+            "id": "99e8c8a2780606ad67cf24617feefcce099a04273e428614c14d8639d2d59c20",
+            "digest": "96f9d4f58eb784b85a0ea9369351712e6e9badec29ec4bf6e9361141452b6ed4",
+            "metadata": {
+              "session": "synthetic:1793296800000",
+              "start": 1793296800000,
+              "end": 1793325600000,
+              "timezone": "America/Los_Angeles"
+            },
+            "localDate": "2026-10-29",
+            "state": "closed",
+            "firstAt": 1793296800000,
+            "lastAt": 1793311200000,
+            "observationCount": 241,
+            "occupiedObservationMs": 14400000,
+            "minimumOccupiedObservationMs": 14400000,
+            "occupiedCount": 241,
+            "eligibleCount": 241,
+            "sensorReadyCount": 0,
+            "deviceFreshCount": 241,
+            "manualPauseCount": 0,
+            "proposedRangeF": {
+              "minimum": 74,
+              "maximum": 74
+            },
+            "reportedRangeF": {
+              "minimum": 75,
+              "maximum": 75
+            },
+            "reasons": [
+              {
+                "message": "Synthetic preview.",
+                "count": 241
+              }
+            ],
+            "gaps": [
+              {
+                "from": 1793311200000,
+                "to": 1793325600000
+              }
+            ],
+            "gapCount": 1,
+            "configurations": 1,
+            "runs": 1,
+            "builds": [
+              "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            ],
+            "issues": [],
+            "reviewable": true
+          },
+          "reviewId": 1,
+          "lastObservationId": 241,
+          "eligibleMs": 14400000
+        },
+        {
+          "summary": {
+            "id": "55fde66a151b302fe37946fd4d9e7c622cef65173f6073f2e3099c99ebaad536",
+            "digest": "3f004ae3e39a9c869fc8b6e14b24e205235408406af9d5b9cfa38098e12e0c3f",
+            "metadata": {
+              "session": "synthetic:1793383200000",
+              "start": 1793383200000,
+              "end": 1793412000000,
+              "timezone": "America/Los_Angeles"
+            },
+            "localDate": "2026-10-30",
+            "state": "closed",
+            "firstAt": 1793383200000,
+            "lastAt": 1793397600000,
+            "observationCount": 241,
+            "occupiedObservationMs": 14400000,
+            "minimumOccupiedObservationMs": 14400000,
+            "occupiedCount": 241,
+            "eligibleCount": 241,
+            "sensorReadyCount": 0,
+            "deviceFreshCount": 241,
+            "manualPauseCount": 0,
+            "proposedRangeF": {
+              "minimum": 74,
+              "maximum": 74
+            },
+            "reportedRangeF": {
+              "minimum": 75,
+              "maximum": 75
+            },
+            "reasons": [
+              {
+                "message": "Synthetic preview.",
+                "count": 241
+              }
+            ],
+            "gaps": [
+              {
+                "from": 1793397600000,
+                "to": 1793412000000
+              }
+            ],
+            "gapCount": 1,
+            "configurations": 1,
+            "runs": 1,
+            "builds": [
+              "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            ],
+            "issues": [],
+            "reviewable": true
+          },
+          "reviewId": 2,
+          "lastObservationId": 482,
+          "eligibleMs": 14400000
+        },
+        {
+          "summary": {
+            "id": "96e659d1db34ca90f66b421b8081a8ceee29cdf293291a1c6dfdbfbee7c4b687",
+            "digest": "a65626ac9fa034e2d1f6940bbc85feb4b4e1376645ac7d73d55a2040e5722330",
+            "metadata": {
+              "session": "synthetic:1793469600000",
+              "start": 1793469600000,
+              "end": 1793498400000,
+              "timezone": "America/Los_Angeles"
+            },
+            "localDate": "2026-10-31",
+            "state": "closed",
+            "firstAt": 1793469600000,
+            "lastAt": 1793484000000,
+            "observationCount": 241,
+            "occupiedObservationMs": 14400000,
+            "minimumOccupiedObservationMs": 14400000,
+            "occupiedCount": 241,
+            "eligibleCount": 241,
+            "sensorReadyCount": 0,
+            "deviceFreshCount": 241,
+            "manualPauseCount": 0,
+            "proposedRangeF": {
+              "minimum": 74,
+              "maximum": 74
+            },
+            "reportedRangeF": {
+              "minimum": 75,
+              "maximum": 75
+            },
+            "reasons": [
+              {
+                "message": "Synthetic preview.",
+                "count": 241
+              }
+            ],
+            "gaps": [
+              {
+                "from": 1793484000000,
+                "to": 1793498400000
+              }
+            ],
+            "gapCount": 1,
+            "configurations": 1,
+            "runs": 1,
+            "builds": [
+              "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            ],
+            "issues": [],
+            "reviewable": true
+          },
+          "reviewId": 3,
+          "lastObservationId": 723,
+          "eligibleMs": 14400000
+        },
+        {
+          "summary": {
+            "id": "e46db44878ec08f0d3e82cc3ab1b76c6bd26c5cddec4c698634243eac0100344",
+            "digest": "32067200b1de703533e2267645e98abb2f20912f9230c5a0d061b7a58ebb9d98",
+            "metadata": {
+              "session": "synthetic:1793556000000",
+              "start": 1793556000000,
+              "end": 1793584800000,
+              "timezone": "America/Los_Angeles"
+            },
+            "localDate": "2026-11-01",
+            "state": "closed",
+            "firstAt": 1793556000000,
+            "lastAt": 1793570400000,
+            "observationCount": 241,
+            "occupiedObservationMs": 14400000,
+            "minimumOccupiedObservationMs": 14400000,
+            "occupiedCount": 241,
+            "eligibleCount": 241,
+            "sensorReadyCount": 0,
+            "deviceFreshCount": 241,
+            "manualPauseCount": 0,
+            "proposedRangeF": {
+              "minimum": 74,
+              "maximum": 74
+            },
+            "reportedRangeF": {
+              "minimum": 75,
+              "maximum": 75
+            },
+            "reasons": [
+              {
+                "message": "Synthetic preview.",
+                "count": 241
+              }
+            ],
+            "gaps": [
+              {
+                "from": 1793570400000,
+                "to": 1793584800000
+              }
+            ],
+            "gapCount": 1,
+            "configurations": 1,
+            "runs": 1,
+            "builds": [
+              "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            ],
+            "issues": [],
+            "reviewable": true
+          },
+          "reviewId": 4,
+          "lastObservationId": 964,
+          "eligibleMs": 14400000
+        },
+        {
+          "summary": {
+            "id": "ca3b05c5dd5acc9c08dccc9758eaeb1729b7ee3c841d000d54888dc932b2db25",
+            "digest": "16c3057ee65c00dda75a5111d9d4d30b5fcbed04647ff8686bd17c7cf48baada",
+            "metadata": {
+              "session": "synthetic:1793642400000",
+              "start": 1793642400000,
+              "end": 1793671200000,
+              "timezone": "America/Los_Angeles"
+            },
+            "localDate": "2026-11-02",
+            "state": "closed",
+            "firstAt": 1793642400000,
+            "lastAt": 1793656800000,
+            "observationCount": 241,
+            "occupiedObservationMs": 14400000,
+            "minimumOccupiedObservationMs": 14400000,
+            "occupiedCount": 241,
+            "eligibleCount": 241,
+            "sensorReadyCount": 0,
+            "deviceFreshCount": 241,
+            "manualPauseCount": 0,
+            "proposedRangeF": {
+              "minimum": 74,
+              "maximum": 74
+            },
+            "reportedRangeF": {
+              "minimum": 75,
+              "maximum": 75
+            },
+            "reasons": [
+              {
+                "message": "Synthetic preview.",
+                "count": 241
+              }
+            ],
+            "gaps": [
+              {
+                "from": 1793656800000,
+                "to": 1793671200000
+              }
+            ],
+            "gapCount": 1,
+            "configurations": 1,
+            "runs": 1,
+            "builds": [
+              "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            ],
+            "issues": [],
+            "reviewable": true
+          },
+          "reviewId": 5,
+          "lastObservationId": 1205,
+          "eligibleMs": 14400000
+        },
+        {
+          "summary": {
+            "id": "469334c3bdbeb4bb235f03d6dc9cad8fc831ce7dc94326c0e9f35c8ff53f2d70",
+            "digest": "374890ccc4ef507d11cecf4ce4a619326b04061f41a3ec1d2e84e5fcbe91b727",
+            "metadata": {
+              "session": "synthetic:1793728800000",
+              "start": 1793728800000,
+              "end": 1793757600000,
+              "timezone": "America/Los_Angeles"
+            },
+            "localDate": "2026-11-03",
+            "state": "closed",
+            "firstAt": 1793728800000,
+            "lastAt": 1793743200000,
+            "observationCount": 241,
+            "occupiedObservationMs": 14400000,
+            "minimumOccupiedObservationMs": 14400000,
+            "occupiedCount": 241,
+            "eligibleCount": 241,
+            "sensorReadyCount": 0,
+            "deviceFreshCount": 241,
+            "manualPauseCount": 0,
+            "proposedRangeF": {
+              "minimum": 74,
+              "maximum": 74
+            },
+            "reportedRangeF": {
+              "minimum": 75,
+              "maximum": 75
+            },
+            "reasons": [
+              {
+                "message": "Synthetic preview.",
+                "count": 241
+              }
+            ],
+            "gaps": [
+              {
+                "from": 1793743200000,
+                "to": 1793757600000
+              }
+            ],
+            "gapCount": 1,
+            "configurations": 1,
+            "runs": 1,
+            "builds": [
+              "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            ],
+            "issues": [],
+            "reviewable": true
+          },
+          "reviewId": 6,
+          "lastObservationId": 1446,
+          "eligibleMs": 14400000
+        },
+        {
+          "summary": {
+            "id": "ca2e1b7a71769faee7d905278301f3f85b5964a9960125bab73a334752939941",
+            "digest": "3ac2f62257fcdba0cb4c61476c55b091ff42cc4fb5f7bbd0134f54ad1d07c239",
+            "metadata": {
+              "session": "synthetic:1793815200000",
+              "start": 1793815200000,
+              "end": 1793844000000,
+              "timezone": "America/Los_Angeles"
+            },
+            "localDate": "2026-11-04",
+            "state": "closed",
+            "firstAt": 1793815200000,
+            "lastAt": 1793829600000,
+            "observationCount": 241,
+            "occupiedObservationMs": 14400000,
+            "minimumOccupiedObservationMs": 14400000,
+            "occupiedCount": 241,
+            "eligibleCount": 241,
+            "sensorReadyCount": 0,
+            "deviceFreshCount": 241,
+            "manualPauseCount": 0,
+            "proposedRangeF": {
+              "minimum": 74,
+              "maximum": 74
+            },
+            "reportedRangeF": {
+              "minimum": 75,
+              "maximum": 75
+            },
+            "reasons": [
+              {
+                "message": "Synthetic preview.",
+                "count": 241
+              }
+            ],
+            "gaps": [
+              {
+                "from": 1793829600000,
+                "to": 1793844000000
+              }
+            ],
+            "gapCount": 1,
+            "configurations": 1,
+            "runs": 1,
+            "builds": [
+              "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            ],
+            "issues": [],
+            "reviewable": true
+          },
+          "reviewId": 7,
+          "lastObservationId": 1687,
+          "eligibleMs": 14400000
+        }
+      ],
+      "reasons": [
+        "Empty-side presence needs attended confirmation for this configuration.",
+        "An unconfirmed command needs owner review before further adjustment."
+      ],
+      "active": false,
+      "canActivate": false,
+      "application": {
+        "requestId": "765b1922-5c71-4a53-a138-1e013ca1f38a",
+        "segment": "synthetic-night:first",
+        "targetF": 74,
+        "previousF": 75,
+        "createdAt": 1793901598000,
+        "reservedAt": 1793901599000,
+        "finishedAt": 1793901600000,
+        "outcome": "unknown",
+        "receiptId": null
+      }
+    },
+    "resolved": {
+      "apiVersion": 1,
+      "generatedAt": 1793901600000,
+      "side": "left",
+      "identity": {
+        "hardware": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+        "calibration": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "schedule": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "build": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "policy": {
+          "minimumF": 70,
+          "maximumF": 95,
+          "sensorAware": false,
+          "followBedtime": false
+        }
+      },
+      "qualifications": [
+        {
+          "id": "f0736438-5af9-4b30-9105-a5c175d76815",
+          "kind": "presence_empty",
+          "at": 1793901600000,
+          "outcome": "needs_retest",
+          "note": "Synthetic owner observation in an isolated test.",
+          "evidence": {
+            "identity": {
+              "hardware": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+              "calibration": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "schedule": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "build": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "policy": {
+                "minimumF": 70,
+                "maximumF": 95,
+                "sensorAware": false,
+                "followBedtime": false
+              }
+            },
+            "observedAt": 1793901600000,
+            "presenceAt": 1793901600000,
+            "presence": "empty",
+            "powered": false,
+            "offConfirmed": true,
+            "targetF": 75,
+            "applicationId": null,
+            "applicationAt": null,
+            "alarmAt": null,
+            "pausedUntil": 0
+          }
+        },
+        {
+          "id": "2af3a6fa-6d33-4324-83b9-b7ed0637513e",
+          "kind": "presence_occupied",
+          "at": 1793901600000,
+          "outcome": "confirmed",
+          "note": "Synthetic owner observation in an isolated test.",
+          "evidence": {
+            "identity": {
+              "hardware": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+              "calibration": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "schedule": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "build": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "policy": {
+                "minimumF": 70,
+                "maximumF": 95,
+                "sensorAware": false,
+                "followBedtime": false
+              }
+            },
+            "observedAt": 1793901600000,
+            "presenceAt": 1793901600000,
+            "presence": "occupied",
+            "powered": false,
+            "offConfirmed": true,
+            "targetF": 75,
+            "applicationId": null,
+            "applicationAt": null,
+            "alarmAt": null,
+            "pausedUntil": 0
+          }
+        },
+        {
+          "id": "6e257c2e-c16f-4a9e-8cf3-9c5eeaa24148",
+          "kind": "cooling",
+          "at": 1793901600000,
+          "outcome": "confirmed",
+          "note": "Synthetic owner observation in an isolated test.",
+          "evidence": {
+            "identity": {
+              "hardware": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+              "calibration": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "schedule": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "build": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "policy": {
+                "minimumF": 70,
+                "maximumF": 95,
+                "sensorAware": false,
+                "followBedtime": false
+              }
+            },
+            "observedAt": 1793901600000,
+            "presenceAt": 1793901600000,
+            "presence": "occupied",
+            "powered": true,
+            "offConfirmed": true,
+            "targetF": 73,
+            "applicationId": "c00d7067-15e5-4649-999b-ca17a3593400",
+            "applicationAt": 1793901480000,
+            "alarmAt": null,
+            "pausedUntil": 0
+          }
+        },
+        {
+          "id": "3bf4a64d-cb1c-4b4c-b821-cfee2b6d1e02",
+          "kind": "warming",
+          "at": 1793901600000,
+          "outcome": "confirmed",
+          "note": "Synthetic owner observation in an isolated test.",
+          "evidence": {
+            "identity": {
+              "hardware": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+              "calibration": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "schedule": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "build": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "policy": {
+                "minimumF": 70,
+                "maximumF": 95,
+                "sensorAware": false,
+                "followBedtime": false
+              }
+            },
+            "observedAt": 1793901600000,
+            "presenceAt": 1793901600000,
+            "presence": "occupied",
+            "powered": true,
+            "offConfirmed": true,
+            "targetF": 77,
+            "applicationId": "1b24669c-179e-4864-ba19-82d5597bbcb6",
+            "applicationAt": 1793901480000,
+            "alarmAt": null,
+            "pausedUntil": 0
+          }
+        },
+        {
+          "id": "faa66784-7bd1-47f4-987f-38b7a716848f",
+          "kind": "manual_stop",
+          "at": 1793901600000,
+          "outcome": "confirmed",
+          "note": "Synthetic owner observation in an isolated test.",
+          "evidence": {
+            "identity": {
+              "hardware": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+              "calibration": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "schedule": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "build": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "policy": {
+                "minimumF": 70,
+                "maximumF": 95,
+                "sensorAware": false,
+                "followBedtime": false
+              }
+            },
+            "observedAt": 1793901600000,
+            "presenceAt": 1793901600000,
+            "presence": "occupied",
+            "powered": false,
+            "offConfirmed": true,
+            "targetF": 77,
+            "applicationId": null,
+            "applicationAt": null,
+            "alarmAt": null,
+            "pausedUntil": 1793923200000
+          }
+        },
+        {
+          "id": "d75f0daa-3a18-47c1-b69b-2d36cc3fcb85",
+          "kind": "offline_routine",
+          "at": 1793901600000,
+          "outcome": "confirmed",
+          "note": "Synthetic owner observation in an isolated test.",
+          "evidence": {
+            "identity": {
+              "hardware": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+              "calibration": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "schedule": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "build": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "policy": {
+                "minimumF": 70,
+                "maximumF": 95,
+                "sensorAware": false,
+                "followBedtime": false
+              }
+            },
+            "observedAt": 1793901600000,
+            "presenceAt": 1793901600000,
+            "presence": "occupied",
+            "powered": false,
+            "offConfirmed": true,
+            "targetF": 77,
+            "applicationId": "6c0d2ba3-385c-4ebd-b3c5-a840b0441f42",
+            "applicationAt": 1793901480000,
+            "alarmAt": 1793901599000,
+            "pausedUntil": 1793923200000
+          }
+        }
+      ],
+      "nights": [
+        {
+          "summary": {
+            "id": "99e8c8a2780606ad67cf24617feefcce099a04273e428614c14d8639d2d59c20",
+            "digest": "96f9d4f58eb784b85a0ea9369351712e6e9badec29ec4bf6e9361141452b6ed4",
+            "metadata": {
+              "session": "synthetic:1793296800000",
+              "start": 1793296800000,
+              "end": 1793325600000,
+              "timezone": "America/Los_Angeles"
+            },
+            "localDate": "2026-10-29",
+            "state": "closed",
+            "firstAt": 1793296800000,
+            "lastAt": 1793311200000,
+            "observationCount": 241,
+            "occupiedObservationMs": 14400000,
+            "minimumOccupiedObservationMs": 14400000,
+            "occupiedCount": 241,
+            "eligibleCount": 241,
+            "sensorReadyCount": 0,
+            "deviceFreshCount": 241,
+            "manualPauseCount": 0,
+            "proposedRangeF": {
+              "minimum": 74,
+              "maximum": 74
+            },
+            "reportedRangeF": {
+              "minimum": 75,
+              "maximum": 75
+            },
+            "reasons": [
+              {
+                "message": "Synthetic preview.",
+                "count": 241
+              }
+            ],
+            "gaps": [
+              {
+                "from": 1793311200000,
+                "to": 1793325600000
+              }
+            ],
+            "gapCount": 1,
+            "configurations": 1,
+            "runs": 1,
+            "builds": [
+              "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            ],
+            "issues": [],
+            "reviewable": true
+          },
+          "reviewId": 1,
+          "lastObservationId": 241,
+          "eligibleMs": 14400000
+        },
+        {
+          "summary": {
+            "id": "55fde66a151b302fe37946fd4d9e7c622cef65173f6073f2e3099c99ebaad536",
+            "digest": "3f004ae3e39a9c869fc8b6e14b24e205235408406af9d5b9cfa38098e12e0c3f",
+            "metadata": {
+              "session": "synthetic:1793383200000",
+              "start": 1793383200000,
+              "end": 1793412000000,
+              "timezone": "America/Los_Angeles"
+            },
+            "localDate": "2026-10-30",
+            "state": "closed",
+            "firstAt": 1793383200000,
+            "lastAt": 1793397600000,
+            "observationCount": 241,
+            "occupiedObservationMs": 14400000,
+            "minimumOccupiedObservationMs": 14400000,
+            "occupiedCount": 241,
+            "eligibleCount": 241,
+            "sensorReadyCount": 0,
+            "deviceFreshCount": 241,
+            "manualPauseCount": 0,
+            "proposedRangeF": {
+              "minimum": 74,
+              "maximum": 74
+            },
+            "reportedRangeF": {
+              "minimum": 75,
+              "maximum": 75
+            },
+            "reasons": [
+              {
+                "message": "Synthetic preview.",
+                "count": 241
+              }
+            ],
+            "gaps": [
+              {
+                "from": 1793397600000,
+                "to": 1793412000000
+              }
+            ],
+            "gapCount": 1,
+            "configurations": 1,
+            "runs": 1,
+            "builds": [
+              "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            ],
+            "issues": [],
+            "reviewable": true
+          },
+          "reviewId": 2,
+          "lastObservationId": 482,
+          "eligibleMs": 14400000
+        },
+        {
+          "summary": {
+            "id": "96e659d1db34ca90f66b421b8081a8ceee29cdf293291a1c6dfdbfbee7c4b687",
+            "digest": "a65626ac9fa034e2d1f6940bbc85feb4b4e1376645ac7d73d55a2040e5722330",
+            "metadata": {
+              "session": "synthetic:1793469600000",
+              "start": 1793469600000,
+              "end": 1793498400000,
+              "timezone": "America/Los_Angeles"
+            },
+            "localDate": "2026-10-31",
+            "state": "closed",
+            "firstAt": 1793469600000,
+            "lastAt": 1793484000000,
+            "observationCount": 241,
+            "occupiedObservationMs": 14400000,
+            "minimumOccupiedObservationMs": 14400000,
+            "occupiedCount": 241,
+            "eligibleCount": 241,
+            "sensorReadyCount": 0,
+            "deviceFreshCount": 241,
+            "manualPauseCount": 0,
+            "proposedRangeF": {
+              "minimum": 74,
+              "maximum": 74
+            },
+            "reportedRangeF": {
+              "minimum": 75,
+              "maximum": 75
+            },
+            "reasons": [
+              {
+                "message": "Synthetic preview.",
+                "count": 241
+              }
+            ],
+            "gaps": [
+              {
+                "from": 1793484000000,
+                "to": 1793498400000
+              }
+            ],
+            "gapCount": 1,
+            "configurations": 1,
+            "runs": 1,
+            "builds": [
+              "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            ],
+            "issues": [],
+            "reviewable": true
+          },
+          "reviewId": 3,
+          "lastObservationId": 723,
+          "eligibleMs": 14400000
+        },
+        {
+          "summary": {
+            "id": "e46db44878ec08f0d3e82cc3ab1b76c6bd26c5cddec4c698634243eac0100344",
+            "digest": "32067200b1de703533e2267645e98abb2f20912f9230c5a0d061b7a58ebb9d98",
+            "metadata": {
+              "session": "synthetic:1793556000000",
+              "start": 1793556000000,
+              "end": 1793584800000,
+              "timezone": "America/Los_Angeles"
+            },
+            "localDate": "2026-11-01",
+            "state": "closed",
+            "firstAt": 1793556000000,
+            "lastAt": 1793570400000,
+            "observationCount": 241,
+            "occupiedObservationMs": 14400000,
+            "minimumOccupiedObservationMs": 14400000,
+            "occupiedCount": 241,
+            "eligibleCount": 241,
+            "sensorReadyCount": 0,
+            "deviceFreshCount": 241,
+            "manualPauseCount": 0,
+            "proposedRangeF": {
+              "minimum": 74,
+              "maximum": 74
+            },
+            "reportedRangeF": {
+              "minimum": 75,
+              "maximum": 75
+            },
+            "reasons": [
+              {
+                "message": "Synthetic preview.",
+                "count": 241
+              }
+            ],
+            "gaps": [
+              {
+                "from": 1793570400000,
+                "to": 1793584800000
+              }
+            ],
+            "gapCount": 1,
+            "configurations": 1,
+            "runs": 1,
+            "builds": [
+              "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            ],
+            "issues": [],
+            "reviewable": true
+          },
+          "reviewId": 4,
+          "lastObservationId": 964,
+          "eligibleMs": 14400000
+        },
+        {
+          "summary": {
+            "id": "ca3b05c5dd5acc9c08dccc9758eaeb1729b7ee3c841d000d54888dc932b2db25",
+            "digest": "16c3057ee65c00dda75a5111d9d4d30b5fcbed04647ff8686bd17c7cf48baada",
+            "metadata": {
+              "session": "synthetic:1793642400000",
+              "start": 1793642400000,
+              "end": 1793671200000,
+              "timezone": "America/Los_Angeles"
+            },
+            "localDate": "2026-11-02",
+            "state": "closed",
+            "firstAt": 1793642400000,
+            "lastAt": 1793656800000,
+            "observationCount": 241,
+            "occupiedObservationMs": 14400000,
+            "minimumOccupiedObservationMs": 14400000,
+            "occupiedCount": 241,
+            "eligibleCount": 241,
+            "sensorReadyCount": 0,
+            "deviceFreshCount": 241,
+            "manualPauseCount": 0,
+            "proposedRangeF": {
+              "minimum": 74,
+              "maximum": 74
+            },
+            "reportedRangeF": {
+              "minimum": 75,
+              "maximum": 75
+            },
+            "reasons": [
+              {
+                "message": "Synthetic preview.",
+                "count": 241
+              }
+            ],
+            "gaps": [
+              {
+                "from": 1793656800000,
+                "to": 1793671200000
+              }
+            ],
+            "gapCount": 1,
+            "configurations": 1,
+            "runs": 1,
+            "builds": [
+              "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            ],
+            "issues": [],
+            "reviewable": true
+          },
+          "reviewId": 5,
+          "lastObservationId": 1205,
+          "eligibleMs": 14400000
+        },
+        {
+          "summary": {
+            "id": "469334c3bdbeb4bb235f03d6dc9cad8fc831ce7dc94326c0e9f35c8ff53f2d70",
+            "digest": "374890ccc4ef507d11cecf4ce4a619326b04061f41a3ec1d2e84e5fcbe91b727",
+            "metadata": {
+              "session": "synthetic:1793728800000",
+              "start": 1793728800000,
+              "end": 1793757600000,
+              "timezone": "America/Los_Angeles"
+            },
+            "localDate": "2026-11-03",
+            "state": "closed",
+            "firstAt": 1793728800000,
+            "lastAt": 1793743200000,
+            "observationCount": 241,
+            "occupiedObservationMs": 14400000,
+            "minimumOccupiedObservationMs": 14400000,
+            "occupiedCount": 241,
+            "eligibleCount": 241,
+            "sensorReadyCount": 0,
+            "deviceFreshCount": 241,
+            "manualPauseCount": 0,
+            "proposedRangeF": {
+              "minimum": 74,
+              "maximum": 74
+            },
+            "reportedRangeF": {
+              "minimum": 75,
+              "maximum": 75
+            },
+            "reasons": [
+              {
+                "message": "Synthetic preview.",
+                "count": 241
+              }
+            ],
+            "gaps": [
+              {
+                "from": 1793743200000,
+                "to": 1793757600000
+              }
+            ],
+            "gapCount": 1,
+            "configurations": 1,
+            "runs": 1,
+            "builds": [
+              "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            ],
+            "issues": [],
+            "reviewable": true
+          },
+          "reviewId": 6,
+          "lastObservationId": 1446,
+          "eligibleMs": 14400000
+        },
+        {
+          "summary": {
+            "id": "ca2e1b7a71769faee7d905278301f3f85b5964a9960125bab73a334752939941",
+            "digest": "3ac2f62257fcdba0cb4c61476c55b091ff42cc4fb5f7bbd0134f54ad1d07c239",
+            "metadata": {
+              "session": "synthetic:1793815200000",
+              "start": 1793815200000,
+              "end": 1793844000000,
+              "timezone": "America/Los_Angeles"
+            },
+            "localDate": "2026-11-04",
+            "state": "closed",
+            "firstAt": 1793815200000,
+            "lastAt": 1793829600000,
+            "observationCount": 241,
+            "occupiedObservationMs": 14400000,
+            "minimumOccupiedObservationMs": 14400000,
+            "occupiedCount": 241,
+            "eligibleCount": 241,
+            "sensorReadyCount": 0,
+            "deviceFreshCount": 241,
+            "manualPauseCount": 0,
+            "proposedRangeF": {
+              "minimum": 74,
+              "maximum": 74
+            },
+            "reportedRangeF": {
+              "minimum": 75,
+              "maximum": 75
+            },
+            "reasons": [
+              {
+                "message": "Synthetic preview.",
+                "count": 241
+              }
+            ],
+            "gaps": [
+              {
+                "from": 1793829600000,
+                "to": 1793844000000
+              }
+            ],
+            "gapCount": 1,
+            "configurations": 1,
+            "runs": 1,
+            "builds": [
+              "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            ],
+            "issues": [],
+            "reviewable": true
+          },
+          "reviewId": 7,
+          "lastObservationId": 1687,
+          "eligibleMs": 14400000
+        }
+      ],
+      "reasons": [
+        "Empty-side presence needs attended confirmation for this configuration."
+      ],
+      "active": false,
+      "canActivate": false,
+      "application": null
+    }
+  },
+  "reviews": {
+    "qualification": {
+      "id": "e524b38e-eb28-4d3a-b6fd-4f3bb6ad17c6",
+      "side": "left",
+      "at": 1793901600000,
+      "expiresAt": 1793901660000,
+      "purpose": "qualification",
+      "kind": "presence_empty",
+      "snapshot": {
+        "identity": {
+          "hardware": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "calibration": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "schedule": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "build": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "policy": {
+            "minimumF": 70,
+            "maximumF": 95,
+            "sensorAware": false,
+            "followBedtime": false
+          }
+        },
+        "qualifications": [],
+        "nights": [],
+        "evidence": {
+          "identity": {
+            "hardware": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "calibration": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "schedule": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "build": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "policy": {
+              "minimumF": 70,
+              "maximumF": 95,
+              "sensorAware": false,
+              "followBedtime": false
+            }
+          },
+          "observedAt": 1793901600000,
+          "presenceAt": 1793901600000,
+          "presence": "empty",
+          "powered": false,
+          "offConfirmed": true,
+          "targetF": 75,
+          "applicationId": null,
+          "applicationAt": null,
+          "alarmAt": null,
+          "pausedUntil": 0
+        },
+        "application": null
+      }
+    },
+    "presence_empty": {
+      "id": "f096d61b-a34f-4a7d-bbea-ef907041e2b0",
+      "side": "left",
+      "at": 1793901600000,
+      "expiresAt": 1793901660000,
+      "purpose": "qualification",
+      "kind": "presence_empty",
+      "snapshot": {
+        "identity": {
+          "hardware": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "calibration": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "schedule": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "build": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "policy": {
+            "minimumF": 70,
+            "maximumF": 95,
+            "sensorAware": false,
+            "followBedtime": false
+          }
+        },
+        "qualifications": [],
+        "nights": [],
+        "evidence": {
+          "identity": {
+            "hardware": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "calibration": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "schedule": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "build": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "policy": {
+              "minimumF": 70,
+              "maximumF": 95,
+              "sensorAware": false,
+              "followBedtime": false
+            }
+          },
+          "observedAt": 1793901600000,
+          "presenceAt": 1793901600000,
+          "presence": "empty",
+          "powered": false,
+          "offConfirmed": true,
+          "targetF": 75,
+          "applicationId": null,
+          "applicationAt": null,
+          "alarmAt": null,
+          "pausedUntil": 0
+        },
+        "application": null
+      }
+    },
+    "presence_occupied": {
+      "id": "2af3a6fa-6d33-4324-83b9-b7ed0637513e",
+      "side": "left",
+      "at": 1793901600000,
+      "expiresAt": 1793901660000,
+      "purpose": "qualification",
+      "kind": "presence_occupied",
+      "snapshot": {
+        "identity": {
+          "hardware": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "calibration": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "schedule": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "build": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "policy": {
+            "minimumF": 70,
+            "maximumF": 95,
+            "sensorAware": false,
+            "followBedtime": false
+          }
+        },
+        "qualifications": [
+          {
+            "id": "f096d61b-a34f-4a7d-bbea-ef907041e2b0",
+            "kind": "presence_empty",
+            "at": 1793901600000,
+            "outcome": "confirmed",
+            "note": "Synthetic owner observation in an isolated test.",
+            "evidence": {
+              "identity": {
+                "hardware": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+                "calibration": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+                "schedule": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "build": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "policy": {
+                  "minimumF": 70,
+                  "maximumF": 95,
+                  "sensorAware": false,
+                  "followBedtime": false
+                }
+              },
+              "observedAt": 1793901600000,
+              "presenceAt": 1793901600000,
+              "presence": "empty",
+              "powered": false,
+              "offConfirmed": true,
+              "targetF": 75,
+              "applicationId": null,
+              "applicationAt": null,
+              "alarmAt": null,
+              "pausedUntil": 0
+            }
+          }
+        ],
+        "nights": [],
+        "evidence": {
+          "identity": {
+            "hardware": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "calibration": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "schedule": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "build": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "policy": {
+              "minimumF": 70,
+              "maximumF": 95,
+              "sensorAware": false,
+              "followBedtime": false
+            }
+          },
+          "observedAt": 1793901600000,
+          "presenceAt": 1793901600000,
+          "presence": "occupied",
+          "powered": false,
+          "offConfirmed": true,
+          "targetF": 75,
+          "applicationId": null,
+          "applicationAt": null,
+          "alarmAt": null,
+          "pausedUntil": 0
+        },
+        "application": null
+      }
+    },
+    "cooling": {
+      "id": "6e257c2e-c16f-4a9e-8cf3-9c5eeaa24148",
+      "side": "left",
+      "at": 1793901600000,
+      "expiresAt": 1793901660000,
+      "purpose": "qualification",
+      "kind": "cooling",
+      "snapshot": {
+        "identity": {
+          "hardware": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "calibration": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "schedule": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "build": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "policy": {
+            "minimumF": 70,
+            "maximumF": 95,
+            "sensorAware": false,
+            "followBedtime": false
+          }
+        },
+        "qualifications": [
+          {
+            "id": "f096d61b-a34f-4a7d-bbea-ef907041e2b0",
+            "kind": "presence_empty",
+            "at": 1793901600000,
+            "outcome": "confirmed",
+            "note": "Synthetic owner observation in an isolated test.",
+            "evidence": {
+              "identity": {
+                "hardware": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+                "calibration": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+                "schedule": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "build": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "policy": {
+                  "minimumF": 70,
+                  "maximumF": 95,
+                  "sensorAware": false,
+                  "followBedtime": false
+                }
+              },
+              "observedAt": 1793901600000,
+              "presenceAt": 1793901600000,
+              "presence": "empty",
+              "powered": false,
+              "offConfirmed": true,
+              "targetF": 75,
+              "applicationId": null,
+              "applicationAt": null,
+              "alarmAt": null,
+              "pausedUntil": 0
+            }
+          },
+          {
+            "id": "2af3a6fa-6d33-4324-83b9-b7ed0637513e",
+            "kind": "presence_occupied",
+            "at": 1793901600000,
+            "outcome": "confirmed",
+            "note": "Synthetic owner observation in an isolated test.",
+            "evidence": {
+              "identity": {
+                "hardware": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+                "calibration": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+                "schedule": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "build": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "policy": {
+                  "minimumF": 70,
+                  "maximumF": 95,
+                  "sensorAware": false,
+                  "followBedtime": false
+                }
+              },
+              "observedAt": 1793901600000,
+              "presenceAt": 1793901600000,
+              "presence": "occupied",
+              "powered": false,
+              "offConfirmed": true,
+              "targetF": 75,
+              "applicationId": null,
+              "applicationAt": null,
+              "alarmAt": null,
+              "pausedUntil": 0
+            }
+          }
+        ],
+        "nights": [],
+        "evidence": {
+          "identity": {
+            "hardware": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "calibration": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "schedule": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "build": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "policy": {
+              "minimumF": 70,
+              "maximumF": 95,
+              "sensorAware": false,
+              "followBedtime": false
+            }
+          },
+          "observedAt": 1793901600000,
+          "presenceAt": 1793901600000,
+          "presence": "occupied",
+          "powered": true,
+          "offConfirmed": true,
+          "targetF": 73,
+          "applicationId": "c00d7067-15e5-4649-999b-ca17a3593400",
+          "applicationAt": 1793901480000,
+          "alarmAt": null,
+          "pausedUntil": 0
+        },
+        "application": null
+      }
+    },
+    "warming": {
+      "id": "3bf4a64d-cb1c-4b4c-b821-cfee2b6d1e02",
+      "side": "left",
+      "at": 1793901600000,
+      "expiresAt": 1793901660000,
+      "purpose": "qualification",
+      "kind": "warming",
+      "snapshot": {
+        "identity": {
+          "hardware": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "calibration": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "schedule": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "build": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "policy": {
+            "minimumF": 70,
+            "maximumF": 95,
+            "sensorAware": false,
+            "followBedtime": false
+          }
+        },
+        "qualifications": [
+          {
+            "id": "f096d61b-a34f-4a7d-bbea-ef907041e2b0",
+            "kind": "presence_empty",
+            "at": 1793901600000,
+            "outcome": "confirmed",
+            "note": "Synthetic owner observation in an isolated test.",
+            "evidence": {
+              "identity": {
+                "hardware": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+                "calibration": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+                "schedule": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "build": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "policy": {
+                  "minimumF": 70,
+                  "maximumF": 95,
+                  "sensorAware": false,
+                  "followBedtime": false
+                }
+              },
+              "observedAt": 1793901600000,
+              "presenceAt": 1793901600000,
+              "presence": "empty",
+              "powered": false,
+              "offConfirmed": true,
+              "targetF": 75,
+              "applicationId": null,
+              "applicationAt": null,
+              "alarmAt": null,
+              "pausedUntil": 0
+            }
+          },
+          {
+            "id": "2af3a6fa-6d33-4324-83b9-b7ed0637513e",
+            "kind": "presence_occupied",
+            "at": 1793901600000,
+            "outcome": "confirmed",
+            "note": "Synthetic owner observation in an isolated test.",
+            "evidence": {
+              "identity": {
+                "hardware": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+                "calibration": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+                "schedule": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "build": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "policy": {
+                  "minimumF": 70,
+                  "maximumF": 95,
+                  "sensorAware": false,
+                  "followBedtime": false
+                }
+              },
+              "observedAt": 1793901600000,
+              "presenceAt": 1793901600000,
+              "presence": "occupied",
+              "powered": false,
+              "offConfirmed": true,
+              "targetF": 75,
+              "applicationId": null,
+              "applicationAt": null,
+              "alarmAt": null,
+              "pausedUntil": 0
+            }
+          },
+          {
+            "id": "6e257c2e-c16f-4a9e-8cf3-9c5eeaa24148",
+            "kind": "cooling",
+            "at": 1793901600000,
+            "outcome": "confirmed",
+            "note": "Synthetic owner observation in an isolated test.",
+            "evidence": {
+              "identity": {
+                "hardware": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+                "calibration": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+                "schedule": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "build": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "policy": {
+                  "minimumF": 70,
+                  "maximumF": 95,
+                  "sensorAware": false,
+                  "followBedtime": false
+                }
+              },
+              "observedAt": 1793901600000,
+              "presenceAt": 1793901600000,
+              "presence": "occupied",
+              "powered": true,
+              "offConfirmed": true,
+              "targetF": 73,
+              "applicationId": "c00d7067-15e5-4649-999b-ca17a3593400",
+              "applicationAt": 1793901480000,
+              "alarmAt": null,
+              "pausedUntil": 0
+            }
+          }
+        ],
+        "nights": [],
+        "evidence": {
+          "identity": {
+            "hardware": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "calibration": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "schedule": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "build": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "policy": {
+              "minimumF": 70,
+              "maximumF": 95,
+              "sensorAware": false,
+              "followBedtime": false
+            }
+          },
+          "observedAt": 1793901600000,
+          "presenceAt": 1793901600000,
+          "presence": "occupied",
+          "powered": true,
+          "offConfirmed": true,
+          "targetF": 77,
+          "applicationId": "1b24669c-179e-4864-ba19-82d5597bbcb6",
+          "applicationAt": 1793901480000,
+          "alarmAt": null,
+          "pausedUntil": 0
+        },
+        "application": null
+      }
+    },
+    "manual_stop": {
+      "id": "faa66784-7bd1-47f4-987f-38b7a716848f",
+      "side": "left",
+      "at": 1793901600000,
+      "expiresAt": 1793901660000,
+      "purpose": "qualification",
+      "kind": "manual_stop",
+      "snapshot": {
+        "identity": {
+          "hardware": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "calibration": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "schedule": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "build": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "policy": {
+            "minimumF": 70,
+            "maximumF": 95,
+            "sensorAware": false,
+            "followBedtime": false
+          }
+        },
+        "qualifications": [
+          {
+            "id": "f096d61b-a34f-4a7d-bbea-ef907041e2b0",
+            "kind": "presence_empty",
+            "at": 1793901600000,
+            "outcome": "confirmed",
+            "note": "Synthetic owner observation in an isolated test.",
+            "evidence": {
+              "identity": {
+                "hardware": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+                "calibration": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+                "schedule": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "build": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "policy": {
+                  "minimumF": 70,
+                  "maximumF": 95,
+                  "sensorAware": false,
+                  "followBedtime": false
+                }
+              },
+              "observedAt": 1793901600000,
+              "presenceAt": 1793901600000,
+              "presence": "empty",
+              "powered": false,
+              "offConfirmed": true,
+              "targetF": 75,
+              "applicationId": null,
+              "applicationAt": null,
+              "alarmAt": null,
+              "pausedUntil": 0
+            }
+          },
+          {
+            "id": "2af3a6fa-6d33-4324-83b9-b7ed0637513e",
+            "kind": "presence_occupied",
+            "at": 1793901600000,
+            "outcome": "confirmed",
+            "note": "Synthetic owner observation in an isolated test.",
+            "evidence": {
+              "identity": {
+                "hardware": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+                "calibration": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+                "schedule": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "build": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "policy": {
+                  "minimumF": 70,
+                  "maximumF": 95,
+                  "sensorAware": false,
+                  "followBedtime": false
+                }
+              },
+              "observedAt": 1793901600000,
+              "presenceAt": 1793901600000,
+              "presence": "occupied",
+              "powered": false,
+              "offConfirmed": true,
+              "targetF": 75,
+              "applicationId": null,
+              "applicationAt": null,
+              "alarmAt": null,
+              "pausedUntil": 0
+            }
+          },
+          {
+            "id": "6e257c2e-c16f-4a9e-8cf3-9c5eeaa24148",
+            "kind": "cooling",
+            "at": 1793901600000,
+            "outcome": "confirmed",
+            "note": "Synthetic owner observation in an isolated test.",
+            "evidence": {
+              "identity": {
+                "hardware": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+                "calibration": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+                "schedule": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "build": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "policy": {
+                  "minimumF": 70,
+                  "maximumF": 95,
+                  "sensorAware": false,
+                  "followBedtime": false
+                }
+              },
+              "observedAt": 1793901600000,
+              "presenceAt": 1793901600000,
+              "presence": "occupied",
+              "powered": true,
+              "offConfirmed": true,
+              "targetF": 73,
+              "applicationId": "c00d7067-15e5-4649-999b-ca17a3593400",
+              "applicationAt": 1793901480000,
+              "alarmAt": null,
+              "pausedUntil": 0
+            }
+          },
+          {
+            "id": "3bf4a64d-cb1c-4b4c-b821-cfee2b6d1e02",
+            "kind": "warming",
+            "at": 1793901600000,
+            "outcome": "confirmed",
+            "note": "Synthetic owner observation in an isolated test.",
+            "evidence": {
+              "identity": {
+                "hardware": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+                "calibration": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+                "schedule": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "build": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "policy": {
+                  "minimumF": 70,
+                  "maximumF": 95,
+                  "sensorAware": false,
+                  "followBedtime": false
+                }
+              },
+              "observedAt": 1793901600000,
+              "presenceAt": 1793901600000,
+              "presence": "occupied",
+              "powered": true,
+              "offConfirmed": true,
+              "targetF": 77,
+              "applicationId": "1b24669c-179e-4864-ba19-82d5597bbcb6",
+              "applicationAt": 1793901480000,
+              "alarmAt": null,
+              "pausedUntil": 0
+            }
+          }
+        ],
+        "nights": [],
+        "evidence": {
+          "identity": {
+            "hardware": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "calibration": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "schedule": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "build": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "policy": {
+              "minimumF": 70,
+              "maximumF": 95,
+              "sensorAware": false,
+              "followBedtime": false
+            }
+          },
+          "observedAt": 1793901600000,
+          "presenceAt": 1793901600000,
+          "presence": "occupied",
+          "powered": false,
+          "offConfirmed": true,
+          "targetF": 77,
+          "applicationId": null,
+          "applicationAt": null,
+          "alarmAt": null,
+          "pausedUntil": 1793923200000
+        },
+        "application": null
+      }
+    },
+    "offline_routine": {
+      "id": "d75f0daa-3a18-47c1-b69b-2d36cc3fcb85",
+      "side": "left",
+      "at": 1793901600000,
+      "expiresAt": 1793901660000,
+      "purpose": "qualification",
+      "kind": "offline_routine",
+      "snapshot": {
+        "identity": {
+          "hardware": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "calibration": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "schedule": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "build": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "policy": {
+            "minimumF": 70,
+            "maximumF": 95,
+            "sensorAware": false,
+            "followBedtime": false
+          }
+        },
+        "qualifications": [
+          {
+            "id": "f096d61b-a34f-4a7d-bbea-ef907041e2b0",
+            "kind": "presence_empty",
+            "at": 1793901600000,
+            "outcome": "confirmed",
+            "note": "Synthetic owner observation in an isolated test.",
+            "evidence": {
+              "identity": {
+                "hardware": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+                "calibration": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+                "schedule": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "build": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "policy": {
+                  "minimumF": 70,
+                  "maximumF": 95,
+                  "sensorAware": false,
+                  "followBedtime": false
+                }
+              },
+              "observedAt": 1793901600000,
+              "presenceAt": 1793901600000,
+              "presence": "empty",
+              "powered": false,
+              "offConfirmed": true,
+              "targetF": 75,
+              "applicationId": null,
+              "applicationAt": null,
+              "alarmAt": null,
+              "pausedUntil": 0
+            }
+          },
+          {
+            "id": "2af3a6fa-6d33-4324-83b9-b7ed0637513e",
+            "kind": "presence_occupied",
+            "at": 1793901600000,
+            "outcome": "confirmed",
+            "note": "Synthetic owner observation in an isolated test.",
+            "evidence": {
+              "identity": {
+                "hardware": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+                "calibration": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+                "schedule": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "build": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "policy": {
+                  "minimumF": 70,
+                  "maximumF": 95,
+                  "sensorAware": false,
+                  "followBedtime": false
+                }
+              },
+              "observedAt": 1793901600000,
+              "presenceAt": 1793901600000,
+              "presence": "occupied",
+              "powered": false,
+              "offConfirmed": true,
+              "targetF": 75,
+              "applicationId": null,
+              "applicationAt": null,
+              "alarmAt": null,
+              "pausedUntil": 0
+            }
+          },
+          {
+            "id": "6e257c2e-c16f-4a9e-8cf3-9c5eeaa24148",
+            "kind": "cooling",
+            "at": 1793901600000,
+            "outcome": "confirmed",
+            "note": "Synthetic owner observation in an isolated test.",
+            "evidence": {
+              "identity": {
+                "hardware": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+                "calibration": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+                "schedule": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "build": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "policy": {
+                  "minimumF": 70,
+                  "maximumF": 95,
+                  "sensorAware": false,
+                  "followBedtime": false
+                }
+              },
+              "observedAt": 1793901600000,
+              "presenceAt": 1793901600000,
+              "presence": "occupied",
+              "powered": true,
+              "offConfirmed": true,
+              "targetF": 73,
+              "applicationId": "c00d7067-15e5-4649-999b-ca17a3593400",
+              "applicationAt": 1793901480000,
+              "alarmAt": null,
+              "pausedUntil": 0
+            }
+          },
+          {
+            "id": "3bf4a64d-cb1c-4b4c-b821-cfee2b6d1e02",
+            "kind": "warming",
+            "at": 1793901600000,
+            "outcome": "confirmed",
+            "note": "Synthetic owner observation in an isolated test.",
+            "evidence": {
+              "identity": {
+                "hardware": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+                "calibration": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+                "schedule": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "build": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "policy": {
+                  "minimumF": 70,
+                  "maximumF": 95,
+                  "sensorAware": false,
+                  "followBedtime": false
+                }
+              },
+              "observedAt": 1793901600000,
+              "presenceAt": 1793901600000,
+              "presence": "occupied",
+              "powered": true,
+              "offConfirmed": true,
+              "targetF": 77,
+              "applicationId": "1b24669c-179e-4864-ba19-82d5597bbcb6",
+              "applicationAt": 1793901480000,
+              "alarmAt": null,
+              "pausedUntil": 0
+            }
+          },
+          {
+            "id": "faa66784-7bd1-47f4-987f-38b7a716848f",
+            "kind": "manual_stop",
+            "at": 1793901600000,
+            "outcome": "confirmed",
+            "note": "Synthetic owner observation in an isolated test.",
+            "evidence": {
+              "identity": {
+                "hardware": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+                "calibration": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+                "schedule": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "build": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "policy": {
+                  "minimumF": 70,
+                  "maximumF": 95,
+                  "sensorAware": false,
+                  "followBedtime": false
+                }
+              },
+              "observedAt": 1793901600000,
+              "presenceAt": 1793901600000,
+              "presence": "occupied",
+              "powered": false,
+              "offConfirmed": true,
+              "targetF": 77,
+              "applicationId": null,
+              "applicationAt": null,
+              "alarmAt": null,
+              "pausedUntil": 1793923200000
+            }
+          }
+        ],
+        "nights": [],
+        "evidence": {
+          "identity": {
+            "hardware": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "calibration": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "schedule": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "build": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "policy": {
+              "minimumF": 70,
+              "maximumF": 95,
+              "sensorAware": false,
+              "followBedtime": false
+            }
+          },
+          "observedAt": 1793901600000,
+          "presenceAt": 1793901600000,
+          "presence": "occupied",
+          "powered": false,
+          "offConfirmed": true,
+          "targetF": 77,
+          "applicationId": "6c0d2ba3-385c-4ebd-b3c5-a840b0441f42",
+          "applicationAt": 1793901480000,
+          "alarmAt": 1793901599000,
+          "pausedUntil": 1793923200000
+        },
+        "application": null
+      }
+    },
+    "activation": {
+      "id": "a66d363a-81b1-4881-93fa-c9b37e3d2233",
+      "side": "left",
+      "at": 1793901600000,
+      "expiresAt": 1793901660000,
+      "purpose": "activation",
+      "kind": null,
+      "snapshot": {
+        "identity": {
+          "hardware": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "calibration": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "schedule": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "build": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "policy": {
+            "minimumF": 70,
+            "maximumF": 95,
+            "sensorAware": false,
+            "followBedtime": false
+          }
+        },
+        "qualifications": [
+          {
+            "id": "f096d61b-a34f-4a7d-bbea-ef907041e2b0",
+            "kind": "presence_empty",
+            "at": 1793901600000,
+            "outcome": "confirmed",
+            "note": "Synthetic owner observation in an isolated test.",
+            "evidence": {
+              "identity": {
+                "hardware": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+                "calibration": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+                "schedule": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "build": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "policy": {
+                  "minimumF": 70,
+                  "maximumF": 95,
+                  "sensorAware": false,
+                  "followBedtime": false
+                }
+              },
+              "observedAt": 1793901600000,
+              "presenceAt": 1793901600000,
+              "presence": "empty",
+              "powered": false,
+              "offConfirmed": true,
+              "targetF": 75,
+              "applicationId": null,
+              "applicationAt": null,
+              "alarmAt": null,
+              "pausedUntil": 0
+            }
+          },
+          {
+            "id": "2af3a6fa-6d33-4324-83b9-b7ed0637513e",
+            "kind": "presence_occupied",
+            "at": 1793901600000,
+            "outcome": "confirmed",
+            "note": "Synthetic owner observation in an isolated test.",
+            "evidence": {
+              "identity": {
+                "hardware": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+                "calibration": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+                "schedule": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "build": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "policy": {
+                  "minimumF": 70,
+                  "maximumF": 95,
+                  "sensorAware": false,
+                  "followBedtime": false
+                }
+              },
+              "observedAt": 1793901600000,
+              "presenceAt": 1793901600000,
+              "presence": "occupied",
+              "powered": false,
+              "offConfirmed": true,
+              "targetF": 75,
+              "applicationId": null,
+              "applicationAt": null,
+              "alarmAt": null,
+              "pausedUntil": 0
+            }
+          },
+          {
+            "id": "6e257c2e-c16f-4a9e-8cf3-9c5eeaa24148",
+            "kind": "cooling",
+            "at": 1793901600000,
+            "outcome": "confirmed",
+            "note": "Synthetic owner observation in an isolated test.",
+            "evidence": {
+              "identity": {
+                "hardware": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+                "calibration": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+                "schedule": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "build": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "policy": {
+                  "minimumF": 70,
+                  "maximumF": 95,
+                  "sensorAware": false,
+                  "followBedtime": false
+                }
+              },
+              "observedAt": 1793901600000,
+              "presenceAt": 1793901600000,
+              "presence": "occupied",
+              "powered": true,
+              "offConfirmed": true,
+              "targetF": 73,
+              "applicationId": "c00d7067-15e5-4649-999b-ca17a3593400",
+              "applicationAt": 1793901480000,
+              "alarmAt": null,
+              "pausedUntil": 0
+            }
+          },
+          {
+            "id": "3bf4a64d-cb1c-4b4c-b821-cfee2b6d1e02",
+            "kind": "warming",
+            "at": 1793901600000,
+            "outcome": "confirmed",
+            "note": "Synthetic owner observation in an isolated test.",
+            "evidence": {
+              "identity": {
+                "hardware": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+                "calibration": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+                "schedule": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "build": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "policy": {
+                  "minimumF": 70,
+                  "maximumF": 95,
+                  "sensorAware": false,
+                  "followBedtime": false
+                }
+              },
+              "observedAt": 1793901600000,
+              "presenceAt": 1793901600000,
+              "presence": "occupied",
+              "powered": true,
+              "offConfirmed": true,
+              "targetF": 77,
+              "applicationId": "1b24669c-179e-4864-ba19-82d5597bbcb6",
+              "applicationAt": 1793901480000,
+              "alarmAt": null,
+              "pausedUntil": 0
+            }
+          },
+          {
+            "id": "faa66784-7bd1-47f4-987f-38b7a716848f",
+            "kind": "manual_stop",
+            "at": 1793901600000,
+            "outcome": "confirmed",
+            "note": "Synthetic owner observation in an isolated test.",
+            "evidence": {
+              "identity": {
+                "hardware": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+                "calibration": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+                "schedule": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "build": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "policy": {
+                  "minimumF": 70,
+                  "maximumF": 95,
+                  "sensorAware": false,
+                  "followBedtime": false
+                }
+              },
+              "observedAt": 1793901600000,
+              "presenceAt": 1793901600000,
+              "presence": "occupied",
+              "powered": false,
+              "offConfirmed": true,
+              "targetF": 77,
+              "applicationId": null,
+              "applicationAt": null,
+              "alarmAt": null,
+              "pausedUntil": 1793923200000
+            }
+          },
+          {
+            "id": "d75f0daa-3a18-47c1-b69b-2d36cc3fcb85",
+            "kind": "offline_routine",
+            "at": 1793901600000,
+            "outcome": "confirmed",
+            "note": "Synthetic owner observation in an isolated test.",
+            "evidence": {
+              "identity": {
+                "hardware": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+                "calibration": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+                "schedule": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "build": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "policy": {
+                  "minimumF": 70,
+                  "maximumF": 95,
+                  "sensorAware": false,
+                  "followBedtime": false
+                }
+              },
+              "observedAt": 1793901600000,
+              "presenceAt": 1793901600000,
+              "presence": "occupied",
+              "powered": false,
+              "offConfirmed": true,
+              "targetF": 77,
+              "applicationId": "6c0d2ba3-385c-4ebd-b3c5-a840b0441f42",
+              "applicationAt": 1793901480000,
+              "alarmAt": 1793901599000,
+              "pausedUntil": 1793923200000
+            }
+          }
+        ],
+        "nights": [
+          {
+            "summary": {
+              "id": "99e8c8a2780606ad67cf24617feefcce099a04273e428614c14d8639d2d59c20",
+              "digest": "96f9d4f58eb784b85a0ea9369351712e6e9badec29ec4bf6e9361141452b6ed4",
+              "metadata": {
+                "session": "synthetic:1793296800000",
+                "start": 1793296800000,
+                "end": 1793325600000,
+                "timezone": "America/Los_Angeles"
+              },
+              "localDate": "2026-10-29",
+              "state": "closed",
+              "firstAt": 1793296800000,
+              "lastAt": 1793311200000,
+              "observationCount": 241,
+              "occupiedObservationMs": 14400000,
+              "minimumOccupiedObservationMs": 14400000,
+              "occupiedCount": 241,
+              "eligibleCount": 241,
+              "sensorReadyCount": 0,
+              "deviceFreshCount": 241,
+              "manualPauseCount": 0,
+              "proposedRangeF": {
+                "minimum": 74,
+                "maximum": 74
+              },
+              "reportedRangeF": {
+                "minimum": 75,
+                "maximum": 75
+              },
+              "reasons": [
+                {
+                  "message": "Synthetic preview.",
+                  "count": 241
+                }
+              ],
+              "gaps": [
+                {
+                  "from": 1793311200000,
+                  "to": 1793325600000
+                }
+              ],
+              "gapCount": 1,
+              "configurations": 1,
+              "runs": 1,
+              "builds": [
+                "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+              ],
+              "issues": [],
+              "reviewable": true
+            },
+            "reviewId": 1,
+            "lastObservationId": 241,
+            "eligibleMs": 14400000
+          },
+          {
+            "summary": {
+              "id": "55fde66a151b302fe37946fd4d9e7c622cef65173f6073f2e3099c99ebaad536",
+              "digest": "3f004ae3e39a9c869fc8b6e14b24e205235408406af9d5b9cfa38098e12e0c3f",
+              "metadata": {
+                "session": "synthetic:1793383200000",
+                "start": 1793383200000,
+                "end": 1793412000000,
+                "timezone": "America/Los_Angeles"
+              },
+              "localDate": "2026-10-30",
+              "state": "closed",
+              "firstAt": 1793383200000,
+              "lastAt": 1793397600000,
+              "observationCount": 241,
+              "occupiedObservationMs": 14400000,
+              "minimumOccupiedObservationMs": 14400000,
+              "occupiedCount": 241,
+              "eligibleCount": 241,
+              "sensorReadyCount": 0,
+              "deviceFreshCount": 241,
+              "manualPauseCount": 0,
+              "proposedRangeF": {
+                "minimum": 74,
+                "maximum": 74
+              },
+              "reportedRangeF": {
+                "minimum": 75,
+                "maximum": 75
+              },
+              "reasons": [
+                {
+                  "message": "Synthetic preview.",
+                  "count": 241
+                }
+              ],
+              "gaps": [
+                {
+                  "from": 1793397600000,
+                  "to": 1793412000000
+                }
+              ],
+              "gapCount": 1,
+              "configurations": 1,
+              "runs": 1,
+              "builds": [
+                "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+              ],
+              "issues": [],
+              "reviewable": true
+            },
+            "reviewId": 2,
+            "lastObservationId": 482,
+            "eligibleMs": 14400000
+          },
+          {
+            "summary": {
+              "id": "96e659d1db34ca90f66b421b8081a8ceee29cdf293291a1c6dfdbfbee7c4b687",
+              "digest": "a65626ac9fa034e2d1f6940bbc85feb4b4e1376645ac7d73d55a2040e5722330",
+              "metadata": {
+                "session": "synthetic:1793469600000",
+                "start": 1793469600000,
+                "end": 1793498400000,
+                "timezone": "America/Los_Angeles"
+              },
+              "localDate": "2026-10-31",
+              "state": "closed",
+              "firstAt": 1793469600000,
+              "lastAt": 1793484000000,
+              "observationCount": 241,
+              "occupiedObservationMs": 14400000,
+              "minimumOccupiedObservationMs": 14400000,
+              "occupiedCount": 241,
+              "eligibleCount": 241,
+              "sensorReadyCount": 0,
+              "deviceFreshCount": 241,
+              "manualPauseCount": 0,
+              "proposedRangeF": {
+                "minimum": 74,
+                "maximum": 74
+              },
+              "reportedRangeF": {
+                "minimum": 75,
+                "maximum": 75
+              },
+              "reasons": [
+                {
+                  "message": "Synthetic preview.",
+                  "count": 241
+                }
+              ],
+              "gaps": [
+                {
+                  "from": 1793484000000,
+                  "to": 1793498400000
+                }
+              ],
+              "gapCount": 1,
+              "configurations": 1,
+              "runs": 1,
+              "builds": [
+                "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+              ],
+              "issues": [],
+              "reviewable": true
+            },
+            "reviewId": 3,
+            "lastObservationId": 723,
+            "eligibleMs": 14400000
+          },
+          {
+            "summary": {
+              "id": "e46db44878ec08f0d3e82cc3ab1b76c6bd26c5cddec4c698634243eac0100344",
+              "digest": "32067200b1de703533e2267645e98abb2f20912f9230c5a0d061b7a58ebb9d98",
+              "metadata": {
+                "session": "synthetic:1793556000000",
+                "start": 1793556000000,
+                "end": 1793584800000,
+                "timezone": "America/Los_Angeles"
+              },
+              "localDate": "2026-11-01",
+              "state": "closed",
+              "firstAt": 1793556000000,
+              "lastAt": 1793570400000,
+              "observationCount": 241,
+              "occupiedObservationMs": 14400000,
+              "minimumOccupiedObservationMs": 14400000,
+              "occupiedCount": 241,
+              "eligibleCount": 241,
+              "sensorReadyCount": 0,
+              "deviceFreshCount": 241,
+              "manualPauseCount": 0,
+              "proposedRangeF": {
+                "minimum": 74,
+                "maximum": 74
+              },
+              "reportedRangeF": {
+                "minimum": 75,
+                "maximum": 75
+              },
+              "reasons": [
+                {
+                  "message": "Synthetic preview.",
+                  "count": 241
+                }
+              ],
+              "gaps": [
+                {
+                  "from": 1793570400000,
+                  "to": 1793584800000
+                }
+              ],
+              "gapCount": 1,
+              "configurations": 1,
+              "runs": 1,
+              "builds": [
+                "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+              ],
+              "issues": [],
+              "reviewable": true
+            },
+            "reviewId": 4,
+            "lastObservationId": 964,
+            "eligibleMs": 14400000
+          },
+          {
+            "summary": {
+              "id": "ca3b05c5dd5acc9c08dccc9758eaeb1729b7ee3c841d000d54888dc932b2db25",
+              "digest": "16c3057ee65c00dda75a5111d9d4d30b5fcbed04647ff8686bd17c7cf48baada",
+              "metadata": {
+                "session": "synthetic:1793642400000",
+                "start": 1793642400000,
+                "end": 1793671200000,
+                "timezone": "America/Los_Angeles"
+              },
+              "localDate": "2026-11-02",
+              "state": "closed",
+              "firstAt": 1793642400000,
+              "lastAt": 1793656800000,
+              "observationCount": 241,
+              "occupiedObservationMs": 14400000,
+              "minimumOccupiedObservationMs": 14400000,
+              "occupiedCount": 241,
+              "eligibleCount": 241,
+              "sensorReadyCount": 0,
+              "deviceFreshCount": 241,
+              "manualPauseCount": 0,
+              "proposedRangeF": {
+                "minimum": 74,
+                "maximum": 74
+              },
+              "reportedRangeF": {
+                "minimum": 75,
+                "maximum": 75
+              },
+              "reasons": [
+                {
+                  "message": "Synthetic preview.",
+                  "count": 241
+                }
+              ],
+              "gaps": [
+                {
+                  "from": 1793656800000,
+                  "to": 1793671200000
+                }
+              ],
+              "gapCount": 1,
+              "configurations": 1,
+              "runs": 1,
+              "builds": [
+                "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+              ],
+              "issues": [],
+              "reviewable": true
+            },
+            "reviewId": 5,
+            "lastObservationId": 1205,
+            "eligibleMs": 14400000
+          },
+          {
+            "summary": {
+              "id": "469334c3bdbeb4bb235f03d6dc9cad8fc831ce7dc94326c0e9f35c8ff53f2d70",
+              "digest": "374890ccc4ef507d11cecf4ce4a619326b04061f41a3ec1d2e84e5fcbe91b727",
+              "metadata": {
+                "session": "synthetic:1793728800000",
+                "start": 1793728800000,
+                "end": 1793757600000,
+                "timezone": "America/Los_Angeles"
+              },
+              "localDate": "2026-11-03",
+              "state": "closed",
+              "firstAt": 1793728800000,
+              "lastAt": 1793743200000,
+              "observationCount": 241,
+              "occupiedObservationMs": 14400000,
+              "minimumOccupiedObservationMs": 14400000,
+              "occupiedCount": 241,
+              "eligibleCount": 241,
+              "sensorReadyCount": 0,
+              "deviceFreshCount": 241,
+              "manualPauseCount": 0,
+              "proposedRangeF": {
+                "minimum": 74,
+                "maximum": 74
+              },
+              "reportedRangeF": {
+                "minimum": 75,
+                "maximum": 75
+              },
+              "reasons": [
+                {
+                  "message": "Synthetic preview.",
+                  "count": 241
+                }
+              ],
+              "gaps": [
+                {
+                  "from": 1793743200000,
+                  "to": 1793757600000
+                }
+              ],
+              "gapCount": 1,
+              "configurations": 1,
+              "runs": 1,
+              "builds": [
+                "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+              ],
+              "issues": [],
+              "reviewable": true
+            },
+            "reviewId": 6,
+            "lastObservationId": 1446,
+            "eligibleMs": 14400000
+          },
+          {
+            "summary": {
+              "id": "ca2e1b7a71769faee7d905278301f3f85b5964a9960125bab73a334752939941",
+              "digest": "3ac2f62257fcdba0cb4c61476c55b091ff42cc4fb5f7bbd0134f54ad1d07c239",
+              "metadata": {
+                "session": "synthetic:1793815200000",
+                "start": 1793815200000,
+                "end": 1793844000000,
+                "timezone": "America/Los_Angeles"
+              },
+              "localDate": "2026-11-04",
+              "state": "closed",
+              "firstAt": 1793815200000,
+              "lastAt": 1793829600000,
+              "observationCount": 241,
+              "occupiedObservationMs": 14400000,
+              "minimumOccupiedObservationMs": 14400000,
+              "occupiedCount": 241,
+              "eligibleCount": 241,
+              "sensorReadyCount": 0,
+              "deviceFreshCount": 241,
+              "manualPauseCount": 0,
+              "proposedRangeF": {
+                "minimum": 74,
+                "maximum": 74
+              },
+              "reportedRangeF": {
+                "minimum": 75,
+                "maximum": 75
+              },
+              "reasons": [
+                {
+                  "message": "Synthetic preview.",
+                  "count": 241
+                }
+              ],
+              "gaps": [
+                {
+                  "from": 1793829600000,
+                  "to": 1793844000000
+                }
+              ],
+              "gapCount": 1,
+              "configurations": 1,
+              "runs": 1,
+              "builds": [
+                "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+              ],
+              "issues": [],
+              "reviewable": true
+            },
+            "reviewId": 7,
+            "lastObservationId": 1687,
+            "eligibleMs": 14400000
+          }
+        ],
+        "evidence": null,
+        "application": null
+      }
+    },
+    "resolution": {
+      "id": "35e26ae0-09c5-4563-b8c9-e15c8ce02a0f",
+      "side": "left",
+      "at": 1793901600000,
+      "expiresAt": 1793901660000,
+      "purpose": "resolution",
+      "kind": null,
+      "snapshot": {
+        "identity": {
+          "hardware": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "calibration": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "schedule": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "build": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "policy": {
+            "minimumF": 70,
+            "maximumF": 95,
+            "sensorAware": false,
+            "followBedtime": false
+          }
+        },
+        "qualifications": [
+          {
+            "id": "f0736438-5af9-4b30-9105-a5c175d76815",
+            "kind": "presence_empty",
+            "at": 1793901600000,
+            "outcome": "needs_retest",
+            "note": "Synthetic owner observation in an isolated test.",
+            "evidence": {
+              "identity": {
+                "hardware": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+                "calibration": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+                "schedule": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "build": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "policy": {
+                  "minimumF": 70,
+                  "maximumF": 95,
+                  "sensorAware": false,
+                  "followBedtime": false
+                }
+              },
+              "observedAt": 1793901600000,
+              "presenceAt": 1793901600000,
+              "presence": "empty",
+              "powered": false,
+              "offConfirmed": true,
+              "targetF": 75,
+              "applicationId": null,
+              "applicationAt": null,
+              "alarmAt": null,
+              "pausedUntil": 0
+            }
+          },
+          {
+            "id": "2af3a6fa-6d33-4324-83b9-b7ed0637513e",
+            "kind": "presence_occupied",
+            "at": 1793901600000,
+            "outcome": "confirmed",
+            "note": "Synthetic owner observation in an isolated test.",
+            "evidence": {
+              "identity": {
+                "hardware": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+                "calibration": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+                "schedule": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "build": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "policy": {
+                  "minimumF": 70,
+                  "maximumF": 95,
+                  "sensorAware": false,
+                  "followBedtime": false
+                }
+              },
+              "observedAt": 1793901600000,
+              "presenceAt": 1793901600000,
+              "presence": "occupied",
+              "powered": false,
+              "offConfirmed": true,
+              "targetF": 75,
+              "applicationId": null,
+              "applicationAt": null,
+              "alarmAt": null,
+              "pausedUntil": 0
+            }
+          },
+          {
+            "id": "6e257c2e-c16f-4a9e-8cf3-9c5eeaa24148",
+            "kind": "cooling",
+            "at": 1793901600000,
+            "outcome": "confirmed",
+            "note": "Synthetic owner observation in an isolated test.",
+            "evidence": {
+              "identity": {
+                "hardware": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+                "calibration": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+                "schedule": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "build": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "policy": {
+                  "minimumF": 70,
+                  "maximumF": 95,
+                  "sensorAware": false,
+                  "followBedtime": false
+                }
+              },
+              "observedAt": 1793901600000,
+              "presenceAt": 1793901600000,
+              "presence": "occupied",
+              "powered": true,
+              "offConfirmed": true,
+              "targetF": 73,
+              "applicationId": "c00d7067-15e5-4649-999b-ca17a3593400",
+              "applicationAt": 1793901480000,
+              "alarmAt": null,
+              "pausedUntil": 0
+            }
+          },
+          {
+            "id": "3bf4a64d-cb1c-4b4c-b821-cfee2b6d1e02",
+            "kind": "warming",
+            "at": 1793901600000,
+            "outcome": "confirmed",
+            "note": "Synthetic owner observation in an isolated test.",
+            "evidence": {
+              "identity": {
+                "hardware": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+                "calibration": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+                "schedule": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "build": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "policy": {
+                  "minimumF": 70,
+                  "maximumF": 95,
+                  "sensorAware": false,
+                  "followBedtime": false
+                }
+              },
+              "observedAt": 1793901600000,
+              "presenceAt": 1793901600000,
+              "presence": "occupied",
+              "powered": true,
+              "offConfirmed": true,
+              "targetF": 77,
+              "applicationId": "1b24669c-179e-4864-ba19-82d5597bbcb6",
+              "applicationAt": 1793901480000,
+              "alarmAt": null,
+              "pausedUntil": 0
+            }
+          },
+          {
+            "id": "faa66784-7bd1-47f4-987f-38b7a716848f",
+            "kind": "manual_stop",
+            "at": 1793901600000,
+            "outcome": "confirmed",
+            "note": "Synthetic owner observation in an isolated test.",
+            "evidence": {
+              "identity": {
+                "hardware": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+                "calibration": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+                "schedule": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "build": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "policy": {
+                  "minimumF": 70,
+                  "maximumF": 95,
+                  "sensorAware": false,
+                  "followBedtime": false
+                }
+              },
+              "observedAt": 1793901600000,
+              "presenceAt": 1793901600000,
+              "presence": "occupied",
+              "powered": false,
+              "offConfirmed": true,
+              "targetF": 77,
+              "applicationId": null,
+              "applicationAt": null,
+              "alarmAt": null,
+              "pausedUntil": 1793923200000
+            }
+          },
+          {
+            "id": "d75f0daa-3a18-47c1-b69b-2d36cc3fcb85",
+            "kind": "offline_routine",
+            "at": 1793901600000,
+            "outcome": "confirmed",
+            "note": "Synthetic owner observation in an isolated test.",
+            "evidence": {
+              "identity": {
+                "hardware": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+                "calibration": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+                "schedule": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "build": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "policy": {
+                  "minimumF": 70,
+                  "maximumF": 95,
+                  "sensorAware": false,
+                  "followBedtime": false
+                }
+              },
+              "observedAt": 1793901600000,
+              "presenceAt": 1793901600000,
+              "presence": "occupied",
+              "powered": false,
+              "offConfirmed": true,
+              "targetF": 77,
+              "applicationId": "6c0d2ba3-385c-4ebd-b3c5-a840b0441f42",
+              "applicationAt": 1793901480000,
+              "alarmAt": 1793901599000,
+              "pausedUntil": 1793923200000
+            }
+          }
+        ],
+        "nights": [],
+        "evidence": {
+          "identity": {
+            "hardware": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+            "calibration": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "schedule": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "build": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "policy": {
+              "minimumF": 70,
+              "maximumF": 95,
+              "sensorAware": false,
+              "followBedtime": false
+            }
+          },
+          "observedAt": 1793901600000,
+          "presenceAt": 1793901600000,
+          "presence": "occupied",
+          "powered": false,
+          "offConfirmed": true,
+          "targetF": 77,
+          "applicationId": null,
+          "applicationAt": null,
+          "alarmAt": null,
+          "pausedUntil": 1793923200000
+        },
+        "application": {
+          "requestId": "765b1922-5c71-4a53-a138-1e013ca1f38a",
+          "segment": "synthetic-night:first",
+          "targetF": 74,
+          "previousF": 75,
+          "createdAt": 1793901598000,
+          "reservedAt": 1793901599000,
+          "finishedAt": 1793901600000,
+          "outcome": "unknown",
+          "receiptId": null
+        }
+      }
+    }
+  }
+}

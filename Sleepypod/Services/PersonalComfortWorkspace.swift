@@ -78,7 +78,7 @@ import Observation
                 }
                 return false
             }
-            guard result.state?.config.mode == "off" else { throw APIError.serverError(message: "The controller did not confirm that Preview stopped.") }
+            guard result.state?.config.mode == "off" else { throw APIError.serverError(message: "The controller did not confirm that personal comfort stopped.") }
             self.status = result; requiresReload = false; notice = "Personal comfort stopped."; return true
         } catch {
             if generation == operation { self.error = error.localizedDescription + " Refresh before retrying."; requiresReload = true; self.status = nil; reports = nil }

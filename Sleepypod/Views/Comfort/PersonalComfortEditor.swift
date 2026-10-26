@@ -17,6 +17,7 @@ struct PersonalComfortEditor: View {
                     VStack(alignment: .leading, spacing: 14) {
                         Picker("Mode", selection: $draft.mode) { Text("Off").tag("off"); Text("Preview").tag("preview") }.pickerStyle(.segmented).accessibilityIdentifier("comfort.config.mode")
                         Text("Preview records proposals while your existing schedules remain in control.").font(.footnote).foregroundStyle(Theme.text2)
+                        if original.mode == "active" { Text("Saving these settings stops Active operation and revokes its owner activation. A new activation review is required to resume adjustments.").font(.footnote).foregroundStyle(Theme.amber) }
                         Stepper("Minimum \(draft.minimumF)°F", value: $draft.minimumF, in: 55...110).accessibilityIdentifier("comfort.minimum")
                         Stepper("Maximum \(draft.maximumF)°F", value: $draft.maximumF, in: 55...110).accessibilityIdentifier("comfort.maximum")
                         if !valid { Text("Minimum must not exceed maximum.").font(.footnote).foregroundStyle(Theme.amber) }
@@ -34,7 +35,7 @@ struct PersonalComfortEditor: View {
                     }.padding(16)
                 }
                 if let error = model.error { Text(error).font(.footnote).foregroundStyle(Theme.amber) }
-                Text("Active adjustments remain unavailable.").font(.footnote).foregroundStyle(Theme.text2)
+                Text("Active adjustments require a separate owner qualification and activation review.").font(.footnote).foregroundStyle(Theme.text2)
             }.frame(maxWidth: 780, alignment: .leading).padding(16).frame(maxWidth: .infinity)
         }.background(Theme.background).navigationTitle("Preview settings").navigationBarTitleDisplayMode(.inline)
             .toolbar {

@@ -48,8 +48,8 @@ struct PersonalComfortScreen: View {
                                 Text("Proposed changes are limited to 1°F at a time.").font(.footnote).foregroundStyle(Theme.text2)
                                 ComfortValueRow("Comfort range", value: "\(state.config.minimumF)–\(state.config.maximumF)°F")
                                 Button("Edit Preview settings") { editor = .init(original: state.config, features: status.features) }.accessibilityIdentifier("comfort.configure")
-                                if state.config.mode == "preview" {
-                                    Button("Stop Preview") { Task { _ = await model.stopPreview() } }
+                                if state.config.mode == "preview" || state.config.mode == "active" {
+                                    Button(state.config.mode == "active" ? "Stop personal comfort" : "Stop Preview") { Task { _ = await model.stopPreview() } }
                                         .accessibilityIdentifier("comfort.stop")
                                 }
                                 if state.pausedUntil > status.generatedAt { Text("Manual pause until \(PersonalComfortDates.clock(state.pausedUntil, timezone: status.timezone)).").font(.footnote) }
@@ -60,8 +60,17 @@ struct PersonalComfortScreen: View {
                     }
                     checkIn(status)
                     reports(status)
+                    if status.features.ownerActivation == true {
+                        NavigationLink {
+                            ComfortOwnerScreen(side: side, timezone: status.timezone)
+                        } label: {
+                            Label("Qualification & activation", systemImage: "checkmark.shield")
+                                .frame(maxWidth: .infinity, alignment: .leading).padding(16)
+                        }.background(Theme.card, in: RoundedRectangle(cornerRadius: 16))
+                            .accessibilityIdentifier("comfort.owner.open")
+                    }
                     observations(status)
-                    Text(status.activation.reason + " Active adjustments remain unavailable.").font(.footnote).foregroundStyle(Theme.text2)
+                    Text(status.activation.reason).font(.footnote).foregroundStyle(Theme.text2)
                 }
                 Button("Refresh personal comfort") { Task { await model.load(userInitiated: true) } }.disabled(model.loading || model.saving)
             }.frame(maxWidth: 780, alignment: .leading).padding(16).frame(maxWidth: .infinity)
@@ -91,14 +100,14 @@ struct PersonalComfortScreen: View {
     private func statusCard(_ status: PersonalComfortStatus) -> some View {
         GroupedCard {
             VStack(alignment: .leading, spacing: 10) {
-                Text(status.state?.config.mode == "preview" ? "Preview only" : status.state?.config.mode == "active" ? "Activation locked" : "Personal comfort off").font(.title3.bold()).accessibilityIdentifier("comfort.mode")
-                Text("Preview does not adjust the bed. Your routines and rules continue.").font(.footnote).foregroundStyle(Theme.text2)
+                Text(status.modeTitle).font(.title3.bold()).accessibilityIdentifier("comfort.mode")
+                Text(status.modeExplanation).font(.footnote).foregroundStyle(Theme.text2)
                 Text(status.fault ?? status.decision?.reason ?? "No evaluation recorded yet.")
                 if let decision = status.decision, decision.eligible, let proposed = decision.proposedF {
                     ComfortValueRow("Proposed target", value: "\(proposed.formatted())°F")
                 }
                 if status.evaluatedAt != nil { Text("Last evaluated \(PersonalComfortDates.clock(status.evaluatedAt, timezone: status.timezone))").font(.caption).foregroundStyle(Theme.text2) }
-                if status.runtime == "stopped" { Text("The Preview service is stopped.").font(.footnote).foregroundStyle(Theme.amber) }
+                if status.runtime == "stopped" { Text("The personal comfort service is stopped.").font(.footnote).foregroundStyle(Theme.amber) }
             }.padding(16).frame(maxWidth: .infinity, alignment: .leading)
         }
     }

@@ -18,6 +18,7 @@ actor DemoPersonalComfortClient: PersonalComfortClient {
     init(includeExample: Bool = false) { self.includeExample = includeExample }
     func status(side: Side) throws -> PersonalComfortStatus {
         let source = try PersonalComfortExample.load().status, original = source.state!
+        var features = source.features; features.ownerActivation = true
         let config = configurations[side] ?? original.config
         let signals: PersonalComfortSignals? = config.sensorAware == true
             ? .init(state: "stale", reason: "Demo has no qualified live Pod estimates.", sampleAt: nil, expiresAt: nil, baselineHeartRate: nil, baselineDays: 0, baselineWindows: 0, baselineAsOf: nil, recentHeartRates: [], sourceSide: nil, source: "qualified_live_pod") : nil
@@ -25,7 +26,7 @@ actor DemoPersonalComfortClient: PersonalComfortClient {
             ? .init(state: "waiting", reason: "Demo cannot observe bed entry. Actual entry requires ten minutes of fresh calibrated presence.", selection: nil, scheduledBaselineF: nil, phaseBaselineF: nil) : nil
         return .init(apiVersion: 1, generatedAt: source.generatedAt, side: side, timezone: source.timezone, deviceDate: source.deviceDate,
                      state: .init(config: config, offsetF: 0, feedbackThrough: feedbacks[side]?.date ?? "", learnedSession: "", pausedUntil: 0, lastAppliedAt: 0, lastTargetF: nil, lastSegment: ""),
-                     evaluatedAt: nil, decision: nil, fault: nil, history: history[side] ?? [], runtime: "stopped", activation: source.activation, features: source.features, signals: signals, timing: timing)
+                     evaluatedAt: nil, decision: nil, fault: nil, history: history[side] ?? [], runtime: "stopped", activation: source.activation, features: features, signals: signals, timing: timing)
     }
     func configure(side: Side, config: PersonalComfortConfig) throws -> PersonalComfortStatus { try config.validate(); configurations[side] = config; return try status(side: side) }
     func mode(side: Side, mode: String) async throws -> PersonalComfortStatus {

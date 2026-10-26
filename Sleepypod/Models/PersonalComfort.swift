@@ -33,8 +33,8 @@ struct PersonalComfortStatus: Codable, Sendable {
         let retainPreviousLease: Bool
         let pauseRequired: Bool
     }
-    struct Activation: Codable, Sendable { let available: Bool; let reason: String }
-    struct Features: Codable, Sendable { let sensorAware: Bool; let followBedtime: Bool; let nightReports: Bool?; var modeOnly: Bool? }
+    struct Activation: Codable, Sendable { let available: Bool; let reason: String; var current: Bool? }
+    struct Features: Codable, Sendable { let sensorAware: Bool; let followBedtime: Bool; let nightReports: Bool?; var modeOnly: Bool?; var ownerActivation: Bool? }
     let apiVersion: Int
     let generatedAt: Double
     let side: Side
@@ -50,6 +50,21 @@ struct PersonalComfortStatus: Codable, Sendable {
     let features: Features
     let signals: PersonalComfortSignals?
     let timing: PersonalComfortTiming?
+
+    var ownerActive: Bool { state?.config.mode == "active" && activation.current == true }
+    var modeTitle: String {
+        if ownerActive { return "Personal comfort active" }
+        switch state?.config.mode {
+        case "preview": return "Preview only"
+        case "active": return "Activation not confirmed"
+        default: return "Personal comfort off"
+        }
+    }
+    var modeExplanation: String {
+        if ownerActive { return "Owner activation is current. Every adjustment rechecks live sensor, routine and safety guards." }
+        if state?.config.mode == "active" { return "A saved Active mode alone does not authorize adjustments. Refresh or review the current owner qualification." }
+        return "Preview does not adjust the bed. Your routines and rules continue."
+    }
 
     func validate(side expected: Side) throws {
         guard apiVersion == 1, side == expected, !activation.available, generatedAt.isFinite,
