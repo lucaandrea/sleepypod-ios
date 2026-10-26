@@ -25,7 +25,7 @@ Twelve owner logic/transport checks pass, including preparation latency, expirat
 | `ComfortOwner-phone-v9` | Final phone activation, expandable nights and recovery |
 | `ComfortOwner-ipad-v10` | Final iPad activation, expandable nights and recovery |
 
-All 27 final captures in `previews/owner-activation/` were visually reviewed. Normal phone text size was restored. The earlier combined run completed every unit/transport test and the maximum-text replay chart, then was deliberately interrupted to refine the owner review layout; its overall interrupted result is not presented as a passing run. The focused runs above supersede that interrupted owner walkthrough.
+All 27 final captures in `previews/owner-activation/` were visually reviewed. Normal phone text size was restored. The earlier combined run completed every unit/transport test and the maximum-text replay chart, then was deliberately interrupted to refine the owner review layout; its overall interrupted result is not presented as a passing run. The focused runs above supersede that interrupted owner walkthrough. The separate final `Final-native-unit-v2` run then completed all 936 unit/transport tests successfully, with five explicit live-Pod skips and no failures.
 
 The initial UI runs identified inherited test-side selection and an iPad swipe aimed at the background. Tests now select Left explicitly and address the visible scroll area. The final night list is expandable, keeping consent reachable while preserving inspection of every matching night.
 
