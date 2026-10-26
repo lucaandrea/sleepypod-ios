@@ -1,0 +1,2340 @@
+[
+  {
+    "side": "left",
+    "sessions": {
+      "items": [
+        {
+          "id": 102,
+          "side": "left",
+          "startMs": 1792879200000,
+          "endMs": 1792886400000,
+          "sleepDurationSeconds": 6600,
+          "timesExitedBed": 1
+        },
+        {
+          "id": 101,
+          "side": "left",
+          "startMs": 1792792800000,
+          "endMs": 1792800000000,
+          "sleepDurationSeconds": 6600,
+          "timesExitedBed": 1
+        },
+        {
+          "id": 100,
+          "side": "left",
+          "startMs": 1792706400000,
+          "endMs": 1792713600000,
+          "sleepDurationSeconds": 6600,
+          "timesExitedBed": 1
+        }
+      ],
+      "nextCursor": null
+    },
+    "capabilities": [
+      {
+        "session": {
+          "id": 102,
+          "side": "left",
+          "startMs": 1792879200000,
+          "endMs": 1792886400000,
+          "sleepDurationSeconds": 6600,
+          "timesExitedBed": 1
+        },
+        "processed": {
+          "vitals": {
+            "count": 0,
+            "duplicateTimestamps": 0,
+            "firstMs": null,
+            "lastMs": null,
+            "expectedCadenceMs": 60000,
+            "gaps": [
+              {
+                "startMs": 1792879200000,
+                "endMs": 1792886400000
+              }
+            ],
+            "gapDurationMs": 7200000,
+            "interpretation": "cadence_availability_not_measured_support"
+          },
+          "movement": {
+            "count": 0,
+            "duplicateTimestamps": 0,
+            "firstMs": null,
+            "lastMs": null,
+            "expectedCadenceMs": 60000,
+            "gaps": [
+              {
+                "startMs": 1792879200000,
+                "endMs": 1792886400000
+              }
+            ],
+            "gapDurationMs": 7200000,
+            "interpretation": "cadence_availability_not_measured_support"
+          },
+          "legacyUnknownProvenanceCount": 0
+        },
+        "referenceMetrics": [],
+        "comparison": false,
+        "stageReplay": false,
+        "signalReplay": false,
+        "rawWaveforms": "not_inventoried",
+        "limitations": [
+          "Reference counts include available revisions; select one revision per source family when freezing inputs.",
+          "Raw archives and pump/occupancy context have not been retained by this processed-data service.",
+          "Movement and vitals availability use nominal one-minute cadence, not inferred continuous signal support.",
+          "No stored vitals are available for comparison or stage replay."
+        ]
+      },
+      {
+        "session": {
+          "id": 101,
+          "side": "left",
+          "startMs": 1792792800000,
+          "endMs": 1792800000000,
+          "sleepDurationSeconds": 6600,
+          "timesExitedBed": 1
+        },
+        "processed": {
+          "vitals": {
+            "count": 6,
+            "duplicateTimestamps": 0,
+            "firstMs": 1792792800000,
+            "lastMs": 1792798200000,
+            "expectedCadenceMs": 60000,
+            "gaps": [
+              {
+                "startMs": 1792792920000,
+                "endMs": 1792793040000
+              },
+              {
+                "startMs": 1792793100000,
+                "endMs": 1792796400000
+              },
+              {
+                "startMs": 1792796520000,
+                "endMs": 1792798200000
+              },
+              {
+                "startMs": 1792798260000,
+                "endMs": 1792800000000
+              }
+            ],
+            "gapDurationMs": 6840000,
+            "interpretation": "cadence_availability_not_measured_support"
+          },
+          "movement": {
+            "count": 6,
+            "duplicateTimestamps": 0,
+            "firstMs": 1792792800000,
+            "lastMs": 1792798200000,
+            "expectedCadenceMs": 60000,
+            "gaps": [
+              {
+                "startMs": 1792792920000,
+                "endMs": 1792793040000
+              },
+              {
+                "startMs": 1792793100000,
+                "endMs": 1792796400000
+              },
+              {
+                "startMs": 1792796520000,
+                "endMs": 1792798200000
+              },
+              {
+                "startMs": 1792798260000,
+                "endMs": 1792800000000
+              }
+            ],
+            "gapDurationMs": 6840000,
+            "interpretation": "cadence_availability_not_measured_support"
+          },
+          "legacyUnknownProvenanceCount": 6
+        },
+        "referenceMetrics": [],
+        "comparison": true,
+        "stageReplay": true,
+        "signalReplay": false,
+        "rawWaveforms": "not_inventoried",
+        "limitations": [
+          "Reference counts include available revisions; select one revision per source family when freezing inputs.",
+          "Raw archives and pump/occupancy context have not been retained by this processed-data service.",
+          "Movement and vitals availability use nominal one-minute cadence, not inferred continuous signal support."
+        ]
+      },
+      {
+        "session": {
+          "id": 100,
+          "side": "left",
+          "startMs": 1792706400000,
+          "endMs": 1792713600000,
+          "sleepDurationSeconds": 6600,
+          "timesExitedBed": 1
+        },
+        "processed": {
+          "vitals": {
+            "count": 6,
+            "duplicateTimestamps": 0,
+            "firstMs": 1792706400000,
+            "lastMs": 1792711800000,
+            "expectedCadenceMs": 60000,
+            "gaps": [
+              {
+                "startMs": 1792706520000,
+                "endMs": 1792706640000
+              },
+              {
+                "startMs": 1792706700000,
+                "endMs": 1792710000000
+              },
+              {
+                "startMs": 1792710120000,
+                "endMs": 1792711800000
+              },
+              {
+                "startMs": 1792711860000,
+                "endMs": 1792713600000
+              }
+            ],
+            "gapDurationMs": 6840000,
+            "interpretation": "cadence_availability_not_measured_support"
+          },
+          "movement": {
+            "count": 6,
+            "duplicateTimestamps": 0,
+            "firstMs": 1792706400000,
+            "lastMs": 1792711800000,
+            "expectedCadenceMs": 60000,
+            "gaps": [
+              {
+                "startMs": 1792706520000,
+                "endMs": 1792706640000
+              },
+              {
+                "startMs": 1792706700000,
+                "endMs": 1792710000000
+              },
+              {
+                "startMs": 1792710120000,
+                "endMs": 1792711800000
+              },
+              {
+                "startMs": 1792711860000,
+                "endMs": 1792713600000
+              }
+            ],
+            "gapDurationMs": 6840000,
+            "interpretation": "cadence_availability_not_measured_support"
+          },
+          "legacyUnknownProvenanceCount": 6
+        },
+        "referenceMetrics": [
+          {
+            "metric": "heart_rate",
+            "count": 1
+          }
+        ],
+        "comparison": true,
+        "stageReplay": true,
+        "signalReplay": false,
+        "rawWaveforms": "not_inventoried",
+        "limitations": [
+          "Reference counts include available revisions; select one revision per source family when freezing inputs.",
+          "Raw archives and pump/occupancy context have not been retained by this processed-data service.",
+          "Movement and vitals availability use nominal one-minute cadence, not inferred continuous signal support."
+        ]
+      }
+    ],
+    "references": {
+      "items": [
+        {
+          "id": "ba8ee17a-4176-430a-9541-1e974c6bc1f4",
+          "familyId": "67f7e7e4-caf1-4067-824b-a0945704d374",
+          "revision": 1,
+          "supersedesImportId": null,
+          "summary": {
+            "contentHash": "15d51907e3df44ba630daad1987ab61884771a149eb27810e432dd5a9fc312b1",
+            "adapterVersion": "normalized-reference-v1",
+            "side": "left",
+            "subjectId": "demo-sleeper",
+            "source": "Synthetic reference",
+            "timePolicy": {
+              "disambiguation": "reject"
+            },
+            "received": 1,
+            "accepted": 1,
+            "rejected": 0,
+            "duplicates": 0,
+            "unscorable": 0,
+            "conflicts": 0,
+            "startMs": 1792706400000,
+            "endMs": 1792706400000,
+            "metrics": [
+              "heart_rate"
+            ],
+            "rejectionCounts": {},
+            "rejectionExamples": [],
+            "warnings": [
+              "Agreement with a reference source is not clinical accuracy.",
+              "Stage overlaps with conflicting labels are excluded from scoring."
+            ]
+          },
+          "createdAtMs": 1792929600000,
+          "deletedAtMs": null,
+          "available": true,
+          "alreadyImported": false
+        }
+      ],
+      "nextCursor": null
+    },
+    "snapshots": [
+      {
+        "selection": {
+          "side": "left",
+          "subjectId": "demo-sleeper",
+          "sessionIds": [
+            100
+          ],
+          "referenceImportIds": []
+        },
+        "descriptor": {
+          "id": "18cb9bab-e3db-4fd5-8774-ab6aad6a7f43",
+          "side": "left",
+          "subjectId": "demo-sleeper",
+          "contentHash": "757790d192c071cca80882546664092d44f458067a33d6c015098a455bde8af4",
+          "manifest": {
+            "version": "processed-dataset-manifest-v1",
+            "splitProtocol": {
+              "version": "chronological-whole-night-v1",
+              "timezone": "America/Los_Angeles",
+              "timezoneRuntime": {
+                "icu": "78.3",
+                "tz": "2026a"
+              },
+              "grouping": "local_noon_connected_sessions",
+              "assignments": [
+                {
+                  "cohortId": "2026-10-22",
+                  "nightLabels": [
+                    "2026-10-22"
+                  ],
+                  "sessionIds": [
+                    100
+                  ],
+                  "startMs": 1792706400000,
+                  "endMs": 1792713600000,
+                  "split": "tuning"
+                }
+              ],
+              "evidence": "descriptive_only",
+              "limitations": [
+                "Whole-night separation does not by itself establish sufficient reference support or improvement.",
+                "Fewer than three independent night cohorts; no validation or holdout claim is available."
+              ]
+            },
+            "coverage": [
+              {
+                "sessionId": 100,
+                "vitals": {
+                  "count": 6,
+                  "duplicateTimestamps": 0,
+                  "firstMs": 1792706400000,
+                  "lastMs": 1792711800000,
+                  "expectedCadenceMs": 60000,
+                  "gaps": [
+                    {
+                      "startMs": 1792706520000,
+                      "endMs": 1792706640000
+                    },
+                    {
+                      "startMs": 1792706700000,
+                      "endMs": 1792710000000
+                    },
+                    {
+                      "startMs": 1792710120000,
+                      "endMs": 1792711800000
+                    },
+                    {
+                      "startMs": 1792711860000,
+                      "endMs": 1792713600000
+                    }
+                  ],
+                  "gapDurationMs": 6840000,
+                  "interpretation": "cadence_availability_not_measured_support"
+                },
+                "movement": {
+                  "count": 6,
+                  "duplicateTimestamps": 0,
+                  "firstMs": 1792706400000,
+                  "lastMs": 1792711800000,
+                  "expectedCadenceMs": 60000,
+                  "gaps": [
+                    {
+                      "startMs": 1792706520000,
+                      "endMs": 1792706640000
+                    },
+                    {
+                      "startMs": 1792706700000,
+                      "endMs": 1792710000000
+                    },
+                    {
+                      "startMs": 1792710120000,
+                      "endMs": 1792711800000
+                    },
+                    {
+                      "startMs": 1792711860000,
+                      "endMs": 1792713600000
+                    }
+                  ],
+                  "gapDurationMs": 6840000,
+                  "interpretation": "cadence_availability_not_measured_support"
+                }
+              }
+            ],
+            "capabilities": {
+              "comparison": true,
+              "stageReplay": true,
+              "signalReplay": false
+            },
+            "limitations": [
+              "Raw channels, pump context and measured calibration bytes are not retained in this processed dataset; signal replay is unavailable.",
+              "Historical stage replay must declare its calibration quality assumption when original calibration is unavailable.",
+              "Reference deletion does not erase this separately retained dataset.",
+              "Session side is known; historical occupant identity is asserted by the dataset creator, not measured by the pod."
+            ]
+          },
+          "byteLength": 3243,
+          "createdAtMs": 1792929600000,
+          "releasedAtMs": null,
+          "available": true
+        },
+        "releasedByteLength": 1997
+      },
+      {
+        "selection": {
+          "side": "left",
+          "subjectId": "demo-sleeper",
+          "sessionIds": [
+            100
+          ],
+          "referenceImportIds": [
+            "ba8ee17a-4176-430a-9541-1e974c6bc1f4"
+          ]
+        },
+        "descriptor": {
+          "id": "869f78b4-b383-41a6-a51c-1849603ed182",
+          "side": "left",
+          "subjectId": "demo-sleeper",
+          "contentHash": "e3f97dee8f2342f770a7c128acad965d6426b065f52528e27c3efc6e7fd78917",
+          "manifest": {
+            "version": "processed-dataset-manifest-v1",
+            "splitProtocol": {
+              "version": "chronological-whole-night-v1",
+              "timezone": "America/Los_Angeles",
+              "timezoneRuntime": {
+                "icu": "78.3",
+                "tz": "2026a"
+              },
+              "grouping": "local_noon_connected_sessions",
+              "assignments": [
+                {
+                  "cohortId": "2026-10-22",
+                  "nightLabels": [
+                    "2026-10-22"
+                  ],
+                  "sessionIds": [
+                    100
+                  ],
+                  "startMs": 1792706400000,
+                  "endMs": 1792713600000,
+                  "split": "tuning"
+                }
+              ],
+              "evidence": "descriptive_only",
+              "limitations": [
+                "Whole-night separation does not by itself establish sufficient reference support or improvement.",
+                "Fewer than three independent night cohorts; no validation or holdout claim is available."
+              ]
+            },
+            "coverage": [
+              {
+                "sessionId": 100,
+                "vitals": {
+                  "count": 6,
+                  "duplicateTimestamps": 0,
+                  "firstMs": 1792706400000,
+                  "lastMs": 1792711800000,
+                  "expectedCadenceMs": 60000,
+                  "gaps": [
+                    {
+                      "startMs": 1792706520000,
+                      "endMs": 1792706640000
+                    },
+                    {
+                      "startMs": 1792706700000,
+                      "endMs": 1792710000000
+                    },
+                    {
+                      "startMs": 1792710120000,
+                      "endMs": 1792711800000
+                    },
+                    {
+                      "startMs": 1792711860000,
+                      "endMs": 1792713600000
+                    }
+                  ],
+                  "gapDurationMs": 6840000,
+                  "interpretation": "cadence_availability_not_measured_support"
+                },
+                "movement": {
+                  "count": 6,
+                  "duplicateTimestamps": 0,
+                  "firstMs": 1792706400000,
+                  "lastMs": 1792711800000,
+                  "expectedCadenceMs": 60000,
+                  "gaps": [
+                    {
+                      "startMs": 1792706520000,
+                      "endMs": 1792706640000
+                    },
+                    {
+                      "startMs": 1792706700000,
+                      "endMs": 1792710000000
+                    },
+                    {
+                      "startMs": 1792710120000,
+                      "endMs": 1792711800000
+                    },
+                    {
+                      "startMs": 1792711860000,
+                      "endMs": 1792713600000
+                    }
+                  ],
+                  "gapDurationMs": 6840000,
+                  "interpretation": "cadence_availability_not_measured_support"
+                }
+              }
+            ],
+            "capabilities": {
+              "comparison": true,
+              "stageReplay": true,
+              "signalReplay": false
+            },
+            "limitations": [
+              "Raw channels, pump context and measured calibration bytes are not retained in this processed dataset; signal replay is unavailable.",
+              "Historical stage replay must declare its calibration quality assumption when original calibration is unavailable.",
+              "Reference deletion does not erase this separately retained dataset.",
+              "Session side is known; historical occupant identity is asserted by the dataset creator, not measured by the pod."
+            ]
+          },
+          "byteLength": 3863,
+          "createdAtMs": 1792929600000,
+          "releasedAtMs": null,
+          "available": true
+        },
+        "releasedByteLength": 1997
+      },
+      {
+        "selection": {
+          "side": "left",
+          "subjectId": "demo-sleeper",
+          "sessionIds": [
+            101
+          ],
+          "referenceImportIds": []
+        },
+        "descriptor": {
+          "id": "efec0027-de93-4dd3-809a-00cc41196251",
+          "side": "left",
+          "subjectId": "demo-sleeper",
+          "contentHash": "59d6257a5885149d87adcba8e65d951c7e4c9ee1ee8baff15a847c234a740d47",
+          "manifest": {
+            "version": "processed-dataset-manifest-v1",
+            "splitProtocol": {
+              "version": "chronological-whole-night-v1",
+              "timezone": "America/Los_Angeles",
+              "timezoneRuntime": {
+                "icu": "78.3",
+                "tz": "2026a"
+              },
+              "grouping": "local_noon_connected_sessions",
+              "assignments": [
+                {
+                  "cohortId": "2026-10-23",
+                  "nightLabels": [
+                    "2026-10-23"
+                  ],
+                  "sessionIds": [
+                    101
+                  ],
+                  "startMs": 1792792800000,
+                  "endMs": 1792800000000,
+                  "split": "tuning"
+                }
+              ],
+              "evidence": "descriptive_only",
+              "limitations": [
+                "Whole-night separation does not by itself establish sufficient reference support or improvement.",
+                "Fewer than three independent night cohorts; no validation or holdout claim is available."
+              ]
+            },
+            "coverage": [
+              {
+                "sessionId": 101,
+                "vitals": {
+                  "count": 6,
+                  "duplicateTimestamps": 0,
+                  "firstMs": 1792792800000,
+                  "lastMs": 1792798200000,
+                  "expectedCadenceMs": 60000,
+                  "gaps": [
+                    {
+                      "startMs": 1792792920000,
+                      "endMs": 1792793040000
+                    },
+                    {
+                      "startMs": 1792793100000,
+                      "endMs": 1792796400000
+                    },
+                    {
+                      "startMs": 1792796520000,
+                      "endMs": 1792798200000
+                    },
+                    {
+                      "startMs": 1792798260000,
+                      "endMs": 1792800000000
+                    }
+                  ],
+                  "gapDurationMs": 6840000,
+                  "interpretation": "cadence_availability_not_measured_support"
+                },
+                "movement": {
+                  "count": 6,
+                  "duplicateTimestamps": 0,
+                  "firstMs": 1792792800000,
+                  "lastMs": 1792798200000,
+                  "expectedCadenceMs": 60000,
+                  "gaps": [
+                    {
+                      "startMs": 1792792920000,
+                      "endMs": 1792793040000
+                    },
+                    {
+                      "startMs": 1792793100000,
+                      "endMs": 1792796400000
+                    },
+                    {
+                      "startMs": 1792796520000,
+                      "endMs": 1792798200000
+                    },
+                    {
+                      "startMs": 1792798260000,
+                      "endMs": 1792800000000
+                    }
+                  ],
+                  "gapDurationMs": 6840000,
+                  "interpretation": "cadence_availability_not_measured_support"
+                }
+              }
+            ],
+            "capabilities": {
+              "comparison": true,
+              "stageReplay": true,
+              "signalReplay": false
+            },
+            "limitations": [
+              "Raw channels, pump context and measured calibration bytes are not retained in this processed dataset; signal replay is unavailable.",
+              "Historical stage replay must declare its calibration quality assumption when original calibration is unavailable.",
+              "Reference deletion does not erase this separately retained dataset.",
+              "Session side is known; historical occupant identity is asserted by the dataset creator, not measured by the pod."
+            ]
+          },
+          "byteLength": 3249,
+          "createdAtMs": 1792929600000,
+          "releasedAtMs": null,
+          "available": true
+        },
+        "releasedByteLength": 1997
+      },
+      {
+        "selection": {
+          "side": "left",
+          "subjectId": "demo-sleeper",
+          "sessionIds": [
+            101
+          ],
+          "referenceImportIds": [
+            "ba8ee17a-4176-430a-9541-1e974c6bc1f4"
+          ]
+        },
+        "descriptor": {
+          "id": "b74ee480-6e00-4771-92b8-3941179b68ae",
+          "side": "left",
+          "subjectId": "demo-sleeper",
+          "contentHash": "94298ea4ce34bd92a7a89ad0661ee2b4feb262636bdf49c32833119bcca71448",
+          "manifest": {
+            "version": "processed-dataset-manifest-v1",
+            "splitProtocol": {
+              "version": "chronological-whole-night-v1",
+              "timezone": "America/Los_Angeles",
+              "timezoneRuntime": {
+                "icu": "78.3",
+                "tz": "2026a"
+              },
+              "grouping": "local_noon_connected_sessions",
+              "assignments": [
+                {
+                  "cohortId": "2026-10-23",
+                  "nightLabels": [
+                    "2026-10-23"
+                  ],
+                  "sessionIds": [
+                    101
+                  ],
+                  "startMs": 1792792800000,
+                  "endMs": 1792800000000,
+                  "split": "tuning"
+                }
+              ],
+              "evidence": "descriptive_only",
+              "limitations": [
+                "Whole-night separation does not by itself establish sufficient reference support or improvement.",
+                "Fewer than three independent night cohorts; no validation or holdout claim is available."
+              ]
+            },
+            "coverage": [
+              {
+                "sessionId": 101,
+                "vitals": {
+                  "count": 6,
+                  "duplicateTimestamps": 0,
+                  "firstMs": 1792792800000,
+                  "lastMs": 1792798200000,
+                  "expectedCadenceMs": 60000,
+                  "gaps": [
+                    {
+                      "startMs": 1792792920000,
+                      "endMs": 1792793040000
+                    },
+                    {
+                      "startMs": 1792793100000,
+                      "endMs": 1792796400000
+                    },
+                    {
+                      "startMs": 1792796520000,
+                      "endMs": 1792798200000
+                    },
+                    {
+                      "startMs": 1792798260000,
+                      "endMs": 1792800000000
+                    }
+                  ],
+                  "gapDurationMs": 6840000,
+                  "interpretation": "cadence_availability_not_measured_support"
+                },
+                "movement": {
+                  "count": 6,
+                  "duplicateTimestamps": 0,
+                  "firstMs": 1792792800000,
+                  "lastMs": 1792798200000,
+                  "expectedCadenceMs": 60000,
+                  "gaps": [
+                    {
+                      "startMs": 1792792920000,
+                      "endMs": 1792793040000
+                    },
+                    {
+                      "startMs": 1792793100000,
+                      "endMs": 1792796400000
+                    },
+                    {
+                      "startMs": 1792796520000,
+                      "endMs": 1792798200000
+                    },
+                    {
+                      "startMs": 1792798260000,
+                      "endMs": 1792800000000
+                    }
+                  ],
+                  "gapDurationMs": 6840000,
+                  "interpretation": "cadence_availability_not_measured_support"
+                }
+              }
+            ],
+            "capabilities": {
+              "comparison": true,
+              "stageReplay": true,
+              "signalReplay": false
+            },
+            "limitations": [
+              "Raw channels, pump context and measured calibration bytes are not retained in this processed dataset; signal replay is unavailable.",
+              "Historical stage replay must declare its calibration quality assumption when original calibration is unavailable.",
+              "Reference deletion does not erase this separately retained dataset.",
+              "Session side is known; historical occupant identity is asserted by the dataset creator, not measured by the pod."
+            ]
+          },
+          "byteLength": 3869,
+          "createdAtMs": 1792929600000,
+          "releasedAtMs": null,
+          "available": true
+        },
+        "releasedByteLength": 1997
+      },
+      {
+        "selection": {
+          "side": "left",
+          "subjectId": "demo-sleeper",
+          "sessionIds": [
+            100,
+            101
+          ],
+          "referenceImportIds": []
+        },
+        "descriptor": {
+          "id": "7d33c777-16c3-453e-9b2e-7d9efd55978b",
+          "side": "left",
+          "subjectId": "demo-sleeper",
+          "contentHash": "8a39c24290e3f51e19aca4e5f01f682a29da1da83d1bb41deffe25853303bc17",
+          "manifest": {
+            "version": "processed-dataset-manifest-v1",
+            "splitProtocol": {
+              "version": "chronological-whole-night-v1",
+              "timezone": "America/Los_Angeles",
+              "timezoneRuntime": {
+                "icu": "78.3",
+                "tz": "2026a"
+              },
+              "grouping": "local_noon_connected_sessions",
+              "assignments": [
+                {
+                  "cohortId": "2026-10-22",
+                  "nightLabels": [
+                    "2026-10-22"
+                  ],
+                  "sessionIds": [
+                    100
+                  ],
+                  "startMs": 1792706400000,
+                  "endMs": 1792713600000,
+                  "split": "tuning"
+                },
+                {
+                  "cohortId": "2026-10-23",
+                  "nightLabels": [
+                    "2026-10-23"
+                  ],
+                  "sessionIds": [
+                    101
+                  ],
+                  "startMs": 1792792800000,
+                  "endMs": 1792800000000,
+                  "split": "tuning"
+                }
+              ],
+              "evidence": "descriptive_only",
+              "limitations": [
+                "Whole-night separation does not by itself establish sufficient reference support or improvement.",
+                "Fewer than three independent night cohorts; no validation or holdout claim is available."
+              ]
+            },
+            "coverage": [
+              {
+                "sessionId": 100,
+                "vitals": {
+                  "count": 6,
+                  "duplicateTimestamps": 0,
+                  "firstMs": 1792706400000,
+                  "lastMs": 1792711800000,
+                  "expectedCadenceMs": 60000,
+                  "gaps": [
+                    {
+                      "startMs": 1792706520000,
+                      "endMs": 1792706640000
+                    },
+                    {
+                      "startMs": 1792706700000,
+                      "endMs": 1792710000000
+                    },
+                    {
+                      "startMs": 1792710120000,
+                      "endMs": 1792711800000
+                    },
+                    {
+                      "startMs": 1792711860000,
+                      "endMs": 1792713600000
+                    }
+                  ],
+                  "gapDurationMs": 6840000,
+                  "interpretation": "cadence_availability_not_measured_support"
+                },
+                "movement": {
+                  "count": 6,
+                  "duplicateTimestamps": 0,
+                  "firstMs": 1792706400000,
+                  "lastMs": 1792711800000,
+                  "expectedCadenceMs": 60000,
+                  "gaps": [
+                    {
+                      "startMs": 1792706520000,
+                      "endMs": 1792706640000
+                    },
+                    {
+                      "startMs": 1792706700000,
+                      "endMs": 1792710000000
+                    },
+                    {
+                      "startMs": 1792710120000,
+                      "endMs": 1792711800000
+                    },
+                    {
+                      "startMs": 1792711860000,
+                      "endMs": 1792713600000
+                    }
+                  ],
+                  "gapDurationMs": 6840000,
+                  "interpretation": "cadence_availability_not_measured_support"
+                }
+              },
+              {
+                "sessionId": 101,
+                "vitals": {
+                  "count": 6,
+                  "duplicateTimestamps": 0,
+                  "firstMs": 1792792800000,
+                  "lastMs": 1792798200000,
+                  "expectedCadenceMs": 60000,
+                  "gaps": [
+                    {
+                      "startMs": 1792792920000,
+                      "endMs": 1792793040000
+                    },
+                    {
+                      "startMs": 1792793100000,
+                      "endMs": 1792796400000
+                    },
+                    {
+                      "startMs": 1792796520000,
+                      "endMs": 1792798200000
+                    },
+                    {
+                      "startMs": 1792798260000,
+                      "endMs": 1792800000000
+                    }
+                  ],
+                  "gapDurationMs": 6840000,
+                  "interpretation": "cadence_availability_not_measured_support"
+                },
+                "movement": {
+                  "count": 6,
+                  "duplicateTimestamps": 0,
+                  "firstMs": 1792792800000,
+                  "lastMs": 1792798200000,
+                  "expectedCadenceMs": 60000,
+                  "gaps": [
+                    {
+                      "startMs": 1792792920000,
+                      "endMs": 1792793040000
+                    },
+                    {
+                      "startMs": 1792793100000,
+                      "endMs": 1792796400000
+                    },
+                    {
+                      "startMs": 1792796520000,
+                      "endMs": 1792798200000
+                    },
+                    {
+                      "startMs": 1792798260000,
+                      "endMs": 1792800000000
+                    }
+                  ],
+                  "gapDurationMs": 6840000,
+                  "interpretation": "cadence_availability_not_measured_support"
+                }
+              }
+            ],
+            "capabilities": {
+              "comparison": true,
+              "stageReplay": true,
+              "signalReplay": false
+            },
+            "limitations": [
+              "Raw channels, pump context and measured calibration bytes are not retained in this processed dataset; signal replay is unavailable.",
+              "Historical stage replay must declare its calibration quality assumption when original calibration is unavailable.",
+              "Reference deletion does not erase this separately retained dataset.",
+              "Session side is known; historical occupant identity is asserted by the dataset creator, not measured by the pod."
+            ]
+          },
+          "byteLength": 5353,
+          "createdAtMs": 1792929600000,
+          "releasedAtMs": null,
+          "available": true
+        },
+        "releasedByteLength": 2962
+      },
+      {
+        "selection": {
+          "side": "left",
+          "subjectId": "demo-sleeper",
+          "sessionIds": [
+            100,
+            101
+          ],
+          "referenceImportIds": [
+            "ba8ee17a-4176-430a-9541-1e974c6bc1f4"
+          ]
+        },
+        "descriptor": {
+          "id": "1e908d18-7f55-4042-ae21-c330af2e4e63",
+          "side": "left",
+          "subjectId": "demo-sleeper",
+          "contentHash": "214bafa79e5ca108bb2fe8b31ec922c0d8e7c78b6ecbaa8987e100c190dad21d",
+          "manifest": {
+            "version": "processed-dataset-manifest-v1",
+            "splitProtocol": {
+              "version": "chronological-whole-night-v1",
+              "timezone": "America/Los_Angeles",
+              "timezoneRuntime": {
+                "icu": "78.3",
+                "tz": "2026a"
+              },
+              "grouping": "local_noon_connected_sessions",
+              "assignments": [
+                {
+                  "cohortId": "2026-10-22",
+                  "nightLabels": [
+                    "2026-10-22"
+                  ],
+                  "sessionIds": [
+                    100
+                  ],
+                  "startMs": 1792706400000,
+                  "endMs": 1792713600000,
+                  "split": "tuning"
+                },
+                {
+                  "cohortId": "2026-10-23",
+                  "nightLabels": [
+                    "2026-10-23"
+                  ],
+                  "sessionIds": [
+                    101
+                  ],
+                  "startMs": 1792792800000,
+                  "endMs": 1792800000000,
+                  "split": "tuning"
+                }
+              ],
+              "evidence": "descriptive_only",
+              "limitations": [
+                "Whole-night separation does not by itself establish sufficient reference support or improvement.",
+                "Fewer than three independent night cohorts; no validation or holdout claim is available."
+              ]
+            },
+            "coverage": [
+              {
+                "sessionId": 100,
+                "vitals": {
+                  "count": 6,
+                  "duplicateTimestamps": 0,
+                  "firstMs": 1792706400000,
+                  "lastMs": 1792711800000,
+                  "expectedCadenceMs": 60000,
+                  "gaps": [
+                    {
+                      "startMs": 1792706520000,
+                      "endMs": 1792706640000
+                    },
+                    {
+                      "startMs": 1792706700000,
+                      "endMs": 1792710000000
+                    },
+                    {
+                      "startMs": 1792710120000,
+                      "endMs": 1792711800000
+                    },
+                    {
+                      "startMs": 1792711860000,
+                      "endMs": 1792713600000
+                    }
+                  ],
+                  "gapDurationMs": 6840000,
+                  "interpretation": "cadence_availability_not_measured_support"
+                },
+                "movement": {
+                  "count": 6,
+                  "duplicateTimestamps": 0,
+                  "firstMs": 1792706400000,
+                  "lastMs": 1792711800000,
+                  "expectedCadenceMs": 60000,
+                  "gaps": [
+                    {
+                      "startMs": 1792706520000,
+                      "endMs": 1792706640000
+                    },
+                    {
+                      "startMs": 1792706700000,
+                      "endMs": 1792710000000
+                    },
+                    {
+                      "startMs": 1792710120000,
+                      "endMs": 1792711800000
+                    },
+                    {
+                      "startMs": 1792711860000,
+                      "endMs": 1792713600000
+                    }
+                  ],
+                  "gapDurationMs": 6840000,
+                  "interpretation": "cadence_availability_not_measured_support"
+                }
+              },
+              {
+                "sessionId": 101,
+                "vitals": {
+                  "count": 6,
+                  "duplicateTimestamps": 0,
+                  "firstMs": 1792792800000,
+                  "lastMs": 1792798200000,
+                  "expectedCadenceMs": 60000,
+                  "gaps": [
+                    {
+                      "startMs": 1792792920000,
+                      "endMs": 1792793040000
+                    },
+                    {
+                      "startMs": 1792793100000,
+                      "endMs": 1792796400000
+                    },
+                    {
+                      "startMs": 1792796520000,
+                      "endMs": 1792798200000
+                    },
+                    {
+                      "startMs": 1792798260000,
+                      "endMs": 1792800000000
+                    }
+                  ],
+                  "gapDurationMs": 6840000,
+                  "interpretation": "cadence_availability_not_measured_support"
+                },
+                "movement": {
+                  "count": 6,
+                  "duplicateTimestamps": 0,
+                  "firstMs": 1792792800000,
+                  "lastMs": 1792798200000,
+                  "expectedCadenceMs": 60000,
+                  "gaps": [
+                    {
+                      "startMs": 1792792920000,
+                      "endMs": 1792793040000
+                    },
+                    {
+                      "startMs": 1792793100000,
+                      "endMs": 1792796400000
+                    },
+                    {
+                      "startMs": 1792796520000,
+                      "endMs": 1792798200000
+                    },
+                    {
+                      "startMs": 1792798260000,
+                      "endMs": 1792800000000
+                    }
+                  ],
+                  "gapDurationMs": 6840000,
+                  "interpretation": "cadence_availability_not_measured_support"
+                }
+              }
+            ],
+            "capabilities": {
+              "comparison": true,
+              "stageReplay": true,
+              "signalReplay": false
+            },
+            "limitations": [
+              "Raw channels, pump context and measured calibration bytes are not retained in this processed dataset; signal replay is unavailable.",
+              "Historical stage replay must declare its calibration quality assumption when original calibration is unavailable.",
+              "Reference deletion does not erase this separately retained dataset.",
+              "Session side is known; historical occupant identity is asserted by the dataset creator, not measured by the pod."
+            ]
+          },
+          "byteLength": 5973,
+          "createdAtMs": 1792929600000,
+          "releasedAtMs": null,
+          "available": true
+        },
+        "releasedByteLength": 2962
+      }
+    ]
+  },
+  {
+    "side": "right",
+    "sessions": {
+      "items": [
+        {
+          "id": 112,
+          "side": "right",
+          "startMs": 1792879200000,
+          "endMs": 1792886400000,
+          "sleepDurationSeconds": 6600,
+          "timesExitedBed": 1
+        },
+        {
+          "id": 111,
+          "side": "right",
+          "startMs": 1792792800000,
+          "endMs": 1792800000000,
+          "sleepDurationSeconds": 6600,
+          "timesExitedBed": 1
+        },
+        {
+          "id": 110,
+          "side": "right",
+          "startMs": 1792706400000,
+          "endMs": 1792713600000,
+          "sleepDurationSeconds": 6600,
+          "timesExitedBed": 1
+        }
+      ],
+      "nextCursor": null
+    },
+    "capabilities": [
+      {
+        "session": {
+          "id": 112,
+          "side": "right",
+          "startMs": 1792879200000,
+          "endMs": 1792886400000,
+          "sleepDurationSeconds": 6600,
+          "timesExitedBed": 1
+        },
+        "processed": {
+          "vitals": {
+            "count": 0,
+            "duplicateTimestamps": 0,
+            "firstMs": null,
+            "lastMs": null,
+            "expectedCadenceMs": 60000,
+            "gaps": [
+              {
+                "startMs": 1792879200000,
+                "endMs": 1792886400000
+              }
+            ],
+            "gapDurationMs": 7200000,
+            "interpretation": "cadence_availability_not_measured_support"
+          },
+          "movement": {
+            "count": 0,
+            "duplicateTimestamps": 0,
+            "firstMs": null,
+            "lastMs": null,
+            "expectedCadenceMs": 60000,
+            "gaps": [
+              {
+                "startMs": 1792879200000,
+                "endMs": 1792886400000
+              }
+            ],
+            "gapDurationMs": 7200000,
+            "interpretation": "cadence_availability_not_measured_support"
+          },
+          "legacyUnknownProvenanceCount": 0
+        },
+        "referenceMetrics": [],
+        "comparison": false,
+        "stageReplay": false,
+        "signalReplay": false,
+        "rawWaveforms": "not_inventoried",
+        "limitations": [
+          "Reference counts include available revisions; select one revision per source family when freezing inputs.",
+          "Raw archives and pump/occupancy context have not been retained by this processed-data service.",
+          "Movement and vitals availability use nominal one-minute cadence, not inferred continuous signal support.",
+          "No stored vitals are available for comparison or stage replay."
+        ]
+      },
+      {
+        "session": {
+          "id": 111,
+          "side": "right",
+          "startMs": 1792792800000,
+          "endMs": 1792800000000,
+          "sleepDurationSeconds": 6600,
+          "timesExitedBed": 1
+        },
+        "processed": {
+          "vitals": {
+            "count": 6,
+            "duplicateTimestamps": 0,
+            "firstMs": 1792792800000,
+            "lastMs": 1792798200000,
+            "expectedCadenceMs": 60000,
+            "gaps": [
+              {
+                "startMs": 1792792920000,
+                "endMs": 1792793040000
+              },
+              {
+                "startMs": 1792793100000,
+                "endMs": 1792796400000
+              },
+              {
+                "startMs": 1792796520000,
+                "endMs": 1792798200000
+              },
+              {
+                "startMs": 1792798260000,
+                "endMs": 1792800000000
+              }
+            ],
+            "gapDurationMs": 6840000,
+            "interpretation": "cadence_availability_not_measured_support"
+          },
+          "movement": {
+            "count": 6,
+            "duplicateTimestamps": 0,
+            "firstMs": 1792792800000,
+            "lastMs": 1792798200000,
+            "expectedCadenceMs": 60000,
+            "gaps": [
+              {
+                "startMs": 1792792920000,
+                "endMs": 1792793040000
+              },
+              {
+                "startMs": 1792793100000,
+                "endMs": 1792796400000
+              },
+              {
+                "startMs": 1792796520000,
+                "endMs": 1792798200000
+              },
+              {
+                "startMs": 1792798260000,
+                "endMs": 1792800000000
+              }
+            ],
+            "gapDurationMs": 6840000,
+            "interpretation": "cadence_availability_not_measured_support"
+          },
+          "legacyUnknownProvenanceCount": 6
+        },
+        "referenceMetrics": [],
+        "comparison": true,
+        "stageReplay": true,
+        "signalReplay": false,
+        "rawWaveforms": "not_inventoried",
+        "limitations": [
+          "Reference counts include available revisions; select one revision per source family when freezing inputs.",
+          "Raw archives and pump/occupancy context have not been retained by this processed-data service.",
+          "Movement and vitals availability use nominal one-minute cadence, not inferred continuous signal support."
+        ]
+      },
+      {
+        "session": {
+          "id": 110,
+          "side": "right",
+          "startMs": 1792706400000,
+          "endMs": 1792713600000,
+          "sleepDurationSeconds": 6600,
+          "timesExitedBed": 1
+        },
+        "processed": {
+          "vitals": {
+            "count": 6,
+            "duplicateTimestamps": 0,
+            "firstMs": 1792706400000,
+            "lastMs": 1792711800000,
+            "expectedCadenceMs": 60000,
+            "gaps": [
+              {
+                "startMs": 1792706520000,
+                "endMs": 1792706640000
+              },
+              {
+                "startMs": 1792706700000,
+                "endMs": 1792710000000
+              },
+              {
+                "startMs": 1792710120000,
+                "endMs": 1792711800000
+              },
+              {
+                "startMs": 1792711860000,
+                "endMs": 1792713600000
+              }
+            ],
+            "gapDurationMs": 6840000,
+            "interpretation": "cadence_availability_not_measured_support"
+          },
+          "movement": {
+            "count": 6,
+            "duplicateTimestamps": 0,
+            "firstMs": 1792706400000,
+            "lastMs": 1792711800000,
+            "expectedCadenceMs": 60000,
+            "gaps": [
+              {
+                "startMs": 1792706520000,
+                "endMs": 1792706640000
+              },
+              {
+                "startMs": 1792706700000,
+                "endMs": 1792710000000
+              },
+              {
+                "startMs": 1792710120000,
+                "endMs": 1792711800000
+              },
+              {
+                "startMs": 1792711860000,
+                "endMs": 1792713600000
+              }
+            ],
+            "gapDurationMs": 6840000,
+            "interpretation": "cadence_availability_not_measured_support"
+          },
+          "legacyUnknownProvenanceCount": 6
+        },
+        "referenceMetrics": [
+          {
+            "metric": "heart_rate",
+            "count": 1
+          }
+        ],
+        "comparison": true,
+        "stageReplay": true,
+        "signalReplay": false,
+        "rawWaveforms": "not_inventoried",
+        "limitations": [
+          "Reference counts include available revisions; select one revision per source family when freezing inputs.",
+          "Raw archives and pump/occupancy context have not been retained by this processed-data service.",
+          "Movement and vitals availability use nominal one-minute cadence, not inferred continuous signal support."
+        ]
+      }
+    ],
+    "references": {
+      "items": [
+        {
+          "id": "958d73a8-0954-4b0f-88bd-92353e33c6b0",
+          "familyId": "4a4efa66-04c5-4a12-943c-518a4229aecc",
+          "revision": 1,
+          "supersedesImportId": null,
+          "summary": {
+            "contentHash": "c78097ba977d2e67384b97da2aa4f786470ede1e08e735fff197cd35f7a347ee",
+            "adapterVersion": "normalized-reference-v1",
+            "side": "right",
+            "subjectId": "demo-sleeper",
+            "source": "Synthetic reference",
+            "timePolicy": {
+              "disambiguation": "reject"
+            },
+            "received": 1,
+            "accepted": 1,
+            "rejected": 0,
+            "duplicates": 0,
+            "unscorable": 0,
+            "conflicts": 0,
+            "startMs": 1792706400000,
+            "endMs": 1792706400000,
+            "metrics": [
+              "heart_rate"
+            ],
+            "rejectionCounts": {},
+            "rejectionExamples": [],
+            "warnings": [
+              "Agreement with a reference source is not clinical accuracy.",
+              "Stage overlaps with conflicting labels are excluded from scoring."
+            ]
+          },
+          "createdAtMs": 1792929600000,
+          "deletedAtMs": null,
+          "available": true,
+          "alreadyImported": false
+        }
+      ],
+      "nextCursor": null
+    },
+    "snapshots": [
+      {
+        "selection": {
+          "side": "right",
+          "subjectId": "demo-sleeper",
+          "sessionIds": [
+            110
+          ],
+          "referenceImportIds": []
+        },
+        "descriptor": {
+          "id": "924b028b-e188-4ad6-8245-2c2476442c06",
+          "side": "right",
+          "subjectId": "demo-sleeper",
+          "contentHash": "2fd7e4e0e4134e349e257ba79e7b664bb53fad7a56f1f029695640b28082591b",
+          "manifest": {
+            "version": "processed-dataset-manifest-v1",
+            "splitProtocol": {
+              "version": "chronological-whole-night-v1",
+              "timezone": "America/Los_Angeles",
+              "timezoneRuntime": {
+                "icu": "78.3",
+                "tz": "2026a"
+              },
+              "grouping": "local_noon_connected_sessions",
+              "assignments": [
+                {
+                  "cohortId": "2026-10-22",
+                  "nightLabels": [
+                    "2026-10-22"
+                  ],
+                  "sessionIds": [
+                    110
+                  ],
+                  "startMs": 1792706400000,
+                  "endMs": 1792713600000,
+                  "split": "tuning"
+                }
+              ],
+              "evidence": "descriptive_only",
+              "limitations": [
+                "Whole-night separation does not by itself establish sufficient reference support or improvement.",
+                "Fewer than three independent night cohorts; no validation or holdout claim is available."
+              ]
+            },
+            "coverage": [
+              {
+                "sessionId": 110,
+                "vitals": {
+                  "count": 6,
+                  "duplicateTimestamps": 0,
+                  "firstMs": 1792706400000,
+                  "lastMs": 1792711800000,
+                  "expectedCadenceMs": 60000,
+                  "gaps": [
+                    {
+                      "startMs": 1792706520000,
+                      "endMs": 1792706640000
+                    },
+                    {
+                      "startMs": 1792706700000,
+                      "endMs": 1792710000000
+                    },
+                    {
+                      "startMs": 1792710120000,
+                      "endMs": 1792711800000
+                    },
+                    {
+                      "startMs": 1792711860000,
+                      "endMs": 1792713600000
+                    }
+                  ],
+                  "gapDurationMs": 6840000,
+                  "interpretation": "cadence_availability_not_measured_support"
+                },
+                "movement": {
+                  "count": 6,
+                  "duplicateTimestamps": 0,
+                  "firstMs": 1792706400000,
+                  "lastMs": 1792711800000,
+                  "expectedCadenceMs": 60000,
+                  "gaps": [
+                    {
+                      "startMs": 1792706520000,
+                      "endMs": 1792706640000
+                    },
+                    {
+                      "startMs": 1792706700000,
+                      "endMs": 1792710000000
+                    },
+                    {
+                      "startMs": 1792710120000,
+                      "endMs": 1792711800000
+                    },
+                    {
+                      "startMs": 1792711860000,
+                      "endMs": 1792713600000
+                    }
+                  ],
+                  "gapDurationMs": 6840000,
+                  "interpretation": "cadence_availability_not_measured_support"
+                }
+              }
+            ],
+            "capabilities": {
+              "comparison": true,
+              "stageReplay": true,
+              "signalReplay": false
+            },
+            "limitations": [
+              "Raw channels, pump context and measured calibration bytes are not retained in this processed dataset; signal replay is unavailable.",
+              "Historical stage replay must declare its calibration quality assumption when original calibration is unavailable.",
+              "Reference deletion does not erase this separately retained dataset.",
+              "Session side is known; historical occupant identity is asserted by the dataset creator, not measured by the pod."
+            ]
+          },
+          "byteLength": 3256,
+          "createdAtMs": 1792929600000,
+          "releasedAtMs": null,
+          "available": true
+        },
+        "releasedByteLength": 1997
+      },
+      {
+        "selection": {
+          "side": "right",
+          "subjectId": "demo-sleeper",
+          "sessionIds": [
+            110
+          ],
+          "referenceImportIds": [
+            "958d73a8-0954-4b0f-88bd-92353e33c6b0"
+          ]
+        },
+        "descriptor": {
+          "id": "627c667d-cc96-4628-a7c3-b1609e0f7c19",
+          "side": "right",
+          "subjectId": "demo-sleeper",
+          "contentHash": "569e1b6c1fe6a017b414e15cabc09bccefd79d0d0f1dfefe368f9ace04a4f649",
+          "manifest": {
+            "version": "processed-dataset-manifest-v1",
+            "splitProtocol": {
+              "version": "chronological-whole-night-v1",
+              "timezone": "America/Los_Angeles",
+              "timezoneRuntime": {
+                "icu": "78.3",
+                "tz": "2026a"
+              },
+              "grouping": "local_noon_connected_sessions",
+              "assignments": [
+                {
+                  "cohortId": "2026-10-22",
+                  "nightLabels": [
+                    "2026-10-22"
+                  ],
+                  "sessionIds": [
+                    110
+                  ],
+                  "startMs": 1792706400000,
+                  "endMs": 1792713600000,
+                  "split": "tuning"
+                }
+              ],
+              "evidence": "descriptive_only",
+              "limitations": [
+                "Whole-night separation does not by itself establish sufficient reference support or improvement.",
+                "Fewer than three independent night cohorts; no validation or holdout claim is available."
+              ]
+            },
+            "coverage": [
+              {
+                "sessionId": 110,
+                "vitals": {
+                  "count": 6,
+                  "duplicateTimestamps": 0,
+                  "firstMs": 1792706400000,
+                  "lastMs": 1792711800000,
+                  "expectedCadenceMs": 60000,
+                  "gaps": [
+                    {
+                      "startMs": 1792706520000,
+                      "endMs": 1792706640000
+                    },
+                    {
+                      "startMs": 1792706700000,
+                      "endMs": 1792710000000
+                    },
+                    {
+                      "startMs": 1792710120000,
+                      "endMs": 1792711800000
+                    },
+                    {
+                      "startMs": 1792711860000,
+                      "endMs": 1792713600000
+                    }
+                  ],
+                  "gapDurationMs": 6840000,
+                  "interpretation": "cadence_availability_not_measured_support"
+                },
+                "movement": {
+                  "count": 6,
+                  "duplicateTimestamps": 0,
+                  "firstMs": 1792706400000,
+                  "lastMs": 1792711800000,
+                  "expectedCadenceMs": 60000,
+                  "gaps": [
+                    {
+                      "startMs": 1792706520000,
+                      "endMs": 1792706640000
+                    },
+                    {
+                      "startMs": 1792706700000,
+                      "endMs": 1792710000000
+                    },
+                    {
+                      "startMs": 1792710120000,
+                      "endMs": 1792711800000
+                    },
+                    {
+                      "startMs": 1792711860000,
+                      "endMs": 1792713600000
+                    }
+                  ],
+                  "gapDurationMs": 6840000,
+                  "interpretation": "cadence_availability_not_measured_support"
+                }
+              }
+            ],
+            "capabilities": {
+              "comparison": true,
+              "stageReplay": true,
+              "signalReplay": false
+            },
+            "limitations": [
+              "Raw channels, pump context and measured calibration bytes are not retained in this processed dataset; signal replay is unavailable.",
+              "Historical stage replay must declare its calibration quality assumption when original calibration is unavailable.",
+              "Reference deletion does not erase this separately retained dataset.",
+              "Session side is known; historical occupant identity is asserted by the dataset creator, not measured by the pod."
+            ]
+          },
+          "byteLength": 3876,
+          "createdAtMs": 1792929600000,
+          "releasedAtMs": null,
+          "available": true
+        },
+        "releasedByteLength": 1997
+      },
+      {
+        "selection": {
+          "side": "right",
+          "subjectId": "demo-sleeper",
+          "sessionIds": [
+            111
+          ],
+          "referenceImportIds": []
+        },
+        "descriptor": {
+          "id": "ccbdcf03-5d3d-4f5d-916b-856e20f0e04b",
+          "side": "right",
+          "subjectId": "demo-sleeper",
+          "contentHash": "36bd2634edc37cc28b0df1b541a26368bd08e3a2c458663b5a317fd2bb6f576f",
+          "manifest": {
+            "version": "processed-dataset-manifest-v1",
+            "splitProtocol": {
+              "version": "chronological-whole-night-v1",
+              "timezone": "America/Los_Angeles",
+              "timezoneRuntime": {
+                "icu": "78.3",
+                "tz": "2026a"
+              },
+              "grouping": "local_noon_connected_sessions",
+              "assignments": [
+                {
+                  "cohortId": "2026-10-23",
+                  "nightLabels": [
+                    "2026-10-23"
+                  ],
+                  "sessionIds": [
+                    111
+                  ],
+                  "startMs": 1792792800000,
+                  "endMs": 1792800000000,
+                  "split": "tuning"
+                }
+              ],
+              "evidence": "descriptive_only",
+              "limitations": [
+                "Whole-night separation does not by itself establish sufficient reference support or improvement.",
+                "Fewer than three independent night cohorts; no validation or holdout claim is available."
+              ]
+            },
+            "coverage": [
+              {
+                "sessionId": 111,
+                "vitals": {
+                  "count": 6,
+                  "duplicateTimestamps": 0,
+                  "firstMs": 1792792800000,
+                  "lastMs": 1792798200000,
+                  "expectedCadenceMs": 60000,
+                  "gaps": [
+                    {
+                      "startMs": 1792792920000,
+                      "endMs": 1792793040000
+                    },
+                    {
+                      "startMs": 1792793100000,
+                      "endMs": 1792796400000
+                    },
+                    {
+                      "startMs": 1792796520000,
+                      "endMs": 1792798200000
+                    },
+                    {
+                      "startMs": 1792798260000,
+                      "endMs": 1792800000000
+                    }
+                  ],
+                  "gapDurationMs": 6840000,
+                  "interpretation": "cadence_availability_not_measured_support"
+                },
+                "movement": {
+                  "count": 6,
+                  "duplicateTimestamps": 0,
+                  "firstMs": 1792792800000,
+                  "lastMs": 1792798200000,
+                  "expectedCadenceMs": 60000,
+                  "gaps": [
+                    {
+                      "startMs": 1792792920000,
+                      "endMs": 1792793040000
+                    },
+                    {
+                      "startMs": 1792793100000,
+                      "endMs": 1792796400000
+                    },
+                    {
+                      "startMs": 1792796520000,
+                      "endMs": 1792798200000
+                    },
+                    {
+                      "startMs": 1792798260000,
+                      "endMs": 1792800000000
+                    }
+                  ],
+                  "gapDurationMs": 6840000,
+                  "interpretation": "cadence_availability_not_measured_support"
+                }
+              }
+            ],
+            "capabilities": {
+              "comparison": true,
+              "stageReplay": true,
+              "signalReplay": false
+            },
+            "limitations": [
+              "Raw channels, pump context and measured calibration bytes are not retained in this processed dataset; signal replay is unavailable.",
+              "Historical stage replay must declare its calibration quality assumption when original calibration is unavailable.",
+              "Reference deletion does not erase this separately retained dataset.",
+              "Session side is known; historical occupant identity is asserted by the dataset creator, not measured by the pod."
+            ]
+          },
+          "byteLength": 3256,
+          "createdAtMs": 1792929600000,
+          "releasedAtMs": null,
+          "available": true
+        },
+        "releasedByteLength": 1997
+      },
+      {
+        "selection": {
+          "side": "right",
+          "subjectId": "demo-sleeper",
+          "sessionIds": [
+            111
+          ],
+          "referenceImportIds": [
+            "958d73a8-0954-4b0f-88bd-92353e33c6b0"
+          ]
+        },
+        "descriptor": {
+          "id": "b2a66a4e-ceba-4a0c-9da9-8840e0c6138c",
+          "side": "right",
+          "subjectId": "demo-sleeper",
+          "contentHash": "cc1b6c992f7789f438b1f2c4f7c1644db49e80c7cbf0007886e8ece30e6e1f17",
+          "manifest": {
+            "version": "processed-dataset-manifest-v1",
+            "splitProtocol": {
+              "version": "chronological-whole-night-v1",
+              "timezone": "America/Los_Angeles",
+              "timezoneRuntime": {
+                "icu": "78.3",
+                "tz": "2026a"
+              },
+              "grouping": "local_noon_connected_sessions",
+              "assignments": [
+                {
+                  "cohortId": "2026-10-23",
+                  "nightLabels": [
+                    "2026-10-23"
+                  ],
+                  "sessionIds": [
+                    111
+                  ],
+                  "startMs": 1792792800000,
+                  "endMs": 1792800000000,
+                  "split": "tuning"
+                }
+              ],
+              "evidence": "descriptive_only",
+              "limitations": [
+                "Whole-night separation does not by itself establish sufficient reference support or improvement.",
+                "Fewer than three independent night cohorts; no validation or holdout claim is available."
+              ]
+            },
+            "coverage": [
+              {
+                "sessionId": 111,
+                "vitals": {
+                  "count": 6,
+                  "duplicateTimestamps": 0,
+                  "firstMs": 1792792800000,
+                  "lastMs": 1792798200000,
+                  "expectedCadenceMs": 60000,
+                  "gaps": [
+                    {
+                      "startMs": 1792792920000,
+                      "endMs": 1792793040000
+                    },
+                    {
+                      "startMs": 1792793100000,
+                      "endMs": 1792796400000
+                    },
+                    {
+                      "startMs": 1792796520000,
+                      "endMs": 1792798200000
+                    },
+                    {
+                      "startMs": 1792798260000,
+                      "endMs": 1792800000000
+                    }
+                  ],
+                  "gapDurationMs": 6840000,
+                  "interpretation": "cadence_availability_not_measured_support"
+                },
+                "movement": {
+                  "count": 6,
+                  "duplicateTimestamps": 0,
+                  "firstMs": 1792792800000,
+                  "lastMs": 1792798200000,
+                  "expectedCadenceMs": 60000,
+                  "gaps": [
+                    {
+                      "startMs": 1792792920000,
+                      "endMs": 1792793040000
+                    },
+                    {
+                      "startMs": 1792793100000,
+                      "endMs": 1792796400000
+                    },
+                    {
+                      "startMs": 1792796520000,
+                      "endMs": 1792798200000
+                    },
+                    {
+                      "startMs": 1792798260000,
+                      "endMs": 1792800000000
+                    }
+                  ],
+                  "gapDurationMs": 6840000,
+                  "interpretation": "cadence_availability_not_measured_support"
+                }
+              }
+            ],
+            "capabilities": {
+              "comparison": true,
+              "stageReplay": true,
+              "signalReplay": false
+            },
+            "limitations": [
+              "Raw channels, pump context and measured calibration bytes are not retained in this processed dataset; signal replay is unavailable.",
+              "Historical stage replay must declare its calibration quality assumption when original calibration is unavailable.",
+              "Reference deletion does not erase this separately retained dataset.",
+              "Session side is known; historical occupant identity is asserted by the dataset creator, not measured by the pod."
+            ]
+          },
+          "byteLength": 3876,
+          "createdAtMs": 1792929600000,
+          "releasedAtMs": null,
+          "available": true
+        },
+        "releasedByteLength": 1997
+      },
+      {
+        "selection": {
+          "side": "right",
+          "subjectId": "demo-sleeper",
+          "sessionIds": [
+            110,
+            111
+          ],
+          "referenceImportIds": []
+        },
+        "descriptor": {
+          "id": "e66355c6-b3f0-4bd9-af78-b9ee1e29cf13",
+          "side": "right",
+          "subjectId": "demo-sleeper",
+          "contentHash": "d7d06ef2f254546a51be87817a9541492992bceada126a782336833886f70118",
+          "manifest": {
+            "version": "processed-dataset-manifest-v1",
+            "splitProtocol": {
+              "version": "chronological-whole-night-v1",
+              "timezone": "America/Los_Angeles",
+              "timezoneRuntime": {
+                "icu": "78.3",
+                "tz": "2026a"
+              },
+              "grouping": "local_noon_connected_sessions",
+              "assignments": [
+                {
+                  "cohortId": "2026-10-22",
+                  "nightLabels": [
+                    "2026-10-22"
+                  ],
+                  "sessionIds": [
+                    110
+                  ],
+                  "startMs": 1792706400000,
+                  "endMs": 1792713600000,
+                  "split": "tuning"
+                },
+                {
+                  "cohortId": "2026-10-23",
+                  "nightLabels": [
+                    "2026-10-23"
+                  ],
+                  "sessionIds": [
+                    111
+                  ],
+                  "startMs": 1792792800000,
+                  "endMs": 1792800000000,
+                  "split": "tuning"
+                }
+              ],
+              "evidence": "descriptive_only",
+              "limitations": [
+                "Whole-night separation does not by itself establish sufficient reference support or improvement.",
+                "Fewer than three independent night cohorts; no validation or holdout claim is available."
+              ]
+            },
+            "coverage": [
+              {
+                "sessionId": 110,
+                "vitals": {
+                  "count": 6,
+                  "duplicateTimestamps": 0,
+                  "firstMs": 1792706400000,
+                  "lastMs": 1792711800000,
+                  "expectedCadenceMs": 60000,
+                  "gaps": [
+                    {
+                      "startMs": 1792706520000,
+                      "endMs": 1792706640000
+                    },
+                    {
+                      "startMs": 1792706700000,
+                      "endMs": 1792710000000
+                    },
+                    {
+                      "startMs": 1792710120000,
+                      "endMs": 1792711800000
+                    },
+                    {
+                      "startMs": 1792711860000,
+                      "endMs": 1792713600000
+                    }
+                  ],
+                  "gapDurationMs": 6840000,
+                  "interpretation": "cadence_availability_not_measured_support"
+                },
+                "movement": {
+                  "count": 6,
+                  "duplicateTimestamps": 0,
+                  "firstMs": 1792706400000,
+                  "lastMs": 1792711800000,
+                  "expectedCadenceMs": 60000,
+                  "gaps": [
+                    {
+                      "startMs": 1792706520000,
+                      "endMs": 1792706640000
+                    },
+                    {
+                      "startMs": 1792706700000,
+                      "endMs": 1792710000000
+                    },
+                    {
+                      "startMs": 1792710120000,
+                      "endMs": 1792711800000
+                    },
+                    {
+                      "startMs": 1792711860000,
+                      "endMs": 1792713600000
+                    }
+                  ],
+                  "gapDurationMs": 6840000,
+                  "interpretation": "cadence_availability_not_measured_support"
+                }
+              },
+              {
+                "sessionId": 111,
+                "vitals": {
+                  "count": 6,
+                  "duplicateTimestamps": 0,
+                  "firstMs": 1792792800000,
+                  "lastMs": 1792798200000,
+                  "expectedCadenceMs": 60000,
+                  "gaps": [
+                    {
+                      "startMs": 1792792920000,
+                      "endMs": 1792793040000
+                    },
+                    {
+                      "startMs": 1792793100000,
+                      "endMs": 1792796400000
+                    },
+                    {
+                      "startMs": 1792796520000,
+                      "endMs": 1792798200000
+                    },
+                    {
+                      "startMs": 1792798260000,
+                      "endMs": 1792800000000
+                    }
+                  ],
+                  "gapDurationMs": 6840000,
+                  "interpretation": "cadence_availability_not_measured_support"
+                },
+                "movement": {
+                  "count": 6,
+                  "duplicateTimestamps": 0,
+                  "firstMs": 1792792800000,
+                  "lastMs": 1792798200000,
+                  "expectedCadenceMs": 60000,
+                  "gaps": [
+                    {
+                      "startMs": 1792792920000,
+                      "endMs": 1792793040000
+                    },
+                    {
+                      "startMs": 1792793100000,
+                      "endMs": 1792796400000
+                    },
+                    {
+                      "startMs": 1792796520000,
+                      "endMs": 1792798200000
+                    },
+                    {
+                      "startMs": 1792798260000,
+                      "endMs": 1792800000000
+                    }
+                  ],
+                  "gapDurationMs": 6840000,
+                  "interpretation": "cadence_availability_not_measured_support"
+                }
+              }
+            ],
+            "capabilities": {
+              "comparison": true,
+              "stageReplay": true,
+              "signalReplay": false
+            },
+            "limitations": [
+              "Raw channels, pump context and measured calibration bytes are not retained in this processed dataset; signal replay is unavailable.",
+              "Historical stage replay must declare its calibration quality assumption when original calibration is unavailable.",
+              "Reference deletion does not erase this separately retained dataset.",
+              "Session side is known; historical occupant identity is asserted by the dataset creator, not measured by the pod."
+            ]
+          },
+          "byteLength": 5372,
+          "createdAtMs": 1792929600000,
+          "releasedAtMs": null,
+          "available": true
+        },
+        "releasedByteLength": 2962
+      },
+      {
+        "selection": {
+          "side": "right",
+          "subjectId": "demo-sleeper",
+          "sessionIds": [
+            110,
+            111
+          ],
+          "referenceImportIds": [
+            "958d73a8-0954-4b0f-88bd-92353e33c6b0"
+          ]
+        },
+        "descriptor": {
+          "id": "27aaf658-ece7-415e-b108-20a6e6d8f83d",
+          "side": "right",
+          "subjectId": "demo-sleeper",
+          "contentHash": "6ffb7ad6738d14de4d5ca3eccc31f683266702b30262266049158e83f7e80bcf",
+          "manifest": {
+            "version": "processed-dataset-manifest-v1",
+            "splitProtocol": {
+              "version": "chronological-whole-night-v1",
+              "timezone": "America/Los_Angeles",
+              "timezoneRuntime": {
+                "icu": "78.3",
+                "tz": "2026a"
+              },
+              "grouping": "local_noon_connected_sessions",
+              "assignments": [
+                {
+                  "cohortId": "2026-10-22",
+                  "nightLabels": [
+                    "2026-10-22"
+                  ],
+                  "sessionIds": [
+                    110
+                  ],
+                  "startMs": 1792706400000,
+                  "endMs": 1792713600000,
+                  "split": "tuning"
+                },
+                {
+                  "cohortId": "2026-10-23",
+                  "nightLabels": [
+                    "2026-10-23"
+                  ],
+                  "sessionIds": [
+                    111
+                  ],
+                  "startMs": 1792792800000,
+                  "endMs": 1792800000000,
+                  "split": "tuning"
+                }
+              ],
+              "evidence": "descriptive_only",
+              "limitations": [
+                "Whole-night separation does not by itself establish sufficient reference support or improvement.",
+                "Fewer than three independent night cohorts; no validation or holdout claim is available."
+              ]
+            },
+            "coverage": [
+              {
+                "sessionId": 110,
+                "vitals": {
+                  "count": 6,
+                  "duplicateTimestamps": 0,
+                  "firstMs": 1792706400000,
+                  "lastMs": 1792711800000,
+                  "expectedCadenceMs": 60000,
+                  "gaps": [
+                    {
+                      "startMs": 1792706520000,
+                      "endMs": 1792706640000
+                    },
+                    {
+                      "startMs": 1792706700000,
+                      "endMs": 1792710000000
+                    },
+                    {
+                      "startMs": 1792710120000,
+                      "endMs": 1792711800000
+                    },
+                    {
+                      "startMs": 1792711860000,
+                      "endMs": 1792713600000
+                    }
+                  ],
+                  "gapDurationMs": 6840000,
+                  "interpretation": "cadence_availability_not_measured_support"
+                },
+                "movement": {
+                  "count": 6,
+                  "duplicateTimestamps": 0,
+                  "firstMs": 1792706400000,
+                  "lastMs": 1792711800000,
+                  "expectedCadenceMs": 60000,
+                  "gaps": [
+                    {
+                      "startMs": 1792706520000,
+                      "endMs": 1792706640000
+                    },
+                    {
+                      "startMs": 1792706700000,
+                      "endMs": 1792710000000
+                    },
+                    {
+                      "startMs": 1792710120000,
+                      "endMs": 1792711800000
+                    },
+                    {
+                      "startMs": 1792711860000,
+                      "endMs": 1792713600000
+                    }
+                  ],
+                  "gapDurationMs": 6840000,
+                  "interpretation": "cadence_availability_not_measured_support"
+                }
+              },
+              {
+                "sessionId": 111,
+                "vitals": {
+                  "count": 6,
+                  "duplicateTimestamps": 0,
+                  "firstMs": 1792792800000,
+                  "lastMs": 1792798200000,
+                  "expectedCadenceMs": 60000,
+                  "gaps": [
+                    {
+                      "startMs": 1792792920000,
+                      "endMs": 1792793040000
+                    },
+                    {
+                      "startMs": 1792793100000,
+                      "endMs": 1792796400000
+                    },
+                    {
+                      "startMs": 1792796520000,
+                      "endMs": 1792798200000
+                    },
+                    {
+                      "startMs": 1792798260000,
+                      "endMs": 1792800000000
+                    }
+                  ],
+                  "gapDurationMs": 6840000,
+                  "interpretation": "cadence_availability_not_measured_support"
+                },
+                "movement": {
+                  "count": 6,
+                  "duplicateTimestamps": 0,
+                  "firstMs": 1792792800000,
+                  "lastMs": 1792798200000,
+                  "expectedCadenceMs": 60000,
+                  "gaps": [
+                    {
+                      "startMs": 1792792920000,
+                      "endMs": 1792793040000
+                    },
+                    {
+                      "startMs": 1792793100000,
+                      "endMs": 1792796400000
+                    },
+                    {
+                      "startMs": 1792796520000,
+                      "endMs": 1792798200000
+                    },
+                    {
+                      "startMs": 1792798260000,
+                      "endMs": 1792800000000
+                    }
+                  ],
+                  "gapDurationMs": 6840000,
+                  "interpretation": "cadence_availability_not_measured_support"
+                }
+              }
+            ],
+            "capabilities": {
+              "comparison": true,
+              "stageReplay": true,
+              "signalReplay": false
+            },
+            "limitations": [
+              "Raw channels, pump context and measured calibration bytes are not retained in this processed dataset; signal replay is unavailable.",
+              "Historical stage replay must declare its calibration quality assumption when original calibration is unavailable.",
+              "Reference deletion does not erase this separately retained dataset.",
+              "Session side is known; historical occupant identity is asserted by the dataset creator, not measured by the pod."
+            ]
+          },
+          "byteLength": 5992,
+          "createdAtMs": 1792929600000,
+          "releasedAtMs": null,
+          "available": true
+        },
+        "releasedByteLength": 2962
+      }
+    ]
+  }
+]
