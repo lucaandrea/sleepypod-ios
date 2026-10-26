@@ -695,6 +695,7 @@ final class SleepypodCoreClient: SleepypodProtocol, @unchecked Sendable {
         }
 
         return PodSettings(
+            timeFormat: device?.timeFormat,
             bedMode: device?.bedMode,
             defaultScheduleEndAction: device?.defaultScheduleEndAction,
             id: "1",
@@ -786,6 +787,7 @@ private struct TRPCDeviceStatus: Decodable {
 }
 
 private struct TRPCDeviceSettings: Decodable {
+    let timeFormat: String?
     let bedMode: String?
     let defaultScheduleEndAction: ScheduleEndAction?
     let timezone: String?

@@ -298,7 +298,13 @@ struct AllSettingsScreen: View {
                         NavigationLink { BedSensorScreen().navigationTitle("Sensors") } label: {
                             SettingsRow("Sensors", icon: "waveform", tile: true, chevron: true)
                         }
-                        PodFeatureLink(.preferences, icon: "slider.horizontal.3", tile: true)
+                        if APIBackend.current != .freeSleep {
+                            NavigationLink { DevicePreferencesScreen() } label: {
+                                SettingsRow("Device", icon: "slider.horizontal.3", tile: true, chevron: true)
+                            }.accessibilityIdentifier("settings.device")
+                        } else {
+                            PodFeatureLink(.preferences, icon: "slider.horizontal.3", tile: true)
+                        }
                         PodFeatureLink(.services, icon: "server.rack", tile: true)
                         if APIBackend.current != .freeSleep {
                             NavigationLink { ArchivePushSettingsScreen() } label: {

@@ -101,6 +101,7 @@ struct PrimePodDaily: Codable, Sendable {
 }
 
 struct PodSettings: Codable, Sendable {
+    var timeFormat: String?
     var bedMode: String?
     // Visibility follows active sleepers; this does not change either thermal zone's policy.
     var shownSides: [Side] {

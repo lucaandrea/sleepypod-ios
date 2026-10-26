@@ -89,6 +89,7 @@ final class SettingsManager {
         error = nil
         do {
             settings = try await api.getSettings()
+            UserDefaults.standard.set(settings?.timeFormat == "24h" ? "24h" : "12h", forKey: "podTimeFormat")
         } catch {
             self.error = error.localizedDescription
         }
