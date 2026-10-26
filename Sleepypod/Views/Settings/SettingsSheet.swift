@@ -212,15 +212,19 @@ struct AllSettingsScreen: View {
                         PodFeatureLink(.comfort, icon: "sparkles", tile: true)
                         PodFeatureLink(.routines, icon: "calendar", tile: true)
                         PodFeatureLink(.alarms, icon: "alarm", tile: true)
-                        NavigationLink { SidesSettingsView() } label: {
+                        NavigationLink {
+                            if APIBackend.current == .freeSleep { SidesSettingsView() } else { SleeperPreferencesScreen() }
+                        } label: {
                             SettingsRow("Sides", icon: "person.2", tile: true, chevron: true) {
                                 RowValue("\(settings.leftName) · \(settings.rightName)")
                             }
-                        }
+                        }.accessibilityIdentifier("settings.sides")
                         NavigationLink {
-                            ScrollView { TapGestureConfigView().padding(16) }
-                                .background(Theme.background).navigationTitle("Tap gestures")
-                        } label: { SettingsRow("Tap gestures", icon: "hand.tap", tile: true, chevron: true) }
+                            if APIBackend.current == .freeSleep {
+                                ScrollView { TapGestureConfigView().padding(16) }
+                                    .background(Theme.background).navigationTitle("Tap gestures")
+                            } else { GestureBindingsScreen() }
+                        } label: { SettingsRow("Tap gestures", icon: "hand.tap", tile: true, chevron: true) }.accessibilityIdentifier("settings.gestures")
                         Menu {
                             Picker("Units", selection: Binding(get: { settings.temperatureFormat }, set: { format in
                                 Task { await settings.updateTemperatureFormat(format) }
