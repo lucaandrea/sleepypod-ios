@@ -9,11 +9,13 @@ enum BiometricBacktestPending: Codable, Equatable, Sendable {
         func matches(_ dataset: BiometricDataset) -> Bool { dataset.validIdentity && dataset.id == id && dataset.contentHash == contentHash && dataset.side == side }
     }
     case dataset(BiometricDatasetRequest)
+    case experiment(parent: DatasetIdentity, request: BiometricExperimentRequest)
     case waveform(side: Side, request: WaveformDatasetRequest)
     case releaseDataset(DatasetIdentity)
     var side: Side {
         switch self {
         case .dataset(let input): input.side
+        case .experiment(let parent, _): parent.side
         case .waveform(let side, _): side
         case .releaseDataset(let input): input.side
         }

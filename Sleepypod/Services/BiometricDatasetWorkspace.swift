@@ -43,6 +43,8 @@ import Observation
     private(set) var notice: String?
     private(set) var receipt: BiometricDataset?
     private(set) var savedDataset: BiometricDataset?
+    private(set) var savedExperiment: BiometricExperiment?
+    private(set) var savedExperimentRequest: BiometricExperimentRequest?
     private(set) var savedWaveformRequest: WaveformDatasetRequest?
     private(set) var savedSelection: BiometricDatasetSelection?
     private(set) var page: BiometricDatasetPage?
@@ -72,6 +74,23 @@ import Observation
     func retainWaveforms(_ request: WaveformDatasetRequest, side: Side) async {
         guard canMutate else { return }
         await performNew(.waveform(side: side, request: request))
+    }
+    func createExperiment(_ request: BiometricExperimentRequest, parent: BiometricDataset) async {
+        guard canMutate, savedExperimentRequest != request else { return }
+        busy = true; error = nil; notice = nil
+        defer { busy = false }
+        do {
+            guard parent.side == side, request.datasetId == parent.id else { throw BiometricBacktestInput.error("The reviewed inputs belong to another dataset or side.") }
+            _ = try request.validated()
+            try request.protocol.validateEditorProtocol(for: parent)
+            let identity = BiometricBacktestPending.DatasetIdentity(id: parent.id, contentHash: parent.contentHash, side: side)
+            let current = try await client.dataset(id: parent.id)
+            guard identity.matches(current) else { throw BiometricBacktestInput.error("The frozen input identity changed. Review it again before saving.") }
+            try request.protocol.validateEditorProtocol(for: current)
+            let retained = BiometricBacktestPending.experiment(parent: identity, request: request)
+            try store.write(retained, scope: client.scope, side: side); pending = retained
+            try await send(retained)
+        } catch { self.error = error.localizedDescription }
     }
     func release(_ dataset: BiometricDataset) async {
         guard canMutate, dataset.available else { return }
@@ -125,6 +144,13 @@ import Observation
     private func send(_ retained: BiometricBacktestPending) async throws {
         try requireCurrent(retained)
         switch retained {
+        case .experiment(let parent, let request):
+            guard parent.side == side, parent.id == request.datasetId else { throw BiometricBacktestInput.error("The retained experiment does not match its reviewed inputs.") }
+            let result = try await client.create(request)
+            guard request.matches(result, side: side) else { throw BiometricBacktestInput.error("The experiment response does not match the frozen protocol. Keep this request for recovery.") }
+            try store.remove(retained, scope: client.scope, side: side); pending = nil
+            savedExperiment = result; savedExperimentRequest = request
+            notice = "Evaluation protocol saved. No evaluation has run and the active profile has not changed."
         case .dataset(let request):
             let result = try await client.create(request)
             guard request.matches(result) else { throw BiometricBacktestInput.error("The saved dataset does not match the retained selection. Keep the request for recovery.") }

@@ -19,6 +19,9 @@ struct BiometricDatasetDemoFixture: Decodable, Sendable {
 /// Demo copies literal Core-generated synthetic manifests; it never claims a real evaluation ran.
 actor DemoBiometricDatasetsClient: BiometricDatasetsServing {
     nonisolated let scope = "demo-biometric-datasets"
+    var savedExperiments: [String: BiometricExperiment] = [:]
+    var experimentRequests: [String: BiometricExperimentRequest] = [:]
+    var experimentRequestIds: [String: String] = [:]
     private var retained: [String: BiometricDataset] = [:]
     private var requests: [String: BiometricDatasetRequest] = [:]
     private var waveformRequests: [String: WaveformDatasetRequest] = [:]

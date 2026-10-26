@@ -16,6 +16,7 @@ struct BiometricBacktestsScreen: View {
                     GroupedCard {
                         NavigationLink { BiometricDatasetBuilderScreen(model: model) } label: { SettingsRow("Freeze evaluation inputs", icon: "snowflake", tile: true, chevron: true) }.accessibilityIdentifier("backtests.createDataset")
                         NavigationLink { BiometricDatasetLibraryScreen(model: model) } label: { SettingsRow("Retained datasets", icon: "archivebox", tile: true, chevron: true) }.accessibilityIdentifier("backtests.datasets")
+                        NavigationLink { BiometricExperimentLibraryScreen(model: model) } label: { SettingsRow("Saved experiments", icon: "flask", tile: true, chevron: true) }.accessibilityIdentifier("backtests.experiments")
                     }
                 } else if let error {
                     BiometricProfileError(error: error)
@@ -45,6 +46,13 @@ struct BiometricBacktestPendingCard: View {
                 if let pending = model.pending {
                     Text("Retained request").font(.headline)
                     switch pending {
+                    case .experiment(let parent, let request):
+                        Text("Save the reviewed evaluation protocol")
+                        BiometricProfileIdentity(title: "Dataset", value: parent.id)
+                        BiometricProfileIdentity(title: "Reviewed input hash", value: parent.contentHash)
+                        BiometricProfileIdentity(title: "Retry identity", value: request.idempotencyKey)
+                        Text("Retry keeps this exact protocol and key. Reopening does not send it. A protocol with the same hash in the library is not proof that this request was saved.").font(.footnote).foregroundStyle(Theme.text2)
+                        DisclosureGroup("Retained protocol") { BiometricExperimentProtocolView(evaluationProtocol: request.protocol) }
                     case .dataset(let request):
                         Text("Dataset for \(request.subjectId). Sessions: \(request.sessionIds.count) · Reference revisions: \(request.referenceImportIds.count).")
                         Text("Retry uses the same saved key. If the controller already saved these inputs, it returns that dataset. A changed Pod timezone can cause a conflict.").font(.footnote).foregroundStyle(Theme.text2)
