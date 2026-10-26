@@ -16,6 +16,7 @@ struct SettingsSheet: View {
     @State private var primeError: String?
     @State private var showBase = false
     @State private var showComfort = false
+    @State private var showAutopilot = DebugRoute.current == "autopilot"
 
     private var podName: String { device.deviceStatus?.podModelName ?? "Pod" }
 
@@ -47,6 +48,11 @@ struct SettingsSheet: View {
                     GroupedCard(glass: true) {
                         Button { showBase = true } label: {
                             SettingsRow("Bed position", icon: "bed.double", iconColor: Theme.text1, chevron: true)
+                        }
+                        if APIBackend.current != .freeSleep {
+                            Button { showAutopilot = true } label: {
+                                SettingsRow("Autopilot", icon: "sparkles", iconColor: Theme.text1, chevron: true)
+                            }
                         }
                         Button { showComfort = true } label: {
                             SettingsRow("Personal comfort", icon: "sparkles", iconColor: Theme.text1, chevron: true)
@@ -120,6 +126,9 @@ struct SettingsSheet: View {
                 }
             }
         }
+        .fullScreenCover(isPresented: $showAutopilot) {
+            NavigationStack { AutopilotScreen().toolbar { ToolbarItem(placement: .topBarTrailing) { Button("Done") { showAutopilot = false } } } }
+        }
         .fullScreenCover(isPresented: $showComfort) {
             NavigationStack {
                 PodFeatureScreen(.comfort, side: device.selectedSide.primarySide.rawValue).toolbar {
@@ -188,6 +197,9 @@ struct AllSettingsScreen: View {
                     GroupedCard {
                         NavigationLink { UnifiedBaseScreen() } label: {
                             SettingsRow("Bed position", icon: "bed.double", tile: true, chevron: true)
+                        }
+                        if APIBackend.current != .freeSleep {
+                            NavigationLink { AutopilotScreen() } label: { SettingsRow("Autopilot", icon: "sparkles", tile: true, chevron: true) }
                         }
                         PodFeatureLink(.comfort, icon: "sparkles", tile: true)
                         PodFeatureLink(.routines, icon: "calendar", tile: true)

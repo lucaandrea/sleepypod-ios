@@ -2,7 +2,7 @@
 
 Owner request: study the demo and documentation, plan and implement every web capability absent from iOS, retain the existing personal features, then release through Xcode/App Store Connect to the internal group and ciao@luca.ooo. Preserve Sleepypod's native presentation; no retired Free Sleep UI.
 
-Status: **in progress; this is not a completion claim**. ESP32 0.4.1 is installed, connected to the owner's Wi-Fi and out of sample Preview. It awaits the live Core LAN endpoint/key; physical read-only diagnostics and the remaining controller setup are recorded separately in `free-sleep/firmware/waveshare-amoled/docs/HARDWARE_CHECK.md`. Firmware PR #12 is merged into the owner's main.
+Status: **in progress; this is not a completion claim**. ESP32 0.4.1 is installed, connected to the owner's Wi-Fi and out of sample Preview. It awaits the live Core LAN endpoint/key; physical read-only diagnostics and the remaining controller setup are recorded separately in `free-sleep/firmware/waveshare-amoled/docs/HARDWARE_CHECK.md`. Firmware PR #12 is merged into the owner's main. iOS integration PR #1 is merged into owner main at `17b47c66969b824dccdfba087e3c4d4e2fdcaede` after all CI checks passed.
 
 ## Evidence and release baseline
 
@@ -102,6 +102,7 @@ Each item needs source/API coverage, accessible native UI, loading/error/offline
 - Alarm implementation: `ALARM_VALIDATION.md`; precise Core rows preserve paused/multiple alarms and overnight fields; native CRUD and next-alarm controls have focused test evidence. Remaining layout/context cases are recorded there.
 - Curve library: `CURVE_VALIDATION.md`; owned day assignments, point editing, presets, run-once and legacy compatibility have unit/iPhone/iPad/largest-text evidence. Remaining Schedule audit is still open.
 - Sleep and Watch reference data: `SLEEP_VALIDATION.md`; native time edits, range exports, chart controls, source-aware summaries, Watch import/reference workflows and movement/presence semantics are implemented. The advanced stage/model controls and final validation remain open.
+- Autopilot: `AUTOPILOT_VALIDATION.md`; native rule language/editor, atomic modes, replay, diagnostics, activity and pressure replay are implemented. iPhone, iPad and maximum-text validation passed. The remaining summary/timeline/configuration workflows are in progress.
 - Health rebuild: `HEALTH_REBUILD_VALIDATION.md`; 15 lifecycle checks verify scoped cleanup, incomplete-analysis preservation and stable versions. Device Health authorization/sync remains pending.
 - Remote stages and models: `STAGE_VALIDATION.md`; native rule editing/preview/history, capability-gated model library/import/selection, and explicit Pod/iPhone Night sources are implemented. Core model-route alignment, responsive checks and the remaining advanced profile workflows are still in progress.
 
