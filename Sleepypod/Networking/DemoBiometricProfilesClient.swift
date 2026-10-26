@@ -9,6 +9,14 @@ actor DemoBiometricProfilesClient: BiometricProfilesServing {
     private var activationKeys: [String: BiometricActivationRequest] = [:]
     private var candidateKeys: [String: BiometricCandidateRequest] = [:]
     private var documents: (BiometricProfileManifest, BiometricProfileResolution)?
+    func reviewValidated(_ request: BiometricValidatedReviewRequest) throws -> BiometricValidatedEligibility {
+        _ = try request.query()
+        throw APIError.serverError(message: "Demo uses synthetic examples. They cannot validate a profile for application.")
+    }
+    func activateValidated(_ request: BiometricValidatedRequest) throws -> BiometricActivationEvent {
+        _ = try request.body()
+        throw APIError.serverError(message: "Demo uses synthetic examples. They cannot validate a profile for application.")
+    }
     func manifest() throws -> BiometricProfileManifest { try fixture().0 }
     private func fixture() throws -> (BiometricProfileManifest, BiometricProfileResolution) {
         if let documents { return documents }

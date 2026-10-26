@@ -134,6 +134,7 @@ private actor WaveformTestClient: BiometricDatasetsServing {
     enum Outcome { case published, deferred, lost, wrongParent }
     nonisolated let scope = "test-waveform-controller"
     nonisolated var reportClient: any BiometricReportsServing { demo.reportClient }
+    nonisolated var evaluationProfileClient: any BiometricProfilesServing { demo.evaluationProfileClient }
     private var outcome = Outcome.published
     private var sent: [WaveformDatasetRequest] = []
     private var published: BiometricDataset?

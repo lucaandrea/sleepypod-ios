@@ -34,6 +34,7 @@ struct BiometricProfileReview: Sendable {
     private(set) var historyError: String?
     private(set) var loadingHistory = false
     private(set) var pending: BiometricProfilePending?
+    private(set) var validatedReview: BiometricValidatedReview?
     private(set) var review: BiometricProfileReview?
     private(set) var busy = false
     private(set) var mutationError: String?
@@ -54,6 +55,11 @@ struct BiometricProfileReview: Sendable {
     var canStartMutation: Bool { !busy && pending == nil && !pendingReadFailed }
     var canApplyReview: Bool { canStartMutation && isFresh() && overview?.activationAvailable == true && review.map { item in overview.map(item.matches) ?? false } == true }
 
+    var canApplyValidated: Bool {
+        canStartMutation && !refreshing && isFresh() && overview?.activationAvailable == true && overview?.desired.warning == nil
+            && validatedReview.map { item in overview.map { item.matches($0) } ?? false } == true
+    }
+
     /// A failed observation preserves the last report but removes its current-health claim.
     func refresh() async {
         guard !refreshing else { return }
@@ -63,6 +69,9 @@ struct BiometricProfileReview: Sendable {
             guard !Task.isCancelled else { return }
             guard value.desired.binding.side == side else { throw APIError.serverError(message: "The controller returned another side’s profile.") }
             overview = value; observedAt = .now; overviewError = nil
+            if let validatedReview, !validatedReview.matches(value), pending == nil {
+                self.validatedReview = nil; notice = "The profile or evidence review changed. Review again before applying."
+            }
             if let review, !review.matches(value), pending == nil { self.review = nil; notice = "The saved profile changed. Compare again before applying a change." }
         } catch { if !Task.isCancelled { overviewError = error.localizedDescription } }
         await refreshActivation()
@@ -96,7 +105,7 @@ struct BiometricProfileReview: Sendable {
     }
     func compare(action: BiometricProfileAction, target: String?) async {
         guard canStartMutation else { return }
-        busy = true; review = nil; mutationError = nil; notice = nil
+        busy = true; review = nil; validatedReview = nil; mutationError = nil; notice = nil
         defer { busy = false }
         do {
             let current = try await client.overview(side: side)
@@ -124,6 +133,43 @@ struct BiometricProfileReview: Sendable {
         let request = BiometricActivationRequest(action: review.action, side: side, revisionId: review.target, expectedGeneration: review.binding.generation, expectedResolvedHash: review.afterHash, boundary: boundary, requester: "ios-calibration", idempotencyKey: UUID().uuidString, allowUnvalidated: true)
         await retainAndSend(.activation(request))
     }
+    /// Inspect the exact candidate and current binding before asking Core to verify retained evidence.
+    func prepareValidated(_ selection: BiometricValidatedSelection) async {
+        guard canStartMutation, selection.side == side else { return }
+        busy = true; validatedReview = nil; review = nil; mutationError = nil; notice = nil
+        defer { busy = false }
+        do {
+            try selection.validate()
+            let current = try await client.overview(side: side)
+            guard current.desired.binding.side == side, current.activationAvailable, current.desired.warning == nil else {
+                throw BiometricBacktestInput.error("Resolve the current profile and processor configuration before reviewing application.")
+            }
+            let request = BiometricValidatedReviewRequest(selection: selection, expectedGeneration: current.desired.binding.generation)
+            let eligibility = try await client.reviewValidated(request)
+            guard eligibility.eligible else { throw BiometricBacktestInput.error("Core has not approved this candidate and evaluation for application.") }
+            let comparison = try await client.compare(side: side, revisionId: selection.revisionId, againstRevisionId: current.desired.binding.desiredRevisionId)
+            guard comparison.beforeHash == current.desired.hash, comparison.afterHash == selection.expectedResolvedHash,
+                  comparison.revisionId == selection.revisionId, comparison.againstRevisionId == current.desired.binding.desiredRevisionId else {
+                throw BiometricBacktestInput.error("The current profile comparison no longer matches this evaluated candidate.")
+            }
+            let latest = try await client.overview(side: side)
+            guard latest.desired.binding == current.desired.binding, latest.desired.hash == current.desired.hash,
+                  latest.activationAvailable, latest.desired.warning == nil else {
+                throw BiometricBacktestInput.error("The saved profile changed during evidence review. Review again.")
+            }
+            try Task.checkCancellation()
+            overview = latest; observedAt = .now; overviewError = nil
+            validatedReview = .init(request: request, binding: latest.desired.binding, beforeHash: latest.desired.hash, diff: comparison, reviewedAt: .now)
+        } catch { if !Task.isCancelled { mutationError = error.localizedDescription } }
+    }
+    func applyValidated(boundary: BiometricProfileBoundary) async {
+        guard canApplyValidated, let validatedReview else {
+            mutationError = "Refresh the exact evaluation and current profile before applying this revision."
+            return
+        }
+        let request = BiometricValidatedRequest(review: validatedReview.request, boundary: boundary, requester: "ios-calibration", idempotencyKey: UUID().uuidString)
+        await retainAndSend(.validated(request))
+    }
     func saveCandidate(_ request: BiometricCandidateRequest, expectedHash: String) async -> Bool {
         guard canStartMutation, request.side == side else { return false }
         savedCandidate = nil
@@ -140,7 +186,7 @@ struct BiometricProfileReview: Sendable {
         do {
             if let pending { try pendingStore.remove(pending, scope: client.scope, side: side) }
             else if pendingReadFailed { try pendingStore.discardUnreadable(scope: client.scope, side: side) }
-            pending = nil; pendingReadFailed = false; review = nil; mutationError = nil
+            pending = nil; pendingReadFailed = false; review = nil; validatedReview = nil; mutationError = nil
             notice = "Retained retry removed. This does not undo a controller change. Inspect the latest profile and history before another action."
             await refresh(); await loadProfiles(); await loadHistory()
         } catch { mutationError = error.localizedDescription }
@@ -165,6 +211,11 @@ struct BiometricProfileReview: Sendable {
                 guard result.side == side, result.idempotencyKey == input.idempotencyKey, result.resolvedHash == expectedHash, result.baseManifestHash == input.baseManifestHash else { throw APIError.serverError(message: "The candidate receipt did not match the retained request.") }
                 savedCandidate = result
                 notice = "Candidate saved without applying. Agreement with reference measurements has not been evaluated."
+            case .validated(let input):
+                let result = try await client.activateValidated(input)
+                guard input.confirms(result) else { throw BiometricBacktestInput.error("The evaluated activation receipt did not match the retained request.") }
+                event = result
+                notice = "Evaluated activation request saved. Processor acknowledgement is reported separately."
             case .activation(let input):
                 let result = try await client.activate(input)
                 guard result.side == side, result.action == input.action.rawValue, result.nextRevisionId == input.revisionId, result.generation == input.expectedGeneration + 1, result.nextHash == input.expectedResolvedHash else { throw APIError.serverError(message: "The activation receipt did not match the retained request.") }
@@ -172,7 +223,7 @@ struct BiometricProfileReview: Sendable {
                 notice = "Activation request saved. Processor acknowledgement is reported separately."
             }
             try pendingStore.remove(request, scope: client.scope, side: side)
-            pending = nil; review = nil
+            pending = nil; review = nil; validatedReview = nil
             await refresh(); await loadProfiles(); await loadHistory()
         } catch {
             mutationError = "The complete result is not confirmed. The exact request is retained; retrying it reuses the same request identity. \(error.localizedDescription)"

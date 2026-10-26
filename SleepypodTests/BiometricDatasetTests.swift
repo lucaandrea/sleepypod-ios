@@ -115,6 +115,7 @@ import XCTest
 private actor DatasetLifecycleClient: BiometricDatasetsServing {
     nonisolated let scope = "test-dataset-controller"
     nonisolated var reportClient: any BiometricReportsServing { demo.reportClient }
+    nonisolated var evaluationProfileClient: any BiometricProfilesServing { demo.evaluationProfileClient }
     private let demo = DemoBiometricDatasetsClient()
     private var createRequests: [BiometricDatasetRequest] = []
     private var releaseRequests = 0

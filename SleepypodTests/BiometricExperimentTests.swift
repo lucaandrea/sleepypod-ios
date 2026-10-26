@@ -138,6 +138,7 @@ import XCTest
 private actor ExperimentTestClient: BiometricDatasetsServing {
     nonisolated let scope = "test-experiment-controller"
     nonisolated var reportClient: any BiometricReportsServing { demo.reportClient }
+    nonisolated var evaluationProfileClient: any BiometricProfilesServing { demo.evaluationProfileClient }
     private let demo = DemoBiometricDatasetsClient()
     private var sent: [BiometricExperimentRequest] = []
     private var lose = false, mismatch = false, hold = false, duplicate = false

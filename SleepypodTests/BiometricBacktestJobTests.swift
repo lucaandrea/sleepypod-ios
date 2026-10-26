@@ -164,6 +164,7 @@ import XCTest
 private actor JobTestClient: BiometricDatasetsServing {
     nonisolated let scope = "synthetic-job-test"
     nonisolated var reportClient: any BiometricReportsServing { demo.reportClient }
+    nonisolated var evaluationProfileClient: any BiometricProfilesServing { demo.evaluationProfileClient }
     private let demo: DemoBiometricDatasetsClient
     private var sent: [BiometricBacktestSubmission] = []
     private var cancels = 0

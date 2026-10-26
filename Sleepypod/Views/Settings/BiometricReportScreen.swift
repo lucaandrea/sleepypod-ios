@@ -9,6 +9,45 @@ struct BiometricReportScreen: View {
         self.model = model; self.job = job
         _reading = State(initialValue: .init(job: job, side: model.side, client: model.client.reportClient))
     }
+    @ViewBuilder private func reportContents(_ report: BiometricEvaluationReport, descriptor: BiometricReportDescriptor) -> some View {
+        reportComparisons(report, descriptor: descriptor)
+        reportActions(report, descriptor: descriptor)
+    }
+    @ViewBuilder private func reportComparisons(_ report: BiometricEvaluationReport, descriptor: BiometricReportDescriptor) -> some View {
+        BiometricReportOverview(report: report, descriptor: descriptor)
+        if let numeric = reading.numeric {
+            NavigationLink { BiometricNumericReportScreen(report: numeric, waveform: report.hasWaveforms) } label: {
+                SettingsRow("Numerical comparisons", icon: "waveform.path.ecg", tile: true, chevron: true)
+            }.cardStyle().accessibilityIdentifier("reports.numeric")
+        }
+        if let numeric = reading.numeric {
+            if report.hasWaveforms {
+                NavigationLink { BiometricTraceScreen(job: job, side: model.side, hash: descriptor.contentHash, kind: .numeric, nights: numeric.nights, client: model.client.reportClient) } label: { Label("Inspect recomputed traces", systemImage: "waveform.path") }.accessibilityIdentifier("reports.numericTraces")
+            }
+            if report.hasStages {
+                NavigationLink { BiometricTraceScreen(job: job, side: model.side, hash: descriptor.contentHash, kind: .stages, nights: numeric.nights, client: model.client.reportClient) } label: { Label("Inspect stage traces", systemImage: "chart.bar.xaxis") }.accessibilityIdentifier("reports.stageTraces")
+            }
+        }
+        if let error = reading.numericError { BiometricProfileError(error: error) }
+        if let stages = reading.stages {
+            NavigationLink { BiometricStageReportScreen(report: stages, summaries: report.stageNightSummary, waveform: report.hasWaveforms) } label: {
+                SettingsRow("Stage coverage and confusion", icon: "chart.bar.xaxis", tile: true, chevron: true)
+            }.cardStyle().accessibilityIdentifier("reports.stages")
+        }
+        if let error = reading.stageError { BiometricProfileError(error: error) }
+    }
+    @ViewBuilder private func reportActions(_ report: BiometricEvaluationReport, descriptor: BiometricReportDescriptor) -> some View {
+        if report.hasWaveforms { BiometricReplayResourcesView(report: report) }
+        BiometricReportPolicyView(report: report)
+        if let selection = reading.validatedSelection {
+            NavigationLink { BiometricValidatedActivationScreen(selection: selection, client: model.client.evaluationProfileClient) } label: {
+                SettingsRow("Review evaluated profile", icon: "checkmark.shield", tile: true, chevron: true)
+            }.cardStyle().accessibilityIdentifier("reports.validatedActivation")
+        }
+        BiometricReportIdentityView(report: report, descriptor: descriptor)
+        Button("Release detailed report", role: .destructive) { confirmRelease = true }
+            .disabled(!model.canMutate || reading.loading || reading.error != nil || job.state != .succeeded).accessibilityIdentifier("reports.release")
+    }
     var body: some View {
         ScrollView {
             LazyVStack(alignment: .leading, spacing: 18) {
@@ -19,32 +58,7 @@ struct BiometricReportScreen: View {
                 if reading.loading && !reading.loaded { ProgressView("Loading report…") }
                 if let descriptor = reading.descriptor {
                     if let report = reading.report {
-                        BiometricReportOverview(report: report, descriptor: descriptor)
-                        if let numeric = reading.numeric {
-                            NavigationLink { BiometricNumericReportScreen(report: numeric, waveform: report.hasWaveforms) } label: {
-                                SettingsRow("Numerical comparisons", icon: "waveform.path.ecg", tile: true, chevron: true)
-                            }.cardStyle().accessibilityIdentifier("reports.numeric")
-                        }
-                        if let numeric = reading.numeric {
-                            if report.hasWaveforms {
-                                NavigationLink { BiometricTraceScreen(job: job, side: model.side, hash: descriptor.contentHash, kind: .numeric, nights: numeric.nights, client: model.client.reportClient) } label: { Label("Inspect recomputed traces", systemImage: "waveform.path") }.accessibilityIdentifier("reports.numericTraces")
-                            }
-                            if report.hasStages {
-                                NavigationLink { BiometricTraceScreen(job: job, side: model.side, hash: descriptor.contentHash, kind: .stages, nights: numeric.nights, client: model.client.reportClient) } label: { Label("Inspect stage traces", systemImage: "chart.bar.xaxis") }.accessibilityIdentifier("reports.stageTraces")
-                            }
-                        }
-                        if let error = reading.numericError { BiometricProfileError(error: error) }
-                        if let stages = reading.stages {
-                            NavigationLink { BiometricStageReportScreen(report: stages, summaries: report.stageNightSummary, waveform: report.hasWaveforms) } label: {
-                                SettingsRow("Stage coverage and confusion", icon: "chart.bar.xaxis", tile: true, chevron: true)
-                            }.cardStyle().accessibilityIdentifier("reports.stages")
-                        }
-                        if let error = reading.stageError { BiometricProfileError(error: error) }
-                        if report.hasWaveforms { BiometricReplayResourcesView(report: report) }
-                        BiometricReportPolicyView(report: report)
-                        BiometricReportIdentityView(report: report, descriptor: descriptor)
-                        Button("Release detailed report", role: .destructive) { confirmRelease = true }
-                            .disabled(!model.canMutate || reading.loading || reading.error != nil || job.state != .succeeded).accessibilityIdentifier("reports.release")
+                        reportContents(report, descriptor: descriptor)
                     } else if !descriptor.available {
                         VStack(alignment: .leading, spacing: 12) {
                             Text("Detailed results released").font(.headline).accessibilityIdentifier("reports.released")

@@ -74,6 +74,8 @@ private actor BiometricFaultClient: BiometricProfilesServing {
     var candidateRequests: [BiometricCandidateRequest] = []
     var activationRequests: [BiometricActivationRequest] = []
     private var loseCandidate = false, loseActivation = false, changeOnCompare = false, readsFail = false
+    func reviewValidated(_ request: BiometricValidatedReviewRequest) async throws -> BiometricValidatedEligibility { try await demo.reviewValidated(request) }
+    func activateValidated(_ request: BiometricValidatedRequest) async throws -> BiometricActivationEvent { try await demo.activateValidated(request) }
     func loseCandidateReply() { loseCandidate = true }
     func loseActivationReply() { loseActivation = true }
     func changeBindingAfterComparison() { changeOnCompare = true }
