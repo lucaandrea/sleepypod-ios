@@ -453,8 +453,8 @@ private final class PagedRecordsClient: MockAPIClient, @unchecked Sendable {
 
 /// A capped 16 h session (previously synced) and a 10 min fragment, both of which sync must skip.
 private final class ExcludedRecordsClient: MockAPIClient, @unchecked Sendable {
+    private let now = Int(Date().timeIntervalSince1970)
     override func getSleepRecords(side: Side?, start: Date?, end: Date?) async throws -> [SleepRecord] {
-        let now = Int(Date().timeIntervalSince1970)
         return try [(1, now - 20 * 3600, now - 4 * 3600), (2, now - 3 * 3600, now - 3 * 3600 + 600)].map { id, entered, left in
             try JSONDecoder().decode(SleepRecord.self, from: Data("""
             {"id":\(id),"side":"left","enteredBedAt":\(entered),"leftBedAt":\(left),"sleepDurationSeconds":\(left - entered)}
