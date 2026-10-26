@@ -49,6 +49,18 @@ struct BiometricBacktestPendingCard: View {
                         Text("Dataset for \(request.subjectId). Sessions: \(request.sessionIds.count) · Reference revisions: \(request.referenceImportIds.count).")
                         Text("Retry uses the same saved key. If the controller already saved these inputs, it returns that dataset. A changed Pod timezone can cause a conflict.").font(.footnote).foregroundStyle(Theme.text2)
                         BiometricProfileIdentity(title: "Retry identity", value: request.idempotencyKey)
+                    case .waveform(_, let request):
+                        Text("Waveform retention · \(request.cohorts.count) frozen nights")
+                        Text("Retry keeps the exact parent, archives and saved key. It can return a prior publication even if the inputs have since been released.").font(.footnote).foregroundStyle(Theme.text2)
+                        BiometricProfileIdentity(title: "Parent dataset", value: request.parentDatasetId)
+                        BiometricProfileIdentity(title: "Parent hash", value: request.expectedContentHash)
+                        BiometricProfileIdentity(title: "Retry identity", value: request.idempotencyKey)
+                        DisclosureGroup("Retained archive selection") {
+                            ForEach(request.cohorts, id: \.cohortId) { cohort in
+                                BiometricProfileIdentity(title: "Night", value: cohort.cohortId)
+                                ForEach(cohort.sourceIds, id: \.self) { BiometricProfileIdentity(title: "Source", value: $0) }
+                            }
+                        }
                     case .releaseDataset(let identity):
                         Text("Release retained dataset inputs")
                         BiometricProfileIdentity(title: "Dataset", value: identity.id)
@@ -122,7 +134,7 @@ struct BiometricDatasetReviewScreen: View {
                     .buttonStyle(.borderedProminent).tint(Theme.text1).foregroundStyle(Theme.background)
                     .disabled(!model.canMutate || model.savedSelection == selection).accessibilityIdentifier("datasets.freeze")
                 BiometricBacktestPendingCard(model: model)
-                if let receipt = model.receipt, model.savedSelection == selection {
+                if let receipt = model.savedDataset, model.savedSelection == selection {
                     NavigationLink { BiometricDatasetDetailScreen(model: model, id: receipt.id) } label: { Label("Inspect saved dataset", systemImage: "archivebox") }.accessibilityIdentifier("datasets.inspectSaved")
                 }
             }.frame(maxWidth: 780).padding(16).frame(maxWidth: .infinity)

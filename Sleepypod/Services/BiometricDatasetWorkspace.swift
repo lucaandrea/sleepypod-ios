@@ -42,6 +42,8 @@ import Observation
     private(set) var error: String?
     private(set) var notice: String?
     private(set) var receipt: BiometricDataset?
+    private(set) var savedDataset: BiometricDataset?
+    private(set) var savedWaveformRequest: WaveformDatasetRequest?
     private(set) var savedSelection: BiometricDatasetSelection?
     private(set) var page: BiometricDatasetPage?
     private(set) var cursor: BiometricDatasetPage.Cursor?
@@ -66,6 +68,10 @@ import Observation
     func create(_ selection: BiometricDatasetSelection) async {
         guard canMutate, savedSelection != selection else { return }
         await performNew(.dataset(.init(selection: selection)))
+    }
+    func retainWaveforms(_ request: WaveformDatasetRequest, side: Side) async {
+        guard canMutate else { return }
+        await performNew(.waveform(side: side, request: request))
     }
     func release(_ dataset: BiometricDataset) async {
         guard canMutate, dataset.available else { return }
@@ -107,6 +113,7 @@ import Observation
         defer { busy = false }
         do {
             if case .dataset(let request) = retained { _ = try request.validated() }
+            if case .waveform(_, let request) = retained { _ = try request.validated() }
             try store.write(retained, scope: client.scope, side: side); pending = retained
             try await send(retained)
         } catch { self.error = error.localizedDescription }
@@ -121,7 +128,18 @@ import Observation
         case .dataset(let request):
             let result = try await client.create(request)
             guard request.matches(result) else { throw BiometricBacktestInput.error("The saved dataset does not match the retained selection. Keep the request for recovery.") }
-            try finish(retained, result); savedSelection = request.selection
+            try finish(retained, result); savedSelection = request.selection; savedDataset = result
+        case .waveform(let side, let request):
+            let result = try await client.createWaveform(request)
+            if result.status == .deferred {
+                guard result.dataset == nil else { throw WaveformInput.failure("A deferred response cannot confirm retained inputs. Keep this request for recovery.") }
+                notice = "Waveform retention was deferred. Your exact selection and retry key are saved. Retry when resources are available."
+                return
+            }
+            guard let dataset = result.dataset, request.matches(dataset, side: side) else {
+                throw WaveformInput.failure("The waveform receipt does not match the retained parent and selection. Keep the request for recovery.")
+            }
+            try finish(retained, dataset); savedWaveformRequest = request
         case .releaseDataset(let identity):
             let current = try await client.dataset(id: identity.id)
             guard identity.matches(current) else { throw BiometricBacktestInput.error("The dataset identity changed. Review it again before release.") }
@@ -134,6 +152,8 @@ import Observation
     }
     private func finish(_ retained: BiometricBacktestPending, _ result: BiometricDataset) throws {
         try store.remove(retained, scope: client.scope, side: side); pending = nil; receipt = result
-        notice = result.available ? "Inputs retained. Saving these inputs does not run an evaluation or change a profile." : "Inputs released; metadata and existing reports remain. These inputs cannot run a new evaluation."
+        if savedDataset?.id == result.id { savedDataset = result }
+        let kind = result.manifest.version == "waveform-dataset-manifest-v1" ? "Waveform inputs" : "Processed inputs"
+        notice = result.available ? "\(kind) retained. Saving these inputs does not run an evaluation or change a profile." : "\(kind) released; metadata and existing reports remain. These inputs cannot run a new evaluation."
     }
 }

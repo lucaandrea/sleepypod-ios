@@ -60,6 +60,10 @@ struct BiometricDatasetDetailScreen: View {
                     }.cardStyle().id("dataset.identity")
                     BiometricDatasetManifestView(manifest: dataset.manifest)
                     if dataset.available {
+                        if dataset.manifest.supported, dataset.manifest.version == "processed-dataset-manifest-v1" {
+                            NavigationLink { WaveformDatasetScreen(model: model, parent: dataset) } label: { Label("Retain waveform archives", systemImage: "waveform") }
+                                .disabled(!model.canMutate || loading || error != nil).accessibilityIdentifier("datasets.waveforms")
+                        }
                         Button("Release retained inputs", role: .destructive) { confirmRelease = true }.disabled(!model.canMutate || loading || error != nil).accessibilityIdentifier("datasets.release")
                     }
                 }
