@@ -28,4 +28,4 @@ Fresh validation after the Mac restart uses Xcode 27.1 and iOS 27 simulators. Re
 - The streamed-backup tests use a real loopback HTTP server and synthetic bytes, not a real SQLite archive. They verify exact download bytes, backup-exclusion metadata, cleanup, HTTP 429 and wrong-content-type errors. Physical iOS file protection and restoration of a real Core archive remain unverified; the simulator does not report the file-protection attribute.
 - No live database integrity/backup request or bed-control command was sent for this verification.
 
-Owner PR/CI merge: pending publication. Complete System/settings parity and final TestFlight delivery remain in progress.
+Owner PR #4 merged at `e531f74cffee6754a6216b0213be5a56481bae43`. All four checks passed in GitHub Actions run `40252321461`, including the full unit/transport suite. Complete System/settings parity and final TestFlight delivery remain in progress.
