@@ -14,7 +14,7 @@ struct AutopilotScreen: View {
     @State private var enableConfirm = false
     @State private var page = "Automations"
     init(client: (any AutomationClient)? = nil) {
-        _model = State(initialValue: AutomationWorkspace(client: client ?? (APIBackend.current.isDemo ? DemoAutomationClient() : CoreAutomationClient())))
+        _model = State(initialValue: AutomationWorkspace(client: client ?? (APIBackend.current.isDemo ? DemoAutomationClient(scenario: DebugRoute.automationScenario) : CoreAutomationClient())))
     }
     var body: some View {
         ScrollView {
@@ -41,9 +41,10 @@ struct AutopilotScreen: View {
                 while !Task.isCancelled {
                     do { try await Task.sleep(for: .seconds(30)) } catch { return }
                     guard editor == nil, !model.saving else { continue }
-                    await refresh()
+                    await refresh(userInitiated: false)
                 }
             }
+            .onDisappear { model.invalidate() }
             .sheet(item: $editor) { session in NavigationStack { AutomationRuleEditor(session: session, workspace: model) }.tint(Theme.text1) }
             .confirmationDialog("Enable Autopilot?", isPresented: $enableConfirm, titleVisibility: .visible) {
                 Button("Enable Autopilot") { Task { await model.setGlobal(true) } }
@@ -52,7 +53,7 @@ struct AutopilotScreen: View {
                 if let rule = deleting { Button("Delete \(rule.definition.name)", role: .destructive) { Task { _ = await model.delete(rule); deleting = nil } } }
             }
             .confirmationDialog("Activate this automation?", isPresented: Binding(get: { activating != nil }, set: { if !$0 { activating = nil } }), titleVisibility: .visible) {
-                if let rule = activating { Button("Activate \(rule.definition.name)") { Task { await model.setMode(.active, for: rule); activating = nil } } }
+                if let rule = activating { Button("Activate \(rule.definition.name)") { Task { await model.setMode(.active, for: rule); await model.loadDiagnostics(); activating = nil } } }
             } message: { Text("It can send its actions to the bed while Autopilot is enabled.") }
     }
     private var header: some View {
@@ -64,6 +65,7 @@ struct AutopilotScreen: View {
                 Text(!model.ready ? "Controller state unavailable" : model.globalEnabled == true ? "Active rules can send actions. Dry-run rules only log." : "Off · rules cannot send actions.")
                     .font(.footnote).foregroundStyle(Theme.text2)
                 if APIBackend.current.isDemo { Eyebrow("DEMO · NO BED COMMANDS", color: Theme.amber) }
+                if model.requiresReload { Button("Reload controller state") { Task { await refresh() } }.accessibilityIdentifier("automation.reload") }
             }.frame(maxWidth: .infinity, alignment: .leading).padding(16)
         }
     }
@@ -72,7 +74,7 @@ struct AutopilotScreen: View {
     }
     private var rules: some View {
         VStack(alignment: .leading, spacing: 14) {
-            ruleHeadingLayout { Text("Automations").font(.title3.bold()); if !typeSize.isAccessibilitySize { Spacer() }; Button { model.error = nil; editor = .init(original: nil, definition: .init(side: device.selectedSide.primarySide)) } label: { Label("New", systemImage: "plus") }.accessibilityIdentifier("automation.new").disabled(!model.ready || model.saving) }
+            ruleHeadingLayout { Text("Automations").font(.title3.bold()); if !typeSize.isAccessibilitySize { Spacer() }; Button { model.error = nil; editor = .init(original: nil, definition: .init(side: device.selectedSide.primarySide)) } label: { Label("New", systemImage: "plus") }.accessibilityIdentifier("automation.new").disabled(!model.canCreate || model.saving) }
             if model.ready, model.rules.isEmpty { Text("Create a rule to respond to your room or bed conditions.").foregroundStyle(Theme.text2) }
             if let error = model.summariesError { Text("Replay summaries: \(error)").font(.footnote).foregroundStyle(Theme.amber) }
             ForEach(model.rules) { rule in
@@ -132,38 +134,28 @@ struct AutopilotScreen: View {
     private var diagnostics: some View {
         VStack(alignment: .leading, spacing: 14) {
             Text("Evaluations").font(.title3.bold())
+            if APIBackend.current.isDemo, DebugRoute.automationScenario == "diagnostics" {
+                Eyebrow("SYNTHETIC EVALUATION LOG", color: Theme.amber)
+            }
             Text("Signals below are a live snapshot. They are not the values observed during earlier evaluations.").font(.footnote).foregroundStyle(Theme.text2)
             if let error = model.diagnosticsError { Text(error).foregroundStyle(Theme.amber) }
             GroupedCard { AutomationLiveZones(side: nil).padding(16) }
             if let snapshot = model.diagnostics {
                 Text("Snapshot: \(AutomationDates.parse(snapshot.now).map { AutomationDates.label($0.timeIntervalSince1970 * 1000, timeZone: settings.timeZone, includeDate: true) } ?? snapshot.now) · \(settings.timeZone)").font(.caption).foregroundStyle(Theme.text2)
-                ForEach(snapshot.rules) { rule in
-                    GroupedCard {
-                        VStack(alignment: .leading, spacing: 10) {
-                            Text(rule.rule.definition.name).font(.headline)
-                            if let now = AutomationDates.parse(snapshot.now) {
-                                AutomationEvaluationStrip(runs: rule.runs, now: now, startOfDay: AutomationDates.parse(snapshot.startOfDay))
-                                    .environment(\.timeZone, TimeZone(identifier: settings.timeZone) ?? .current)
-                            }
-                            if rule.runs.isEmpty { Text("Not evaluated in this window.").foregroundStyle(Theme.text2) }
-                            ForEach(rule.signals.keys.sorted(), id: \.self) { key in
-                                ruleHeadingLayout {
-                                    Text(AutomationSignal.label(key))
-                                    if !typeSize.isAccessibilitySize { Spacer() }
-                                    Text(AutomationSignal.display(rule.signals[key].flatMap { $0 }, key: key))
-                                }.font(.footnote).accessibilityElement(children: .combine)
-                            }
-                            ForEach(Array(rule.runs.suffix(30).reversed().enumerated()), id: \.offset) { _, run in
-                                ruleHeadingLayout {
-                                    Text(AutomationDates.parse(run.t).map { AutomationDates.label($0.timeIntervalSince1970 * 1000, timeZone: settings.timeZone) } ?? run.t).font(.caption.monospacedDigit())
-                                    if !typeSize.isAccessibilitySize { Spacer() }
-                                    Text(run.label).font(.caption).foregroundStyle(run.sent ? Theme.green : run.reason == "condition-unknown" ? Theme.amber : Theme.text2)
-                                }
-                            }
-                            if rule.runs.count > 30 { Text("Showing the most recent 30 evaluations.").font(.footnote).foregroundStyle(Theme.text2) }
-                        }.frame(maxWidth: .infinity, alignment: .leading).padding(16)
+                if let now = AutomationDates.parse(snapshot.now), let start = AutomationDates.parse(snapshot.startOfDay) {
+                    ForEach(snapshot.rules) { item in
+                        let log = AutomationEvaluationLog(runs: item.runs, trigger: item.rule.definition.trigger,
+                            now: now.timeIntervalSince1970 * 1000, startOfDay: start.timeIntervalSince1970 * 1000,
+                            expectMissing: snapshot.globalEnabled && item.rule.definition.enabled)
+                        AutomationDiagnosticCard(item: item, log: log, timeZone: settings.timeZone,
+                            canEdit: model.ready && !model.saving && !model.loading,
+                            edit: { editor = .init(original: item.rule, definition: item.rule.definition) },
+                            setMode: { mode in
+                                if mode == .active { activating = item.rule }
+                                else { Task { await model.setMode(mode, for: item.rule); await model.loadDiagnostics() } }
+                            })
                     }
-                }
+                } else { Text("The controller did not provide a readable diagnostics time window.").foregroundStyle(Theme.amber) }
             }
         }
     }
@@ -171,8 +163,8 @@ struct AutopilotScreen: View {
         guard let control else { return "Control source unavailable" }
         return control.source == nil && control.blocked == nil ? "No active control request" : control.title
     }
-    private func refresh() async {
-        await model.load()
+    private func refresh(userInitiated: Bool = true) async {
+        await model.load(userInitiated: userInitiated)
         async let diagnostics: Void = model.loadDiagnostics()
         async let tonight: Void = model.loadTonight()
         async let summaries: Void = model.loadSummaries()

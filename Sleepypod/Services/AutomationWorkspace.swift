@@ -14,100 +14,147 @@ final class AutomationWorkspace {
     private(set) var loading = false
     private(set) var saving = false
     private(set) var ready = false
+    private(set) var requiresReload = false
+    private(set) var recoveredCreation: AutomationRule?
     var error: String?
     var diagnosticsError: String?
     var tonightError: String?
     var notice: String?
     let client: any AutomationClient
     private var revision = 0
+    private let owner = OwnerConnection.revision
+    private var pendingCreation: (definition: AutomationDefinition, existingIDs: Set<Int>)?
+    var canCreate: Bool { ready && pendingCreation == nil }
     init(client: any AutomationClient) { self.client = client }
-    func load() async {
-        guard !saving else { return }
+    func invalidate() { if saving { requiresReload = true }; revision += 1; loading = false; saving = false; ready = false }
+    private func current(_ requested: Int) -> Bool { revision == requested && owner == OwnerConnection.revision && !Task.isCancelled }
+    func load(userInitiated: Bool = true) async {
+        guard !saving, owner == OwnerConnection.revision, userInitiated || !requiresReload else { return }
         revision += 1; let requested = revision
         loading = true; error = nil
+        defer { if revision == requested { loading = false } }
         do {
             async let listed = client.rules()
             async let enabled = client.globalEnabled()
             let result = try await (listed, enabled)
-            guard revision == requested, !Task.isCancelled else { return }
-            rules = result.0; globalEnabled = result.1; ready = true
-        } catch { guard revision == requested, !Task.isCancelled else { return }; self.error = error.localizedDescription; ready = false }
-        if revision == requested { loading = false }
+            guard current(requested) else { return }
+            rules = result.0; globalEnabled = result.1; ready = true; requiresReload = false
+            reconcileCreation()
+        } catch { guard current(requested) else { return }; self.error = APIError.message(for: error); ready = false }
+    }
+    /// A lost create response cannot be replayed: first identify a unique new rule with the exact submitted definition.
+    private func reconcileCreation() {
+        guard let pendingCreation else { return }
+        let matches = rules.filter { !pendingCreation.existingIDs.contains($0.id) && $0.definition == pendingCreation.definition }
+        if matches.count == 1 {
+            recoveredCreation = matches[0]; self.pendingCreation = nil
+            notice = "A matching saved automation was found. Review it before making further changes."
+        } else {
+            error = "The save result is still uncertain. Your draft is kept. Review the current automations before creating another; this draft will not be sent again automatically."
+        }
     }
     func loadDiagnostics() async {
         let requested = revision
         do {
             let result = try await client.diagnostics()
-            guard revision == requested, !saving, !Task.isCancelled else { return }
+            guard current(requested), !saving else { return }
             diagnostics = result; diagnosticsError = nil
-        } catch { guard revision == requested, !Task.isCancelled else { return }; diagnostics = nil; diagnosticsError = error.localizedDescription }
+        } catch { guard current(requested) else { return }; diagnostics = nil; diagnosticsError = APIError.message(for: error) }
     }
     func loadTonight() async {
         let requested = revision
         do {
             let result = try await client.tonight()
-            guard revision == requested, !saving, !Task.isCancelled else { return }
+            guard current(requested), !saving else { return }
             tonight = result; tonightError = nil
-        } catch { guard revision == requested, !Task.isCancelled else { return }; tonight = nil; tonightError = error.localizedDescription }
+        } catch { guard current(requested) else { return }; tonight = nil; tonightError = APIError.message(for: error) }
     }
     func loadTimelineActivity(timeZone: String) async {
         let requested = revision
         do {
             let result = try await client.activity(nightStarts: AutomationActivity.nightStarts(count: 2, timeZone: TimeZone(identifier: timeZone) ?? .current))
-            guard revision == requested, !Task.isCancelled else { return }
+            guard current(requested) else { return }
             timelineActivity = result; timelineError = nil
-        } catch { guard revision == requested, !Task.isCancelled else { return }; timelineActivity = nil; timelineError = error.localizedDescription }
+        } catch { guard current(requested) else { return }; timelineActivity = nil; timelineError = APIError.message(for: error) }
     }
     func loadSummaries() async {
         let requested = revision
         do {
             let result = try await client.summaries()
-            guard revision == requested, !saving, !Task.isCancelled else { return }
+            guard current(requested), !saving else { return }
             summaries = result; summariesError = nil
-        } catch { guard revision == requested, !Task.isCancelled else { return }; summaries = []; summariesError = error.localizedDescription }
+        } catch { guard current(requested) else { return }; summaries = []; summariesError = APIError.message(for: error) }
     }
     private func replace(_ rule: AutomationRule) {
         rules.removeAll { $0.id == rule.id }; rules.append(rule)
         rules.sort { $0.definition.priority != $1.definition.priority ? $0.definition.priority > $1.definition.priority : $0.id < $1.id }
         diagnostics = nil; summaries.removeAll { $0.id == rule.id }
     }
-    // Core has no conditional-write token. A fresh read catches observed edits without flattening the user's draft.
-    private func checkOriginal(_ original: AutomationRule) async throws {
-        let current = try await client.rules().first { $0.id == original.id }
-        guard current == original else { throw APIError.serverError(message: "This automation changed on another device. Your draft is kept; reload the current rule before saving.") }
+    // Core has no conditional-write token. Check the original again without flattening the user's draft.
+    private func checkOriginal(_ original: AutomationRule, requested: Int) async throws {
+        let latest = try await client.rules().first { $0.id == original.id }
+        guard current(requested) else { throw CancellationError() }
+        guard latest == original else { throw APIError.serverError(message: "This automation changed on another device. Your draft is kept; reload the current rule before saving.") }
+    }
+    private func mutationFailed(_ failure: Error, requested: Int, sent: Bool) {
+        guard current(requested) else { return }
+        error = APIError.message(for: failure)
+        if sent {
+            requiresReload = true; ready = false
+            error = "The controller did not confirm the change. Reload its current state before trying again. " + (error ?? "")
+        }
     }
     func save(_ definition: AutomationDefinition, original: AutomationRule?) async -> Bool {
-        guard !saving, !loading, ready else { return false }
+        guard !saving, !loading, ready, !Task.isCancelled, owner == OwnerConnection.revision, original != nil || canCreate else { return false }
         if let validation = definition.validation { error = validation; return false }
-        revision += 1; saving = true; error = nil; notice = nil
-        defer { saving = false }
+        revision += 1; let requested = revision
+        saving = true; error = nil; notice = nil
+        var sent = false
+        defer { if revision == requested { saving = false } }
         do {
+            let saved: AutomationRule
             if let original {
-                try await checkOriginal(original)
-                replace(try await client.update(id: original.id, definition: definition))
-            } else { replace(try await client.create(definition)) }
-            notice = "Automation saved."; return true
-        } catch { self.error = error.localizedDescription; return false }
+                try await checkOriginal(original, requested: requested)
+                sent = true; saved = try await client.update(id: original.id, definition: definition)
+            } else {
+                pendingCreation = (definition, Set(rules.map(\.id)))
+                recoveredCreation = nil; sent = true
+                saved = try await client.create(definition)
+            }
+            guard current(requested) else { return false }
+            if original == nil { pendingCreation = nil }; replace(saved); notice = "Automation saved."; return true
+        } catch { mutationFailed(error, requested: requested, sent: sent); return false }
     }
     func setMode(_ mode: AutomationMode, for original: AutomationRule) async {
-        guard !saving, !loading, ready else { return }
-        revision += 1; saving = true; error = nil; notice = nil; defer { saving = false }
-        do { try await checkOriginal(original); replace(try await client.mode(id: original.id, mode: mode)) }
-        catch { self.error = error.localizedDescription }
+        guard !saving, !loading, ready, !Task.isCancelled, owner == OwnerConnection.revision else { return }
+        revision += 1; let requested = revision
+        saving = true; error = nil; notice = nil; var sent = false
+        defer { if revision == requested { saving = false } }
+        do {
+            try await checkOriginal(original, requested: requested)
+            sent = true; let saved = try await client.mode(id: original.id, mode: mode)
+            guard current(requested) else { return }; replace(saved)
+        } catch { mutationFailed(error, requested: requested, sent: sent) }
     }
     func setGlobal(_ enabled: Bool) async {
-        guard !saving, !loading, ready else { return }
-        revision += 1; saving = true; error = nil; defer { saving = false }
-        do { globalEnabled = try await client.setGlobalEnabled(enabled); diagnostics = nil }
-        catch { self.error = error.localizedDescription }
+        guard !saving, !loading, ready, !Task.isCancelled, owner == OwnerConnection.revision else { return }
+        revision += 1; let requested = revision; saving = true; error = nil
+        defer { if revision == requested { saving = false } }
+        do {
+            let result = try await client.setGlobalEnabled(enabled)
+            guard current(requested) else { return }; globalEnabled = result; diagnostics = nil
+        } catch { mutationFailed(error, requested: requested, sent: true) }
     }
     func delete(_ original: AutomationRule) async -> Bool {
-        guard !saving, !loading, ready else { return false }
-        revision += 1; saving = true; error = nil; defer { saving = false }
+        guard !saving, !loading, ready, !Task.isCancelled, owner == OwnerConnection.revision else { return false }
+        revision += 1; let requested = revision; saving = true; error = nil; var sent = false
+        defer { if revision == requested { saving = false } }
         do {
-            try await checkOriginal(original); try await client.delete(id: original.id)
+            try await checkOriginal(original, requested: requested)
+            sent = true; try await client.delete(id: original.id)
+            guard current(requested) else { return false }
             rules.removeAll { $0.id == original.id }; diagnostics = nil; notice = "Automation deleted."; return true
-        } catch { self.error = error.localizedDescription; return false }
+        } catch { mutationFailed(error, requested: requested, sent: sent); return false }
     }
 }
 

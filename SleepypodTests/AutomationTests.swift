@@ -147,6 +147,73 @@ import XCTest
         model.night = 5; XCTAssertFalse(model.isCurrent(draft))
         model.night = nil; var changed = draft; changed.name = "Changed"; XCTAssertFalse(model.isCurrent(changed))
     }
+    func testLostCreateRequiresExplicitReadAndRecoversWithoutDuplicate() async throws {
+        let client = ControlledAutomationClient(); let model = AutomationWorkspace(client: client)
+        await model.load(); await client.loseNext("create")
+        let draft = AutomationDefinition(name: "Lost response draft")
+        let saved = await model.save(draft, original: nil)
+        XCTAssertFalse(saved); XCTAssertTrue(model.requiresReload); XCTAssertFalse(model.ready)
+        await model.load(userInitiated: false)
+        XCTAssertTrue(model.requiresReload)
+        let repeated = await model.save(draft, original: nil); XCTAssertFalse(repeated)
+        let count = await client.writes(); XCTAssertEqual(count, 1)
+        await model.load()
+        XCTAssertTrue(model.ready); XCTAssertFalse(model.requiresReload)
+        XCTAssertEqual(model.recoveredCreation?.definition, draft)
+        XCTAssertEqual(model.rules.filter { $0.definition == draft }.count, 1)
+    }
+    func testLostMutationResponsesRequireReadbackForEveryWriteKind() async throws {
+        for operation in ["update", "mode", "global", "delete"] {
+            let client = ControlledAutomationClient(); let model = AutomationWorkspace(client: client)
+            await model.load(); let original = try XCTUnwrap(model.rules.first)
+            await client.loseNext(operation)
+            switch operation {
+            case "update": var changed = original.definition; changed.name = "Saved remotely"; _ = await model.save(changed, original: original)
+            case "mode": await model.setMode(.off, for: original)
+            case "global": await model.setGlobal(true)
+            default: _ = await model.delete(original)
+            }
+            XCTAssertTrue(model.requiresReload, operation); XCTAssertFalse(model.ready, operation)
+            await model.load(userInitiated: false); XCTAssertFalse(model.ready, operation)
+            await client.failReads(); await model.load(); XCTAssertTrue(model.requiresReload, operation)
+            await client.allowReads(); await model.load(); XCTAssertTrue(model.ready, operation)
+            XCTAssertFalse(model.requiresReload, operation)
+            let count = await client.writes(); XCTAssertEqual(count, 1, operation)
+        }
+    }
+    func testOwnerChangeDuringPreflightCannotSendMutation() async throws {
+        let key = "ownerConnectionRevision", defaults = UserDefaults.standard
+        let previous = defaults.object(forKey: key)
+        defer { if let previous { defaults.set(previous, forKey: key) } else { defaults.removeObject(forKey: key) } }
+        let client = ControlledAutomationClient(); let model = AutomationWorkspace(client: client)
+        await model.load(); let original = try XCTUnwrap(model.rules.first)
+        await client.pauseNextRead()
+        let pending = Task { await model.setMode(.active, for: original) }
+        for _ in 0..<100 { if await client.isReadPaused() { break }; try await Task.sleep(for: .milliseconds(5)) }
+        let paused = await client.isReadPaused(); XCTAssertTrue(paused)
+        defaults.set(UUID().uuidString, forKey: key)
+        await client.resumeRead(); await pending.value
+        let count = await client.writes(); XCTAssertEqual(count, 0)
+    }
+    func testNavigationInvalidationDuringPreflightCannotSendMutation() async throws {
+        let client = ControlledAutomationClient(); let model = AutomationWorkspace(client: client)
+        await model.load(); let original = try XCTUnwrap(model.rules.first)
+        await client.pauseNextRead()
+        let pending = Task { await model.delete(original) }
+        for _ in 0..<100 { if await client.isReadPaused() { break }; try await Task.sleep(for: .milliseconds(5)) }
+        model.invalidate(); await client.resumeRead()
+        let removed = await pending.value; XCTAssertFalse(removed); XCTAssertFalse(model.ready)
+        let count = await client.writes(); XCTAssertEqual(count, 0)
+    }
+    func testAlreadyCancelledCreateAndGlobalActionCannotDispatch() async throws {
+        let client = ControlledAutomationClient()
+        let workspace = AutomationWorkspace(client: client)
+        await workspace.load(); let definition = try XCTUnwrap(workspace.rules.first).definition
+        let create = Task { await workspace.save(definition, original: nil) }; create.cancel()
+        let saved = await create.value; XCTAssertFalse(saved)
+        let global = Task { await workspace.setGlobal(true) }; global.cancel(); await global.value
+        let count = await client.writes(); XCTAssertEqual(count, 0)
+    }
     private func json<T: Encodable>(_ value: T) throws -> [String: Any] { try XCTUnwrap(JSONSerialization.jsonObject(with: JSONEncoder().encode(value)) as? [String: Any]) }
 }
 
@@ -154,20 +221,34 @@ private actor ControlledAutomationClient: AutomationClient {
     let demo = DemoAutomationClient()
     var failed = false
     var writeCount = 0
+    var lostOperation: String?
+    var pauseRead = false
+    var pausedRead: CheckedContinuation<Void, Never>?
+    func loseNext(_ operation: String) { lostOperation = operation }
+    func allowReads() { failed = false }
+    func pauseNextRead() { pauseRead = true }
+    func isReadPaused() -> Bool { pausedRead != nil }
+    func resumeRead() { pausedRead?.resume(); pausedRead = nil }
+    private func finish(_ operation: String) throws {
+        if lostOperation == operation { lostOperation = nil; throw URLError(.networkConnectionLost) }
+    }
     func failReads() { failed = true }
     func writes() -> Int { writeCount }
     func changeExternally() async throws {
         if let rule = await demo.rules().first { var definition = rule.definition; definition.name = "Other device"; _ = try await demo.update(id: rule.id, definition: definition) }
     }
-    func rules() async throws -> [AutomationRule] { if failed { throw APIError.noBaseURL }; return await demo.rules() }
+    func rules() async throws -> [AutomationRule] {
+        if pauseRead { pauseRead = false; await withCheckedContinuation { pausedRead = $0 } }
+        if failed { throw APIError.noBaseURL }; return await demo.rules()
+    }
     func summaries() async -> [AutomationReplaySummary] { await demo.summaries() }
     func range(_ definition: AutomationDefinition, nights: Int) async -> AutomationReplaySummary { await demo.range(definition, nights: nights) }
     func globalEnabled() async -> Bool { await demo.globalEnabled() }
-    func setGlobalEnabled(_ enabled: Bool) async -> Bool { writeCount += 1; return await demo.setGlobalEnabled(enabled) }
-    func create(_ definition: AutomationDefinition) async throws -> AutomationRule { writeCount += 1; return try await demo.create(definition) }
-    func update(id: Int, definition: AutomationDefinition) async throws -> AutomationRule { writeCount += 1; return try await demo.update(id: id, definition: definition) }
-    func mode(id: Int, mode: AutomationMode) async throws -> AutomationRule { writeCount += 1; return try await demo.mode(id: id, mode: mode) }
-    func delete(id: Int) async { writeCount += 1; await demo.delete(id: id) }
+    func setGlobalEnabled(_ enabled: Bool) async throws -> Bool { writeCount += 1; let value = await demo.setGlobalEnabled(enabled); try finish("global"); return value }
+    func create(_ definition: AutomationDefinition) async throws -> AutomationRule { writeCount += 1; let value = try await demo.create(definition); try finish("create"); return value }
+    func update(id: Int, definition: AutomationDefinition) async throws -> AutomationRule { writeCount += 1; let value = try await demo.update(id: id, definition: definition); try finish("update"); return value }
+    func mode(id: Int, mode: AutomationMode) async throws -> AutomationRule { writeCount += 1; let value = try await demo.mode(id: id, mode: mode); try finish("mode"); return value }
+    func delete(id: Int) async throws { writeCount += 1; await demo.delete(id: id); try finish("delete") }
     func activity(nightStarts: [Double]) async -> AutomationActivity { await demo.activity(nightStarts: nightStarts) }
     func zones(side: Side, night: Int?) async -> AutomationZoneReplay { await demo.zones(side: side, night: night) }
     func diagnostics() async -> AutomationDiagnostics { await demo.diagnostics() }
