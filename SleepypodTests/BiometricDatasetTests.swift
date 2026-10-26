@@ -139,6 +139,10 @@ private actor DatasetLifecycleClient: BiometricDatasetsServing {
         if wrongSide { return .init(id: result.id, side: .right, subjectId: result.subjectId, contentHash: result.contentHash, manifest: result.manifest, byteLength: result.byteLength, createdAtMs: result.createdAtMs, releasedAtMs: nil, available: true) }
         return result
     }
+    func replayAdmission() async throws -> ReplayAdmission { try await demo.replayAdmission() }
+    func rawSources(startMs: Double, endMs: Double, cursor: String?) async throws -> InspectedRawPage { try await demo.rawSources(startMs: startMs, endMs: endMs, cursor: cursor) }
+    func inspectRaw(afterName: String?) async throws -> RawInspectionResult { try await demo.inspectRaw(afterName: afterName) }
+    func createWaveform(_ request: WaveformDatasetRequest) async throws -> WaveformDatasetResponse { try await demo.createWaveform(request) }
     func release(id: String) async throws -> BiometricDataset {
         releaseRequests += 1; let result = try await demo.release(id: id)
         if loseRelease { loseRelease = false; throw URLError(.timedOut) }; return result

@@ -9,6 +9,10 @@ protocol BiometricDatasetsServing: Sendable {
     func dataset(id: String) async throws -> BiometricDataset
     func create(_ request: BiometricDatasetRequest) async throws -> BiometricDataset
     func release(id: String) async throws -> BiometricDataset
+    func replayAdmission() async throws -> ReplayAdmission
+    func rawSources(startMs: Double, endMs: Double, cursor: String?) async throws -> InspectedRawPage
+    func inspectRaw(afterName: String?) async throws -> RawInspectionResult
+    func createWaveform(_ request: WaveformDatasetRequest) async throws -> WaveformDatasetResponse
 }
 struct CoreBiometricDatasetsClient: BiometricDatasetsServing {
     let transport: CoreRESTClient
