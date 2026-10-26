@@ -1,0 +1,934 @@
+{
+  "enabled": true,
+  "timezone": "America/Los_Angeles",
+  "now": 1793494800000.0,
+  "jobs": [
+    {
+      "id": "left-on",
+      "type": "power_on",
+      "side": "left",
+      "schedule": "0 21 * * *",
+      "oneTime": false,
+      "nextRun": 1793505600000.0,
+      "targetTempF": 74,
+      "brightness": null
+    },
+    {
+      "id": "left-night",
+      "type": "temperature",
+      "side": "left",
+      "schedule": "30 23 * * *",
+      "oneTime": false,
+      "nextRun": 1793514600000.0,
+      "targetTempF": 68,
+      "brightness": null
+    },
+    {
+      "id": "left-dawn",
+      "type": "temperature",
+      "side": "left",
+      "schedule": "0 5 * * *",
+      "oneTime": false,
+      "nextRun": 1793538000000.0,
+      "targetTempF": 70,
+      "brightness": null
+    },
+    {
+      "id": "left-alarm",
+      "type": "alarm",
+      "side": "left",
+      "schedule": "0 7 * * *",
+      "oneTime": false,
+      "nextRun": 1793545200000.0,
+      "targetTempF": null,
+      "brightness": null
+    },
+    {
+      "id": "left-off",
+      "type": "power_off",
+      "side": "left",
+      "schedule": "30 7 * * *",
+      "oneTime": false,
+      "nextRun": 1793547000000.0,
+      "targetTempF": null,
+      "brightness": null
+    },
+    {
+      "id": "right-on",
+      "type": "power_on",
+      "side": "right",
+      "schedule": "0 21 * * *",
+      "oneTime": false,
+      "nextRun": 1793505600000.0,
+      "targetTempF": 82,
+      "brightness": null
+    },
+    {
+      "id": "right-night",
+      "type": "temperature",
+      "side": "right",
+      "schedule": "30 23 * * *",
+      "oneTime": false,
+      "nextRun": 1793514600000.0,
+      "targetTempF": 78,
+      "brightness": null
+    },
+    {
+      "id": "right-dawn",
+      "type": "temperature",
+      "side": "right",
+      "schedule": "0 5 * * *",
+      "oneTime": false,
+      "nextRun": 1793538000000.0,
+      "targetTempF": 80,
+      "brightness": null
+    },
+    {
+      "id": "right-alarm",
+      "type": "alarm",
+      "side": "right",
+      "schedule": "0 7 * * *",
+      "oneTime": false,
+      "nextRun": 1793545200000.0,
+      "targetTempF": null,
+      "brightness": null
+    },
+    {
+      "id": "right-off",
+      "type": "power_off",
+      "side": "right",
+      "schedule": "30 7 * * *",
+      "oneTime": false,
+      "nextRun": 1793547000000.0,
+      "targetTempF": null,
+      "brightness": null
+    },
+    {
+      "id": "prime",
+      "type": "prime",
+      "schedule": "0 14 * * *",
+      "oneTime": false,
+      "nextRun": 1793570400000.0,
+      "targetTempF": null,
+      "brightness": null
+    },
+    {
+      "id": "led",
+      "type": "led_brightness",
+      "schedule": "0 22 * * *",
+      "oneTime": false,
+      "nextRun": 1793509200000.0,
+      "targetTempF": null,
+      "brightness": 2
+    }
+  ],
+  "occurrences": [
+    {
+      "id": "left-dawn",
+      "type": "temperature",
+      "targetTempF": 70,
+      "brightness": null,
+      "side": "left",
+      "at": 1793448000000.0
+    },
+    {
+      "id": "right-dawn",
+      "type": "temperature",
+      "targetTempF": 80,
+      "brightness": null,
+      "side": "right",
+      "at": 1793448000000.0
+    },
+    {
+      "id": "left-alarm",
+      "type": "alarm",
+      "targetTempF": null,
+      "brightness": null,
+      "side": "left",
+      "at": 1793455200000.0
+    },
+    {
+      "id": "right-alarm",
+      "type": "alarm",
+      "targetTempF": null,
+      "brightness": null,
+      "side": "right",
+      "at": 1793455200000.0
+    },
+    {
+      "id": "left-off",
+      "type": "power_off",
+      "targetTempF": null,
+      "brightness": null,
+      "side": "left",
+      "at": 1793457000000.0
+    },
+    {
+      "id": "right-off",
+      "type": "power_off",
+      "targetTempF": null,
+      "brightness": null,
+      "side": "right",
+      "at": 1793457000000.0
+    },
+    {
+      "id": "prime",
+      "type": "prime",
+      "targetTempF": null,
+      "brightness": null,
+      "at": 1793480400000.0
+    },
+    {
+      "id": "left-on",
+      "type": "power_on",
+      "targetTempF": 74,
+      "brightness": null,
+      "side": "left",
+      "at": 1793505600000.0
+    },
+    {
+      "id": "right-on",
+      "type": "power_on",
+      "targetTempF": 82,
+      "brightness": null,
+      "side": "right",
+      "at": 1793505600000.0
+    },
+    {
+      "id": "led",
+      "type": "led_brightness",
+      "targetTempF": null,
+      "brightness": 2,
+      "at": 1793509200000.0
+    },
+    {
+      "id": "left-night",
+      "type": "temperature",
+      "targetTempF": 68,
+      "brightness": null,
+      "side": "left",
+      "at": 1793514600000.0
+    },
+    {
+      "id": "right-night",
+      "type": "temperature",
+      "targetTempF": 78,
+      "brightness": null,
+      "side": "right",
+      "at": 1793514600000.0
+    },
+    {
+      "id": "left-dawn",
+      "type": "temperature",
+      "targetTempF": 70,
+      "brightness": null,
+      "side": "left",
+      "at": 1793538000000.0
+    },
+    {
+      "id": "right-dawn",
+      "type": "temperature",
+      "targetTempF": 80,
+      "brightness": null,
+      "side": "right",
+      "at": 1793538000000.0
+    },
+    {
+      "id": "left-alarm",
+      "type": "alarm",
+      "targetTempF": null,
+      "brightness": null,
+      "side": "left",
+      "at": 1793545200000.0
+    },
+    {
+      "id": "right-alarm",
+      "type": "alarm",
+      "targetTempF": null,
+      "brightness": null,
+      "side": "right",
+      "at": 1793545200000.0
+    },
+    {
+      "id": "left-off",
+      "type": "power_off",
+      "targetTempF": null,
+      "brightness": null,
+      "side": "left",
+      "at": 1793547000000.0
+    },
+    {
+      "id": "right-off",
+      "type": "power_off",
+      "targetTempF": null,
+      "brightness": null,
+      "side": "right",
+      "at": 1793547000000.0
+    },
+    {
+      "id": "prime",
+      "type": "prime",
+      "targetTempF": null,
+      "brightness": null,
+      "at": 1793570400000.0
+    },
+    {
+      "id": "left-on",
+      "type": "power_on",
+      "targetTempF": 74,
+      "brightness": null,
+      "side": "left",
+      "at": 1793595600000.0
+    },
+    {
+      "id": "right-on",
+      "type": "power_on",
+      "targetTempF": 82,
+      "brightness": null,
+      "side": "right",
+      "at": 1793595600000.0
+    },
+    {
+      "id": "led",
+      "type": "led_brightness",
+      "targetTempF": null,
+      "brightness": 2,
+      "at": 1793599200000.0
+    },
+    {
+      "id": "left-night",
+      "type": "temperature",
+      "targetTempF": 68,
+      "brightness": null,
+      "side": "left",
+      "at": 1793604600000.0
+    },
+    {
+      "id": "right-night",
+      "type": "temperature",
+      "targetTempF": 78,
+      "brightness": null,
+      "side": "right",
+      "at": 1793604600000.0
+    },
+    {
+      "id": "left-dawn",
+      "type": "temperature",
+      "targetTempF": 70,
+      "brightness": null,
+      "side": "left",
+      "at": 1793624400000.0
+    },
+    {
+      "id": "right-dawn",
+      "type": "temperature",
+      "targetTempF": 80,
+      "brightness": null,
+      "side": "right",
+      "at": 1793624400000.0
+    },
+    {
+      "id": "left-alarm",
+      "type": "alarm",
+      "targetTempF": null,
+      "brightness": null,
+      "side": "left",
+      "at": 1793631600000.0
+    },
+    {
+      "id": "right-alarm",
+      "type": "alarm",
+      "targetTempF": null,
+      "brightness": null,
+      "side": "right",
+      "at": 1793631600000.0
+    },
+    {
+      "id": "left-off",
+      "type": "power_off",
+      "targetTempF": null,
+      "brightness": null,
+      "side": "left",
+      "at": 1793633400000.0
+    },
+    {
+      "id": "right-off",
+      "type": "power_off",
+      "targetTempF": null,
+      "brightness": null,
+      "side": "right",
+      "at": 1793633400000.0
+    },
+    {
+      "id": "prime",
+      "type": "prime",
+      "targetTempF": null,
+      "brightness": null,
+      "at": 1793656800000.0
+    },
+    {
+      "id": "left-on",
+      "type": "power_on",
+      "targetTempF": 74,
+      "brightness": null,
+      "side": "left",
+      "at": 1793682000000.0
+    },
+    {
+      "id": "right-on",
+      "type": "power_on",
+      "targetTempF": 82,
+      "brightness": null,
+      "side": "right",
+      "at": 1793682000000.0
+    },
+    {
+      "id": "led",
+      "type": "led_brightness",
+      "targetTempF": null,
+      "brightness": 2,
+      "at": 1793685600000.0
+    },
+    {
+      "id": "left-night",
+      "type": "temperature",
+      "targetTempF": 68,
+      "brightness": null,
+      "side": "left",
+      "at": 1793691000000.0
+    },
+    {
+      "id": "right-night",
+      "type": "temperature",
+      "targetTempF": 78,
+      "brightness": null,
+      "side": "right",
+      "at": 1793691000000.0
+    },
+    {
+      "id": "left-dawn",
+      "type": "temperature",
+      "targetTempF": 70,
+      "brightness": null,
+      "side": "left",
+      "at": 1793710800000.0
+    },
+    {
+      "id": "right-dawn",
+      "type": "temperature",
+      "targetTempF": 80,
+      "brightness": null,
+      "side": "right",
+      "at": 1793710800000.0
+    },
+    {
+      "id": "left-alarm",
+      "type": "alarm",
+      "targetTempF": null,
+      "brightness": null,
+      "side": "left",
+      "at": 1793718000000.0
+    },
+    {
+      "id": "right-alarm",
+      "type": "alarm",
+      "targetTempF": null,
+      "brightness": null,
+      "side": "right",
+      "at": 1793718000000.0
+    },
+    {
+      "id": "left-off",
+      "type": "power_off",
+      "targetTempF": null,
+      "brightness": null,
+      "side": "left",
+      "at": 1793719800000.0
+    },
+    {
+      "id": "right-off",
+      "type": "power_off",
+      "targetTempF": null,
+      "brightness": null,
+      "side": "right",
+      "at": 1793719800000.0
+    },
+    {
+      "id": "prime",
+      "type": "prime",
+      "targetTempF": null,
+      "brightness": null,
+      "at": 1793743200000.0
+    },
+    {
+      "id": "left-on",
+      "type": "power_on",
+      "targetTempF": 74,
+      "brightness": null,
+      "side": "left",
+      "at": 1793768400000.0
+    },
+    {
+      "id": "right-on",
+      "type": "power_on",
+      "targetTempF": 82,
+      "brightness": null,
+      "side": "right",
+      "at": 1793768400000.0
+    },
+    {
+      "id": "led",
+      "type": "led_brightness",
+      "targetTempF": null,
+      "brightness": 2,
+      "at": 1793772000000.0
+    },
+    {
+      "id": "left-night",
+      "type": "temperature",
+      "targetTempF": 68,
+      "brightness": null,
+      "side": "left",
+      "at": 1793777400000.0
+    },
+    {
+      "id": "right-night",
+      "type": "temperature",
+      "targetTempF": 78,
+      "brightness": null,
+      "side": "right",
+      "at": 1793777400000.0
+    },
+    {
+      "id": "left-dawn",
+      "type": "temperature",
+      "targetTempF": 70,
+      "brightness": null,
+      "side": "left",
+      "at": 1793797200000.0
+    },
+    {
+      "id": "right-dawn",
+      "type": "temperature",
+      "targetTempF": 80,
+      "brightness": null,
+      "side": "right",
+      "at": 1793797200000.0
+    },
+    {
+      "id": "left-alarm",
+      "type": "alarm",
+      "targetTempF": null,
+      "brightness": null,
+      "side": "left",
+      "at": 1793804400000.0
+    },
+    {
+      "id": "right-alarm",
+      "type": "alarm",
+      "targetTempF": null,
+      "brightness": null,
+      "side": "right",
+      "at": 1793804400000.0
+    },
+    {
+      "id": "left-off",
+      "type": "power_off",
+      "targetTempF": null,
+      "brightness": null,
+      "side": "left",
+      "at": 1793806200000.0
+    },
+    {
+      "id": "right-off",
+      "type": "power_off",
+      "targetTempF": null,
+      "brightness": null,
+      "side": "right",
+      "at": 1793806200000.0
+    },
+    {
+      "id": "prime",
+      "type": "prime",
+      "targetTempF": null,
+      "brightness": null,
+      "at": 1793829600000.0
+    },
+    {
+      "id": "left-on",
+      "type": "power_on",
+      "targetTempF": 74,
+      "brightness": null,
+      "side": "left",
+      "at": 1793854800000.0
+    },
+    {
+      "id": "right-on",
+      "type": "power_on",
+      "targetTempF": 82,
+      "brightness": null,
+      "side": "right",
+      "at": 1793854800000.0
+    },
+    {
+      "id": "led",
+      "type": "led_brightness",
+      "targetTempF": null,
+      "brightness": 2,
+      "at": 1793858400000.0
+    },
+    {
+      "id": "left-night",
+      "type": "temperature",
+      "targetTempF": 68,
+      "brightness": null,
+      "side": "left",
+      "at": 1793863800000.0
+    },
+    {
+      "id": "right-night",
+      "type": "temperature",
+      "targetTempF": 78,
+      "brightness": null,
+      "side": "right",
+      "at": 1793863800000.0
+    },
+    {
+      "id": "left-dawn",
+      "type": "temperature",
+      "targetTempF": 70,
+      "brightness": null,
+      "side": "left",
+      "at": 1793883600000.0
+    },
+    {
+      "id": "right-dawn",
+      "type": "temperature",
+      "targetTempF": 80,
+      "brightness": null,
+      "side": "right",
+      "at": 1793883600000.0
+    },
+    {
+      "id": "left-alarm",
+      "type": "alarm",
+      "targetTempF": null,
+      "brightness": null,
+      "side": "left",
+      "at": 1793890800000.0
+    },
+    {
+      "id": "right-alarm",
+      "type": "alarm",
+      "targetTempF": null,
+      "brightness": null,
+      "side": "right",
+      "at": 1793890800000.0
+    },
+    {
+      "id": "left-off",
+      "type": "power_off",
+      "targetTempF": null,
+      "brightness": null,
+      "side": "left",
+      "at": 1793892600000.0
+    },
+    {
+      "id": "right-off",
+      "type": "power_off",
+      "targetTempF": null,
+      "brightness": null,
+      "side": "right",
+      "at": 1793892600000.0
+    },
+    {
+      "id": "prime",
+      "type": "prime",
+      "targetTempF": null,
+      "brightness": null,
+      "at": 1793916000000.0
+    },
+    {
+      "id": "left-on",
+      "type": "power_on",
+      "targetTempF": 74,
+      "brightness": null,
+      "side": "left",
+      "at": 1793941200000.0
+    },
+    {
+      "id": "right-on",
+      "type": "power_on",
+      "targetTempF": 82,
+      "brightness": null,
+      "side": "right",
+      "at": 1793941200000.0
+    },
+    {
+      "id": "led",
+      "type": "led_brightness",
+      "targetTempF": null,
+      "brightness": 2,
+      "at": 1793944800000.0
+    },
+    {
+      "id": "left-night",
+      "type": "temperature",
+      "targetTempF": 68,
+      "brightness": null,
+      "side": "left",
+      "at": 1793950200000.0
+    },
+    {
+      "id": "right-night",
+      "type": "temperature",
+      "targetTempF": 78,
+      "brightness": null,
+      "side": "right",
+      "at": 1793950200000.0
+    },
+    {
+      "id": "left-dawn",
+      "type": "temperature",
+      "targetTempF": 70,
+      "brightness": null,
+      "side": "left",
+      "at": 1793970000000.0
+    },
+    {
+      "id": "right-dawn",
+      "type": "temperature",
+      "targetTempF": 80,
+      "brightness": null,
+      "side": "right",
+      "at": 1793970000000.0
+    },
+    {
+      "id": "left-alarm",
+      "type": "alarm",
+      "targetTempF": null,
+      "brightness": null,
+      "side": "left",
+      "at": 1793977200000.0
+    },
+    {
+      "id": "right-alarm",
+      "type": "alarm",
+      "targetTempF": null,
+      "brightness": null,
+      "side": "right",
+      "at": 1793977200000.0
+    },
+    {
+      "id": "left-off",
+      "type": "power_off",
+      "targetTempF": null,
+      "brightness": null,
+      "side": "left",
+      "at": 1793979000000.0
+    },
+    {
+      "id": "right-off",
+      "type": "power_off",
+      "targetTempF": null,
+      "brightness": null,
+      "side": "right",
+      "at": 1793979000000.0
+    },
+    {
+      "id": "prime",
+      "type": "prime",
+      "targetTempF": null,
+      "brightness": null,
+      "at": 1794002400000.0
+    },
+    {
+      "id": "left-on",
+      "type": "power_on",
+      "targetTempF": 74,
+      "brightness": null,
+      "side": "left",
+      "at": 1794027600000.0
+    },
+    {
+      "id": "right-on",
+      "type": "power_on",
+      "targetTempF": 82,
+      "brightness": null,
+      "side": "right",
+      "at": 1794027600000.0
+    },
+    {
+      "id": "led",
+      "type": "led_brightness",
+      "targetTempF": null,
+      "brightness": 2,
+      "at": 1794031200000.0
+    },
+    {
+      "id": "left-night",
+      "type": "temperature",
+      "targetTempF": 68,
+      "brightness": null,
+      "side": "left",
+      "at": 1794036600000.0
+    },
+    {
+      "id": "right-night",
+      "type": "temperature",
+      "targetTempF": 78,
+      "brightness": null,
+      "side": "right",
+      "at": 1794036600000.0
+    },
+    {
+      "id": "left-dawn",
+      "type": "temperature",
+      "targetTempF": 70,
+      "brightness": null,
+      "side": "left",
+      "at": 1794056400000.0
+    },
+    {
+      "id": "right-dawn",
+      "type": "temperature",
+      "targetTempF": 80,
+      "brightness": null,
+      "side": "right",
+      "at": 1794056400000.0
+    },
+    {
+      "id": "left-alarm",
+      "type": "alarm",
+      "targetTempF": null,
+      "brightness": null,
+      "side": "left",
+      "at": 1794063600000.0
+    },
+    {
+      "id": "right-alarm",
+      "type": "alarm",
+      "targetTempF": null,
+      "brightness": null,
+      "side": "right",
+      "at": 1794063600000.0
+    },
+    {
+      "id": "left-off",
+      "type": "power_off",
+      "targetTempF": null,
+      "brightness": null,
+      "side": "left",
+      "at": 1794065400000.0
+    },
+    {
+      "id": "right-off",
+      "type": "power_off",
+      "targetTempF": null,
+      "brightness": null,
+      "side": "right",
+      "at": 1794065400000.0
+    },
+    {
+      "id": "prime",
+      "type": "prime",
+      "targetTempF": null,
+      "brightness": null,
+      "at": 1794088800000.0
+    },
+    {
+      "id": "left-on",
+      "type": "power_on",
+      "targetTempF": 74,
+      "brightness": null,
+      "side": "left",
+      "at": 1794114000000.0
+    },
+    {
+      "id": "right-on",
+      "type": "power_on",
+      "targetTempF": 82,
+      "brightness": null,
+      "side": "right",
+      "at": 1794114000000.0
+    },
+    {
+      "id": "led",
+      "type": "led_brightness",
+      "targetTempF": null,
+      "brightness": 2,
+      "at": 1794117600000.0
+    },
+    {
+      "id": "left-night",
+      "type": "temperature",
+      "targetTempF": 68,
+      "brightness": null,
+      "side": "left",
+      "at": 1794123000000.0
+    },
+    {
+      "id": "right-night",
+      "type": "temperature",
+      "targetTempF": 78,
+      "brightness": null,
+      "side": "right",
+      "at": 1794123000000.0
+    },
+    {
+      "id": "left-dawn",
+      "type": "temperature",
+      "targetTempF": 70,
+      "brightness": null,
+      "side": "left",
+      "at": 1794142800000.0
+    },
+    {
+      "id": "right-dawn",
+      "type": "temperature",
+      "targetTempF": 80,
+      "brightness": null,
+      "side": "right",
+      "at": 1794142800000.0
+    },
+    {
+      "id": "left-alarm",
+      "type": "alarm",
+      "targetTempF": null,
+      "brightness": null,
+      "side": "left",
+      "at": 1794150000000.0
+    },
+    {
+      "id": "right-alarm",
+      "type": "alarm",
+      "targetTempF": null,
+      "brightness": null,
+      "side": "right",
+      "at": 1794150000000.0
+    },
+    {
+      "id": "left-off",
+      "type": "power_off",
+      "targetTempF": null,
+      "brightness": null,
+      "side": "left",
+      "at": 1794151800000.0
+    },
+    {
+      "id": "right-off",
+      "type": "power_off",
+      "targetTempF": null,
+      "brightness": null,
+      "side": "right",
+      "at": 1794151800000.0
+    },
+    {
+      "id": "prime",
+      "type": "prime",
+      "targetTempF": null,
+      "brightness": null,
+      "at": 1794175200000.0
+    }
+  ]
+}

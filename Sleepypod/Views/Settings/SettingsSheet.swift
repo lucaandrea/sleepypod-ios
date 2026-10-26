@@ -3,6 +3,7 @@ import FreeSleepKit
 
 /// The gear sheet (1l): quick actions and the most-used rows over the current tab.
 struct SettingsSheet: View {
+    @State private var presentationDetent: PresentationDetent = .medium
     @Environment(\.dismiss) private var dismiss
     @Environment(\.colorScheme) private var scheme
     @Environment(DeviceManager.self) private var device
@@ -116,7 +117,10 @@ struct SettingsSheet: View {
             .navigationDestination(isPresented: $showHealth) { HealthAccessView() }
         }
         .tint(Theme.text1)
-        .presentationDetents([.medium, .large])
+        .presentationDetents([.medium, .large], selection: $presentationDetent)
+        .onPreferenceChange(ExpandedSettingsPresentationKey.self) { expanded in
+            if expanded { presentationDetent = .large }
+        }
         .presentationDragIndicator(.visible)
         .modifier(SettingsSheetBackground())
         .fullScreenCover(isPresented: $showBase) {
@@ -522,4 +526,10 @@ private struct SettingsSheetBackground: ViewModifier {
         if reduceTransparency { content.presentationBackground(Theme.card) }
         else { content }
     }
+}
+
+// Detailed diagnostics expand the gear sheet while quick settings keep their compact entry.
+struct ExpandedSettingsPresentationKey: PreferenceKey {
+    static let defaultValue = false
+    static func reduce(value: inout Bool, nextValue: () -> Bool) { value = value || nextValue() }
 }
