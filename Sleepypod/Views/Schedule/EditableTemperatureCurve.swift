@@ -28,30 +28,7 @@ struct EditableTemperatureCurve: View {
                         }
                     }.stroke(LinearGradient(colors: [Theme.cool, Theme.warm], startPoint: .leading, endPoint: .trailing), style: .init(lineWidth: 2.5, lineJoin: .round))
                     ForEach(Array(points.enumerated()), id: \.element.id) { index, point in
-                        Button { selected = point.id; edit(point) } label: {
-                            Circle().fill(TempColor.forScheduled(Int(point.temperature)))
-                                .frame(width: selected == point.id ? 16 : 12, height: selected == point.id ? 16 : 12)
-                                .frame(width: 44, height: 44).contentShape(Rectangle())
-                        }.buttonStyle(.plain)
-                            .position(position(point, width: width, height: height))
-                            .accessibilityLabel("Set point \(index + 1)")
-                            .accessibilityValue(label(point))
-                            .accessibilityIdentifier("curve.handle.\(index)")
-                            .accessibilityHint("Open to edit time and temperature, or adjust temperature directly.")
-                            .accessibilityAdjustableAction { direction in
-                                let change = direction == .increment ? 1 : -1
-                                var updated = point
-                                updated.temperature = Double(TemperatureDisplay.degrees.step(Int(point.temperature), by: change, unit: settings.temperatureFormat))
-                                replace(updated)
-                            }
-                            .accessibilityAction(named: "15 minutes earlier") { shift(point, by: -15) }
-                            .accessibilityAction(named: "15 minutes later") { shift(point, by: 15) }
-                            .highPriorityGesture(DragGesture(minimumDistance: 4, coordinateSpace: .named("curveEditor.chart"))
-                                .onChanged { movement in
-                                    if dragDomain == nil { dragDomain = CurveChartProjection(points: points) }
-                                    selected = point.id
-                                    replace(domain.moved(point, horizontal: (movement.location.x - 22) / width, vertical: (movement.location.y - 22) / height))
-                                }.onEnded { _ in dragDomain = nil })
+                        pointHandle(point, index: index, width: width, height: height)
                     }
                 }.coordinateSpace(name: "curveEditor.chart")
             }.frame(height: typeSize.isAccessibilitySize ? 240 : 180)
@@ -67,6 +44,35 @@ struct EditableTemperatureCurve: View {
             Text("Drag a point to change its time and temperature. Times snap to 15 minutes. Tap a point for precise editing.")
                 .font(.caption).foregroundStyle(Theme.text2).fixedSize(horizontal: false, vertical: true)
         }.cardStyle()
+    }
+    private func pointButton(_ point: CurvePoint, index: Int) -> some View {
+        Button { selected = point.id; edit(point) } label: {
+            Circle().fill(TempColor.forScheduled(Int(point.temperature)))
+                .frame(width: selected == point.id ? 16 : 12, height: selected == point.id ? 16 : 12)
+                .frame(width: 44, height: 44).contentShape(Rectangle())
+        }.buttonStyle(.plain)
+            .accessibilityLabel("Set point \(index + 1)")
+            .accessibilityValue(label(point))
+            .accessibilityIdentifier("curve.handle.\(index)")
+            .accessibilityHint("Open to edit time and temperature, or adjust temperature directly.")
+            .accessibilityAdjustableAction { direction in
+                let change = direction == .increment ? 1 : -1
+                var updated = point
+                updated.temperature = Double(TemperatureDisplay.degrees.step(Int(point.temperature), by: change, unit: settings.temperatureFormat))
+                replace(updated)
+            }
+            .accessibilityAction(named: "15 minutes earlier") { shift(point, by: -15) }
+            .accessibilityAction(named: "15 minutes later") { shift(point, by: 15) }
+    }
+    private func pointHandle(_ point: CurvePoint, index: Int, width: CGFloat, height: CGFloat) -> some View {
+        pointButton(point, index: index)
+            .position(position(point, width: width, height: height))
+            .highPriorityGesture(DragGesture(minimumDistance: 4, coordinateSpace: .named("curveEditor.chart"))
+                .onChanged { movement in
+                    if dragDomain == nil { dragDomain = CurveChartProjection(points: points) }
+                    selected = point.id
+                    replace(domain.moved(point, horizontal: (movement.location.x - 22) / width, vertical: (movement.location.y - 22) / height))
+                }.onEnded { _ in dragDomain = nil })
     }
     private func position(_ point: CurvePoint, width: CGFloat, height: CGFloat) -> CGPoint {
         CGPoint(x: 22 + domain.horizontal(point) * width, y: 22 + domain.vertical(point) * height)
