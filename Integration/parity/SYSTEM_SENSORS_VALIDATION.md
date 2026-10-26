@@ -1,6 +1,6 @@
 # Native Sensors parity
 
-Status: implemented and locally validated; publication checks pending. This milestone does not complete the wider parity audit or release the app.
+Status: implemented, validated and merged into owner main. This milestone does not complete the wider parity audit or release the app.
 
 ## Source audit
 
@@ -24,7 +24,7 @@ Thirty-four focused unit/transport checks passed in `SensorDiagnostics-phone-fin
 
 The complete interaction passed on iPad light (`SensorDiagnostics-ipad-final-v2.xcresult`), iPhone dark (`SensorDiagnostics-phone-final-v2.xcresult`) and maximum Dynamic Type (`SensorDiagnostics-accessibility-final-v2.xcresult`), including Pause/Start, capacitance layers, controller presence, freezer data, waveform channel toggles/replay, history ranges, RPM history, console selection/freeze and raw-frame inspection. Thirty-three final captures were exported to `previews/system-sensors/` and visually reviewed. Earlier interrupted runs are not acceptance evidence.
 
-The history review found formatter allocation on each chart render. Timestamps now use value-format parsing and chart points are prepared once per response, retaining gaps and extrema. The UI test improved after that correction, but automation timing is not a physical-device performance benchmark. Multi-day charts label dates, and the console/matrix/control rows adapt at accessibility text sizes. Strict SwiftLint and the native-presentation guard pass. CI and merge remain pending.
+The history review found formatter allocation on each chart render. Timestamps now use value-format parsing and chart points are prepared once per response, retaining gaps and extrema. The UI test improved after that correction, but automation timing is not a physical-device performance benchmark. Multi-day charts label dates, and the console/matrix/control rows adapt at accessibility text sizes. Strict SwiftLint and the native-presentation guard pass. All four GitHub checks passed in run `40266366543`. [PR #11](https://github.com/lucaandrea/sleepypod-ios/pull/11) merged at `3fbe643caad8b8f6d8f2f1b9a3a737523ac66904`.
 
 ## Evidence limits
 
