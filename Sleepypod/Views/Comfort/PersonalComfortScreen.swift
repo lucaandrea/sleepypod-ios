@@ -187,9 +187,10 @@ struct ComfortValueRow: View {
     var body: some View {
         let layout = typeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: 4)) : AnyLayout(HStackLayout(alignment: .firstTextBaseline, spacing: 12))
         layout {
-            Text(title).foregroundStyle(Theme.text2)
+            Text(title).foregroundStyle(Theme.text2).fixedSize(horizontal: false, vertical: true)
             if !typeSize.isAccessibilitySize { Spacer(minLength: 8) }
             Text(value).monospacedDigit().multilineTextAlignment(typeSize.isAccessibilitySize ? .leading : .trailing)
+                .fixedSize(horizontal: false, vertical: true)
         }.accessibilityElement(children: .combine)
     }
 }

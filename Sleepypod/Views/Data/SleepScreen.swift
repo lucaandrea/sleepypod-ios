@@ -30,6 +30,7 @@ struct SleepScreen: View {
     @State private var monthLoading = false
     @State private var editingRecord: SleepRecord?
     @State private var showRaw = false
+    @State private var showOptions = false
     @State private var initialized = false
     @State private var refreshRevision = 0
     @State private var podStages = PodStageNightWorkspace()
@@ -116,6 +117,12 @@ struct SleepScreen: View {
                 }
                 .navigationDestination(isPresented: $showStageRules) {
                     RemoteStageRulesScreen(side: metrics.selectedSide)
+                }
+                .navigationDestination(isPresented: $showOptions) {
+                    List { standardSleepOptions; Section("Personal tools") { personalOptions } }
+                        .navigationTitle("Sleep options")
+                        .navigationBarTitleDisplayMode(.inline)
+                        .accessibilityIdentifier("sleep.optionsList")
                 }
         }
     }
@@ -226,8 +233,21 @@ struct SleepScreen: View {
         if period == .month { await fetchMonth() }
     }
 
-    private var sleepOptions: some View {
-        Menu {
+    @ViewBuilder private var sleepOptions: some View {
+        if dynamicTypeSize.isAccessibilitySize {
+            Button { showOptions = true } label: { Image(systemName: "ellipsis") }
+        } else {
+            Menu { sleepOptionLinks } label: { Image(systemName: "ellipsis") }
+        }
+    }
+    private var sleepOptionLinks: some View {
+        Group {
+            standardSleepOptions
+            Menu("Personal tools", systemImage: "person.crop.circle") { personalOptions }
+        }
+    }
+    private var standardSleepOptions: some View {
+        Group {
             NavigationLink("Biometrics") { BiometricsScreen(side: metrics.selectedSide, date: selectedDate) }
                 .accessibilityIdentifier("sleep.openBiometrics")
             if APIBackend.current != .freeSleep {
@@ -242,9 +262,6 @@ struct SleepScreen: View {
                     editingRecord = record
                 }
             }
-            personalOptions
-        } label: {
-            Image(systemName: "ellipsis")
         }
     }
     private var personalOptions: some View {
@@ -252,7 +269,11 @@ struct SleepScreen: View {
             NavigationLink("Morning check-in") { PodFeatureScreen(.journal, side: metrics.selectedSide.rawValue) }
             NavigationLink("Personal reports") { PodFeatureScreen(.reports, side: metrics.selectedSide.rawValue) }
             NavigationLink("Sleep coach") { PodFeatureScreen(.coach, side: metrics.selectedSide.rawValue) }
-            NavigationLink("Recorded episodes") { PodFeatureScreen(.history, side: metrics.selectedSide.rawValue) }
+            if APIBackend.current == .freeSleep {
+                NavigationLink("Recorded episodes") { PodFeatureScreen(.history, side: metrics.selectedSide.rawValue) }
+            } else {
+                NavigationLink("Imported history") { ImportedHistoryScreen(side: metrics.selectedSide) }
+            }
         }
     }
 

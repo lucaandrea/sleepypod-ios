@@ -1,0 +1,270 @@
+{
+  "synthetic": true,
+  "sourceCommit": "5297048",
+  "status": {
+    "apiVersion": 1,
+    "status": "ready",
+    "snapshot": {
+      "format": "sleepypod-imported-history/1",
+      "source": "free-sleep",
+      "snapshotId": "3dedf5a53cecda47fcf0147b2cd296bfed3a45f553730bb7eb61d596fc0c9627",
+      "sourceSha256": "31c8115508bf86186ade91089eaea6b9f1033d11eb62125e81433c34681011d7",
+      "timeZone": "America/Los_Angeles",
+      "importedAt": 1792951200000,
+      "sides": {
+        "left": {
+          "presence": {
+            "records": 2,
+            "readableRecords": 2,
+            "firstAt": 1792819800,
+            "lastAt": 1792906200
+          },
+          "vitals": {
+            "records": 2,
+            "readableRecords": 2,
+            "firstAt": 1792906200,
+            "lastAt": 1792906500
+          },
+          "movement": {
+            "records": 2,
+            "readableRecords": 2,
+            "firstAt": 1792906200,
+            "lastAt": 1792906500
+          }
+        },
+        "right": {
+          "presence": {
+            "records": 0,
+            "readableRecords": 0,
+            "firstAt": null,
+            "lastAt": null
+          },
+          "vitals": {
+            "records": 0,
+            "readableRecords": 0,
+            "firstAt": null,
+            "lastAt": null
+          },
+          "movement": {
+            "records": 0,
+            "readableRecords": 0,
+            "firstAt": null,
+            "lastAt": null
+          }
+        }
+      },
+      "unassignedRecords": 1
+    },
+    "message": "Synthetic imported-history example",
+    "semantics": {
+      "access": "read_only",
+      "purpose": "history_only",
+      "quality": "legacy_unqualified",
+      "presence": "bed_presence_not_sleep_stages",
+      "vitals": "five_minute_interval_start_averages",
+      "hrv": "original_estimator_definition_unverified",
+      "movement": "original_total_movement",
+      "previewEvidence": false,
+      "automationInput": false
+    }
+  },
+  "notImported": {
+    "apiVersion": 1,
+    "status": "not_imported",
+    "snapshot": null,
+    "message": "No imported archive is available.",
+    "semantics": {
+      "access": "read_only",
+      "purpose": "history_only",
+      "quality": "legacy_unqualified",
+      "presence": "bed_presence_not_sleep_stages",
+      "vitals": "five_minute_interval_start_averages",
+      "hrv": "original_estimator_definition_unverified",
+      "movement": "original_total_movement",
+      "previewEvidence": false,
+      "automationInput": false
+    }
+  },
+  "pages": {
+    "presence": {
+      "apiVersion": 1,
+      "snapshotId": "3dedf5a53cecda47fcf0147b2cd296bfed3a45f553730bb7eb61d596fc0c9627",
+      "side": "left",
+      "kind": "presence",
+      "records": [
+        {
+          "kind": "presence",
+          "id": 2,
+          "side": "left",
+          "enteredBedAt": 1792906200,
+          "leftBedAt": 1792935000,
+          "reportedDurationSeconds": 27900,
+          "exits": 1
+        }
+      ],
+      "nextCursor": "synthetic-presence-next",
+      "semantics": {
+        "access": "read_only",
+        "purpose": "history_only",
+        "quality": "legacy_unqualified",
+        "presence": "bed_presence_not_sleep_stages",
+        "vitals": "five_minute_interval_start_averages",
+        "hrv": "original_estimator_definition_unverified",
+        "movement": "original_total_movement",
+        "previewEvidence": false,
+        "automationInput": false
+      }
+    },
+    "presenceNext": {
+      "apiVersion": 1,
+      "snapshotId": "3dedf5a53cecda47fcf0147b2cd296bfed3a45f553730bb7eb61d596fc0c9627",
+      "side": "left",
+      "kind": "presence",
+      "records": [
+        {
+          "kind": "presence",
+          "id": 1,
+          "side": "left",
+          "enteredBedAt": 1792819800,
+          "leftBedAt": 1792848600,
+          "reportedDurationSeconds": null,
+          "exits": null
+        }
+      ],
+      "nextCursor": null,
+      "semantics": {
+        "access": "read_only",
+        "purpose": "history_only",
+        "quality": "legacy_unqualified",
+        "presence": "bed_presence_not_sleep_stages",
+        "vitals": "five_minute_interval_start_averages",
+        "hrv": "original_estimator_definition_unverified",
+        "movement": "original_total_movement",
+        "previewEvidence": false,
+        "automationInput": false
+      }
+    },
+    "vitals": {
+      "apiVersion": 1,
+      "snapshotId": "3dedf5a53cecda47fcf0147b2cd296bfed3a45f553730bb7eb61d596fc0c9627",
+      "side": "left",
+      "kind": "vitals",
+      "records": [
+        {
+          "kind": "vitals",
+          "id": 2,
+          "side": "left",
+          "timestamp": 1792906500,
+          "heartRateBpm": 58,
+          "hrvEstimateMs": 41,
+          "breathingRatePerMinute": 14
+        },
+        {
+          "kind": "vitals",
+          "id": 1,
+          "side": "left",
+          "timestamp": 1792906200,
+          "heartRateBpm": null,
+          "hrvEstimateMs": 39,
+          "breathingRatePerMinute": null
+        }
+      ],
+      "nextCursor": null,
+      "semantics": {
+        "access": "read_only",
+        "purpose": "history_only",
+        "quality": "legacy_unqualified",
+        "presence": "bed_presence_not_sleep_stages",
+        "vitals": "five_minute_interval_start_averages",
+        "hrv": "original_estimator_definition_unverified",
+        "movement": "original_total_movement",
+        "previewEvidence": false,
+        "automationInput": false
+      }
+    },
+    "movement": {
+      "apiVersion": 1,
+      "snapshotId": "3dedf5a53cecda47fcf0147b2cd296bfed3a45f553730bb7eb61d596fc0c9627",
+      "side": "left",
+      "kind": "movement",
+      "records": [
+        {
+          "kind": "movement",
+          "id": 2,
+          "side": "left",
+          "timestamp": 1792906500,
+          "totalMovement": 24
+        },
+        {
+          "kind": "movement",
+          "id": 1,
+          "side": "left",
+          "timestamp": 1792906200,
+          "totalMovement": null
+        }
+      ],
+      "nextCursor": null,
+      "semantics": {
+        "access": "read_only",
+        "purpose": "history_only",
+        "quality": "legacy_unqualified",
+        "presence": "bed_presence_not_sleep_stages",
+        "vitals": "five_minute_interval_start_averages",
+        "hrv": "original_estimator_definition_unverified",
+        "movement": "original_total_movement",
+        "previewEvidence": false,
+        "automationInput": false
+      }
+    }
+  },
+  "detail": {
+    "apiVersion": 1,
+    "snapshotId": "3dedf5a53cecda47fcf0147b2cd296bfed3a45f553730bb7eb61d596fc0c9627",
+    "record": {
+      "kind": "presence",
+      "id": 2,
+      "side": "left",
+      "enteredBedAt": 1792906200,
+      "leftBedAt": 1792935000,
+      "reportedDurationSeconds": 27900,
+      "exits": 1
+    },
+    "present": {
+      "status": "available",
+      "intervals": [
+        [
+          1792906200,
+          1792913400
+        ],
+        [
+          1792914000,
+          1792935000
+        ]
+      ],
+      "coveredSeconds": 28200
+    },
+    "absent": {
+      "status": "available",
+      "intervals": [
+        [
+          1792913400,
+          1792914000
+        ]
+      ],
+      "coveredSeconds": 600
+    },
+    "rawPresentIntervals": "[[1792906200,1792913400],[1792914000,1792935000]]",
+    "rawAbsentIntervals": "[[1792913400,1792914000]]",
+    "semantics": {
+      "access": "read_only",
+      "purpose": "history_only",
+      "quality": "legacy_unqualified",
+      "presence": "bed_presence_not_sleep_stages",
+      "vitals": "five_minute_interval_start_averages",
+      "hrv": "original_estimator_definition_unverified",
+      "movement": "original_total_movement",
+      "previewEvidence": false,
+      "automationInput": false
+    }
+  }
+}
