@@ -290,6 +290,11 @@ struct AllSettingsScreen: View {
                         }
                         PodFeatureLink(.home, icon: "house", tile: true)
                         if APIBackend.current != .freeSleep {
+                            NavigationLink { NativeCommandHistoryScreen() } label: {
+                                SettingsRow("Command history", icon: "clock.arrow.circlepath", tile: true, chevron: true)
+                            }.accessibilityIdentifier("settings.commandHistory")
+                        }
+                        if APIBackend.current != .freeSleep {
                             NavigationLink { HomeRoomScreen() } label: {
                                 SettingsRow("Room sensors", icon: "house", tile: true, chevron: true)
                             }.accessibilityIdentifier("settings.room")

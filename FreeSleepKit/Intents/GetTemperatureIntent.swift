@@ -6,7 +6,9 @@ struct GetTemperatureIntent: AppIntent {
     @Parameter(title: "Side", default: .left) var side: BedSide
     @Parameter(title: "Reading", default: .current) var reading: TemperatureReading
     static var parameterSummary: some ParameterSummary { Summary("Get the \(\.$side) bed’s \(\.$reading) temperature in Fahrenheit") }
+    @Dependency(default: NativePodActionBridge.unavailable) var nativeActions: NativePodActionBridge
     func perform() async throws -> some IntentResult & ReturnsValue<Double> {
-        .result(value: try await PodActions.temperature(side: side, reading: reading))
+        if AppMode.isCore { return .result(value: try await nativeActions.number(.readTemperature(side: side.rawValue, current: reading == .current))) }
+        return .result(value: try await PodActions.temperature(side: side, reading: reading))
     }
 }

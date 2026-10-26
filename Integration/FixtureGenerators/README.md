@@ -54,3 +54,15 @@ PATH=/opt/homebrew/opt/node@24/bin:$PATH ../sleepypod-core/node_modules/.bin/tsx
 ```
 
 Use a clean Core checkout. An optional third argument selects another output file. The generator resolves Core's CommonJS dependencies through its own package and reads its checked-in migrations. Core generates fresh revision IDs; compare semantics before replacing the example, then run `NextAlarmTests` and `NextAlarmRESTTests`. Synthetic examples cannot establish physical vibration or timer delivery.
+
+## Immediate control receipts
+
+`generate-control-receipts.ts` runs Core's actual receipt store and service in a fresh migrated in-memory database, with simulated dispatch barriers and no hardware transport. It captures all six outcomes plus the accepted action shapes. The retained fixture records Core `ccafceb96fbba31b5a38153958962fc7a88a968c`.
+
+```sh
+PATH=/opt/homebrew/opt/node@24/bin:$PATH ../sleepypod-core/node_modules/.bin/tsx \
+  --tsconfig ../sleepypod-core/tsconfig.json \
+  Integration/FixtureGenerators/generate-control-receipts.ts ../sleepypod-core
+```
+
+Use a clean Core checkout; an optional third argument selects another output. UUIDs are generated afresh, so compare semantic fields before replacing the fixture. `NativeControlTests` checks every retained outcome and action; simulator receipt examples are explicitly labelled and cannot dispatch hardware commands.

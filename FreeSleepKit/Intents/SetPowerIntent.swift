@@ -5,7 +5,9 @@ struct SetPowerIntent: AppIntent {
     @Parameter(title: "Side", default: .left) var side: BedSide
     @Parameter(title: "Turn on", default: true) var enabled: Bool
     static var parameterSummary: some ParameterSummary { Summary("Set \(\.$side) bed power to \(\.$enabled)") }
+    @Dependency(default: NativePodActionBridge.unavailable) var nativeActions: NativePodActionBridge
     func perform() async throws -> some IntentResult & ProvidesDialog {
+        if AppMode.isCore { return .result(dialog: IntentDialog(stringLiteral: try await nativeActions.message(.power(side: side.rawValue, enabled: enabled)))) }
         try await PodActions.client().post("deviceStatus", body: [side.rawValue: ["isOn": enabled]])
         return .result(dialog: "Your bed power command was sent.")
     }

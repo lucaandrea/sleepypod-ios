@@ -6,7 +6,9 @@ struct SetBaseAnglesIntent: AppIntent {
     @Parameter(title: "Head degrees", default: 0) var head: Int
     @Parameter(title: "Feet degrees", default: 0) var feet: Int
     static var parameterSummary: some ParameterSummary { Summary("Move the whole bed to head \(\.$head)° and feet \(\.$feet)°") }
+    @Dependency(default: NativePodActionBridge.unavailable) var nativeActions: NativePodActionBridge
     func perform() async throws -> some IntentResult & ProvidesDialog {
+        if AppMode.isCore { return .result(dialog: IntentDialog(stringLiteral: try await nativeActions.message(.position(head: head, feet: feet)))) }
         guard (0...60).contains(head), (0...45).contains(feet) else { throw PodError.message("Head must be 0–60° and feet 0–45°.") }
         try await PodActions.client().post("base/position", body: ["head": head, "feet": feet, "speed": 50])
         return .result(dialog: "The position command was sent to your base.")

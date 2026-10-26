@@ -1,0 +1,201 @@
+{
+  "synthetic": true,
+  "sourceCommit": "ccafceb96fbba31b5a38153958962fc7a88a968c",
+  "cases": {
+    "acknowledged": {
+      "request": {
+        "requestId": "11330e32-5987-4c29-b95d-30247903436b",
+        "issuedAt": 1793016000000,
+        "expiresAt": 1793016030000,
+        "action": {
+          "kind": "base.stop"
+        }
+      },
+      "receipt": {
+        "version": 1,
+        "requestId": "11330e32-5987-4c29-b95d-30247903436b",
+        "action": {
+          "kind": "base.stop"
+        },
+        "issuedAt": 1793016000000,
+        "expiresAt": 1793016030000,
+        "receivedAt": 1793016000000,
+        "finishedAt": 1793016000000,
+        "lastDispatchAt": 1793016000000,
+        "state": "acknowledged",
+        "reason": null,
+        "dispatchCount": 1,
+        "physicalVerification": "unverified",
+        "replayAllowed": false
+      }
+    },
+    "unknown": {
+      "request": {
+        "requestId": "909526c3-7fed-4326-81cc-424694b8a900",
+        "issuedAt": 1793016000000,
+        "expiresAt": 1793016030000,
+        "action": {
+          "kind": "base.stop"
+        }
+      },
+      "receipt": {
+        "version": 1,
+        "requestId": "909526c3-7fed-4326-81cc-424694b8a900",
+        "action": {
+          "kind": "base.stop"
+        },
+        "issuedAt": 1793016000000,
+        "expiresAt": 1793016030000,
+        "receivedAt": 1793016000000,
+        "finishedAt": 1793016000000,
+        "lastDispatchAt": 1793016000000,
+        "state": "unknown",
+        "reason": "dispatch_outcome_unknown",
+        "dispatchCount": 1,
+        "physicalVerification": "unverified",
+        "replayAllowed": false
+      }
+    },
+    "not_dispatched": {
+      "request": {
+        "requestId": "9fbe4717-4abf-4aff-bf90-b183df0e4f71",
+        "issuedAt": 1793016000000,
+        "expiresAt": 1793016030000,
+        "action": {
+          "kind": "base.stop"
+        }
+      },
+      "receipt": {
+        "version": 1,
+        "requestId": "9fbe4717-4abf-4aff-bf90-b183df0e4f71",
+        "action": {
+          "kind": "base.stop"
+        },
+        "issuedAt": 1793016000000,
+        "expiresAt": 1793016030000,
+        "receivedAt": 1793016000000,
+        "finishedAt": 1793016000000,
+        "lastDispatchAt": null,
+        "state": "not_dispatched",
+        "reason": "no_hardware_write",
+        "dispatchCount": 0,
+        "physicalVerification": "unverified",
+        "replayAllowed": false
+      }
+    },
+    "rejected": {
+      "request": {
+        "requestId": "665dff0b-f31d-4f9f-b94d-db1a3d0733c4",
+        "issuedAt": 1793016000000,
+        "expiresAt": 1793016030000,
+        "action": {
+          "kind": "base.stop"
+        }
+      },
+      "receipt": {
+        "version": 1,
+        "requestId": "665dff0b-f31d-4f9f-b94d-db1a3d0733c4",
+        "action": {
+          "kind": "base.stop"
+        },
+        "issuedAt": 1793016000000,
+        "expiresAt": 1793016030000,
+        "receivedAt": 1793015999999,
+        "finishedAt": 1793015999999,
+        "lastDispatchAt": null,
+        "state": "rejected",
+        "reason": "issued_in_future",
+        "dispatchCount": 0,
+        "physicalVerification": "unverified",
+        "replayAllowed": false
+      }
+    },
+    "expired": {
+      "request": {
+        "requestId": "f670e9bb-d41f-464f-a22d-e6f97e0de139",
+        "issuedAt": 1793016000000,
+        "expiresAt": 1793016030000,
+        "action": {
+          "kind": "base.stop"
+        }
+      },
+      "receipt": {
+        "version": 1,
+        "requestId": "f670e9bb-d41f-464f-a22d-e6f97e0de139",
+        "action": {
+          "kind": "base.stop"
+        },
+        "issuedAt": 1793016000000,
+        "expiresAt": 1793016030000,
+        "receivedAt": 1793016030000,
+        "finishedAt": 1793016030000,
+        "lastDispatchAt": null,
+        "state": "expired",
+        "reason": "request_expired",
+        "dispatchCount": 0,
+        "physicalVerification": "unverified",
+        "replayAllowed": false
+      }
+    },
+    "executing": {
+      "request": {
+        "requestId": "e42e28b6-0cf0-4a47-97ac-f7254f255c58",
+        "issuedAt": 1793016000000,
+        "expiresAt": 1793016030000,
+        "action": {
+          "kind": "base.stop"
+        }
+      },
+      "receipt": {
+        "version": 1,
+        "requestId": "e42e28b6-0cf0-4a47-97ac-f7254f255c58",
+        "action": {
+          "kind": "base.stop"
+        },
+        "issuedAt": 1793016000000,
+        "expiresAt": 1793016030000,
+        "receivedAt": 1793016000000,
+        "finishedAt": null,
+        "lastDispatchAt": 1793016000000,
+        "state": "executing",
+        "reason": null,
+        "dispatchCount": 1,
+        "physicalVerification": "unverified",
+        "replayAllowed": false
+      }
+    }
+  },
+  "actions": [
+    {
+      "kind": "temperature",
+      "side": "left",
+      "temperature": 68,
+      "holdMinutes": 30
+    },
+    {
+      "kind": "power",
+      "side": "right",
+      "powered": false
+    },
+    {
+      "kind": "vibration",
+      "side": "left",
+      "intensity": 50,
+      "pattern": "rise",
+      "duration": 30
+    },
+    {
+      "kind": "vibration.clear",
+      "side": "right"
+    },
+    {
+      "kind": "base.position",
+      "head": 30,
+      "feet": 15,
+      "feedRate": 50
+    },
+    {
+      "kind": "base.stop"
+    }
+  ]
+}

@@ -103,7 +103,7 @@ Each item needs source/API coverage, accessible native UI, loading/error/offline
 
 - [x] Full native morning journal: both sides, Pod wake dates, private notes, saved-entry conflicts, deletion and source-separated presence patterns. Implementation/validation: `MORNING_JOURNAL_AUDIT.md`.
 - [x] One-occurrence wake controls: exact revision-bound skip/time/restore; weekly schedules remain separate. Accepted Core contract is main `f0c40fa`, `docs/NEXT_ALARMS.md`; focused tests and phone/iPad/maximum-text flows pass (`NEXT_ALARM_AUDIT.md`).
-- [ ] Map personal App Intents to accepted Core controls/receipts, including atomic comfort modes; retain explicit errors for unsupported routes.
+- [x] Map personal App Intents to accepted Core controls/receipts, including atomic comfort modes; retain explicit errors for unsupported routes. See `PERSONAL_ACTIONS_AUDIT.md`; Health and summary intents remain with their separate integration items below.
 - [ ] Consolidate Core Health export through one writer, preserving selective consent, disjoint bed presence, source-qualified samples and the promised Shortcut window.
 - [ ] Reconcile personal reports/coach with Core's actual bounded source data and the existing reviewed local/cloud intelligence path.
 - [ ] Provision the ESP with the final live Core LAN endpoint/key and verify read-only live status after the owned controller cutover. Wi-Fi and Preview-off are already confirmed.

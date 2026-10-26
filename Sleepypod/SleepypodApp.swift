@@ -21,6 +21,7 @@ struct SleepypodApp: App {
     @State private var notificationRelay = NotificationRelay()
     @State private var alertInbox = AlertInboxSession()
     @State private var homeRoom = HomeRoomSession()
+    @State private var nativeActions: NativeActionSession
     @State private var healthSync: HealthSyncService
     @State private var stageModels: StageModelStore
     @State private var watchMotion = WatchMotionReceiver()
@@ -54,6 +55,10 @@ struct SleepypodApp: App {
         health.stageModels = models
         _stageModels = State(initialValue: models)
         _healthSync = State(initialValue: health)
+        let actions = NativeActionSession.configured()
+        _nativeActions = State(initialValue: actions)
+        let bridge = actions.bridge
+        AppDependencyManager.shared.add(dependency: bridge)
     }
 
     var body: some Scene {
@@ -73,6 +78,7 @@ struct SleepypodApp: App {
                 .environment(alertInbox)
                 .environment(homeRoom)
                 .environment(healthSync)
+                .environment(nativeActions)
                 .environment(stageModels)
                 .environment(watchMotion)
                 .environment(snoreCapture)
