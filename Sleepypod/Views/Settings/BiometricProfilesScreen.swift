@@ -15,6 +15,7 @@ struct BiometricProfilesScreen: View {
                 if let model {
                     if APIBackend.current.isDemo { Text("Demo · profile changes stay in memory. No processor or validation evidence is simulated.").font(.footnote).foregroundStyle(Theme.text2) }
                     GroupedCard {
+                        NavigationLink { BiometricBacktestsScreen(side: model.side) } label: { SettingsRow("Backtests", icon: "chart.xyaxis.line", tile: true, chevron: true) }.accessibilityIdentifier("profiles.backtests")
                         NavigationLink { BiometricReferencesScreen(side: model.side) } label: { SettingsRow("References", icon: "doc.text.magnifyingglass", tile: true, chevron: true) }.accessibilityIdentifier("profiles.references")
                         NavigationLink { BiometricProfileLibraryScreen(model: model) } label: { SettingsRow("Profiles", icon: "slider.horizontal.3", tile: true, chevron: true) }.accessibilityIdentifier("profiles.library")
                         NavigationLink { BiometricProfileHistoryScreen(model: model) } label: { SettingsRow("History", icon: "clock", tile: true, chevron: true) }.accessibilityIdentifier("profiles.history")
