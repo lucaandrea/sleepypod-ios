@@ -276,6 +276,17 @@ struct AllSettingsScreen: View {
                             SettingsRow("Pod connection", icon: "network", tile: true, chevron: true)
                         }
                         PodFeatureLink(.home, icon: "house", tile: true)
+                        if APIBackend.current != .freeSleep {
+                            NavigationLink { HomeKitBridgeScreen() } label: {
+                                SettingsRow("HomeKit bridge", icon: "house", tile: true, chevron: true)
+                            }.accessibilityIdentifier("settings.homekitBridge")
+                            NavigationLink { MQTTSettingsScreen() } label: {
+                                SettingsRow("MQTT", icon: "antenna.radiowaves.left.and.right", tile: true, chevron: true)
+                            }.accessibilityIdentifier("settings.mqtt")
+                            NavigationLink { NetworkSettingsScreen() } label: {
+                                SettingsRow("Network", icon: "globe", tile: true, chevron: true)
+                            }.accessibilityIdentifier("settings.network")
+                        }
                     }
                 }
 
