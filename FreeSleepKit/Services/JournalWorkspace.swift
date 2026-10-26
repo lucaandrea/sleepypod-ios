@@ -27,16 +27,22 @@ final class JournalWorkspace {
             return (entry, presence)
         }
         let habits: [(String, KeyPath<JournalEntry, Bool>)] = [("caffeine", \.caffeine), ("alcohol", \.alcohol), ("exercise", \.exercise)]
-        let associations: [Journal.Patterns.Association] = habits.compactMap { name, property in
-            let withHabit = matches.filter { $0.0[keyPath: property] }; let withoutHabit = matches.filter { !$0.0[keyPath: property] }
-            guard withHabit.count >= 5, withoutHabit.count >= 5 else { return nil }
-            let difference = withHabit.reduce(0) { $0 + $1.1 } / Double(withHabit.count)
-                - withoutHabit.reduce(0) { $0 + $1.1 } / Double(withoutHabit.count)
-            return .init(habit: name, withCount: withHabit.count, withoutCount: withoutHabit.count,
-                         presenceDifferenceMinutes: Int(floor(difference + 0.5)))
-        }
+        let associations = habits.compactMap { habit in Self.association(name: habit.0, property: habit.1, matches: matches) }
         return Journal(entries: Array(entries), selectedDate: date, selected: demoEntries[key], timeZone: "America/Los_Angeles",
                        patterns: .init(associations: associations, note: Journal.patternNote))
+    }
+    /// Keep the two sample means explicit for older Swift type-checkers; retain the five-per-group threshold.
+    private static func association(name: String, property: KeyPath<JournalEntry, Bool>,
+                                    matches: [(JournalEntry, Double)]) -> Journal.Patterns.Association? {
+        let withHabit = matches.filter { $0.0[keyPath: property] }
+        let withoutHabit = matches.filter { !$0.0[keyPath: property] }
+        guard withHabit.count >= 5, withoutHabit.count >= 5 else { return nil }
+        let withTotal: Double = withHabit.reduce(0.0) { total, match in total + match.1 }
+        let withoutTotal: Double = withoutHabit.reduce(0.0) { total, match in total + match.1 }
+        let withMean = withTotal / Double(withHabit.count)
+        let withoutMean = withoutTotal / Double(withoutHabit.count)
+        return .init(habit: name, withCount: withHabit.count, withoutCount: withoutHabit.count,
+                     presenceDifferenceMinutes: Int(floor(withMean - withoutMean + 0.5)))
     }
 }
 

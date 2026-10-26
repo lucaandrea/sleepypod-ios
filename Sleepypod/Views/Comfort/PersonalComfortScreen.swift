@@ -49,12 +49,12 @@ struct PersonalComfortScreen: View {
                                 ComfortValueRow("Comfort range", value: "\(state.config.minimumF)–\(state.config.maximumF)°F")
                                 Button("Edit Preview settings") { editor = .init(original: state.config, features: status.features) }.accessibilityIdentifier("comfort.configure")
                                 if state.config.mode == "preview" {
-                                    Button("Stop Preview") { var draft = state.config.editable; draft.mode = "off"; Task { _ = await model.save(draft, original: state.config) } }
+                                    Button("Stop Preview") { Task { _ = await model.stopPreview() } }
                                         .accessibilityIdentifier("comfort.stop")
                                 }
                                 if state.pausedUntil > status.generatedAt { Text("Manual pause until \(PersonalComfortDates.clock(state.pausedUntil, timezone: status.timezone)).").font(.footnote) }
                             }.padding(16).frame(maxWidth: .infinity, alignment: .leading)
-                        }.disabled(model.saving || model.loading)
+                        }.disabled(model.saving || model.loading || model.requiresReload)
                         if state.config.sensorAware == true { PersonalComfortSignalsCard(signals: status.signals) }
                         if state.config.followBedtime == true { timingCard(status) }
                     }

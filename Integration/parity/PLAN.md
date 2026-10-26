@@ -44,10 +44,10 @@ Each item needs source/API coverage, accessible native UI, loading/error/offline
 
 ### Sleep and biometrics
 
-- [ ] Night/week/month navigation, side selection, summaries and stage lanes; sleep record time edits/deletion.
-- [ ] Vitals, HRV, breathing and movement charts with zoom/pan, gaps and raw-record inspection/export.
-- [ ] Apple Watch/reference comparison, source distinctions and supported file import/export workflows.
-- [ ] Audit web sleep-stage source/model/profile controls against existing local analysis; implement missing remote operations without misrepresenting model qualification.
+- [x] Night/week/month navigation, side selection, summaries and stage lanes; sleep record time edits/deletion. `SLEEP_VALIDATION.md` records the implemented flows and final phone/iPad/maximum-text evidence.
+- [x] Vitals, HRV, breathing and movement charts with zoom/pan, gaps and raw-record inspection/export. Source/gap-aware charts and bounded exports are recorded in `SLEEP_VALIDATION.md`; large real transfers remain final integration checks.
+- [x] Apple Watch/reference comparison, source distinctions and supported file import/export workflows. See `SLEEP_VALIDATION.md` and `BIOMETRIC_REFERENCES_AUDIT.md`; Health-store authorization/write validation remains separate.
+- [x] Audit web sleep-stage source/model/profile controls against existing local analysis; implement missing remote operations without misrepresenting model qualification. See `STAGE_MODEL_ALIGNMENT.md` and the biometric profile/dataset/experiment/job/report/application/observation audits, merged through PR #26.
 
 ### Autopilot
 
@@ -98,6 +98,15 @@ Each item needs source/API coverage, accessible native UI, loading/error/offline
 - [ ] In **Safari**, confirm the new build in App Store Connect, assign Free Sleep Internal and individual ciao@luca.ooo, and verify processing/testing status.
 - [ ] Publish truthful final evidence and copyable commit title/description; do not claim physical Pod behavior from fixtures.
 - [ ] Owner's 2026-10-25 follow-up: finish and validate this effort's branches/PRs, then merge into the owner's `main`; coordinate outstanding Core work with its owning chat. Do not leave delivery on an unmerged feature branch.
+
+### Personal integrations and final controller adoption
+
+- [x] Full native morning journal: both sides, Pod wake dates, private notes, saved-entry conflicts, deletion and source-separated presence patterns. Implementation/validation: `MORNING_JOURNAL_AUDIT.md`.
+- [ ] One-occurrence wake controls: exact revision-bound skip/time/restore; weekly schedules remain separate. Accepted Core contract is main `f0c40fa`, `docs/NEXT_ALARMS.md`.
+- [ ] Map personal App Intents to accepted Core controls/receipts, including atomic comfort modes; retain explicit errors for unsupported routes.
+- [ ] Consolidate Core Health export through one writer, preserving selective consent, disjoint bed presence, source-qualified samples and the promised Shortcut window.
+- [ ] Reconcile personal reports/coach with Core's actual bounded source data and the existing reviewed local/cloud intelligence path.
+- [ ] Provision the ESP with the final live Core LAN endpoint/key and verify read-only live status after the owned controller cutover. Wi-Fi and Preview-off are already confirmed.
 
 ## Current implementation evidence
 
@@ -159,3 +168,5 @@ Personal comfort and bedtime routines PR #30 passed all four GitHub checks (run 
 Alarm context and curve recovery PR #31 passed all four GitHub checks (run `40317013222`) and merged into owner main at `cab5202be577ec9ffd898c3af02d05ed4eb2087b` on October 26. Its branch is removed. Native imported history is implemented against Core `5297048`, with source-labelled read-only browsing, preserved interval evidence, source-aware paging and accessible navigation (`IMPORTED_HISTORY_AUDIT.md`). CI/merge and the remaining personal integrations, Autopilot reconciliation and release checks are still in progress.
 
 Imported history PR #32 passed all four GitHub checks (run `40319708069`) and merged into owner main at `7d1efb59acca9ace94033c3c367b23b1a7be971d` on October 26. Its feature branch is removed. Autopilot diagnostics and uncertain-save recovery are tracked in `AUTOPILOT_DIAGNOSTICS_AUDIT.md`; the journal, personal API/Shortcuts, Health consolidation and final release validation remain in progress.
+
+Autopilot diagnostics and save recovery PR #33 passed all four GitHub checks (run `40324282986`) and merged into owner main at `b889a208cfdc1c8795bba81acfac5d79c6c3a8ce` on October 26. Its feature branch is removed. The Xcode 26 compiler workaround and local evidence are in `AUTOPILOT_DIAGNOSTICS_AUDIT.md`.

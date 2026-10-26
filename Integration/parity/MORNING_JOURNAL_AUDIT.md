@@ -1,0 +1,32 @@
+# Native morning journal and atomic comfort mode
+
+This adopts the accepted Core journal and mode-only contracts at `7e373fae2b733709453a8f190dc578d30770d2ff`, retained in Core main `f0c40fabe7f040d8ed35ff6eba0e44d28dc75f1a`. It preserves Sleepypod grouped cards and native controls. It does not establish physical-device behavior or a TestFlight release.
+
+## Contract and presentation
+
+The Sleep personal-tools menu and Settings journal link open the native journal for Core. Wake dates use the Pod timezone; both physical sides remain available while a sleeper is away. Entries include restfulness, temperature comfort, caffeine, alcohol, exercise and private notes. Date and pattern-window controls, source-labelled saved entries, deletion and source-separated bed-presence associations use the accepted versioned REST routes.
+
+The checked-in synthetic fixture was generated using the actual Core journal schema and pattern function. It includes fourteen dates and separate current-controller/imported cohorts. A habit comparison requires five dates with and five without the habit in one source/timezone. Bed presence is not sleep duration or causal evidence; notes are excluded. Ordinary Demo starts with no journal history. Synthetic history is selected only for explicit debug examples, and edits do not manufacture new presence evidence.
+
+The client verifies capabilities and fixed route identities, keeps requests out of caches, bounds payloads and does not forward private error bodies. Save and deletion send explicit nullable fields and the exact original revision. Deletion retains the server tombstone, preventing stale recreation. UTF-16 note length follows the Core contract rather than Swift grapheme count.
+
+## Drafts and recovery
+
+Each side/date has a separate in-memory draft. Connection changes clear drafts and ignore old responses. Backgrounding invalidates pending UI operations. An unconfirmed mutation blocks retry until a fresh read; matching saved values can be adopted without a resend. Edits made after an uncertain response remain unsaved drafts even when the earlier change is recovered. Conflicts show saved values alongside the retained draft, and the user explicitly chooses which to keep before another save.
+
+The atomic comfort mode endpoint changes only Off/Preview. Stopping Preview no longer resends a stale configuration when the controller advertises mode-only support. A lost mode response requires explicit readback. Older controllers retain the existing preflight-checked compatibility path.
+
+## Validation
+
+- Initial compile attempts corrected a duplicated protocol declaration and an unsupported UI query property. Strict lint then passed with zero violations across 435 files.
+- `Journal-unit-v3.xcresult`: all journal checks and existing comfort regressions passed. The mode-only preservation case exposed Swift choosing the protocol's async default instead of Demo's synchronous actor method; the Demo method now explicitly matches the async requirement.
+- `Journal-phone-v4.xcresult`: all 28 focused checks passed, covering source-generated patterns, Pod calendar/DST dates, UTF-16 bounds, exact routes/bodies, per-side/date drafts, CAS/delete tombstones, uncertain readback including newer edits, and owner/cancellation boundaries. Empty/offline UI passed. The recovery UI test lost an offscreen comparison; the screen now scrolls save notices/errors to the top, and tests search upward for previously displayed controls. The remaining obsolete scrolling run was interrupted after this defect was identified.
+- The follow-up UI pass identified a container accessibility identifier masking the comparison buttons; it was removed without changing layout. The note-replacement test now selects all existing text instead of assuming cursor-arrow handling. These failed/interrupted runs are retained as diagnostics, not counted as successful flows.
+- `Journal-phone-v6.xcresult`: all five atomic comfort mode checks pass, including a sent request cancelled before its response. Across the focused bundles, 29 distinct journal/comfort checks pass. Final iPhone/iPad/maximum-text interaction validation is in progress. No personal journal data, Health writes, AI calls, home commands or physical Pod mutations were used for synthetic validation.
+- `Journal-phone-v7/v8.xcresult`: recovery, the complete patterns/draft/save/history/delete flow, and the existing personal-comfort Stop Preview flow pass. The earlier v6 empty/offline pass completes the phone coverage.
+- `Journal-ipad-v10.xcresult`: all three journal flows pass in Light appearance; fourteen captures retained. The v9 test assumed the iPad submenu item was a button, then was interrupted after identifying that query issue. The final query also accepts the system menu item.
+- Maximum accessibility text exposed the compact date row exceeding the card width. Accessibility layouts now put the Wake date label above the picker. The note field uses a bounded height and a keyboard Done control. The v11 text-selection failure came from the system menu paginating Select All; the UI helper now follows its Next Page control. Final large-text verification is pending.
+- `Journal-accessibility-v13.xcresult`: all three flows pass at the largest accessibility size (327.9 seconds). Fourteen captures were reviewed; the date picker stays inside its card and the note keyboard has a reachable Done action. The v12 run was interrupted when its test kept scrolling with the keyboard open; the final test uses Done before seeking Save.
+- `previews/morning-journal/` retains 42 captures across phone dark, iPad light and maximum text. The source-generated journal fixture reproduces exactly at Core `f0c40fa`, excluding its earlier provenance header; `Integration/FixtureGenerators/generate-morning-journal.ts` is retained for regeneration. Strict lint, the compiled-presentation guard and whitespace checks pass.
+- Selecting a historical wake date now scrolls to its editor instead of leaving the user down in the history list. The final phone navigation regression is recorded below after completion.
+- `Journal-phone-v14.xcresult`: the final phone patterns/draft/save/history/delete flow passes after adding scroll-to-editor when the wake date changes. Its seven captures replace the earlier matching phone views. The app remains 0.2.0 (7); release and physical-controller verification remain separate.

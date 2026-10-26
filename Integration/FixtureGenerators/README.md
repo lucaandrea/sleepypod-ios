@@ -30,3 +30,15 @@ TZ=America/Los_Angeles ../sleepypod-core/node_modules/.bin/tsx --tsconfig "$SNAP
 ```
 
 The timezone is explicit because the web's pure grouping helper accepts a browser-local `Date`; native tests apply the corresponding Pod timezone. `ScheduleCurveAlgorithmTests` checks every generated minute, temperature, converted clock and simplified point. `NightPhaseParityTests` checks the literal phase/shift/template payloads and separately verifies native conflict/readback safeguards.
+
+## Morning journal
+
+`generate-morning-journal.ts` creates fourteen synthetic check-ins through Core's strict page schema and actual habit/presence calculation. It separates controller and imported cohorts, excludes note text from patterns, and performs no database or network operations. Use a clean Core checkout; the output records its commit. The retained fixture was generated against `7e373fae2b733709453a8f190dc578d30770d2ff`.
+
+```sh
+PATH=/opt/homebrew/opt/node@24/bin:$PATH ../sleepypod-core/node_modules/.bin/tsx \
+  --tsconfig ../sleepypod-core/tsconfig.json \
+  Integration/FixtureGenerators/generate-morning-journal.ts ../sleepypod-core
+```
+
+An optional third argument chooses another output file. Regeneration may update source provenance; review the resulting JSON and run `MorningJournalTests` and `MorningJournalRESTTests` before replacing the retained example.

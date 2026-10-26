@@ -1,0 +1,395 @@
+{
+  "synthetic": true,
+  "sourceCommit": "7e373fae2b733709453a8f190dc578d30770d2ff",
+  "page": {
+    "apiVersion": 1,
+    "side": "left",
+    "timeZone": "America/Los_Angeles",
+    "deviceDate": "2026-10-25",
+    "from": "2026-09-26",
+    "through": "2026-10-25",
+    "selected": {
+      "side": "left",
+      "date": "2026-10-25",
+      "revision": "10000000-0000-4000-8000-000000000001",
+      "record": {
+        "side": "left",
+        "date": "2026-10-25",
+        "fields": {
+          "restfulness": 3,
+          "comfort": "warm",
+          "caffeine": true,
+          "alcohol": false,
+          "exercise": false,
+          "notes": "Synthetic check-in for native interface testing."
+        },
+        "timeZone": "America/Los_Angeles",
+        "origin": "sleepypod",
+        "createdAt": 1792940400000,
+        "updatedAt": 1792940400000,
+        "importedAt": null
+      }
+    },
+    "entries": [
+      {
+        "side": "left",
+        "date": "2026-10-25",
+        "revision": "10000000-0000-4000-8000-000000000001",
+        "record": {
+          "side": "left",
+          "date": "2026-10-25",
+          "fields": {
+            "restfulness": 3,
+            "comfort": "warm",
+            "caffeine": true,
+            "alcohol": false,
+            "exercise": false,
+            "notes": "Synthetic check-in for native interface testing."
+          },
+          "timeZone": "America/Los_Angeles",
+          "origin": "sleepypod",
+          "createdAt": 1792940400000,
+          "updatedAt": 1792940400000,
+          "importedAt": null
+        }
+      },
+      {
+        "side": "left",
+        "date": "2026-10-24",
+        "revision": "10000000-0000-4000-8000-000000000002",
+        "record": {
+          "side": "left",
+          "date": "2026-10-24",
+          "fields": {
+            "restfulness": 4,
+            "comfort": "comfortable",
+            "caffeine": false,
+            "alcohol": false,
+            "exercise": true,
+            "notes": ""
+          },
+          "timeZone": "America/Los_Angeles",
+          "origin": "sleepypod",
+          "createdAt": 1792854000000,
+          "updatedAt": 1792854000000,
+          "importedAt": null
+        }
+      },
+      {
+        "side": "left",
+        "date": "2026-10-23",
+        "revision": "10000000-0000-4000-8000-000000000003",
+        "record": {
+          "side": "left",
+          "date": "2026-10-23",
+          "fields": {
+            "restfulness": 5,
+            "comfort": "comfortable",
+            "caffeine": true,
+            "alcohol": false,
+            "exercise": false,
+            "notes": ""
+          },
+          "timeZone": "America/Los_Angeles",
+          "origin": "sleepypod",
+          "createdAt": 1792767600000,
+          "updatedAt": 1792767600000,
+          "importedAt": null
+        }
+      },
+      {
+        "side": "left",
+        "date": "2026-10-22",
+        "revision": "10000000-0000-4000-8000-000000000004",
+        "record": {
+          "side": "left",
+          "date": "2026-10-22",
+          "fields": {
+            "restfulness": 3,
+            "comfort": "warm",
+            "caffeine": false,
+            "alcohol": false,
+            "exercise": true,
+            "notes": ""
+          },
+          "timeZone": "America/Los_Angeles",
+          "origin": "sleepypod",
+          "createdAt": 1792681200000,
+          "updatedAt": 1792681200000,
+          "importedAt": null
+        }
+      },
+      {
+        "side": "left",
+        "date": "2026-10-21",
+        "revision": "10000000-0000-4000-8000-000000000005",
+        "record": {
+          "side": "left",
+          "date": "2026-10-21",
+          "fields": {
+            "restfulness": 4,
+            "comfort": "comfortable",
+            "caffeine": true,
+            "alcohol": false,
+            "exercise": false,
+            "notes": ""
+          },
+          "timeZone": "America/Los_Angeles",
+          "origin": "sleepypod",
+          "createdAt": 1792594800000,
+          "updatedAt": 1792594800000,
+          "importedAt": null
+        }
+      },
+      {
+        "side": "left",
+        "date": "2026-10-20",
+        "revision": "10000000-0000-4000-8000-000000000006",
+        "record": {
+          "side": "left",
+          "date": "2026-10-20",
+          "fields": {
+            "restfulness": 5,
+            "comfort": "comfortable",
+            "caffeine": false,
+            "alcohol": false,
+            "exercise": true,
+            "notes": ""
+          },
+          "timeZone": "America/Los_Angeles",
+          "origin": "sleepypod",
+          "createdAt": 1792508400000,
+          "updatedAt": 1792508400000,
+          "importedAt": null
+        }
+      },
+      {
+        "side": "left",
+        "date": "2026-10-19",
+        "revision": "10000000-0000-4000-8000-000000000007",
+        "record": {
+          "side": "left",
+          "date": "2026-10-19",
+          "fields": {
+            "restfulness": 3,
+            "comfort": "warm",
+            "caffeine": true,
+            "alcohol": false,
+            "exercise": false,
+            "notes": ""
+          },
+          "timeZone": "America/Los_Angeles",
+          "origin": "sleepypod",
+          "createdAt": 1792422000000,
+          "updatedAt": 1792422000000,
+          "importedAt": null
+        }
+      },
+      {
+        "side": "left",
+        "date": "2026-10-18",
+        "revision": "10000000-0000-4000-8000-000000000008",
+        "record": {
+          "side": "left",
+          "date": "2026-10-18",
+          "fields": {
+            "restfulness": 4,
+            "comfort": "comfortable",
+            "caffeine": false,
+            "alcohol": false,
+            "exercise": true,
+            "notes": ""
+          },
+          "timeZone": "America/Los_Angeles",
+          "origin": "free-sleep",
+          "createdAt": null,
+          "updatedAt": null,
+          "importedAt": 1792944000000
+        }
+      },
+      {
+        "side": "left",
+        "date": "2026-10-17",
+        "revision": "10000000-0000-4000-8000-000000000009",
+        "record": {
+          "side": "left",
+          "date": "2026-10-17",
+          "fields": {
+            "restfulness": 5,
+            "comfort": "comfortable",
+            "caffeine": true,
+            "alcohol": false,
+            "exercise": false,
+            "notes": ""
+          },
+          "timeZone": "America/Los_Angeles",
+          "origin": "free-sleep",
+          "createdAt": null,
+          "updatedAt": null,
+          "importedAt": 1792944000000
+        }
+      },
+      {
+        "side": "left",
+        "date": "2026-10-16",
+        "revision": "10000000-0000-4000-8000-000000000010",
+        "record": {
+          "side": "left",
+          "date": "2026-10-16",
+          "fields": {
+            "restfulness": 3,
+            "comfort": "warm",
+            "caffeine": false,
+            "alcohol": false,
+            "exercise": true,
+            "notes": ""
+          },
+          "timeZone": "America/Los_Angeles",
+          "origin": "free-sleep",
+          "createdAt": null,
+          "updatedAt": null,
+          "importedAt": 1792944000000
+        }
+      },
+      {
+        "side": "left",
+        "date": "2026-10-15",
+        "revision": "10000000-0000-4000-8000-000000000011",
+        "record": {
+          "side": "left",
+          "date": "2026-10-15",
+          "fields": {
+            "restfulness": 4,
+            "comfort": "comfortable",
+            "caffeine": true,
+            "alcohol": false,
+            "exercise": false,
+            "notes": ""
+          },
+          "timeZone": "America/Los_Angeles",
+          "origin": "free-sleep",
+          "createdAt": null,
+          "updatedAt": null,
+          "importedAt": 1792944000000
+        }
+      },
+      {
+        "side": "left",
+        "date": "2026-10-14",
+        "revision": "10000000-0000-4000-8000-000000000012",
+        "record": {
+          "side": "left",
+          "date": "2026-10-14",
+          "fields": {
+            "restfulness": 5,
+            "comfort": "comfortable",
+            "caffeine": false,
+            "alcohol": false,
+            "exercise": true,
+            "notes": ""
+          },
+          "timeZone": "America/Los_Angeles",
+          "origin": "free-sleep",
+          "createdAt": null,
+          "updatedAt": null,
+          "importedAt": 1792944000000
+        }
+      },
+      {
+        "side": "left",
+        "date": "2026-10-13",
+        "revision": "10000000-0000-4000-8000-000000000013",
+        "record": {
+          "side": "left",
+          "date": "2026-10-13",
+          "fields": {
+            "restfulness": 3,
+            "comfort": "warm",
+            "caffeine": true,
+            "alcohol": false,
+            "exercise": false,
+            "notes": ""
+          },
+          "timeZone": "America/Los_Angeles",
+          "origin": "free-sleep",
+          "createdAt": null,
+          "updatedAt": null,
+          "importedAt": 1792944000000
+        }
+      },
+      {
+        "side": "left",
+        "date": "2026-10-12",
+        "revision": "10000000-0000-4000-8000-000000000014",
+        "record": {
+          "side": "left",
+          "date": "2026-10-12",
+          "fields": {
+            "restfulness": 4,
+            "comfort": "comfortable",
+            "caffeine": false,
+            "alcohol": false,
+            "exercise": true,
+            "notes": ""
+          },
+          "timeZone": "America/Los_Angeles",
+          "origin": "free-sleep",
+          "createdAt": null,
+          "updatedAt": null,
+          "importedAt": 1792944000000
+        }
+      }
+    ],
+    "patterns": {
+      "recentEntries": 7,
+      "averageRestfulness": 3.9,
+      "warmCount": 3,
+      "coldCount": 0,
+      "cohorts": [
+        {
+          "source": "sleepypod",
+          "timeZone": "America/Los_Angeles",
+          "status": "ready",
+          "matchedDates": 14,
+          "excludedDates": 0,
+          "associations": [
+            {
+              "habit": "caffeine",
+              "withCount": 7,
+              "withoutCount": 7,
+              "presenceDifferenceMinutes": -40
+            },
+            {
+              "habit": "exercise",
+              "withCount": 7,
+              "withoutCount": 7,
+              "presenceDifferenceMinutes": 40
+            }
+          ]
+        },
+        {
+          "source": "free-sleep",
+          "timeZone": "America/Los_Angeles",
+          "status": "ready",
+          "matchedDates": 14,
+          "excludedDates": 0,
+          "associations": [
+            {
+              "habit": "caffeine",
+              "withCount": 7,
+              "withoutCount": 7,
+              "presenceDifferenceMinutes": -40
+            },
+            {
+              "habit": "exercise",
+              "withCount": 7,
+              "withoutCount": 7,
+              "presenceDifferenceMinutes": 40
+            }
+          ]
+        }
+      ],
+      "note": "Each comparison needs five distinct dates with and five without the habit in one source and time zone. Missing or malformed presence is excluded. Bed presence is not sleep duration; these associations do not establish cause. Imported records remain unqualified. Notes are not used in these calculations."
+    }
+  }
+}

@@ -39,3 +39,5 @@ Core still has no atomic rule revision precondition or create idempotency token.
 Result bundles are local under `build/parity-validation/`. Retained PNGs are under `previews/automation-diagnostics/`. All examples are synthetic; ordinary Demo does not acquire a controller evaluation history.
 
 CI run `40323561845` passed lint and contract checks, but Xcode 26.6 crashed during IR generation while adapting the actor-isolated mode callback directly into a SwiftUI binding. The binding now invokes the callback through an explicit closure; behavior and isolation are unchanged. The corrected CI run must pass before merge.
+
+Corrected CI run `40324282986` passed build, unit/transport regressions, contract tests, lint and the aggregate check. PR #33 merged into owner main at `b889a208cfdc1c8795bba81acfac5d79c6c3a8ce` on 2026-10-26; its feature branch was removed.
