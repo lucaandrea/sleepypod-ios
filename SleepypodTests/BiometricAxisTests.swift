@@ -52,7 +52,11 @@ import XCTest
     }
 
     func testSessionsSeparateGapsMethodsAndHRVDefinitions() throws {
-        var records = (0..<6).map { VitalsRecord(id: $0, heartRate: Double(60 + $0), hrv: 30, date: time($0 < 4 ? Double($0) / 60 : Double($0 - 1))) }
+        var records: [VitalsRecord] = (0..<6).map { recordIndex -> VitalsRecord in
+            let hourOffset: Double = recordIndex < 4 ? Double(recordIndex) / 60 : Double(recordIndex - 1)
+            let heartRate: Double = Double(60 + recordIndex)
+            return VitalsRecord(id: recordIndex, heartRate: heartRate, hrv: 30, date: time(hourOffset))
+        }
         records[2].processingRunId = "new"; records[3].processingRunId = "new"
         records[3].provenance = VitalProvenance(interpretation: "original_observation", status: "recorded", processingRunId: "new", configurationHash: "hash", hrvMetricId: "hrv_sdnn")
         let invalid = VitalsRecord(id: 99, heartRate: .nan, hrv: .infinity, breathingRate: nil, date: time(2))

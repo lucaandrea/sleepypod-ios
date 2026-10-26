@@ -25,7 +25,7 @@ The application uses Sleepypod's original **Temp · Schedule · Sleep** navigati
 | Pod stage rules, previews, history and model library | Settings → Pod sleep stages |
 | Journal, personal reports, coach, episode editing | Sleep options menu |
 | Head/feet, presets, rotating model, mattress toggle, Stop | Settings → Bed position |
-| Bounded personal comfort and activity | Settings → Personal comfort |
+| Bounded personal comfort, activity and owner qualification | Settings → Personal comfort |
 | Health history, export, model keys and limits | All settings → Health / Insights |
 | Home bridge, existing Home scenes, Shortcuts | All settings → Connections |
 | Pod preferences and service diagnostics | All settings → Pod |
@@ -44,6 +44,6 @@ Health export remains opt-in. Core foreground, background and Shortcut exports s
 
 ## Build and release
 
-Use Xcode 27.1 and `xcodegen generate`. The release keeps iOS/watchOS 26 minimums and the existing Apple Distribution profiles. Archive with Xcode, export/upload using the checked-in options plists, and use **Safari** for App Store Connect changes. The owner explicitly authorized build 7 distribution and assignment to the internal group and `ciao@luca.ooo`.
+Use Xcode 27.1 and `xcodegen generate`. The release keeps iOS/watchOS 26 minimums and the existing Apple Distribution profiles. Archive with Xcode, export/upload using the checked-in options plists, and use **Safari** for App Store Connect changes. The owner explicitly authorized distribution of the modified app and assignment of the completed parity release to the internal group and `ciao@luca.ooo`.
 
-`VALIDATION.md` and `previews/build7/` record the historical build 7 release. The subsequent parity work is **in progress**, with its remaining requirements and current evidence in `parity/PLAN.md`. Merging tested changes into the owner's `main` does not signify a new TestFlight release; the release version remains 0.2.0 (7) until the complete parity audit is finished.
+`VALIDATION.md` and `previews/build7/` record the historical build 7 release. The subsequent source and rendered parity audit is complete, including owner qualification and recovery. Delivery remains **in progress**: final integration checks/merge, TestFlight and live ESP controller adoption are tracked in `parity/PLAN.md` and `parity/FINAL_RECONCILIATION.md`. Merging tested changes into the owner's `main` does not signify a new TestFlight release; the checked-in version remains 0.2.0 (7) until the next unused build is verified and the final archive is prepared.

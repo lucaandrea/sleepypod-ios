@@ -15,6 +15,18 @@ The coordinated controller added this workflow in Core PR #44, merged at `41d6f9
 
 `generate-comfort-owner.ts` reuses Core's isolated in-memory `ownerFixture`, replacing only its test spy with a no-op and resolving imports into the pinned clean checkout. The actual production owner service produces seven status cases and qualification/activation/recovery review records in `comfort-owner-example.json`. The generator verifies the Core revision and working tree remained unchanged; it starts no controller or hardware services.
 
-Twelve owner logic/transport checks pass, including preparation latency, expiration, clock rollback, explicit consent, uncertain responses, retest revision and connection invalidation. Existing personal-comfort and sensor-calibration regressions also pass. The phone and iPad paths passed before the final expandable-night-list refinement; maximum-text and final rendered verification remain in progress. The initial UI runs identified inherited test-side selection and an iPad swipe aimed at the background; tests now select Left explicitly and address the visible scroll area. The combined regression completed all unit/transport tests and the maximum-text replay chart before being interrupted to refine the owner review layout. These interrupted UI results are not a complete passing run.
+Twelve owner logic/transport checks pass, including preparation latency, expiration, clock rollback, explicit consent, uncertain responses, retest revision and connection invalidation. Existing personal-comfort and sensor-calibration regressions also pass. Both owner walkthroughs pass on iPhone and iPad, and the final expandable-night-list flow was rerun on each. Both final flows also pass at maximum Dynamic Type.
+
+| Result bundle | Verified scope |
+| --- | --- |
+| `ComfortOwner-phone-v4` | Both phone walkthroughs before the night-list refinement |
+| `ComfortOwner-ipad-v6` | Twelve owner logic/transport checks and both iPad walkthroughs |
+| `ComfortOwner-AX-v8` | Both final walkthroughs at maximum Dynamic Type |
+| `ComfortOwner-phone-v9` | Final phone activation, expandable nights and recovery |
+| `ComfortOwner-ipad-v10` | Final iPad activation, expandable nights and recovery |
+
+All 27 final captures in `previews/owner-activation/` were visually reviewed. Normal phone text size was restored. The earlier combined run completed every unit/transport test and the maximum-text replay chart, then was deliberately interrupted to refine the owner review layout; its overall interrupted result is not presented as a passing run. The focused runs above supersede that interrupted owner walkthrough.
+
+The initial UI runs identified inherited test-side selection and an iPad swipe aimed at the background. Tests now select Left explicitly and address the visible scroll area. The final night list is expandable, keeping consent reachable while preserving inspection of every matching night.
 
 No actual attended check, owner activation, physical command, outage trial or qualifying overnight observation has been performed by these tests.
