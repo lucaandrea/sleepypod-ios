@@ -20,7 +20,7 @@ struct BiometricDatasetDemoFixture: Decodable, Sendable {
 actor DemoBiometricDatasetsClient: BiometricDatasetsServing {
     nonisolated let scope = "demo-biometric-datasets"
     nonisolated let reportClient: any BiometricReportsServing
-    let evaluationProfileClient: any BiometricProfilesServing
+    nonisolated let evaluationProfileClient: any BiometricProfilesServing
     var savedJobs: [String: BiometricBacktestJob] = [:]
     var jobSides: [String: Side] = [:]
     var jobRequests: [String: BiometricBacktestSubmission] = [:]

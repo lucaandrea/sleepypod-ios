@@ -4,16 +4,19 @@ import Foundation
 enum BiometricProfilePending: Codable, Equatable, Sendable {
     case candidate(BiometricCandidateRequest, expectedHash: String)
     case activation(BiometricActivationRequest)
+    case validated(BiometricValidatedRequest)
     var side: Side {
         switch self {
         case .candidate(let request, _): request.side
         case .activation(let request): request.side
+        case .validated(let request): request.side
         }
     }
     var title: String {
         switch self {
         case .candidate: "Candidate save"
         case .activation(let request): request.action.title
+        case .validated: "Apply evaluated revision"
         }
     }
 }

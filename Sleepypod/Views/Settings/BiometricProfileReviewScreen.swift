@@ -120,6 +120,13 @@ struct BiometricProfilePendingCard: View {
                             BiometricProfileIdentity(title: "Request identity", value: request.idempotencyKey)
                             BiometricProfileIdentity(title: "Candidate hash", value: hash)
                             BiometricProfileIdentity(title: "Parent", value: request.parentRevisionId ?? "New family")
+                        case .validated(let request):
+                            BiometricProfileIdentity(title: "Request identity", value: request.idempotencyKey)
+                            BiometricProfileIdentity(title: "Revision", value: request.review.selection.revisionId)
+                            BiometricProfileIdentity(title: "Evaluation", value: request.review.selection.evaluationId)
+                            BiometricProfileIdentity(title: "Complete report hash", value: request.review.selection.expectedReportHash)
+                            BiometricProfileIdentity(title: "Target hash", value: request.review.selection.expectedResolvedHash)
+                            Text("Generation \(request.review.expectedGeneration) · \(request.boundary.title)").font(.footnote)
                         case .activation(let request):
                             BiometricProfileIdentity(title: "Request identity", value: request.idempotencyKey)
                             BiometricProfileIdentity(title: "Revision", value: request.revisionId ?? "System defaults")

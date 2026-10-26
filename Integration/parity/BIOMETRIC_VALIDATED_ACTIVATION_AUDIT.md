@@ -1,0 +1,21 @@
+# Native application of an evaluated biometric profile
+
+2026-10-26. Implemented and locally verified; GitHub CI is pending. Audited Core `ValidatedProfileActivation.tsx`, `biometricTuning.ts`, `profiles/activation.ts`, `evaluation-store.ts`, `evaluation-assessment.ts` and `history.ts`.
+
+A retained evaluation links to a native review of its exact candidate revision, resolved configuration hash, evaluation ID and complete report hash. Review reads the current profile, requests Core's evidence eligibility, compares the candidate, and rechecks the saved binding. Applying remains disabled during an overview read, after a failed or stale read, after a changed binding, or once the review expires. Core independently rechecks evidence, installed qualification, runtime baseline and generation at submission.
+
+The owner selects next-session or immediate processing timing. Public GET and POST fields follow the actual REST contracts; the app does not send a claimed validation status, `allowUnvalidated`, an action field, build hashes or client-supplied evidence. Candidate comparison does not replace Core's evidence decision. A saved request is distinct from the processor's acknowledgement, exposed through the existing receipt screen.
+
+The existing protected controller/side profile-request store retains the complete intent before POST. An unknown outcome survives reopening and retries the exact original key, generation, report, revision and boundary. Retry does not require a newly available report or manufacture a new request after evidence disappears. The returned event must match the candidate, generation, evaluation and verified evidence audit; a mismatched event remains unresolved. Another workspace cannot resend a request removed elsewhere.
+
+Demo explicitly rejects evaluated-profile eligibility and application. Its literal synthetic reports are inspection examples, not qualification evidence. Protocol/lifecycle tests use an isolated fake controller to exercise success and lost-response paths; no personal records, live processor changes or hardware adoption are implied.
+
+Validation:
+
+- `Validated-phone-v5.xcresult` passed all eight new model/transport checks and six existing profile lifecycle checks. Its UI flow exposed a missing link: a task attached to an initially empty view did not run. Selection now resolves once when the report workspace loads, so navigation does not depend on view appearance.
+- `Validated-phone-v6.xcresult`: all 19 checks pass (eight new checks plus eleven report regressions), and the complete native review flow passes in 38.943 seconds. The test verifies exact retained identity, timing selection and explicit refusal of synthetic Demo evidence, with no saved activation.
+- `Validated-ipad.xcresult`: the same flow passes in 31.401 seconds with the light appearance. `Validated-accessibility.xcresult` passes at maximum Dynamic Type in 117.289 seconds. Four captures per device/text configuration are retained under `previews/biometric-validated/`; all twelve were reviewed. `Validated-accessibility-final.xcresult` also passes in 128.483 seconds, explicitly asserting the timing accessibility value and retaining a fully visible timing control capture. All twelve final captures are reviewed. `Validated-lifecycle-final.xcresult` passes all fourteen checks (eight new model/REST and six profile regressions) after replacing a test spin loop with a deterministic read gate.
+- Earlier compile attempts caught an oversized view expression, a missing captured profile-client property and a test actor-isolation declaration. The report view was split into focused builders, all dataset clients expose the captured profile client, and Demo exposes that immutable dependency as nonisolated.
+- Strict SwiftLint, diff validation and the presentation guard pass. GitHub CI is pending. No live controller mutation or processor adoption is claimed.
+
+ Version/build remain 0.2.0 (7); the complete parity effort and TestFlight release remain unfinished.

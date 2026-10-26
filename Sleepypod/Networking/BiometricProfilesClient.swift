@@ -13,6 +13,8 @@ protocol BiometricProfilesServing: Sendable {
     func compare(side: Side, revisionId: String?, againstRevisionId: String?) async throws -> BiometricProfileDiff
     func compatibility(side: Side, id: String) async throws -> BiometricProfileCompatibility
     func activate(_ request: BiometricActivationRequest) async throws -> BiometricActivationEvent
+    func reviewValidated(_ request: BiometricValidatedReviewRequest) async throws -> BiometricValidatedEligibility
+    func activateValidated(_ request: BiometricValidatedRequest) async throws -> BiometricActivationEvent
 }
 
 /// The endpoint is captured once for the workspace, including every retained retry.
@@ -62,6 +64,12 @@ struct CoreBiometricProfilesClient: BiometricProfilesServing {
         if let id = request.revisionId { _ = try validatedID(id) }
         guard request.action != .activate || request.revisionId != nil else { throw APIError.serverError(message: "Select an exact revision before applying it.") }
         return try await transport.post("\(root)/\(request.action.rawValue)", body: request.body, returning: BiometricActivationEvent.self)
+    }
+    func reviewValidated(_ request: BiometricValidatedReviewRequest) async throws -> BiometricValidatedEligibility {
+        try await transport.get("\(root)/validated-activation-review", query: request.query())
+    }
+    func activateValidated(_ request: BiometricValidatedRequest) async throws -> BiometricActivationEvent {
+        try await transport.post("\(root)/activate-validated", body: request.body(), returning: BiometricActivationEvent.self)
     }
     private func validatedID(_ id: String) throws -> String {
         guard UUID(uuidString: id) != nil else { throw APIError.serverError(message: "Invalid profile identity. Reload the library.") }
