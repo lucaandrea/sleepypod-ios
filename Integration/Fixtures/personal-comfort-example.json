@@ -1,0 +1,195 @@
+{
+  "status": {
+    "apiVersion": 1,
+    "generatedAt": 1792940400000,
+    "side": "left",
+    "timezone": "America/Los_Angeles",
+    "deviceDate": "2026-10-25",
+    "state": {
+      "config": {
+        "mode": "off",
+        "minimumF": 65,
+        "maximumF": 90,
+        "sensorAware": false,
+        "followBedtime": false
+      },
+      "offsetF": 0,
+      "feedbackThrough": "",
+      "learnedSession": "",
+      "pausedUntil": 0,
+      "lastAppliedAt": 0,
+      "lastTargetF": null,
+      "lastSegment": ""
+    },
+    "evaluatedAt": null,
+    "decision": null,
+    "fault": null,
+    "history": [],
+    "runtime": "stopped",
+    "activation": {
+      "available": false,
+      "reason": "Hardware qualification and reviewed Preview nights are pending."
+    },
+    "features": {
+      "sensorAware": true,
+      "followBedtime": true,
+      "nightReports": true
+    },
+    "signals": null,
+    "timing": null
+  },
+  "report": {
+    "summary": {
+      "id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "metadata": {
+        "session": "synthetic-example",
+        "start": 1792904400000,
+        "end": 1792933200000,
+        "timezone": "America/Los_Angeles"
+      },
+      "localDate": "2026-10-24",
+      "state": "closed",
+      "firstAt": 1792911600000,
+      "lastAt": 1792911720000,
+      "observationCount": 3,
+      "occupiedObservationMs": 0,
+      "minimumOccupiedObservationMs": 14400000,
+      "occupiedCount": 0,
+      "eligibleCount": 0,
+      "sensorReadyCount": 0,
+      "deviceFreshCount": 0,
+      "manualPauseCount": 1,
+      "proposedRangeF": null,
+      "reportedRangeF": null,
+      "reasons": [
+        {
+          "message": "Synthetic example: qualified live readings are unavailable.",
+          "count": 3
+        }
+      ],
+      "gaps": [
+        {
+          "from": 1792911600000,
+          "to": 1792911720000
+        }
+      ],
+      "gapCount": 1,
+      "configurations": 1,
+      "runs": 1,
+      "builds": [],
+      "issues": [
+        "Simulated example. It cannot qualify as an actual overnight Preview session."
+      ],
+      "reviewable": false
+    },
+    "review": null,
+    "reviewCurrent": false,
+    "countsAsOwnerConfirmedNight": false,
+    "observations": [
+      {
+        "id": 1,
+        "at": 1792911600000,
+        "eligible": false,
+        "proposedF": null,
+        "reportedF": null,
+        "message": "Example observation \u00b7 proposal held without qualified evidence.",
+        "evidence": {
+          "format": 1,
+          "runId": "00000000-0000-4000-8000-000000000001",
+          "environment": "test",
+          "buildRevision": null,
+          "session": "synthetic-example",
+          "start": 1792904400000,
+          "end": 1792933200000,
+          "timezone": "America/Los_Angeles",
+          "scheduleRevision": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "policy": {
+            "minimumF": 65,
+            "maximumF": 90,
+            "sensorAware": true,
+            "followBedtime": false,
+            "offsetF": 0
+          },
+          "scheduledBaselineF": 70,
+          "decisionBaselineF": null,
+          "presence": "unavailable",
+          "presenceSourceKey": null,
+          "mechanicallyQuiet": false,
+          "deviceFresh": false,
+          "sensorReady": false,
+          "manualPaused": true
+        }
+      },
+      {
+        "id": 2,
+        "at": 1792911660000,
+        "eligible": false,
+        "proposedF": null,
+        "reportedF": null,
+        "message": "Example observation \u00b7 proposal held without qualified evidence.",
+        "evidence": {
+          "format": 1,
+          "runId": "00000000-0000-4000-8000-000000000001",
+          "environment": "test",
+          "buildRevision": null,
+          "session": "synthetic-example",
+          "start": 1792904400000,
+          "end": 1792933200000,
+          "timezone": "America/Los_Angeles",
+          "scheduleRevision": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "policy": {
+            "minimumF": 65,
+            "maximumF": 90,
+            "sensorAware": true,
+            "followBedtime": false,
+            "offsetF": 0
+          },
+          "scheduledBaselineF": 70,
+          "decisionBaselineF": null,
+          "presence": "unavailable",
+          "presenceSourceKey": null,
+          "mechanicallyQuiet": false,
+          "deviceFresh": false,
+          "sensorReady": false,
+          "manualPaused": true
+        }
+      },
+      {
+        "id": 3,
+        "at": 1792911720000,
+        "eligible": false,
+        "proposedF": null,
+        "reportedF": null,
+        "message": "Example observation \u00b7 proposal held without qualified evidence.",
+        "evidence": {
+          "format": 1,
+          "runId": "00000000-0000-4000-8000-000000000001",
+          "environment": "test",
+          "buildRevision": null,
+          "session": "synthetic-example",
+          "start": 1792904400000,
+          "end": 1792933200000,
+          "timezone": "America/Los_Angeles",
+          "scheduleRevision": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "policy": {
+            "minimumF": 65,
+            "maximumF": 90,
+            "sensorAware": true,
+            "followBedtime": false,
+            "offsetF": 0
+          },
+          "scheduledBaselineF": 70,
+          "decisionBaselineF": null,
+          "presence": "unavailable",
+          "presenceSourceKey": null,
+          "mechanicallyQuiet": false,
+          "deviceFresh": false,
+          "sensorReady": false,
+          "manualPaused": true
+        }
+      }
+    ],
+    "nextAfterId": null
+  }
+}

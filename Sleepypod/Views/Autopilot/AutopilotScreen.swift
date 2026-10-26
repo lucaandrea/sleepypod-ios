@@ -28,7 +28,7 @@ struct AutopilotScreen: View {
                 AlertInboxLink()
                 if page == "Automations" { rules; tonight }
                 else { diagnostics }
-                NavigationLink { PodFeatureScreen(.comfort, side: device.selectedSide.primarySide.rawValue) } label: {
+                NavigationLink { PersonalComfortDestination(side: device.selectedSide.primarySide) } label: {
                     SettingsRow("Personal comfort", icon: "sparkles", chevron: true)
                 }.buttonStyle(.plain)
                 Button("Refresh Autopilot") { Task { await refresh() } }.disabled(model.saving || model.loading)

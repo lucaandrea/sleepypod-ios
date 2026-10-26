@@ -29,6 +29,9 @@ struct ScheduleScreen: View {
                         NavigationLink { NativeCurveLibraryScreen() } label: {
                             SettingsRow("Curves", icon: "waveform.path", chevron: true) { RowValue("View all") }
                         }.buttonStyle(.plain).cardStyle(vertical: 0, horizontal: 0)
+                        NavigationLink { BedtimeRoutinesDestination(side: schedule.selectedSide.primarySide) } label: {
+                            SettingsRow("Bedtime routines", icon: "moon.stars", chevron: true)
+                        }.buttonStyle(.plain).cardStyle(vertical: 0, horizontal: 0)
                     }
                     if let daily {
                         curveCard(daily)
@@ -88,7 +91,7 @@ struct ScheduleScreen: View {
                             if APIBackend.current == .freeSleep { PodFeatureScreen(.alarms, side: schedule.selectedSide.primarySide.rawValue) }
                             else { NativeAlarmsScreen(sides: schedule.selectedSide) }
                         }
-                        NavigationLink("Routine editor") { PodFeatureScreen(.routines, side: schedule.selectedSide.primarySide.rawValue) }
+                        NavigationLink("Routine editor") { BedtimeRoutinesDestination(side: schedule.selectedSide.primarySide) }
                     } label: { Image(systemName: "ellipsis") }
                     .accessibilityLabel("Schedule options")
                 }
