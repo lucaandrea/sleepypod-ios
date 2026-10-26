@@ -6,6 +6,10 @@ final class AutomationWorkspace {
     private(set) var rules: [AutomationRule] = []
     private(set) var globalEnabled: Bool?
     private(set) var diagnostics: AutomationDiagnostics?
+    private(set) var timelineActivity: AutomationActivity?
+    var timelineError: String?
+    private(set) var summaries: [AutomationReplaySummary] = []
+    var summariesError: String?
     private(set) var tonight: AutomationTonight?
     private(set) var loading = false
     private(set) var saving = false
@@ -46,10 +50,26 @@ final class AutomationWorkspace {
             tonight = result; tonightError = nil
         } catch { guard revision == requested, !Task.isCancelled else { return }; tonight = nil; tonightError = error.localizedDescription }
     }
+    func loadTimelineActivity(timeZone: String) async {
+        let requested = revision
+        do {
+            let result = try await client.activity(nightStarts: AutomationActivity.nightStarts(count: 2, timeZone: TimeZone(identifier: timeZone) ?? .current))
+            guard revision == requested, !Task.isCancelled else { return }
+            timelineActivity = result; timelineError = nil
+        } catch { guard revision == requested, !Task.isCancelled else { return }; timelineActivity = nil; timelineError = error.localizedDescription }
+    }
+    func loadSummaries() async {
+        let requested = revision
+        do {
+            let result = try await client.summaries()
+            guard revision == requested, !saving, !Task.isCancelled else { return }
+            summaries = result; summariesError = nil
+        } catch { guard revision == requested, !Task.isCancelled else { return }; summaries = []; summariesError = error.localizedDescription }
+    }
     private func replace(_ rule: AutomationRule) {
         rules.removeAll { $0.id == rule.id }; rules.append(rule)
         rules.sort { $0.definition.priority != $1.definition.priority ? $0.definition.priority > $1.definition.priority : $0.id < $1.id }
-        diagnostics = nil
+        diagnostics = nil; summaries.removeAll { $0.id == rule.id }
     }
     // Core has no conditional-write token. A fresh read catches observed edits without flattening the user's draft.
     private func checkOriginal(_ original: AutomationRule) async throws {

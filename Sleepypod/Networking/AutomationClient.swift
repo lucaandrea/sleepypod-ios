@@ -2,6 +2,8 @@ import Foundation
 
 protocol AutomationClient: Sendable {
     func rules() async throws -> [AutomationRule]
+    func summaries() async throws -> [AutomationReplaySummary]
+    func range(_ definition: AutomationDefinition, nights: Int) async throws -> AutomationReplaySummary
     func globalEnabled() async throws -> Bool
     func setGlobalEnabled(_ enabled: Bool) async throws -> Bool
     func create(_ definition: AutomationDefinition) async throws -> AutomationRule
@@ -24,6 +26,11 @@ struct CoreAutomationClient: AutomationClient {
     }
     private struct Switch: Codable, Sendable { let enabled: Bool }
     func rules() async throws -> [AutomationRule] { try await client.get("automations") }
+    func summaries() async throws -> [AutomationReplaySummary] { try await client.get("automations/backtest-summaries") }
+    func range(_ definition: AutomationDefinition, nights: Int) async throws -> AutomationReplaySummary {
+        guard (1...14).contains(nights), definition.validation == nil else { throw APIError.serverError(message: "Use a valid draft and 1–14 nights.") }
+        return try await client.post("automations/backtest-range", body: AutomationRangeRequest(nights: nights, rule: .init(definition: definition)), returning: AutomationReplaySummary.self)
+    }
     func globalEnabled() async throws -> Bool {
         let result: Switch = try await client.get("automations/kill-switch"); return result.enabled
     }
@@ -73,6 +80,8 @@ actor DemoAutomationClient: AutomationClient {
                 AutomationRule(id: 2, definition: missing, createdAt: "2026-10-25T18:00:00Z", updatedAt: "2026-10-25T18:00:00Z")]
     }()
     func rules() -> [AutomationRule] { values.sorted { $0.definition.priority != $1.definition.priority ? $0.definition.priority > $1.definition.priority : $0.id < $1.id } }
+    func summaries() -> [AutomationReplaySummary] { values.map { .init(id: $0.id, nights: 0, wouldFire: 0, peak: nil, low: nil, threshold: nil) } }
+    func range(_ definition: AutomationDefinition, nights: Int) -> AutomationReplaySummary { .init(id: nil, nights: 0, wouldFire: 0, peak: nil, low: nil, threshold: nil) }
     func globalEnabled() -> Bool { enabled }
     func setGlobalEnabled(_ enabled: Bool) -> Bool { self.enabled = enabled; return enabled }
     func create(_ definition: AutomationDefinition) throws -> AutomationRule {
@@ -92,9 +101,23 @@ actor DemoAutomationClient: AutomationClient {
     }
     func delete(id: Int) { values.removeAll { $0.id == id } }
     func activity(nightStarts: [Double]) -> AutomationActivity {
-        .init(now: Date.now.timeIntervalSince1970 * 1000, nights: nightStarts.reversed().map { .init(start: $0, entries: []) }, holds: [])
+        let start = nightStarts.last ?? Date.now.timeIntervalSince1970 * 1000
+        let fixture: [AutomationActivity.Entry] = DebugRoute.automationReplayFixture ? [
+            .init(ruleId: 2, ruleName: "Synthetic missing movement", outcome: "skipped", code: "signal-unavailable", start: start + 7_200_000, end: start + 7_320_000, count: 3, temp: nil, sides: [.right]),
+            .init(ruleId: 1, ruleName: "Synthetic dry run", outcome: "dry_run", code: "set-temperature", start: start + 3_600_000, end: start + 3_600_000, count: 1, temp: 74, sides: [.left]),
+            .init(ruleId: 1, ruleName: "Synthetic sent event", outcome: "fired", code: "set-temperature", start: start + 1_800_000, end: start + 1_800_000, count: 1, temp: 76, sides: [.left])
+        ] : []
+        return .init(now: Date.now.timeIntervalSince1970 * 1000, nights: nightStarts.reversed().map { .init(start: $0, entries: $0 == start ? fixture : []) }, holds: [])
     }
-    func zones(side: Side, night: Int?) -> AutomationZoneReplay { .init(ok: false, night: nil, frames: []) }
+    func zones(side: Side, night: Int?) -> AutomationZoneReplay {
+        guard DebugRoute.automationReplayFixture else { return .init(ok: false, night: nil, frames: []) }
+        let frames: [AutomationZoneReplay.Frame] = (0..<20).map { index in
+            let timestamp = 1792904400000.0 + Double(index * 60_000)
+            let zones: [Double] = [Double(index % 5) / 10, Double(20 - index) / 20, 0.2]
+            return AutomationZoneReplay.Frame(tMs: timestamp, zones: zones, peakZone: nil)
+        }
+        return .init(ok: true, night: .init(label: "Synthetic night", date: "2026-10-24"), frames: frames)
+    }
     func diagnostics() -> AutomationDiagnostics {
         let now = Date.now
         return .init(now: now.ISO8601Format(), since: now.addingTimeInterval(-10800).ISO8601Format(), startOfDay: Calendar.current.startOfDay(for: now).ISO8601Format(), globalEnabled: enabled,
@@ -107,7 +130,9 @@ actor DemoAutomationClient: AutomationClient {
         let state = AutomationTonight.State(control: nil, hold: nil, runOnceUntil: nil, lastAutopilot: nil)
         return .init(now: Date.now.timeIntervalSince1970 * 1000, sides: .init(left: state, right: state))
     }
-    func nights(side: Side) -> [AutomationNight] { [] }
+    func nights(side: Side) -> [AutomationNight] {
+        DebugRoute.automationReplayFixture ? [.init(sleepRecordId: 19, label: "Synthetic chart night", date: "2026-10-24", startMs: 1792904400000, endMs: 1792926000000)] : []
+    }
     func backtest(_ definition: AutomationDefinition, side: Side, night: Int?) -> AutomationBacktest {
         if DebugRoute.automationReplayFixture,
            let url = Bundle.main.url(forResource: "automation-backtest-fixture", withExtension: "json"),

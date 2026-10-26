@@ -43,4 +43,4 @@ The Core API currently has no atomic revision precondition for rule writes. The 
 - Complete the saved-rule multi-night summary/range workflows and the combined tonight rule/schedule timeline.
 - Finish configuration/qualification/recovery audit against the coordinated Core fork; do not invent an unsupported halt API or enable occupancy automation before hardware qualification.
 - Add rendered non-empty activity and pressure replay evidence and final cross-feature accessibility/error checks.
-- Merge this native slice only after local validation and CI. Overall parity and TestFlight delivery remain open in `PLAN.md`.
+- Native rule/diagnostics slice merged as PR #2 (`c9a5975bf83dc853ede790afaa81ec6de178b3e7`) after local validation and all CI passed. Overall parity and TestFlight delivery remain open in `PLAN.md`.
