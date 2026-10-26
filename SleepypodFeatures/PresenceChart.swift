@@ -2,22 +2,30 @@ import SwiftUI
 
 struct PresenceChart: View {
     let nights: [SleepAnalytics.Night]
-    @Environment(\.colorScheme) private var scheme
     var body: some View {
         GeometryReader { geometry in
-            let available = geometry.size.width - CGFloat(max(0, nights.count - 1)) * 6
-            let width = max(8, min(55, available / CGFloat(max(1, nights.count))))
             ScrollView(.horizontal) {
                 HStack(alignment: .bottom, spacing: 6) {
                     ForEach(nights) { night in
-                        let height = night.occupiedMinutes.map { max(3, min(100, $0 / 720 * 100)) / 100 * 154 } ?? 4
-                        UnevenRoundedRectangle(topLeadingRadius: 6, bottomLeadingRadius: 2, bottomTrailingRadius: 2, topTrailingRadius: 6)
-                            .fill(night.occupiedMinutes == nil ? Theme.border1 : Theme.text1)
-                            .opacity(0.7).frame(width: width, height: height)
-                            .accessibilityLabel("\(night.date): \(SleepAnalytics.duration(night.occupiedMinutes)) bed presence")
+                        bar(night, width: columnWidth(in: geometry.size.width))
                     }
                 }.frame(height: 154, alignment: .bottom)
             }.scrollIndicators(.hidden)
         }.frame(height: 170)
+    }
+    private func columnWidth(in available: CGFloat) -> CGFloat {
+        let gaps = CGFloat(max(0, nights.count - 1)) * 6
+        return max(8, min(55, (available - gaps) / CGFloat(max(1, nights.count))))
+    }
+    private func barHeight(_ minutes: Double?) -> CGFloat {
+        guard let minutes else { return 4 }
+        let percent = max(3.0, min(100.0, minutes / 720.0 * 100.0))
+        return CGFloat(percent / 100.0 * 154.0)
+    }
+    private func bar(_ night: SleepAnalytics.Night, width: CGFloat) -> some View {
+        UnevenRoundedRectangle(topLeadingRadius: 6, bottomLeadingRadius: 2, bottomTrailingRadius: 2, topTrailingRadius: 6)
+            .fill(night.occupiedMinutes == nil ? Theme.border1 : Theme.text1)
+            .opacity(0.7).frame(width: width, height: barHeight(night.occupiedMinutes))
+            .accessibilityLabel("\(night.date): \(SleepAnalytics.duration(night.occupiedMinutes)) bed presence")
     }
 }
