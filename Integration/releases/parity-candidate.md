@@ -1,6 +1,6 @@
 # Native parity release candidate
 
-26 October 2026. **Signed local archive and IPA export; not uploaded or assigned in TestFlight.**
+26 October 2026. **Delivered to internal TestFlight.** Safari verified Apple validation, the internal group's Testing status and the individual tester assignment. See [build8.md](build8.md) for the final delivery record and the separate beta-review state.
 
 ## Source and validation
 
@@ -10,7 +10,7 @@
 
 ## Candidate artifacts
 
-Provisional version **0.3.0 (8)** was supplied as explicit Xcode archive settings after parity validation. App Store Connect has not yet confirmed that the build number is unused. The checked-in project remains 0.2.0 (7) until that check and the release metadata update.
+Version **0.3.0 (8)** was supplied as explicit Xcode archive settings after parity validation. Safari confirmed that build 7 was the latest prior upload. Commit `4264be98ee2a074a7108e0bdc94905924a89fcb6` updates the checked-in project to 0.3.0 (8); XcodeGen changed only those version fields. The generated project exactly matches the archived settings after applying the same version overrides, so the verified candidate was reused without source or resource changes.
 
 - Xcode Organizer archive: `~/Library/Developer/Xcode/Archives/2026-10-26/Sleepypod-0.3.0-8-candidate.xcarchive`.
 - IPA: `build/parity-validation/Export-0.3.0-8-candidate/Sleepypod.ipa`.
@@ -20,8 +20,10 @@ Provisional version **0.3.0 (8)** was supplied as explicit Xcode archive setting
 
 Xcode archive and local App Store export succeeded. The archive and extracted IPA pass strict signature verification, including their nested Watch/framework code. App/Watch versions and identifiers match. Both distribution profiles expire on 14 October 2027; development debugging is disabled. The app has its HealthKit/HomeKit entitlements. App, Watch, framework and SDK privacy manifests are present and declare no tracking, and all three license notices and App Intents metadata are bundled. Compiled release source lists exclude the retired Free Sleep presentation and include Sleepypod's shared components.
 
-## Remaining delivery
+## Upload and remaining acceptance
 
-Safari remains inaccessible while the Mac is locked. Once available, verify the next unused build in App Store Connect, update `project.yml` and regenerate the project, then upload through Xcode and verify processing and the requested internal group/tester assignment in Safari. Reuse this candidate only if its version remains available and compiled source/resources/settings remain equivalent; otherwise archive again. Feature-oriented internal test notes are prepared in `parity-test-notes.md`.
+Xcode Organizer uploaded the archive at **10:14 AM America/Los_Angeles on 26 October 2026**. Its persisted upload receipt reports success, no errors and no warnings for app `6822950204`, build 8. Version management was disabled, symbols were included, and the existing owner app/Watch profiles were selected. An earlier command-line upload failed account access before transfer; the signed-in Organizer completed the upload. Safari subsequently displayed **Processing** for 0.3.0 (8). Local receipt and project-equivalence evidence are under `build/parity-validation/`.
 
-The ESP is on Wi-Fi and out of sample Preview. It still needs the final live Core endpoint/key after the coordinated attended controller cutover. That cutover awaits the existing owner attendance confirmation. This candidate is not evidence of live bed control, Health writes, Home pairing, Siri invocation or overnight comfort qualification.
+Safari subsequently confirmed the processed binary as **Validated**. Build 0.3.0 (8) is **Testing** in **Free Sleep Internal**, and **ciao@luca.ooo** is present both in that group and as an individual tester. The separate individual-tester beta review was submitted; internal access is active. Feature-oriented internal test notes are saved. Final evidence: [build8.md](build8.md).
+
+The ESP's last USB check confirmed Wi-Fi and sample Preview off. It still needs the final live Core endpoint/key after the coordinated attended controller cutover. It is currently disconnected from USB; the owner will reconnect it later. The cutover remains with the backend chat and requires its attended handoff. This release is not evidence of live bed control, Health writes, Home pairing, Siri invocation or overnight comfort qualification.

@@ -1,6 +1,6 @@
 # Native parity release notes
 
-Prepared for the next internal TestFlight release. A signed local candidate is available; its provisional build number must be confirmed in Safari before upload.
+Published for internal TestFlight 0.3.0 (8) on 26 October 2026. The saved What to Test text follows the feature checklist below; final assignment evidence is in `build8.md`.
 
 ## What to test
 
@@ -18,4 +18,4 @@ Please include the screen, selected side and exact action when reporting a probl
 
 ## Release record
 
-The verified local archive and IPA are recorded in `parity-candidate.md`. Final App Store Connect processing, internal group and tester assignment remain pending. The existing app identity is retained so saved connections and user data continue to belong to the same application.
+The verified local archive and IPA are recorded in `parity-candidate.md`. `build8.md` records Apple validation, the internal group in Testing and the individual tester assignment. The separate individual-tester beta review is submitted; internal access is active. The existing app identity is retained so saved connections and user data continue to belong to the same application.
