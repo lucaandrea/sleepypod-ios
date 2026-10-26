@@ -14,6 +14,7 @@ enum BiometricBacktestPending: Codable, Equatable, Sendable {
     case experiment(parent: DatasetIdentity, request: BiometricExperimentRequest)
     case waveform(side: Side, request: WaveformDatasetRequest)
     case releaseDataset(DatasetIdentity)
+    case releaseReport(BiometricReportIdentity)
     var side: Side {
         switch self {
         case .dataset(let input): input.side
@@ -22,6 +23,7 @@ enum BiometricBacktestPending: Codable, Equatable, Sendable {
         case .experiment(let parent, _): parent.side
         case .waveform(let side, _): side
         case .releaseDataset(let input): input.side
+        case .releaseReport(let input): input.side
         }
     }
 }

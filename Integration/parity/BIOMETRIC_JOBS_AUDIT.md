@@ -14,5 +14,5 @@ Demo shares candidate and retained-input state across navigation. Its queue is s
 
 - Final phone logic/transport run: 37 checks passed (14 queue/job checks and 23 existing profile/experiment regressions).
 - Complete phone flow passes in `Jobs-final-phone.xcresult`; all seven captures are reviewed. The same iPad flow passes in `Jobs-ipad.xcresult` (66.000 seconds), and the maximum-text flow passes in `Jobs-accessibility.xcresult` (361.405 seconds). All twenty-one captures are reviewed, including the complete queue and inspection actions. The initial run encountered duplicate nested button identifiers in the Simulator's native confirmation sheet; targeting its first match resolved the automation failure.
-- Strict SwiftLint, diff checks and the presentation guard pass. GitHub CI follows publication; this local audit does not substitute for that gate.
+- Strict SwiftLint, diff checks and the presentation guard pass. GitHub CI run `40285279695` passed build, contract-test, lint and done. PR #22 merged into owner main at `a92f69883fcc9772c13513a53aefa3ad25d2f313`; its feature branch is removed.
 - No personal health records, live worker execution, controller mutation, version change or TestFlight upload is part of these synthetic/local checks.

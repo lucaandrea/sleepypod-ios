@@ -35,6 +35,7 @@
 		08CE65FCB906EAB862271CA5 /* PersonalReportPrompt.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6609FBA3B881355B05CD01F8 /* PersonalReportPrompt.swift */; };
 		0911824544AF401433A9DC43 /* PiezoWaveformView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7BC90983ABD4505D2BE197D8 /* PiezoWaveformView.swift */; };
 		096C22DDAFBEBBC52E23DD03 /* PodFeatureLink.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACEA4AE9C367F66EBADBBBB1 /* PodFeatureLink.swift */; };
+		0A90C10339B69F0C2CAB72BD /* BiometricStageReport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38BFD30A00F1D00D7D77C99D /* BiometricStageReport.swift */; };
 		0AAF2E7F6B0CA10D6231859F /* HomeKitBridgeScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = C370513501826405AB656EC8 /* HomeKitBridgeScreen.swift */; };
 		0B484FB88EA2286B4B2B83EB /* ScheduleScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00032A1688C27E11B0BF64CC /* ScheduleScreen.swift */; };
 		0B769F1C3478943E971D6B1E /* SleeperPreferencesWorkspace.swift in Sources */ = {isa = PBXBuildFile; fileRef = CBDF7FD7FA4E05DAAD700E42 /* SleeperPreferencesWorkspace.swift */; };
@@ -127,6 +128,7 @@
 		2D211849929D856169991F7B /* WeekNavigatorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76EDADBFA471AB6D43021528 /* WeekNavigatorView.swift */; };
 		2D387CC02890B21C9F90D203 /* SystemLogsUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF1B0291CEE8BB769D2BCC13 /* SystemLogsUITests.swift */; };
 		2D52EA7492728B85140BCDA8 /* AppearanceSettingsUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7165D04C8C0FAA086A945A7A /* AppearanceSettingsUITests.swift */; };
+		2D77D2439B1121EB01A74FF7 /* backtest-reports-demo.json in Resources */ = {isa = PBXBuildFile; fileRef = 36FFFA88FD65BE81E6DC7339 /* backtest-reports-demo.json */; };
 		2DDA2F5155A22461DABBB043 /* SensorDiagnosticsUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DAE624B1AA77BA11B82512C4 /* SensorDiagnosticsUITests.swift */; };
 		2DE0DD25EAC19F7C48FCE81C /* SettingsChoiceMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DFA75082831F9DAD120C051 /* SettingsChoiceMenu.swift */; };
 		2E6E1D635A1B986005680E3A /* BasePreset.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A08F6C5E20C3A3AC36D4FA9 /* BasePreset.swift */; };
@@ -177,6 +179,7 @@
 		3E0011F24B443A0ACFE67875 /* AlarmPreview.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0BA1C0C75C7FBCDED8307EF /* AlarmPreview.swift */; };
 		3E3EF391BB425FCDC01CF036 /* SystemScheduler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 969A25C49742B985A6A0E9FE /* SystemScheduler.swift */; };
 		3E8E15E83AA3FE2B8D9310C4 /* DemoBiometricReferencesClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = B17291A501970D9B35120E33 /* DemoBiometricReferencesClient.swift */; };
+		3EE1328291C1E03E4394A1C3 /* BiometricEvaluationReport.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7CC4FCA4613A049A87442C9 /* BiometricEvaluationReport.swift */; };
 		3F3CA68DBFC6398C218DB8D0 /* MovementRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9604F6662B2AB6363AECF42A /* MovementRecord.swift */; };
 		3F8ED5D402B6B2A10C5CCC65 /* LICENSE in Resources */ = {isa = PBXBuildFile; fileRef = E0EF5B59A485AD445748DCAB /* LICENSE */; };
 		3FA28330D6F7A85A7AFBE311 /* BiometricProfileTransportTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC76F245CEC344D7717FC6F6 /* BiometricProfileTransportTests.swift */; };
@@ -193,6 +196,7 @@
 		44D0705662FAA79974A38D49 /* SystemThermalClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46587598193459D74DD30D57 /* SystemThermalClient.swift */; };
 		4537E75A1A5822042DB9C8A2 /* Log.swift in Sources */ = {isa = PBXBuildFile; fileRef = 060906F2618180E4E45E29F3 /* Log.swift */; };
 		455FD2F8FD7BF5D3AF36972A /* SettingsChangesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2679471B96942E26C548F75 /* SettingsChangesTests.swift */; };
+		45EBAB9E766D32AAF1E02786 /* BiometricTraceWorkspace.swift in Sources */ = {isa = PBXBuildFile; fileRef = 85BDFDECCB7C0B9D09B7673B /* BiometricTraceWorkspace.swift */; };
 		462A060718CDA83ED33851B9 /* SystemSchedulerUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3069899A2B6D8E553B344BCE /* SystemSchedulerUITests.swift */; };
 		47254DC4322FC4F3DE0DA3EC /* BetaModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7398AC2DDAE6E48A52F7C413 /* BetaModels.swift */; };
 		4739EE483A79A22F9C9FE64B /* TemperatureContextClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E1D7C2F62890F73C9127F35 /* TemperatureContextClient.swift */; };
@@ -239,6 +243,7 @@
 		59D63C6FB621C08C2D068AA7 /* NotificationRelay.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3B44F02B272682A83840CA4 /* NotificationRelay.swift */; };
 		59F63D9F223D60F457B5079A /* PumpAlert.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E0716D0C9CB55312A5DB0AA /* PumpAlert.swift */; };
 		5AB89293F8E10DB66EE85F3B /* PositionBedScene.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8521D9B186F99326B1A55C38 /* PositionBedScene.swift */; };
+		5AB907BC54C64ED264A83D9A /* BiometricNumericReport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 715AE6B64478B03B4BAE795D /* BiometricNumericReport.swift */; };
 		5B25E9BC63C38C27C8D7BD5D /* WatchReferenceClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D80B844D752A65599BB91C4 /* WatchReferenceClient.swift */; };
 		5B2DF124F3FCC842FD28DE78 /* CoachUsageWorkspace.swift in Sources */ = {isa = PBXBuildFile; fileRef = 516B05145B02A7518A39D112 /* CoachUsageWorkspace.swift */; };
 		5C1E0E31917A60FA0EC46A10 /* DevicePreferencesClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EE6617412A9AFF4E294884A /* DevicePreferencesClient.swift */; };
@@ -246,6 +251,7 @@
 		5CBF3A672BEDF9D89FC418AB /* SleeperPreferencesScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1064563111F4FAC6338E69F /* SleeperPreferencesScreen.swift */; };
 		5D6566441668D7E70CE84F29 /* FreeSleepClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 970CD9734D4BC3ACBE225328 /* FreeSleepClient.swift */; };
 		5D9C35E1655AE9D6F5FB7430 /* SettingsChanges.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB842783228874D9C0870344 /* SettingsChanges.swift */; };
+		5DC1DDD2FDFE99AF27AA3DE4 /* BiometricReportTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 37887696A6BEAB8A52224A09 /* BiometricReportTests.swift */; };
 		5DEE855C6473D37AB69948F0 /* LegacyBaseScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = F674C877D90BBF81018C4614 /* LegacyBaseScreen.swift */; };
 		5E2CD6FE8904F22C64EA476B /* BiometricsPlot.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB5AD97552297AC5991582BE /* BiometricsPlot.swift */; };
 		5E6F9A7A17A3BB284F2D7DF7 /* PodStageNightTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FCBB11D05102A3351EC14EB /* PodStageNightTests.swift */; };
@@ -272,6 +278,7 @@
 		650EC4F1527BA82FBF187755 /* SettingsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68BEE347AC8D43152FFBEE7B /* SettingsManager.swift */; };
 		651F56EAD830589EABE336C9 /* SetTemperatureIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = BED9C22B47F8C54FB9F3100F /* SetTemperatureIntent.swift */; };
 		652471388FC0B0E706C743BE /* PumpProtectionSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76293C4587C6255730853B42 /* PumpProtectionSettings.swift */; };
+		6533CAD30BD08556CA79A725 /* DemoBiometricReportsClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA249DA83C4D662E8F193EC6 /* DemoBiometricReportsClient.swift */; };
 		6650E4B8CB8EB569EA2B755F /* DataCoverage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 791A2000EEEEDC15604BCEF5 /* DataCoverage.swift */; };
 		6665547CAA8414386F954E15 /* SystemSchedulerClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F938AADE3A0500831EC8823 /* SystemSchedulerClient.swift */; };
 		66D3A4CBB3AC4E9C25D73AC8 /* AlarmIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 85F2E7C44C1E52C84DC44D23 /* AlarmIntents.swift */; };
@@ -323,11 +330,14 @@
 		75D1749F2C38C3B1A61B8B04 /* SystemHealthView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7192DC5CB7788E7EB5AC7A1E /* SystemHealthView.swift */; };
 		761F71470709124C0E11AC5D /* HealthHistoryCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96B04BD76B96A7137172BE9F /* HealthHistoryCard.swift */; };
 		764CA2C34B901CFE157F4FC4 /* SystemSchedulerScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0278C72E32B98DF51F4B4575 /* SystemSchedulerScreen.swift */; };
+		767494BD1C023498670CE9FA /* BiometricReplayResources.swift in Sources */ = {isa = PBXBuildFile; fileRef = E21BE56EBE9E99ADADC86D8E /* BiometricReplayResources.swift */; };
+		769CB5BF8F58F49538C3EDC4 /* BiometricReportEvidenceViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 363F622D1C8C8C02C942ACA5 /* BiometricReportEvidenceViews.swift */; };
 		76BE44719ADE65F1F800F35D /* SleepypodApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54A9B04A9B5323F03B9F3CFD /* SleepypodApp.swift */; };
 		76F2CAC09736F972160EA15B /* AdaptiveSimulatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6C912771F382B78E930512C /* AdaptiveSimulatorTests.swift */; };
 		783B095FE1D933AE14D94C97 /* RawDataSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50BD72013CAB411F125A77BC /* RawDataSheet.swift */; };
 		78A0334C5FE90674DFAF5A57 /* ThermalBedTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F6C0F4048FF9E24D4B5CD54 /* ThermalBedTests.swift */; };
 		791497A3B38C37C5EC52B6E4 /* CurvePlan.swift in Sources */ = {isa = PBXBuildFile; fileRef = B500C58C48BFCB0D44208C89 /* CurvePlan.swift */; };
+		791A126023F97AB7F332EBC2 /* BiometricReportsClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = EFF9D42B92D7AB73418879BD /* BiometricReportsClient.swift */; };
 		7B0D14486E569590105CFD04 /* BiometricBacktestSubmissionScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A959AFC9A8487755C5A8DEA /* BiometricBacktestSubmissionScreen.swift */; };
 		7B18A3F8BC4258895EBEE279 /* ServiceRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4BE210E5A8FC6945D3DE384C /* ServiceRowView.swift */; };
 		7B205CE2A9B6612A2AE64A97 /* DevicePreferencesUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1DDAAA01714E5762A84C87D0 /* DevicePreferencesUITests.swift */; };
@@ -374,6 +384,7 @@
 		8C3C942B3D14EE4DAAA784FD /* CoreSchedulePatch.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F720D99D33597DB0A53CADD /* CoreSchedulePatch.swift */; };
 		8CB278C22CD5C8F31539BD69 /* SleeperGestureTransportTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 78A499E89A1C5FC4D19D1DED /* SleeperGestureTransportTests.swift */; };
 		8CF488994624DBE29B35CFC4 /* SystemStorageClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8292BF87F6FCC57BE4B982D7 /* SystemStorageClient.swift */; };
+		8D6615C1233DEF196262F350 /* BiometricReportScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD16C53AB4DD671BB0130609 /* BiometricReportScreen.swift */; };
 		8DD4C810BAAA05ED37D5F493 /* AutomationReplaySpans.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE96D63EC2DF722AEE3B938B /* AutomationReplaySpans.swift */; };
 		8DD9CBBCA55884DBA45F5938 /* MetricsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7A651EEB721EF0EFD1B2D16 /* MetricsManager.swift */; };
 		8DDF8FDD9FE7688543CA8831 /* APIError.swift in Sources */ = {isa = PBXBuildFile; fileRef = A42ACA637081CABD4502D011 /* APIError.swift */; };
@@ -410,11 +421,13 @@
 		98A4AB51C1811BAC05DCDFC1 /* TemperatureTimeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = DADA639A84B86AA01F5A26C1 /* TemperatureTimeline.swift */; };
 		990432DDF9194BAC1515A1A7 /* device-demo.json in Resources */ = {isa = PBXBuildFile; fileRef = 76AD58CC09B0E1136E88B307 /* device-demo.json */; };
 		9A0B642370F978A957C0590F /* RemoteStageModelWorkspace.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32845D40D5176075B9AB8EEE /* RemoteStageModelWorkspace.swift */; };
+		9A6ECD3EAD9C1055074D2191 /* BiometricReportTransportTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9C797EAF92EDEA10279EDBD0 /* BiometricReportTransportTests.swift */; };
 		9A70C781F6E1C775E14E9AF5 /* SleepDataParityUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0D7A4158256E8C85169F1EF /* SleepDataParityUITests.swift */; };
 		9AB84B5D3B1FE68357CD80C3 /* IBMPlexMono-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = A76D36286E623D5618D32EEF /* IBMPlexMono-Regular.ttf */; };
 		9B5A9328301FC72957A1D69C /* StageSourceBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AEFD648905DE40E74327EF0 /* StageSourceBadge.swift */; };
 		9B68B3E9DA9F00E22B1A1F7C /* BiometricBacktestJobsClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 35591EBC856A0151D0B2D0A7 /* BiometricBacktestJobsClient.swift */; };
 		9B6DBBAFD07C7EA7F1E29E0F /* JSONValue.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB2507DE49C5D551045CDF7C /* JSONValue.swift */; };
+		9B939FCDA158C310EAFB2ED3 /* BiometricReportsUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2E10497A94895964728E61EB /* BiometricReportsUITests.swift */; };
 		9BB76FC6AB0E67C94A62B42B /* FreeSleepKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 454932A5C78BA1D0091701F0 /* FreeSleepKit.framework */; };
 		9CD0D687E95AAD1F755453CA /* BiometricExperimentLibrary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 806575A653C48FE80EE77BA6 /* BiometricExperimentLibrary.swift */; };
 		9D3A4F7656570BAD957C2AD4 /* SleepAnalytics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57DB13699A5B6666707FD9A1 /* SleepAnalytics.swift */; };
@@ -517,6 +530,7 @@
 		C567F778DB04A065D6CA683F /* WaveformDatasetScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66398413AD99177B58D51DA5 /* WaveformDatasetScreen.swift */; };
 		C667248638C4E4E57BDFBE0E /* BiometricProfileReviewScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F6449B7386780B98698ED37 /* BiometricProfileReviewScreen.swift */; };
 		C67C9BAB988717F754F38A0D /* ArchivePushTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E01BEF5309FAF40C5F088ACE /* ArchivePushTests.swift */; };
+		C79A0291C17957F5F5450998 /* BiometricReportCharts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49A83A4C1635827C94AE6272 /* BiometricReportCharts.swift */; };
 		C7C12B455F1C07DFA2DBC3FB /* BaseWorkspace.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9724CE75394092E19A35170C /* BaseWorkspace.swift */; };
 		C80A5E568A1DD0D4124A7ACF /* DataCoverageCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D3C2D13FDDB1E5F89AB40A0 /* DataCoverageCard.swift */; };
 		C8A7D7FBBE5A153276BF1E09 /* SnoreDetection.swift in Sources */ = {isa = PBXBuildFile; fileRef = A16C51CB0698898E68365C17 /* SnoreDetection.swift */; };
@@ -528,6 +542,7 @@
 		CA5F1DA63A0C11FDCBDCFC21 /* SystemDashboardSideCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5BE46F1BE40538E441659E2 /* SystemDashboardSideCard.swift */; };
 		CA5F8ADFFC874E25504A821C /* AlarmEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 091D7CEC3DE6B9697A410404 /* AlarmEditor.swift */; };
 		CA8A50DDD41F09B8AEA62585 /* ScheduleEndActionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA2F416C6569A20CE25E7736 /* ScheduleEndActionTests.swift */; };
+		CA90D4BF376F20E340F00E4F /* BiometricReportWorkspace.swift in Sources */ = {isa = PBXBuildFile; fileRef = B84FDC756327C2B75B1B47DA /* BiometricReportWorkspace.swift */; };
 		CA9D9A4FA299AD4C47BD59E4 /* MarketingTour.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11D7A6E0B1458A3D80DFDC3C /* MarketingTour.swift */; };
 		CAC9EDEDA974243ECBCFA7A0 /* ArchivePushClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75E15C36704A1D77B520D882 /* ArchivePushClient.swift */; };
 		CAEE2581D229ADEBE5FDF3BB /* SensorSnapshotBatch.swift in Sources */ = {isa = PBXBuildFile; fileRef = EFB66F9E0E18585BF248499E /* SensorSnapshotBatch.swift */; };
@@ -540,6 +555,7 @@
 		CCAF01B5BDD8230545622FAC /* stage-rules-defaults.json in Resources */ = {isa = PBXBuildFile; fileRef = 77921F15D845C5623CE30590 /* stage-rules-defaults.json */; };
 		CD014B9CEE2C262CDD2637B5 /* SleepAnalyzerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE5C25057170EC9CC2049440 /* SleepAnalyzerTests.swift */; };
 		CD2CC6B849FE19586479F040 /* TemperatureContextWorkspace.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5932BD4A78E24AD2164B6FAE /* TemperatureContextWorkspace.swift */; };
+		CD71ECB189E6926595E8AEA8 /* backtest-three-metric-report.json in Resources */ = {isa = PBXBuildFile; fileRef = 9A1EEFDE993BFB9F77487962 /* backtest-three-metric-report.json */; };
 		CD928D7EE79D4C3E78439117 /* PodPreferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7094DD650A9409ECB1257A47 /* PodPreferences.swift */; };
 		CD9B748103126F2443327A5D /* PreferencesWorkspace.swift in Sources */ = {isa = PBXBuildFile; fileRef = BEAD8F0E3AA4F54A5A8EC8B0 /* PreferencesWorkspace.swift */; };
 		CDB2F9140FB1C9B3C624F7E8 /* HardwareVibrationScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43AB7FCF4320E5E664E86858 /* HardwareVibrationScreen.swift */; };
@@ -574,10 +590,12 @@
 		D9706DA4AC4F0D618FF78A16 /* NightPhasesStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB15777D66DAF4DC889F469C /* NightPhasesStore.swift */; };
 		DA04819BA86B53C098860FE9 /* SystemDatabaseBackupTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BF58B9DDB559131048A0353 /* SystemDatabaseBackupTests.swift */; };
 		DA64972D17646A4C7B6B71BA /* DeviceStatus.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B0F30028207CF0DC99974D1 /* DeviceStatus.swift */; };
+		DA65DD4E94B1AF3C95A6A379 /* BiometricTraceScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = C59A195B4A66C92F71DAFC0A /* BiometricTraceScreen.swift */; };
 		DA978EC7B69BEC856EF30085 /* TapGestureConfigView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCFDA266C4BF7ADCBDE06689 /* TapGestureConfigView.swift */; };
 		DAF812E9B274AD0770A74F07 /* SystemLogClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7E107187397E1236C9CDFE5 /* SystemLogClient.swift */; };
 		DB447D37DAC8F8D6BF886A1C /* RemoteStageModelsScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5BEBA4D8B906BD76FD5C97A /* RemoteStageModelsScreen.swift */; };
 		DB98F0272D0961C553786632 /* SystemRuntimeCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A57A20080E9A773D31D655E /* SystemRuntimeCard.swift */; };
+		DC39DBBA59D9C1D1B5D79AC3 /* BiometricNumericReportScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4CEC620A05508E0A5C31A7DF /* BiometricNumericReportScreen.swift */; };
 		DC95A99C5E341DE2BAD811D5 /* stage-features-night.json in Resources */ = {isa = PBXBuildFile; fileRef = 3B286266385ED6B07FE95947 /* stage-features-night.json */; };
 		DCD55C58F1034515C30ABEF4 /* AIProxy-LICENSE.txt in Resources */ = {isa = PBXBuildFile; fileRef = EBD57883E1D2C372D9B900C8 /* AIProxy-LICENSE.txt */; };
 		DD7DED1515059B83F37EFBE5 /* WatchImportWorkspace.swift in Sources */ = {isa = PBXBuildFile; fileRef = A924960905A634739CADBF44 /* WatchImportWorkspace.swift */; };
@@ -609,6 +627,7 @@
 		E8E6A2E8A9A8C1D8397D7E15 /* BiometricBacktestPreparation.swift in Sources */ = {isa = PBXBuildFile; fileRef = FFB09D4952BF11F834F6E6AB /* BiometricBacktestPreparation.swift */; };
 		E8EF6954CCD169FFA785E343 /* BiometricsContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 618986E1CEE4068835557ABD /* BiometricsContext.swift */; };
 		E8F04D26520945E712CB6CD7 /* BiometricBacktestJobTransportTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 451614F1720451A2929FED2D /* BiometricBacktestJobTransportTests.swift */; };
+		E91F6FD640D848331960FF06 /* BiometricReportTraces.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6BA8E25A59F9B10EBE99CFA4 /* BiometricReportTraces.swift */; };
 		E97D428D44548D9C9367B733 /* GestureBindingsScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED71C7684867299327307368 /* GestureBindingsScreen.swift */; };
 		E9ADE024246F03B1D89CCACE /* HealthSyncEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = B979C44DA9C484D7815410C6 /* HealthSyncEngine.swift */; };
 		EAEB57E7E4729425FB6851CF /* PumpProtectionSettingsScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FA35FEAA3A74ABB20765B76 /* PumpProtectionSettingsScreen.swift */; };
@@ -628,6 +647,7 @@
 		F43BB4E4BD6341C7700A6480 /* PhaseBlockView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2EFD212CB1C1A249CAD940C8 /* PhaseBlockView.swift */; };
 		F4450FE2C6EB7FCCB3E49496 /* OwnerConnection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3506F5379A680257C42C8738 /* OwnerConnection.swift */; };
 		F473AB73BEE5B89B2D13A294 /* RoutineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D380D878288155E5CAD44699 /* RoutineTests.swift */; };
+		F502859DD40B6C8FBC50353F /* BiometricStageReportScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = E504DBC597D8E7376AE7ACBF /* BiometricStageReportScreen.swift */; };
 		F51166A906CD9389071C9AEE /* RemoteStageParityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54A15A5018010D0BD0940156 /* RemoteStageParityTests.swift */; };
 		F5144B5FD15C90C6F0B6F42F /* TempScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A8BAD843B5F8A9CD181A2AE /* TempScreen.swift */; };
 		F5B6FF0F6659609E9E4040E3 /* BiometricWaveformTransportTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6F3191F190C520D5857901D1 /* BiometricWaveformTransportTests.swift */; };
@@ -651,6 +671,7 @@
 		FC646DE2F3CD273C015FA1E4 /* WatchComparison.swift in Sources */ = {isa = PBXBuildFile; fileRef = D23E9157B3CA17789A8FEBE5 /* WatchComparison.swift */; };
 		FCB8E5E399B449D59102BACB /* UnifiedBaseStatus.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BC3EEEF2F2F9A8AF3CB68E3 /* UnifiedBaseStatus.swift */; };
 		FDC60D5990976C183B1115B7 /* BaseStatus.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94626F409075968906488C46 /* BaseStatus.swift */; };
+		FDF961E57872BBDC47A2FEC1 /* BiometricReferenceTrace.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E90DA96606B8200167ED7F7 /* BiometricReferenceTrace.swift */; };
 		FE364D8B4D94DEDA288D7E7F /* ReferenceTextParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56ED3624911B9339300D1415 /* ReferenceTextParserTests.swift */; };
 		FFE3C7A62A1605DFB1A1647D /* RoutineFields.swift in Sources */ = {isa = PBXBuildFile; fileRef = 376131DCAA1F0942B732BB8D /* RoutineFields.swift */; };
 /* End PBXBuildFile section */
@@ -770,6 +791,7 @@
 		0CDE73B1952F504944663050 /* SystemDatabaseTableScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemDatabaseTableScreen.swift; sourceTree = "<group>"; };
 		0DC08F9DB1C7F182803B9AF0 /* OwnerConnectionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OwnerConnectionTests.swift; sourceTree = "<group>"; };
 		0E7FA2C23C916CBADE75A220 /* HealthComparison.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthComparison.swift; sourceTree = "<group>"; };
+		0E90DA96606B8200167ED7F7 /* BiometricReferenceTrace.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiometricReferenceTrace.swift; sourceTree = "<group>"; };
 		0F43EF7079C74992615E9373 /* Coaching.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Coaching.swift; sourceTree = "<group>"; };
 		0FCC5EA8D41BF91BCCFDEA6D /* SleepTimeCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SleepTimeCardView.swift; sourceTree = "<group>"; };
 		10A4D4F108DB31023E5E7D9F /* BiometricProfileTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiometricProfileTests.swift; sourceTree = "<group>"; };
@@ -853,6 +875,7 @@
 		2D8F3BFDBBA72B77A16C8606 /* Services.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services.swift; sourceTree = "<group>"; };
 		2DA03A26B85DE4C884EF0CE7 /* UserSelectorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserSelectorView.swift; sourceTree = "<group>"; };
 		2DFA75082831F9DAD120C051 /* SettingsChoiceMenu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsChoiceMenu.swift; sourceTree = "<group>"; };
+		2E10497A94895964728E61EB /* BiometricReportsUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiometricReportsUITests.swift; sourceTree = "<group>"; };
 		2E3176EB2A6FF2F190D09EC5 /* SanitizeIPTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SanitizeIPTests.swift; sourceTree = "<group>"; };
 		2EFD212CB1C1A249CAD940C8 /* PhaseBlockView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhaseBlockView.swift; sourceTree = "<group>"; };
 		2F0AFD07A8CB0082733ACB36 /* SleepRecord.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SleepRecord.swift; sourceTree = "<group>"; };
@@ -874,15 +897,19 @@
 		359498460C16B875961D322E /* ComfortCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComfortCard.swift; sourceTree = "<group>"; };
 		35991A9255DE3D1082B796E1 /* ReferenceTransportTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReferenceTransportTests.swift; sourceTree = "<group>"; };
 		35E52ECF2A638D9C9BFF0A90 /* NativeAlarmsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeAlarmsView.swift; sourceTree = "<group>"; };
+		363F622D1C8C8C02C942ACA5 /* BiometricReportEvidenceViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiometricReportEvidenceViews.swift; sourceTree = "<group>"; };
 		369254D710895A0764F65A08 /* WatchReference.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchReference.swift; sourceTree = "<group>"; };
 		36B13B0F3986F237D31DE015 /* StageRuleFields.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StageRuleFields.swift; sourceTree = "<group>"; };
 		36CA3E2091E691163F71E3A2 /* PortableStageModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PortableStageModelTests.swift; sourceTree = "<group>"; };
 		36F1100C4AEC3B4BCF94349E /* CoachGrounding.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoachGrounding.swift; sourceTree = "<group>"; };
+		36FFFA88FD65BE81E6DC7339 /* backtest-reports-demo.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "backtest-reports-demo.json"; sourceTree = "<group>"; };
 		376131DCAA1F0942B732BB8D /* RoutineFields.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoutineFields.swift; sourceTree = "<group>"; };
+		37887696A6BEAB8A52224A09 /* BiometricReportTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiometricReportTests.swift; sourceTree = "<group>"; };
 		37C947E6107DDF614FF2BE43 /* ArchivePushSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArchivePushSettings.swift; sourceTree = "<group>"; };
 		37FC9D8DD1B736AAE87A0FBB /* PiezoSweepTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PiezoSweepTests.swift; sourceTree = "<group>"; };
 		3802A46A93A63E5977A34D19 /* SleepStageChallenger.mlmodel */ = {isa = PBXFileReference; lastKnownFileType = file.mlmodel; path = SleepStageChallenger.mlmodel; sourceTree = "<group>"; };
 		383C633CC8E58B5DA28E906A /* AppleHomeService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleHomeService.swift; sourceTree = "<group>"; };
+		38BFD30A00F1D00D7D77C99D /* BiometricStageReport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiometricStageReport.swift; sourceTree = "<group>"; };
 		3AEFD648905DE40E74327EF0 /* StageSourceBadge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StageSourceBadge.swift; sourceTree = "<group>"; };
 		3B286266385ED6B07FE95947 /* stage-features-night.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "stage-features-night.json"; sourceTree = "<group>"; };
 		3B374681EEE3DDCB4646F966 /* AutomationRule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutomationRule.swift; sourceTree = "<group>"; };
@@ -921,6 +948,7 @@
 		4748383FAE314C9B618AD6E1 /* PortableStageModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PortableStageModel.swift; sourceTree = "<group>"; };
 		476A4B882C88C54CB1DE37B7 /* CoachUsageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoachUsageView.swift; sourceTree = "<group>"; };
 		489B1791FCB967E58E8D40F6 /* SensorFrames.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SensorFrames.swift; sourceTree = "<group>"; };
+		49A83A4C1635827C94AE6272 /* BiometricReportCharts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiometricReportCharts.swift; sourceTree = "<group>"; };
 		4A1860CCFB1E0087939C05AE /* BiometricExperimentsClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiometricExperimentsClient.swift; sourceTree = "<group>"; };
 		4A627062820CA196E2146C7E /* SleepRecordChange.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SleepRecordChange.swift; sourceTree = "<group>"; };
 		4A66478F0FCBB98B8AA4E776 /* AutomationLiveZones.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutomationLiveZones.swift; sourceTree = "<group>"; };
@@ -931,6 +959,7 @@
 		4BE210E5A8FC6945D3DE384C /* ServiceRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServiceRowView.swift; sourceTree = "<group>"; };
 		4C3536D92A5EA9C0BC818D38 /* BiometricAxisTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiometricAxisTests.swift; sourceTree = "<group>"; };
 		4C6EE17C03456B1613751DA8 /* AlarmParityTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmParityTests.swift; sourceTree = "<group>"; };
+		4CEC620A05508E0A5C31A7DF /* BiometricNumericReportScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiometricNumericReportScreen.swift; sourceTree = "<group>"; };
 		4D36319CCA9F03AAB322E21E /* SleepScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SleepScreen.swift; sourceTree = "<group>"; };
 		4D45AEDFF14CB26FD2DA6E0F /* AutopilotScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutopilotScreen.swift; sourceTree = "<group>"; };
 		4E49937910D17A1E0A29786E /* SensorCalibrationUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SensorCalibrationUITests.swift; sourceTree = "<group>"; };
@@ -1011,6 +1040,7 @@
 		693431B0606C83EB85702FC8 /* PodHealthExportSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PodHealthExportSource.swift; sourceTree = "<group>"; };
 		694A3FDEA6BB836800CF4D80 /* BiometricBacktestJobLibrary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiometricBacktestJobLibrary.swift; sourceTree = "<group>"; };
 		6AD042E93858921CF1B2BE2F /* StatusLifecycleTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusLifecycleTests.swift; sourceTree = "<group>"; };
+		6BA8E25A59F9B10EBE99CFA4 /* BiometricReportTraces.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiometricReportTraces.swift; sourceTree = "<group>"; };
 		6BCF3D299580638A23204A46 /* CoreHardwareStatusTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreHardwareStatusTests.swift; sourceTree = "<group>"; };
 		6BD131494E698755D806E364 /* CalibrationSignalChart.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalibrationSignalChart.swift; sourceTree = "<group>"; };
 		6D3C2D13FDDB1E5F89AB40A0 /* DataCoverageCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataCoverageCard.swift; sourceTree = "<group>"; };
@@ -1024,6 +1054,7 @@
 		7094DD650A9409ECB1257A47 /* PodPreferences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PodPreferences.swift; sourceTree = "<group>"; };
 		70DB2A21E4087C231003AA44 /* HomeKitBridgeWorkspace.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeKitBridgeWorkspace.swift; sourceTree = "<group>"; };
 		71574F71DEE3A76B28822D85 /* BiometricExperiments.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiometricExperiments.swift; sourceTree = "<group>"; };
+		715AE6B64478B03B4BAE795D /* BiometricNumericReport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiometricNumericReport.swift; sourceTree = "<group>"; };
 		7165D04C8C0FAA086A945A7A /* AppearanceSettingsUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppearanceSettingsUITests.swift; sourceTree = "<group>"; };
 		71694048A938334069E730E7 /* DemoCoachUsage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoCoachUsage.swift; sourceTree = "<group>"; };
 		7192DC5CB7788E7EB5AC7A1E /* SystemHealthView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemHealthView.swift; sourceTree = "<group>"; };
@@ -1075,6 +1106,7 @@
 		8521D9B186F99326B1A55C38 /* PositionBedScene.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PositionBedScene.swift; sourceTree = "<group>"; };
 		852A630CE78981A5C9114FCE /* BedSide.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BedSide.swift; sourceTree = "<group>"; };
 		85BD38479920F462D6470067 /* CurveGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CurveGenerator.swift; sourceTree = "<group>"; };
+		85BDFDECCB7C0B9D09B7673B /* BiometricTraceWorkspace.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiometricTraceWorkspace.swift; sourceTree = "<group>"; };
 		85E9BAE42B3F1502A7E8F343 /* ReferenceTextParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReferenceTextParser.swift; sourceTree = "<group>"; };
 		85F2E7C44C1E52C84DC44D23 /* AlarmIntents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmIntents.swift; sourceTree = "<group>"; };
 		85FC2DA0EA56DD282DCC150A /* SystemSchedulerNightCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemSchedulerNightCard.swift; sourceTree = "<group>"; };
@@ -1124,12 +1156,14 @@
 		99C4810DA1E86D88448F08CF /* EpisodeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EpisodeTests.swift; sourceTree = "<group>"; };
 		99D07D3D80CD0C9C4D4338D0 /* ArchivePushSettingsScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArchivePushSettingsScreen.swift; sourceTree = "<group>"; };
 		99FD73B30CDEAF314F338D71 /* ArchivePushTransportTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArchivePushTransportTests.swift; sourceTree = "<group>"; };
+		9A1EEFDE993BFB9F77487962 /* backtest-three-metric-report.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "backtest-three-metric-report.json"; sourceTree = "<group>"; };
 		9A22E713A6C219132BEB0D63 /* SensorHistoryCards.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SensorHistoryCards.swift; sourceTree = "<group>"; };
 		9AA7286021C48AD5A6B7E3D9 /* WatchMotionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchMotionView.swift; sourceTree = "<group>"; };
 		9B1F67C21593EE6EACF74EB4 /* UpdateChecker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdateChecker.swift; sourceTree = "<group>"; };
 		9B9514CE4BEE91461A868C4E /* DailySchedule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailySchedule.swift; sourceTree = "<group>"; };
 		9C23ED1E696702811954A0DA /* DataPipelineView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataPipelineView.swift; sourceTree = "<group>"; };
 		9C44BA3D69B3D7B50B496886 /* DemoSleepSummary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoSleepSummary.swift; sourceTree = "<group>"; };
+		9C797EAF92EDEA10279EDBD0 /* BiometricReportTransportTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiometricReportTransportTests.swift; sourceTree = "<group>"; };
 		9C973A0F4793E7EB5B249762 /* SetBaseAnglesIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SetBaseAnglesIntent.swift; sourceTree = "<group>"; };
 		9C9903297C2B898BF4F99574 /* DemoBiometricProfilesClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoBiometricProfilesClient.swift; sourceTree = "<group>"; };
 		9CEE8733293904F78BD28CD9 /* StageFeatureParityTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StageFeatureParityTests.swift; sourceTree = "<group>"; };
@@ -1198,6 +1232,7 @@
 		B7C94AEB5A7EF2FE53231869 /* VitalsRecord.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VitalsRecord.swift; sourceTree = "<group>"; };
 		B7DF529DE342F71ADCB97DF5 /* FreeSleepTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FreeSleepTests.swift; sourceTree = "<group>"; };
 		B7E107187397E1236C9CDFE5 /* SystemLogClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemLogClient.swift; sourceTree = "<group>"; };
+		B84FDC756327C2B75B1B47DA /* BiometricReportWorkspace.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiometricReportWorkspace.swift; sourceTree = "<group>"; };
 		B881147C7D2F0ADEBAD1AD02 /* openapi.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = openapi.json; sourceTree = "<group>"; };
 		B89A040B405BEF4117A8324F /* UserProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserProfile.swift; sourceTree = "<group>"; };
 		B905ACC6068537BA8BC29F6E /* BridgeSettingsTransportTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BridgeSettingsTransportTests.swift; sourceTree = "<group>"; };
@@ -1239,6 +1274,7 @@
 		C3B1006B14F1956441C44A1F /* AutomationRangeWorkspace.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutomationRangeWorkspace.swift; sourceTree = "<group>"; };
 		C436BD3DAD2E930203CCB620 /* StageFeatures.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StageFeatures.swift; sourceTree = "<group>"; };
 		C49E07EED41000028484C5A6 /* CoachView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoachView.swift; sourceTree = "<group>"; };
+		C59A195B4A66C92F71DAFC0A /* BiometricTraceScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiometricTraceScreen.swift; sourceTree = "<group>"; };
 		C5A1999947F6DB7202489B6C /* Haptics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Haptics.swift; sourceTree = "<group>"; };
 		C5BE46F1BE40538E441659E2 /* SystemDashboardSideCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemDashboardSideCard.swift; sourceTree = "<group>"; };
 		C5C5D218EFF1C4B42913BD43 /* PreferencesTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreferencesTests.swift; sourceTree = "<group>"; };
@@ -1314,7 +1350,9 @@
 		E152E058D4B193B3FD0F1D0D /* FirstBootTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirstBootTests.swift; sourceTree = "<group>"; };
 		E1F3225C337C53CCC5F74057 /* GestureBindingsClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GestureBindingsClient.swift; sourceTree = "<group>"; };
 		E1FD217D106885CBC7D42996 /* BiometricProfilesClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiometricProfilesClient.swift; sourceTree = "<group>"; };
+		E21BE56EBE9E99ADADC86D8E /* BiometricReplayResources.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiometricReplayResources.swift; sourceTree = "<group>"; };
 		E2650EB8DB15503A6D46544F /* SensorDiagnosticsClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SensorDiagnosticsClient.swift; sourceTree = "<group>"; };
+		E504DBC597D8E7376AE7ACBF /* BiometricStageReportScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiometricStageReportScreen.swift; sourceTree = "<group>"; };
 		E57D71575E89B975B5344541 /* CoachUsage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoachUsage.swift; sourceTree = "<group>"; };
 		E5E61BC05D284239DE0D0560 /* ReplaySessionPickerScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReplaySessionPickerScreen.swift; sourceTree = "<group>"; };
 		E5EAED30276E6A7FAB68E1A6 /* CoachLimitChange.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoachLimitChange.swift; sourceTree = "<group>"; };
@@ -1342,6 +1380,7 @@
 		EF96D1D98331EFFC47B48C65 /* StageModelStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StageModelStore.swift; sourceTree = "<group>"; };
 		EFB66F9E0E18585BF248499E /* SensorSnapshotBatch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SensorSnapshotBatch.swift; sourceTree = "<group>"; };
 		EFC0F821B816F9CF9086DE34 /* SystemDatabase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemDatabase.swift; sourceTree = "<group>"; };
+		EFF9D42B92D7AB73418879BD /* BiometricReportsClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiometricReportsClient.swift; sourceTree = "<group>"; };
 		F067643DA7CC39F9D2A2BAAE /* CoreRESTClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreRESTClient.swift; sourceTree = "<group>"; };
 		F0BCB1C3CC2DEE39E299F7E2 /* PumpAlertClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PumpAlertClient.swift; sourceTree = "<group>"; };
 		F1663D3CDC69895B70E0CFC3 /* HealthComparisonReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthComparisonReader.swift; sourceTree = "<group>"; };
@@ -1362,6 +1401,7 @@
 		F674C877D90BBF81018C4614 /* LegacyBaseScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LegacyBaseScreen.swift; sourceTree = "<group>"; };
 		F68A45D3025A7B3031AC9FCF /* SystemDashboardTransportTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemDashboardTransportTests.swift; sourceTree = "<group>"; };
 		F6ECF94ACBCB10401F9F8FF7 /* NightPhases.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NightPhases.swift; sourceTree = "<group>"; };
+		F7CC4FCA4613A049A87442C9 /* BiometricEvaluationReport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiometricEvaluationReport.swift; sourceTree = "<group>"; };
 		F8309F8D76C1A8C4C64DFB8A /* RemoteStageRules.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteStageRules.swift; sourceTree = "<group>"; };
 		F85D95DEAB442A7234685056 /* SensorWaveformReplayTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SensorWaveformReplayTests.swift; sourceTree = "<group>"; };
 		F924706E86BC4E6454893219 /* BiometricBacktestPendingStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiometricBacktestPendingStore.swift; sourceTree = "<group>"; };
@@ -1369,10 +1409,12 @@
 		F977C2CF6D814C8FEF915497 /* AutomationHistory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutomationHistory.swift; sourceTree = "<group>"; };
 		F98C636604F38B0B5F4C2DDD /* SettingsMutationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsMutationTests.swift; sourceTree = "<group>"; };
 		F9EC58AFC994E2BF0036D0D8 /* ServerStatus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServerStatus.swift; sourceTree = "<group>"; };
+		FA249DA83C4D662E8F193EC6 /* DemoBiometricReportsClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoBiometricReportsClient.swift; sourceTree = "<group>"; };
 		FB15777D66DAF4DC889F469C /* NightPhasesStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NightPhasesStore.swift; sourceTree = "<group>"; };
 		FB4B310A846FF93B3D766CC5 /* SleepDataParityTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SleepDataParityTests.swift; sourceTree = "<group>"; };
 		FBA4405DF0EC4CF53F4890DE /* Sleepypod.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Sleepypod.entitlements; sourceTree = "<group>"; };
 		FC73E530B123D0B5CCB63C12 /* DemoBiometricBacktestJobsClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoBiometricBacktestJobsClient.swift; sourceTree = "<group>"; };
+		FD16C53AB4DD671BB0130609 /* BiometricReportScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiometricReportScreen.swift; sourceTree = "<group>"; };
 		FD234A844F3B8AEA151C5CD2 /* SetPowerIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SetPowerIntent.swift; sourceTree = "<group>"; };
 		FDDB2F55FD8111AA8E426B27 /* DevicePreferences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DevicePreferences.swift; sourceTree = "<group>"; };
 		FDE65A971AE8963DE74E57C3 /* SystemDashboardScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemDashboardScreen.swift; sourceTree = "<group>"; };
@@ -1654,6 +1696,7 @@
 				4A1860CCFB1E0087939C05AE /* BiometricExperimentsClient.swift */,
 				E1FD217D106885CBC7D42996 /* BiometricProfilesClient.swift */,
 				1F531C6B884D0A4DAB5E1632 /* BiometricReferencesClient.swift */,
+				EFF9D42B92D7AB73418879BD /* BiometricReportsClient.swift */,
 				3E142FFB667A7C223BB4D832 /* BiometricsContextClient.swift */,
 				C2E42A805130A561F3230EA4 /* BiometricWaveformDemoFixture.swift */,
 				57C1BDB90A279D6C4490975F /* BridgeSettingsClient.swift */,
@@ -1666,6 +1709,7 @@
 				0650DF753804BF553274D60F /* DemoBiometricExperimentsClient.swift */,
 				9C9903297C2B898BF4F99574 /* DemoBiometricProfilesClient.swift */,
 				B17291A501970D9B35120E33 /* DemoBiometricReferencesClient.swift */,
+				FA249DA83C4D662E8F193EC6 /* DemoBiometricReportsClient.swift */,
 				1EE6617412A9AFF4E294884A /* DevicePreferencesClient.swift */,
 				970CD9734D4BC3ACBE225328 /* FreeSleepClient.swift */,
 				E1F3225C337C53CCC5F74057 /* GestureBindingsClient.swift */,
@@ -1816,11 +1860,17 @@
 				0007CE8EA9D4595D34D64E38 /* BiometricBacktestJobs.swift */,
 				D873DD393EEF664887993461 /* BiometricBacktestReview.swift */,
 				8F546F0F85E5543C835DA868 /* BiometricDatasets.swift */,
+				F7CC4FCA4613A049A87442C9 /* BiometricEvaluationReport.swift */,
 				71574F71DEE3A76B28822D85 /* BiometricExperiments.swift */,
+				715AE6B64478B03B4BAE795D /* BiometricNumericReport.swift */,
 				D77E437E76D0D927BC427714 /* BiometricProfiles.swift */,
 				CDD7EEC1801ACB46AAAD7A8D /* BiometricReferences.swift */,
+				0E90DA96606B8200167ED7F7 /* BiometricReferenceTrace.swift */,
+				E21BE56EBE9E99ADADC86D8E /* BiometricReplayResources.swift */,
+				6BA8E25A59F9B10EBE99CFA4 /* BiometricReportTraces.swift */,
 				618986E1CEE4068835557ABD /* BiometricsContext.swift */,
 				AB5AD97552297AC5991582BE /* BiometricsPlot.swift */,
+				38BFD30A00F1D00D7D77C99D /* BiometricStageReport.swift */,
 				152471E91F26706ECAA43918 /* BiometricWaveforms.swift */,
 				148D7F0C3BD874AF365D933F /* BridgeSettings.swift */,
 				D2FD2FA3FA80666605E9EBBC /* CalibrationSignalBuffer.swift */,
@@ -1900,6 +1950,8 @@
 				57C3226EFFB6D57943442683 /* BiometricProfileLifecycleTests.swift */,
 				10A4D4F108DB31023E5E7D9F /* BiometricProfileTests.swift */,
 				BC76F245CEC344D7717FC6F6 /* BiometricProfileTransportTests.swift */,
+				37887696A6BEAB8A52224A09 /* BiometricReportTests.swift */,
+				9C797EAF92EDEA10279EDBD0 /* BiometricReportTransportTests.swift */,
 				2A5563FD8BE0E72288D841E9 /* BiometricWaveformTests.swift */,
 				6F3191F190C520D5857901D1 /* BiometricWaveformTransportTests.swift */,
 				4FB8B2DA678429E6911F7158 /* BridgeSettingsTests.swift */,
@@ -2083,7 +2135,9 @@
 				CDE57272C3901AC8AE0BC568 /* BiometricProfilePending.swift */,
 				B35D5D2F0B0545F76FC6EC4A /* BiometricProfilesWorkspace.swift */,
 				A32F78E372DAF9356995BB9C /* BiometricReferencesWorkspace.swift */,
+				B84FDC756327C2B75B1B47DA /* BiometricReportWorkspace.swift */,
 				BF288B032287E52F9850CD46 /* BiometricsWorkspace.swift */,
+				85BDFDECCB7C0B9D09B7673B /* BiometricTraceWorkspace.swift */,
 				85BD38479920F462D6470067 /* CurveGenerator.swift */,
 				608B3D3016DB8F9B56AE624B /* CurveWorkspace.swift */,
 				2941CA088FC1C77B69F36D60 /* DeviceManager.swift */,
@@ -2157,10 +2211,16 @@
 				9097514F83891A8F652F13D4 /* BiometricExperimentBuilderScreen.swift */,
 				40C3C5CC3F069931D239632E /* BiometricExperimentLibraryScreen.swift */,
 				E9186BCC461DEF2E175B1E59 /* BiometricExperimentProtocolView.swift */,
+				4CEC620A05508E0A5C31A7DF /* BiometricNumericReportScreen.swift */,
 				255D8AADF85B0573F6A3C692 /* BiometricProfileLibraryScreen.swift */,
 				2F6449B7386780B98698ED37 /* BiometricProfileReviewScreen.swift */,
 				F5AA964ED15308C9874321CF /* BiometricProfilesScreen.swift */,
 				5FDE6E3359EC9BCEAAAAE443 /* BiometricReferencesScreen.swift */,
+				49A83A4C1635827C94AE6272 /* BiometricReportCharts.swift */,
+				363F622D1C8C8C02C942ACA5 /* BiometricReportEvidenceViews.swift */,
+				FD16C53AB4DD671BB0130609 /* BiometricReportScreen.swift */,
+				E504DBC597D8E7376AE7ACBF /* BiometricStageReportScreen.swift */,
+				C59A195B4A66C92F71DAFC0A /* BiometricTraceScreen.swift */,
 				671824D913AF80DF9257F887 /* DatasetReferencePickerScreen.swift */,
 				BDB6F0B136FF35A0CCECDD02 /* DevicePreferencesScreen.swift */,
 				677BD56179BBE15ACC5E97C1 /* DeviceSettingsCardView.swift */,
@@ -2257,6 +2317,7 @@
 				EF0B2422EAC341B690AB1E50 /* BiometricExperimentsUITests.swift */,
 				11462F4E9933FC45F52580A9 /* BiometricProfilesUITests.swift */,
 				94F1F324E2E7F5F47904A263 /* BiometricReferencesUITests.swift */,
+				2E10497A94895964728E61EB /* BiometricReportsUITests.swift */,
 				BB109171A31BAAA02760C0F2 /* BiometricWaveformsUITests.swift */,
 				B2328FD96FCFADFF4EF665AF /* BridgeSettingsUITests.swift */,
 				B50B7B41BE55D84641374F00 /* CurveParityUITests.swift */,
@@ -2327,6 +2388,8 @@
 		F35673E5B90DE48F76C462C9 /* Fixtures */ = {
 			isa = PBXGroup;
 			children = (
+				36FFFA88FD65BE81E6DC7339 /* backtest-reports-demo.json */,
+				9A1EEFDE993BFB9F77487962 /* backtest-three-metric-report.json */,
 				A7A9BC43ACE9AFCA228BF358 /* biometric-profile-defaults.json */,
 				2F3E1D1287FF441BED812D2F /* biometric-profile-manifest.json */,
 				6407CAACC5FDBB23C2119D3A /* biometric-profile-overview.json */,
@@ -2542,6 +2605,8 @@
 				0888B106CC86FB2F3C652F8D /* PrivacyInfo.xcprivacy in Resources */,
 				6EEC4EF85940E1B806924E51 /* SleepStageChallenger.card.json in Resources */,
 				3D12F6C803BE9D51B553BA0F /* automation-backtest-fixture.json in Resources */,
+				2D77D2439B1121EB01A74FF7 /* backtest-reports-demo.json in Resources */,
+				CD71ECB189E6926595E8AEA8 /* backtest-three-metric-report.json in Resources */,
 				078DF682D41518A06FA8A105 /* biometric-profile-defaults.json in Resources */,
 				A3DCA0B8C09D515D2B332ADC /* biometric-profile-manifest.json in Resources */,
 				3892E17482194959D6DE5548 /* biometric-profile-overview.json in Resources */,
@@ -2648,6 +2713,8 @@
 				9EA6FCE04EF36C098DB7F5B4 /* BiometricProfileLifecycleTests.swift in Sources */,
 				059C6EFB1AE9B29B6B15BB77 /* BiometricProfileTests.swift in Sources */,
 				3FA28330D6F7A85A7AFBE311 /* BiometricProfileTransportTests.swift in Sources */,
+				5DC1DDD2FDFE99AF27AA3DE4 /* BiometricReportTests.swift in Sources */,
+				9A6ECD3EAD9C1055074D2191 /* BiometricReportTransportTests.swift in Sources */,
 				4CC63CAE251CE965F4812C2D /* BiometricWaveformTests.swift in Sources */,
 				F5B6FF0F6659609E9E4040E3 /* BiometricWaveformTransportTests.swift in Sources */,
 				332D09BF285F9F900248D505 /* BridgeSettingsTests.swift in Sources */,
@@ -2728,6 +2795,7 @@
 				E888E45E1CE9BB3F0BB2C21E /* BiometricExperimentsUITests.swift in Sources */,
 				CE971034E5D09755254D6080 /* BiometricProfilesUITests.swift in Sources */,
 				88C08777A6B4CB8C0A9D9392 /* BiometricReferencesUITests.swift in Sources */,
+				9B939FCDA158C310EAFB2ED3 /* BiometricReportsUITests.swift in Sources */,
 				931BCCCC7F1B2AA0207A2F37 /* BiometricWaveformsUITests.swift in Sources */,
 				2703AFBB4E98CFEAD3F637F8 /* BridgeSettingsUITests.swift in Sources */,
 				4ADD4C0F3F8861C750B235BC /* CurveParityUITests.swift in Sources */,
@@ -2960,6 +3028,7 @@
 				A0C6E30D8B933F17823CCD5A /* BiometricDatasets.swift in Sources */,
 				447F2250A437AE787F5454BD /* BiometricDatasetsClient.swift in Sources */,
 				D409472F6724AA3D078843C6 /* BiometricDemoCanonicalJSON.swift in Sources */,
+				3EE1328291C1E03E4394A1C3 /* BiometricEvaluationReport.swift in Sources */,
 				93482F9CD64C51ED27FF7E14 /* BiometricExperimentBuilderScreen.swift in Sources */,
 				A7DC060C62746FE1129E5BDA /* BiometricExperimentDraft.swift in Sources */,
 				9CD0D687E95AAD1F755453CA /* BiometricExperimentLibrary.swift in Sources */,
@@ -2967,6 +3036,8 @@
 				8ECF0DF8FBD271C6811A7BA2 /* BiometricExperimentProtocolView.swift in Sources */,
 				D83276B5EA34B3CCE2E4AA3A /* BiometricExperiments.swift in Sources */,
 				6077D9866D3FF0D626C5F67D /* BiometricExperimentsClient.swift in Sources */,
+				5AB907BC54C64ED264A83D9A /* BiometricNumericReport.swift in Sources */,
+				DC39DBBA59D9C1D1B5D79AC3 /* BiometricNumericReportScreen.swift in Sources */,
 				CC5D598324C8DE4EB1611AE0 /* BiometricProfileLibraryScreen.swift in Sources */,
 				501793BEB46AF901C0A9F3FE /* BiometricProfilePending.swift in Sources */,
 				C667248638C4E4E57BDFBE0E /* BiometricProfileReviewScreen.swift in Sources */,
@@ -2974,11 +3045,23 @@
 				35C7D2191B1F23FF6B1BDAB9 /* BiometricProfilesClient.swift in Sources */,
 				B96845FACBF6BE789BF864A0 /* BiometricProfilesScreen.swift in Sources */,
 				8708812FB44FC89A60A7B45A /* BiometricProfilesWorkspace.swift in Sources */,
+				FDF961E57872BBDC47A2FEC1 /* BiometricReferenceTrace.swift in Sources */,
 				49508CDF24D529B9D7ACFB75 /* BiometricReferences.swift in Sources */,
 				018D0C71E118B2D03C84A2FC /* BiometricReferencesClient.swift in Sources */,
 				47A6A03C135832BE7B896A1C /* BiometricReferencesScreen.swift in Sources */,
 				3CB1C8416B0385D9BDF73525 /* BiometricReferencesWorkspace.swift in Sources */,
+				767494BD1C023498670CE9FA /* BiometricReplayResources.swift in Sources */,
+				C79A0291C17957F5F5450998 /* BiometricReportCharts.swift in Sources */,
+				769CB5BF8F58F49538C3EDC4 /* BiometricReportEvidenceViews.swift in Sources */,
+				8D6615C1233DEF196262F350 /* BiometricReportScreen.swift in Sources */,
+				E91F6FD640D848331960FF06 /* BiometricReportTraces.swift in Sources */,
+				CA90D4BF376F20E340F00E4F /* BiometricReportWorkspace.swift in Sources */,
+				791A126023F97AB7F332EBC2 /* BiometricReportsClient.swift in Sources */,
 				323CCD4865EB3E393D9B1A54 /* BiometricSessionsCard.swift in Sources */,
+				0A90C10339B69F0C2CAB72BD /* BiometricStageReport.swift in Sources */,
+				F502859DD40B6C8FBC50353F /* BiometricStageReportScreen.swift in Sources */,
+				DA65DD4E94B1AF3C95A6A379 /* BiometricTraceScreen.swift in Sources */,
+				45EBAB9E766D32AAF1E02786 /* BiometricTraceWorkspace.swift in Sources */,
 				0395619BECFA8405656B97B5 /* BiometricWaveformDemoFixture.swift in Sources */,
 				310469792BC1846506F74AB7 /* BiometricWaveforms.swift in Sources */,
 				E8EF6954CCD169FFA785E343 /* BiometricsContext.swift in Sources */,
@@ -3008,6 +3091,7 @@
 				490906CF54B8C68D8F0A5CBB /* DemoBiometricExperimentsClient.swift in Sources */,
 				10B8502A6FDAE49E49311928 /* DemoBiometricProfilesClient.swift in Sources */,
 				3E8E15E83AA3FE2B8D9310C4 /* DemoBiometricReferencesClient.swift in Sources */,
+				6533CAD30BD08556CA79A725 /* DemoBiometricReportsClient.swift in Sources */,
 				DDD32E8E9BEF551EDE16D8C6 /* DesignSystem.swift in Sources */,
 				9D7F9E63ABF049359432DF0F /* DeviceManager.swift in Sources */,
 				2003D9E733BF91804677F89D /* DevicePreferences.swift in Sources */,

@@ -19,12 +19,13 @@ struct BiometricDatasetDemoFixture: Decodable, Sendable {
 /// Demo copies literal Core-generated synthetic manifests; it never claims a real evaluation ran.
 actor DemoBiometricDatasetsClient: BiometricDatasetsServing {
     nonisolated let scope = "demo-biometric-datasets"
+    nonisolated let reportClient: any BiometricReportsServing
     let evaluationProfileClient: any BiometricProfilesServing
     var savedJobs: [String: BiometricBacktestJob] = [:]
     var jobSides: [String: Side] = [:]
     var jobRequests: [String: BiometricBacktestSubmission] = [:]
     var jobRequestIds: [String: String] = [:]
-    init(profiles: any BiometricProfilesServing = DemoBiometricProfilesClient()) { evaluationProfileClient = profiles }
+    init(profiles: any BiometricProfilesServing = DemoBiometricProfilesClient(), reports: any BiometricReportsServing = DemoBiometricReportsClient()) { evaluationProfileClient = profiles; reportClient = reports }
     var savedExperiments: [String: BiometricExperiment] = [:]
     var experimentRequests: [String: BiometricExperimentRequest] = [:]
     var experimentRequestIds: [String: String] = [:]

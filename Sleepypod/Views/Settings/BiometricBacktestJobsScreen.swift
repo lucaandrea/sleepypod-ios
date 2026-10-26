@@ -74,6 +74,9 @@ struct BiometricBacktestJobScreen: View {
                     if job.state.cancellable {
                         Button("Cancel evaluation", role: .destructive) { confirmCancel = true }.disabled(!model.canMutate || loading || error != nil).accessibilityIdentifier("jobs.cancel")
                     }
+                    if job.state == .succeeded {
+                        NavigationLink { BiometricReportScreen(model: model, job: job) } label: { Label("Inspect evaluation report", systemImage: "chart.xyaxis.line") }.accessibilityIdentifier("jobs.report")
+                    }
                     BiometricBacktestJobInputs(job: job)
                     NavigationLink { BiometricExperimentDetailScreen(model: model, id: job.experimentId) } label: { Label("Inspect experiment", systemImage: "flask") }
                 }

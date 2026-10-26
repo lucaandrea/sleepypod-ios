@@ -46,6 +46,7 @@ import Observation
     private(set) var savedJob: BiometricBacktestJob?
     private(set) var savedJobRequest: BiometricBacktestSubmission?
     private(set) var jobReceipt: BiometricBacktestJob?
+    private(set) var reportReceipt: BiometricReportReleaseReceipt?
     private(set) var savedExperiment: BiometricExperiment?
     private(set) var savedExperimentRequest: BiometricExperimentRequest?
     private(set) var savedWaveformRequest: WaveformDatasetRequest?
@@ -119,6 +120,29 @@ import Observation
             else { notice = "Cancellation is not confirmed. You can retry this exact job request." }
         } catch { self.error = error.localizedDescription }
     }
+    func releaseReport(job: BiometricBacktestJob, descriptor: BiometricReportDescriptor) async {
+        guard canMutate, job.state == .succeeded, descriptor.available else { return }
+        do {
+            try descriptor.validate(job: job)
+            let report = try descriptor.decoded(BiometricEvaluationReport.self)
+            try report.validate(job: job, side: side, projection: descriptor.projection)
+            await performNew(.releaseReport(.init(side: side, job: job, contentHash: descriptor.contentHash)))
+        } catch { self.error = error.localizedDescription }
+    }
+    func inspectReportRelease() async {
+        guard !busy, case .releaseReport(let identity) = pending else { return }
+        busy = true; error = nil
+        defer { busy = false }
+        do {
+            let retained = BiometricBacktestPending.releaseReport(identity)
+            try requireCurrent(retained)
+            guard let result = try await client.reportClient.summary(id: identity.job.id) else { throw BiometricBacktestInput.error("No report receipt is available. Release remains unconfirmed.") }
+            try identity.validate(result)
+            if !result.available {
+                try finishReportRelease(retained, .init(jobId: result.jobId, contentHash: result.contentHash, available: result.available, releasedAtMs: result.releasedAtMs))
+            } else { notice = "Detailed results remain retained. You can retry this exact report release." }
+        } catch { self.error = error.localizedDescription }
+    }
     func createExperiment(_ request: BiometricExperimentRequest, parent: BiometricDataset) async {
         guard canMutate, savedExperimentRequest != request else { return }
         busy = true; error = nil; notice = nil
@@ -188,6 +212,15 @@ import Observation
     private func send(_ retained: BiometricBacktestPending) async throws {
         try requireCurrent(retained)
         switch retained {
+        case .releaseReport(let identity):
+            guard let current = try await client.reportClient.summary(id: identity.job.id) else { throw BiometricBacktestInput.error("No report receipt is available. Release remains unconfirmed.") }
+            try identity.validate(current)
+            if !current.available {
+                try finishReportRelease(retained, .init(jobId: current.jobId, contentHash: current.contentHash, available: current.available, releasedAtMs: current.releasedAtMs)); return
+            }
+            try requireCurrent(retained)
+            guard let result = try await client.reportClient.release(id: identity.job.id, expectedHash: identity.contentHash) else { throw BiometricBacktestInput.error("The controller did not confirm report release. Keep the exact request for recovery.") }
+            try finishReportRelease(retained, result)
         case .submitJob(let review):
             let result = try await client.submit(review.request)
             guard review.matches(result) else { throw BiometricBacktestInput.error("The queued job does not match the reviewed inputs and candidate. Keep the request for recovery.") }
@@ -236,6 +269,13 @@ import Observation
             guard identity.matches(result), !result.available, result.releasedAtMs != nil else { throw BiometricBacktestInput.error("The release has not been confirmed. Keep the retained request for recovery.") }
             try finish(retained, result)
         }
+    }
+    private func finishReportRelease(_ retained: BiometricBacktestPending, _ result: BiometricReportReleaseReceipt) throws {
+        guard case .releaseReport(let identity) = retained, result.confirms(id: identity.job.id, hash: identity.contentHash) else {
+            throw BiometricBacktestInput.error("The detailed report release has not been confirmed. Keep the exact request for recovery.")
+        }
+        try store.remove(retained, scope: client.scope, side: side); pending = nil; reportReceipt = result
+        notice = "Detailed results released. The report hash, job history and holdout exposure audit remain."
     }
     private func finishCancellation(_ retained: BiometricBacktestPending, _ result: BiometricBacktestJob) throws {
         try store.remove(retained, scope: client.scope, side: side); pending = nil; jobReceipt = result
