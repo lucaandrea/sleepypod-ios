@@ -266,7 +266,7 @@ struct SleepScreen: View {
     }
     private var personalOptions: some View {
         Group {
-            NavigationLink("Morning check-in") { PodFeatureScreen(.journal, side: metrics.selectedSide.rawValue) }
+            NavigationLink("Morning check-in") { MorningJournalDestination(side: metrics.selectedSide) }
             NavigationLink("Personal reports") { PodFeatureScreen(.reports, side: metrics.selectedSide.rawValue) }
             NavigationLink("Sleep coach") { PodFeatureScreen(.coach, side: metrics.selectedSide.rawValue) }
             if APIBackend.current == .freeSleep {

@@ -5,6 +5,7 @@ import Observation
     private(set) var client: (any PersonalComfortClient)?
     private(set) var side: Side = .left
     private var generation = 0
+    private var ownerRevision: [String] = []
     private(set) var status: PersonalComfortStatus?
     private(set) var reports: ComfortNightList?
     private(set) var loading = false
@@ -14,12 +15,12 @@ import Observation
     private(set) var notice: String?
     private(set) var requiresReload = false
     func configure(client: (any PersonalComfortClient)?, side: Side) {
-        generation += 1; self.client = client; self.side = side; status = nil; reports = nil
+        generation += 1; self.client = client; self.side = side; ownerRevision = OwnerConnection.revision; status = nil; reports = nil
         error = nil; reportsError = nil; notice = nil; loading = false; saving = false; requiresReload = false
     }
-    func invalidate() { generation += 1; status = nil; reports = nil; loading = false; saving = false }
+    func invalidate() { generation += 1; if saving { requiresReload = true }; status = nil; reports = nil; loading = false; saving = false }
     func load(userInitiated: Bool = false) async {
-        guard !loading, !saving, !requiresReload || userInitiated else { return }
+        guard ownerRevision == OwnerConnection.revision, !Task.isCancelled, !loading, !saving, !requiresReload || userInitiated else { return }
         guard let client else { error = "Connect to a controller to read personal comfort."; return }
         let operation = generation, owner = OwnerConnection.revision, selectedSide = side; loading = true
         defer { if generation == operation { loading = false } }
@@ -38,7 +39,7 @@ import Observation
     }
     /// Recheck the original configuration before dispatch; never replay an uncertain write.
     func save(_ draft: PersonalComfortConfig, original: PersonalComfortConfig) async -> Bool {
-        guard let client, !saving, !loading, status?.state?.config == original, error == nil else { return false }
+        guard ownerRevision == OwnerConnection.revision, !Task.isCancelled, let client, !saving, !loading, status?.state?.config == original, error == nil else { return false }
         let operation = generation, owner = OwnerConnection.revision, selectedSide = side; saving = true; notice = nil
         defer { if generation == operation { saving = false } }
         do {
@@ -59,8 +60,33 @@ import Observation
             return false
         }
     }
+    /// A mode-only stop preserves the server's latest thresholds, learning state and manual pause.
+    func stopPreview() async -> Bool {
+        guard ownerRevision == OwnerConnection.revision, !Task.isCancelled, let client, let status, let state = status.state, !saving, !loading, !requiresReload, error == nil else { return false }
+        if status.features.modeOnly != true {
+            var draft = state.config.editable; draft.mode = "off"
+            return await save(draft, original: state.config)
+        }
+        let operation = generation, owner = OwnerConnection.revision, selectedSide = side
+        saving = true; notice = nil; requiresReload = true
+        defer { if generation == operation { saving = false } }
+        do {
+            let result = try await client.mode(side: selectedSide, mode: "off"); try result.validate(side: selectedSide)
+            guard generation == operation, owner == OwnerConnection.revision, !Task.isCancelled else {
+                if generation == operation, owner == OwnerConnection.revision {
+                    self.status = nil; self.error = "The comfort change was interrupted. Refresh before retrying."
+                }
+                return false
+            }
+            guard result.state?.config.mode == "off" else { throw APIError.serverError(message: "The controller did not confirm that Preview stopped.") }
+            self.status = result; requiresReload = false; notice = "Personal comfort stopped."; return true
+        } catch {
+            if generation == operation { self.error = error.localizedDescription + " Refresh before retrying."; requiresReload = true; self.status = nil; reports = nil }
+            return false
+        }
+    }
     func saveFeedback(_ input: PersonalComfortFeedback) async -> Bool {
-        guard let client, !saving, !loading, let status, error == nil, status.fault == nil else { return false }
+        guard ownerRevision == OwnerConnection.revision, !Task.isCancelled, let client, !saving, !loading, let status, error == nil, status.fault == nil else { return false }
         let operation = generation, owner = OwnerConnection.revision, selectedSide = side; saving = true; notice = nil
         defer { if generation == operation { saving = false } }
         do {

@@ -28,6 +28,11 @@ actor DemoPersonalComfortClient: PersonalComfortClient {
                      evaluatedAt: nil, decision: nil, fault: nil, history: history[side] ?? [], runtime: "stopped", activation: source.activation, features: source.features, signals: signals, timing: timing)
     }
     func configure(side: Side, config: PersonalComfortConfig) throws -> PersonalComfortStatus { try config.validate(); configurations[side] = config; return try status(side: side) }
+    func mode(side: Side, mode: String) async throws -> PersonalComfortStatus {
+        guard ["off", "preview"].contains(mode) else { throw APIError.serverError(message: "Active comfort adjustments are not available.") }
+        var config = try status(side: side).state!.config; config.mode = mode
+        configurations[side] = config; return try status(side: side)
+    }
     func feedback(side: Side, input: PersonalComfortFeedback) throws -> PersonalComfortStatus {
         let current = try status(side: side); try input.validate(deviceDate: current.deviceDate)
         feedbacks[side] = input

@@ -13,6 +13,7 @@ struct PodFeatureLink: View {
         NavigationLink {
             Group {
                 if feature == .comfort { PersonalComfortDestination(side: device.selectedSide.primarySide) }
+                else if feature == .journal { MorningJournalDestination(side: device.selectedSide.primarySide) }
                 else if feature == .routines { BedtimeRoutinesDestination(side: device.selectedSide.primarySide) }
                 else if feature == .history, APIBackend.current != .freeSleep { ImportedHistoryScreen(side: device.selectedSide.primarySide) }
                 else {

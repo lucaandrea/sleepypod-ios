@@ -3,10 +3,16 @@ import Foundation
 protocol PersonalComfortClient: Sendable {
     func status(side: Side) async throws -> PersonalComfortStatus
     func configure(side: Side, config: PersonalComfortConfig) async throws -> PersonalComfortStatus
+    func mode(side: Side, mode: String) async throws -> PersonalComfortStatus
     func feedback(side: Side, input: PersonalComfortFeedback) async throws -> PersonalComfortStatus
     func reports(side: Side) async throws -> ComfortNightList
     func report(side: Side, id: String, after: Int?) async throws -> ComfortNightDetail
     func review(_ input: ComfortReviewInput) async throws -> ComfortNightReview
+}
+extension PersonalComfortClient {
+    func mode(side: Side, mode: String) async throws -> PersonalComfortStatus {
+        throw APIError.serverError(message: "This controller does not support a mode-only comfort change.")
+    }
 }
 struct CorePersonalComfortClient: PersonalComfortClient {
     let transport: CoreRESTClient
@@ -15,6 +21,11 @@ struct CorePersonalComfortClient: PersonalComfortClient {
         struct Input: Encodable, Sendable { let side: Side; let config: PersonalComfortConfig }
         try config.validate()
         return try await transport.post("v1/comfort/configure", body: Input(side: side, config: config), returning: PersonalComfortStatus.self)
+    }
+    func mode(side: Side, mode: String) async throws -> PersonalComfortStatus {
+        guard ["off", "preview"].contains(mode) else { throw APIError.serverError(message: "Active comfort adjustments are not available.") }
+        struct Input: Encodable, Sendable { let side: Side; let mode: String }
+        return try await transport.post("v1/comfort/mode", body: Input(side: side, mode: mode), returning: PersonalComfortStatus.self)
     }
     func feedback(side: Side, input: PersonalComfortFeedback) async throws -> PersonalComfortStatus {
         struct Input: Encodable, Sendable { let side: Side; let feedback: PersonalComfortFeedback }
