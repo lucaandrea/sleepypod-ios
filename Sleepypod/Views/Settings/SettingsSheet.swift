@@ -307,6 +307,9 @@ struct AllSettingsScreen: View {
                             NavigationLink { DevicePreferencesScreen() } label: {
                                 SettingsRow("Device", icon: "slider.horizontal.3", tile: true, chevron: true)
                             }.accessibilityIdentifier("settings.device")
+                            NavigationLink { BiometricProfilesScreen() } label: {
+                                SettingsRow("Biometric calibration", icon: "waveform.path.ecg", tile: true, chevron: true)
+                            }.accessibilityIdentifier("settings.biometricProfiles")
                         } else {
                             PodFeatureLink(.preferences, icon: "slider.horizontal.3", tile: true)
                         }
