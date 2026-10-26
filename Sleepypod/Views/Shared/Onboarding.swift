@@ -111,6 +111,7 @@ struct BedSidesEditor: View {
                 .textContentType(.givenName)
                 .submitLabel(.done)
                 .focused($focused, equals: side)
+                .onSubmit { focused = nil }
                 .accessibilityLabel("\(side.displayName) name")
         }
         .padding(.horizontal, 16)

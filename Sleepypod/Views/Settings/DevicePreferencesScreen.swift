@@ -158,11 +158,7 @@ struct DevicePreferencesScreen: View {
         }
     }
     private func preferenceMenu(_ title: String, selection: Binding<String>, options: [(String, String)], identifier: String) -> some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Text(title).font(.subheadline.weight(.semibold))
-            Picker(title, selection: selection) { ForEach(options, id: \.0) { value, label in Text(label).tag(value) } }
-                .pickerStyle(.menu).labelsHidden().accessibilityLabel(title).accessibilityIdentifier("devicePreferences.\(identifier)")
-        }
+        SettingsChoiceMenu(title: title, selection: selection, options: options, identifier: "devicePreferences.\(identifier)")
     }
     private func brightness(_ title: String, value: Binding<Int>, identifier: String) -> some View {
         VStack(alignment: .leading, spacing: 8) {
