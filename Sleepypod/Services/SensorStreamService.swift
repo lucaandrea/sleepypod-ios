@@ -57,6 +57,21 @@ final class SensorStreamService {
     /// When the last bedTemp frame arrived, so views can grey out stale surface readings.
     var bedTempUpdatedAt: Date?
     var frzHealth: FrzHealthFrame?
+    var frzTemperature: FrzTemperatureFrame?
+    var frzThermal: FrzThermalFrame?
+    var mcuTemperature: Float?
+    var lastSensorTime: Date?
+    var vitalsUpdatedAt: Date?
+    private(set) var occupancy: SensorOccupancy?
+    private(set) var occupancyUpdatedAt: Date?
+    private(set) var occupancyError: String?
+    private var occupancyTask: Task<Void, Never>?
+    private var occupancyLoading = false
+    private var occupancyConnection: String?
+    private var connectionIdentity: String { "\(APIBackend.current.rawValue)-\(podURL?.absoluteString ?? "unconfigured")" }
+    private(set) var generation = UUID()
+    private var measurementTimes: [String: Date] = [:]
+    var waveformReplay = SensorWaveformReplay()
 
     var leftVariance: [Float] = Array(repeating: 0, count: 8)
     var rightVariance: [Float] = Array(repeating: 0, count: 8)
@@ -107,14 +122,44 @@ final class SensorStreamService {
     private let maxTempHistory = 120
     private var tempHistorySeeded = false
 
-    /// Variance-based presence detection. An occupied side shows capSense
-    /// signal variance from breathing/movement. Empty bed has near-zero variance.
-    /// Threshold 0.05 stddev — below this is noise floor.
-    func isOccupied(side: Side) -> Bool {
-        let variance = side == .left ? leftVariance : rightVariance
-        // Check active channels only (skip REF at indices 6,7)
-        let maxVar = (0..<6).map { variance[safe: $0] ?? 0 }.max() ?? 0
-        return maxVar > 0.05
+    /// Presence labels use Core's shared occupancy result; variance is activity visualization only.
+    func reportedPresence(side: Side, now: Date = .now) -> SensorOccupancy.BedSide? {
+        guard occupancyConnection == connectionIdentity, occupancyError == nil, SensorObservation.fresh(occupancyUpdatedAt, age: 10, now: now) else { return nil }
+        return occupancy?.side(side)
+    }
+    var presenceIsFresh: Bool { SensorObservation.fresh(presenceUpdatedAt, age: 30) }
+    func isOccupied(side: Side) -> Bool { reportedPresence(side: side)?.occupied == true }
+    func presenceLabel(sides: [Side]) -> String {
+        let readings = sides.compactMap { reportedPresence(side: $0) }
+        if readings.contains(where: { $0.occupied && $0.classification != "light" }) { return "IN BED" }
+        if readings.contains(where: { $0.occupied }) { return "LIGHT LOAD" }
+        return readings.count == sides.count && readings.allSatisfy(\.available) ? "EMPTY" : "PRESENCE UNKNOWN"
+    }
+    func refreshOccupancy(client supplied: (any SensorDiagnosticsClient)? = nil) async {
+        guard !occupancyLoading else { return }
+        let requestedGeneration = generation, requestedConnection = connectionIdentity
+        occupancyLoading = true
+        defer { if requestedGeneration == generation { occupancyLoading = false } }
+        let client = supplied ?? (APIBackend.current.isDemo ? DemoSensorDiagnosticsClient() : CoreSensorDiagnosticsClient())
+        do {
+            let result = try await client.occupancy()
+            guard !Task.isCancelled, generation == requestedGeneration, requestedConnection == connectionIdentity else { return }
+            occupancyConnection = requestedConnection
+            occupancy = result; occupancyUpdatedAt = .now; occupancyError = nil
+        } catch {
+            guard !Task.isCancelled, generation == requestedGeneration, requestedConnection == connectionIdentity else { return }
+            occupancyError = error.localizedDescription
+        }
+    }
+    private func startOccupancy() {
+        occupancyTask?.cancel()
+        occupancyTask = Task { [weak self] in
+            while !Task.isCancelled {
+                guard let self else { return }
+                await refreshOccupancy()
+                do { try await Task.sleep(for: .seconds(3)) } catch { return }
+            }
+        }
     }
 
     private var podURL: URL? {
@@ -132,21 +177,26 @@ final class SensorStreamService {
         // Demo mode — generate fake sensor data instead of connecting WS
         if APIBackend.current.isDemo {
             guard demoTask == nil else { return }
+            disconnect()
             startDemoStream()
             return
         }
 
-        guard !isConnected || !isCurrentPod else { return }
+        guard webSocketTask == nil || !isCurrentPod else { return }
 
         guard let url = podURL else { error = "No pod IP"; return }
         disconnect()
 
         let session = OwnerConnection.session
-        let ws = session.webSocketTask(with: OwnerConnection.streamRequest(for: url))
+        var request = OwnerConnection.streamRequest(for: url)
+        request.setValue("sensor-snapshot-v1", forHTTPHeaderField: "Sec-WebSocket-Protocol")
+        let ws = session.webSocketTask(with: request)
         self.webSocketTask = ws
         streamURL = url
         ws.resume()
         error = nil
+        startOccupancy()
+        Task { try? await ws.send(.string(#"{"type":"subscribe","snapshot":true,"sensors":[]}"#)) }
 
         receiveTask = Task { [weak ws] in
             guard let ws else { return }
@@ -170,6 +220,7 @@ final class SensorStreamService {
     private func seedTempHistory() async {
         guard !tempHistorySeeded, isCurrentPod else { return }
         let requestedURL = podURL
+        let requestedGeneration = generation
         do {
             let end = Date()
             let start = end.addingTimeInterval(-3600)
@@ -177,7 +228,7 @@ final class SensorStreamService {
                 start: start, end: end, limit: maxTempHistory, unit: "F"
             )
             guard !readings.isEmpty, !tempHistorySeeded,
-                  requestedURL == podURL, isCurrentPod else { return }
+                  requestedURL == podURL, isCurrentPod, requestedGeneration == generation else { return }
             tempHistorySeeded = true
 
             // tRPC returns descending — reverse for chronological
@@ -200,6 +251,18 @@ final class SensorStreamService {
     }
 
     func disconnect() {
+        generation = UUID()
+        waveformReplay = .init()
+        occupancyTask?.cancel(); occupancyTask = nil; occupancyLoading = false
+        occupancy = nil; occupancyUpdatedAt = nil; occupancyError = nil; occupancyConnection = nil
+        measurementTimes = [:]; lastSensorTime = nil; lastFrameTime = nil; framesPerSecond = 0
+        leftTemps = nil; rightTemps = nil; bedTempUpdatedAt = nil; mcuTemperature = nil
+        frzHealth = nil; frzTemperature = nil; frzThermal = nil
+        leftVitals = .init(); rightVitals = .init(); vitalsUpdatedAt = nil
+        leftVariance = []; rightVariance = []; piezoLeft = []; piezoRight = []
+        leftTempHistory = []; rightTempHistory = []; tempHistorySeeded = false
+        lastPiezoUpdate = .distantPast; frameCount = 0; fpsTimer = .now
+        lastGesture = nil; firmwareLogs = []; recentFrames = []; frameCounts = [:]
         demoTask?.cancel(); demoTask = nil
         receiveTask?.cancel(); receiveTask = nil
         pingTask?.cancel(); pingTask = nil
@@ -225,6 +288,7 @@ final class SensorStreamService {
         error = nil
         frameCount = 0
         fpsTimer = .now
+        startOccupancy()
 
         var tick = 0
         demoTask = Task { [weak self] in
@@ -235,6 +299,7 @@ final class SensorStreamService {
 
                 // --- FPS bookkeeping ---
                 self.lastFrameTime = .now
+                self.lastSensorTime = .now
                 self.frameCount += 1
                 let elapsed = Date.now.timeIntervalSince(self.fpsTimer)
                 if elapsed >= 1 {
@@ -293,6 +358,7 @@ final class SensorStreamService {
                         self.piezoRight.removeFirst(self.piezoRight.count - self.maxPiezoSamples)
                     }
 
+                    self.vitalsUpdatedAt = .now
                     // Simulate vitals from piezo
                     self.leftVitals = LiveVitals(
                         heartRate: 62 + Double.random(in: -2...2),
@@ -335,16 +401,19 @@ final class SensorStreamService {
                 }
 
                 // --- FrzHealth (every 20 ticks = 10s) ---
-                if tick % 20 == 0 {
+                if tick == 1 || tick % 20 == 0 {
+                    self.frzTemperature = .init(ts: Int(Date.now.timeIntervalSince1970), left: 2100, right: 2300, amb: 2400, hs: 3600)
                     self.frzHealth = FrzHealthFrame(
                         ts: Int(Date().timeIntervalSince1970),
                         left: FrzSideHealth(
                             tec: FrzSideHealth.TecInfo(current: Float.random(in: 1.5...2.5)),
-                            pump: FrzSideHealth.PumpInfo(mode: "normal", rpm: Int.random(in: 1800...2200), water: true)
+                            pump: FrzSideHealth.PumpInfo(mode: "normal", rpm: Int.random(in: 1800...2200), water: true),
+                            temps: .init(flowrate: 24.5)
                         ),
                         right: FrzSideHealth(
                             tec: FrzSideHealth.TecInfo(current: Float.random(in: 1.5...2.5)),
-                            pump: FrzSideHealth.PumpInfo(mode: "normal", rpm: Int.random(in: 1800...2200), water: true)
+                            pump: FrzSideHealth.PumpInfo(mode: "normal", rpm: Int.random(in: 1800...2200), water: true),
+                            temps: .init(flowrate: 24.5)
                         ),
                         fan: FrzFanHealth(
                             top: FrzFanHealth.FanInfo(rpm: Int.random(in: 2800...3200)),
@@ -388,11 +457,7 @@ final class SensorStreamService {
         if recentFrames.count > maxRecentFrames { recentFrames.removeLast() }
     }
 
-    func stopDemoStream() {
-        demoTask?.cancel()
-        demoTask = nil
-        isConnected = false
-    }
+    func stopDemoStream() { disconnect() }
 
     // MARK: - Receive
 
@@ -419,17 +484,28 @@ final class SensorStreamService {
             guard !Task.isCancelled, webSocketTask === ws else { return }
             self.isConnected = false
             self.error = "Disconnected"
+            webSocketTask = nil
             scheduleReconnect()
         }
     }
 
-    private func handleFrame(_ data: Data) {
-        streamActivity.append(data: data)
+    func handleFrame(_ data: Data, receivedAt now: Date = .now) {
+        if let response = try? JSONDecoder().decode(SensorWaveformReplay.Response.self, from: data), response.type == "waveform" {
+            waveformReplay.accept(response); return
+        }
+        struct TimeRange: Decodable { let type: String; let min: Double; let max: Double }
+        if let range = try? JSONDecoder().decode(TimeRange.self, from: data), range.type == "time_range" {
+            waveformReplay.setRange(.init(min: range.min, max: range.max)); return
+        }
+        if let batch = SensorSnapshotBatch(data: data) {
+            // A snapshot is cached observation, never a new measurement. Each embedded timestamp survives.
+            for frame in batch.frames { handleFrame(frame, receivedAt: now) }
+            return
+        }
+        streamActivity.append(data: data, at: now)
         guard let frame = SensorFrame.decode(from: data) else { return }
 
-        calibrationSignals.append(frame)
-
-        lastFrameTime = .now
+        lastFrameTime = now
         frameCount += 1
         let elapsed = Date.now.timeIntervalSince(fpsTimer)
         if elapsed >= 1 {
@@ -446,9 +522,25 @@ final class SensorStreamService {
             if recentFrames.count > maxRecentFrames { recentFrames.removeLast() }
         }
 
+        guard let measured = frame.measuredAt, measured <= now else { return }
+        // Firmware aliases share one timeline so older dialects cannot replace newer readings.
+        let measurementFamily: String
+        switch frame {
+        case .bedTemp, .bedTemp2: measurementFamily = "bedTemperature"
+        case .capSense, .capSense2: measurementFamily = "capacitance"
+        default: measurementFamily = frame.typeName
+        }
+        let previous = measurementTimes[measurementFamily]
+        guard previous.map({ measured >= $0 }) ?? true else { return }
+        if case .piezoDual = frame, previous == measured { return }
+        measurementTimes[measurementFamily] = measured
+        if ["piezo-dual", "capSense", "capSense2", "bedTemp", "bedTemp2", "frzHealth", "frzTemp", "frzTherm"].contains(frame.typeName) {
+            lastSensorTime = max(lastSensorTime ?? measured, measured)
+        }
+        calibrationSignals.append(frame, at: measured)
+
         switch frame {
         case .capSense2(let cap), .capSense(let cap):
-            let now = Date.now
             guard now.timeIntervalSince(lastCapUpdate) > 0.2 else { return }
             lastCapUpdate = now
             leftPresence = cap.left
@@ -459,10 +551,11 @@ final class SensorStreamService {
             if rightHistory.count > varianceWindow { rightHistory.removeFirst() }
             leftVariance = computeVariance(leftHistory)
             rightVariance = computeVariance(rightHistory)
-            if leftHistory.count >= 2 && rightHistory.count >= 2 { presenceUpdatedAt = now }
+            if leftHistory.count >= 2 && rightHistory.count >= 2 { presenceUpdatedAt = measured }
 
         case .piezoDual(let piezo):
-            if piezo.freq > 0 { piezoHz = piezo.freq }
+            guard piezo.freq > 0, piezo.freq <= 4000 else { return }
+            piezoHz = piezo.freq
             piezoLeft.append(contentsOf: piezo.left1)
             piezoRight.append(contentsOf: piezo.right1)
             piezoLeftEnd += piezo.left1.count
@@ -470,36 +563,43 @@ final class SensorStreamService {
             if piezoLeft.count > maxPiezoSamples { piezoLeft.removeFirst(piezoLeft.count - maxPiezoSamples) }
             if piezoRight.count > maxPiezoSamples { piezoRight.removeFirst(piezoRight.count - maxPiezoSamples) }
 
-            let now = Date.now
             guard now.timeIntervalSince(lastPiezoUpdate) > 1.0 else { return }
             lastPiezoUpdate = now
+            guard SensorObservation.fresh(measured, age: 10, now: now), piezo.freq > 0 else { return }
+            let requestedGeneration = generation
             let left = piezo.left1, right = piezo.right1, freq = piezo.freq
             Task.detached(priority: .utility) { [weak self] in
                 let lv = PiezoAnalyzer.extractVitals(signal: left, sampleRate: freq)
                 let rv = PiezoAnalyzer.extractVitals(signal: right, sampleRate: freq)
                 await MainActor.run { [weak self] in
-                    guard let self else { return }
-                    if lv.confidence > 0.1 { self.leftVitals = lv }
-                    if rv.confidence > 0.1 { self.rightVitals = rv }
+                    guard let self, self.generation == requestedGeneration, self.isCurrentPod,
+                          SensorObservation.fresh(measured, age: 10),
+                          self.vitalsUpdatedAt.map({ measured >= $0 }) ?? true else { return }
+                    self.leftVitals = lv.confidence > 0.1 ? lv : .init()
+                    self.rightVitals = rv.confidence > 0.1 ? rv : .init()
+                    self.vitalsUpdatedAt = measured
                 }
             }
 
         case .bedTemp2(let temp), .bedTemp(let temp):
             leftTemps = temp.left
             rightTemps = temp.right
-            bedTempUpdatedAt = .now
+            bedTempUpdatedAt = measured
+            mcuTemperature = temp.mcu
             tempHistorySeeded = true
             if let avgL = temp.left.avgSurfaceTempF {
-                leftTempHistory.append((.now, Float(avgL)))
+                leftTempHistory.append((measured, Float(avgL)))
                 if leftTempHistory.count > maxTempHistory { leftTempHistory.removeFirst() }
             }
             if let avgR = temp.right.avgSurfaceTempF {
-                rightTempHistory.append((.now, Float(avgR)))
+                rightTempHistory.append((measured, Float(avgR)))
                 if rightTempHistory.count > maxTempHistory { rightTempHistory.removeFirst() }
             }
 
         case .frzHealth(let frz):
             frzHealth = frz
+        case .frzTemp(let frame): frzTemperature = frame
+        case .frzTherm(let frame): frzThermal = frame
 
         case .log(let log):
             let entry = FirmwareLogEntry(
@@ -511,6 +611,7 @@ final class SensorStreamService {
             if firmwareLogs.count > maxLogLines { firmwareLogs.removeFirst() }
 
         case .notification(let notif):
+            guard SensorObservation.fresh(measured, age: 30, now: now) else { return }
             Task {
                 await notificationRelay?.relay(
                     category: notif.category,
@@ -520,9 +621,10 @@ final class SensorStreamService {
             }
 
         case .deviceStatus(let status):
-            latestDeviceStatus = status
+            if SensorObservation.fresh(measured, age: 30, now: now) { latestDeviceStatus = status }
 
         case .gesture(let g):
+            guard SensorObservation.fresh(measured, age: 5, now: now) else { return }
             lastGesture = g
             let entry = FirmwareLogEntry(
                 timestamp: Date(),
@@ -549,6 +651,37 @@ final class SensorStreamService {
             result[ch] = sqrt(v)
         }
         return result
+    }
+
+    func requestWaveformRange() async {
+        if APIBackend.current.isDemo, demoTask != nil {
+            waveformReplay.setRange(.init(min: Date.now.timeIntervalSince1970 - 300, max: Date.now.timeIntervalSince1970)); return
+        }
+        guard let socket = webSocketTask else { return }
+        try? await socket.send(.string(#"{"type":"get_time_range"}"#))
+    }
+    func seekWaveform(at time: Double) async {
+        guard isConnected, let request = waveformReplay.begin(at: time) else { return }
+        let requestedGeneration = generation
+        if APIBackend.current.isDemo {
+            let frames = (0..<10).map { offset -> PiezoDualFrame in
+                let samples = (0..<500).map { Int32(sin(Double($0) / 20) * 1000) }
+                return .init(ts: Int(time) + offset, freq: 500, left1: samples, right1: samples.map { $0 / 2 })
+            }
+            waveformReplay.accept(.init(type: "waveform", requestId: request, frames: frames)); return
+        }
+        guard let socket = webSocketTask else { waveformReplay.fail("Stream disconnected", request: request); return }
+        struct Command: Encodable { let type = "get_waveform"; let timestamp: Double; let requestId: Int }
+        do {
+            let data = try JSONEncoder().encode(Command(timestamp: time, requestId: request))
+            try await socket.send(.data(data))
+            try await Task.sleep(for: .seconds(5))
+            guard generation == requestedGeneration else { return }
+            waveformReplay.fail("Waveform request timed out. Try another position or return to live.", request: request)
+        } catch {
+            guard !Task.isCancelled, generation == requestedGeneration else { return }
+            waveformReplay.fail(error.localizedDescription, request: request)
+        }
     }
 
     private func scheduleReconnect() {

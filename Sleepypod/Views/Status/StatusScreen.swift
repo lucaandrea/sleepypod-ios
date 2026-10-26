@@ -55,6 +55,10 @@ struct StatusScreen: View {
                             SettingsRow("Scheduler", subtitle: "Seven nights and loaded jobs", icon: "calendar.badge.clock", iconColor: Theme.green, chevron: true)
                         }.accessibilityIdentifier("system.scheduler")
                         Divider()
+                        NavigationLink { BedSensorScreen().navigationTitle("Sensors") } label: {
+                            SettingsRow("Sensors", subtitle: "Presence, temperature, freezer and waveform inspection", icon: "waveform.path", iconColor: Theme.cool, chevron: true)
+                        }.accessibilityIdentifier("system.sensors")
+                        Divider()
                         NavigationLink { SystemDatabaseScreen() } label: {
                             SettingsRow("Databases", subtitle: "Inventory, rows and backups", icon: "externaldrive", iconColor: Theme.cool, chevron: true)
                         }.accessibilityIdentifier("system.databases")

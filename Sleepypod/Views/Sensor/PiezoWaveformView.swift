@@ -2,42 +2,55 @@ import SwiftUI
 
 struct PiezoWaveformView: View {
     @Environment(SensorStreamService.self) private var sensor
+    @Environment(\.dynamicTypeSize) private var typeSize
     @State private var sweep = SweepState()
+    @State private var showLeft = true
+    @State private var showRight = true
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            HStack {
-                Image(systemName: "waveform.path")
-                    .font(.caption)
-                    .foregroundColor(Theme.accent)
-                Text("PIEZO WAVEFORM")
-                    .font(.caption.weight(.semibold))
-                    .foregroundColor(Theme.textSecondary)
-                    .tracking(1)
-                Spacer()
-                HStack(spacing: 8) {
-                    legendDot(color: Color(hex: "4a9eff"), label: "Left")
-                    legendDot(color: Color(hex: "40e0d0"), label: "Right")
+            Text("PIEZO WAVEFORM").font(.caption.weight(.semibold)).foregroundStyle(Theme.text2)
+            channel("Left channel", visible: $showLeft, color: Theme.cooling, identifier: "sensors.waveformLeft")
+            channel("Right channel", visible: $showRight, color: Theme.warming, identifier: "sensors.waveformRight")
+            Text(waveformSummary).font(.caption.monospacedDigit()).foregroundStyle(Theme.text2)
+            if let frames = sensor.waveformReplay.frames {
+                SensorWaveformReplayView(frames: frames, sides: (showLeft ? [Side.left] : []) + (showRight ? [Side.right] : []))
+            } else {
+                // Snapshot on main thread — Canvas closure captures these value types
+                let left = PiezoSweep.Channel(first: sensor.piezoLeftEnd - sensor.piezoLeft.count, samples: showLeft ? sensor.piezoLeft : [])
+                let right = PiezoSweep.Channel(first: sensor.piezoRightEnd - sensor.piezoRight.count, samples: showRight ? sensor.piezoRight : [])
+                let hz = Double(sensor.piezoHz)
+                TimelineView(.animation(minimumInterval: 1.0 / 60, paused: left.samples.isEmpty && right.samples.isEmpty)) { timeline in
+                    scopeCanvas(sweep.frame(left: left, right: right, hz: hz, at: timeline.date))
                 }
+                .frame(height: 130)
+                .allowsHitTesting(false)
             }
-
-            // Snapshot on main thread — Canvas closure captures these value types
-            let left = PiezoSweep.Channel(first: sensor.piezoLeftEnd - sensor.piezoLeft.count, samples: sensor.piezoLeft)
-            let right = PiezoSweep.Channel(first: sensor.piezoRightEnd - sensor.piezoRight.count, samples: sensor.piezoRight)
-            let hz = Double(sensor.piezoHz)
-            TimelineView(.animation(minimumInterval: 1.0 / 60, paused: left.samples.isEmpty && right.samples.isEmpty)) { timeline in
-                scopeCanvas(sweep.frame(left: left, right: right, hz: hz, at: timeline.date))
-            }
-            .frame(height: 130)
-            .allowsHitTesting(false)
+            SensorWaveformControls()
         }
         .padding(12)
-        .background(Color(hex: "020208"))
+        .background(Theme.card)
         .clipShape(RoundedRectangle(cornerRadius: 14))
         .overlay(
             RoundedRectangle(cornerRadius: 14)
-                .stroke(Color(hex: "1a2a3a").opacity(0.5), lineWidth: 1)
+                .stroke(Theme.cardBorder, lineWidth: 1)
         )
+    }
+
+    private var waveformSummary: String {
+        guard let frames = sensor.waveformReplay.frames else { return "LIVE · \(sensor.piezoHz) Hz · L \(sensor.piezoLeft.count) · R \(sensor.piezoRight.count)" }
+        let rates = Set(frames.map(\.freq))
+        let frequency = rates.count == 1 ? "\(rates.first ?? 0) Hz" : "variable sample rate"
+        return "REPLAY · \(frames.count) frames · \(frequency)"
+    }
+
+    @ViewBuilder private func channel(_ title: String, visible: Binding<Bool>, color: Color, identifier: String) -> some View {
+        if typeSize.isAccessibilitySize {
+            VStack(alignment: .leading, spacing: 6) {
+                Text(title)
+                Toggle(title, isOn: visible).labelsHidden().tint(color).accessibilityIdentifier(identifier)
+            }
+        } else { Toggle(title, isOn: visible).tint(color).accessibilityIdentifier(identifier) }
     }
 
     private func scopeCanvas(_ frame: SweepFrame?) -> some View {
@@ -63,7 +76,7 @@ struct PiezoWaveformView: View {
                 return y.isFinite ? min(max(y, 0), Double(h)) : Double(h) / 2
             }
 
-            for (channel, c) in [(frame.left, Color(hex: "4a9eff")), (frame.right, Color(hex: "40e0d0"))] {
+            for (channel, c) in [(frame.left, Theme.cooling), (frame.right, Theme.warming)] {
                 guard channel.samples.count >= PiezoSweep.minSamples else { continue }
                 for run in PiezoSweep.runs(channel, play: frame.play, geometry: frame.geometry, width: Double(w), yOf: yOf) {
                     guard let path = tracePath(run) else { continue }
@@ -81,8 +94,8 @@ struct PiezoWaveformView: View {
     }
 
     private func drawGrid(context: GraphicsContext, w: CGFloat, h: CGFloat) {
-        let minor = Color(hex: "0a1018")
-        let major = Color(hex: "0f1a2a")
+        let minor = Theme.cardBorder.opacity(0.5)
+        let major = Theme.cardBorder
 
         let cols = max(1, Int(w / 25))
         for i in 1..<cols {

@@ -81,7 +81,7 @@ private struct SideTempCard: View {
                     Text(settings.sideName(for: side)).font(.headline).lineLimit(1)
                     HStack(spacing: 5) {
                         if occupied { StatusDot() }
-                        Eyebrow("\(side.rawValue.uppercased()) · \(occupied ? "IN BED" : "AWAY")")
+                        Eyebrow("\(side.rawValue.uppercased()) · \(sensor.presenceLabel(sides: [side]))")
                     }
                 }
                 Spacer(minLength: 8)

@@ -3,12 +3,15 @@ import SwiftUI
 /// Unified diagnostic console — firmware logs (default) + raw frame inspector.
 /// Terminal-style with auto-scroll, pause, type filtering.
 struct FirmwareLogConsoleView: View {
+    @Environment(\.dynamicTypeSize) private var typeSize
     let logs: [FirmwareLogEntry]
     let recentFrames: [RawFrameEntry]
     var onClear: () -> Void = {}
 
     @State private var mode: ConsoleMode = .logs
     @State private var paused = false
+    @State private var frozenLogs: [FirmwareLogEntry] = []
+    @State private var frozenFrames: [RawFrameEntry] = []
     @State private var selectedFrame: RawFrameEntry?
     @State private var typeFilter: String?
 
@@ -18,64 +21,43 @@ struct FirmwareLogConsoleView: View {
     }
 
     private static let typeColors: [String: Color] = [
-        "piezo-dual": Color(hex: "a78bfa"),
-        "capSense2": Color(hex: "4ade80"),
-        "bedTemp2": Color(hex: "fb923c"),
-        "frzHealth": Color(hex: "60a5fa"),
-        "frzTemp": Color(hex: "60a5fa"),
-        "deviceStatus": Color(hex: "38bdf8"),
-        "log": Color(hex: "fbbf24")
+        "piezo-dual": Theme.violet,
+        "capSense2": Theme.green,
+        "bedTemp2": Theme.warming,
+        "frzHealth": Theme.cooling,
+        "frzTemp": Theme.cooling,
+        "deviceStatus": Theme.cooling,
+        "log": Theme.amber
     ]
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            // Header
-            HStack(spacing: 8) {
-                Image(systemName: "terminal.fill")
-                    .font(.caption)
-                    .foregroundColor(Theme.healthy)
-                Text("CONSOLE")
-                    .font(.caption.weight(.semibold))
-                    .foregroundColor(Theme.textSecondary)
-                    .tracking(1)
-                Spacer()
-
-                // Mode toggle
-                Picker("Mode", selection: $mode) {
-                    ForEach(ConsoleMode.allCases, id: \.self) { m in
-                        Text(m.rawValue).tag(m)
-                    }
-                }
-                .pickerStyle(.segmented)
-                .frame(width: 120)
-
-                // Pause
-                Button {
-                    Haptics.light()
-                    paused.toggle()
-                } label: {
-                    Image(systemName: paused ? "play.fill" : "pause.fill")
-                        .font(.system(size: 10))
-                        .foregroundColor(paused ? Theme.amber : Theme.textMuted)
-                }
-                .buttonStyle(.plain)
-
-                // Count
-                Text("\(mode == .logs ? logs.count : filteredFrames.count)")
-                    .font(.system(size: 9).monospaced())
-                    .foregroundColor(Theme.textMuted)
-
-                // Clear
-                Button {
-                    Haptics.light()
-                    onClear()
-                } label: {
-                    Image(systemName: "trash")
-                        .font(.system(size: 10))
-                        .foregroundColor(Theme.textMuted)
-                }
-                .buttonStyle(.plain)
+            let header = typeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: 6)) : AnyLayout(HStackLayout())
+            header {
+                Label("CONSOLE", systemImage: "terminal.fill").font(.caption.weight(.semibold)).foregroundStyle(Theme.text2)
+                if !typeSize.isAccessibilitySize { Spacer() }
+                Text("\(mode == .logs ? displayedLogs.count : filteredFrames.count) entries").font(.caption.monospacedDigit()).foregroundStyle(Theme.text2)
             }
+            if typeSize.isAccessibilitySize {
+                Menu {
+                    Picker("Console mode", selection: $mode) { ForEach(ConsoleMode.allCases, id: \.self) { Text($0.rawValue).tag($0) } }
+                } label: {
+                    Label(mode.rawValue, systemImage: "chevron.up.chevron.down").fixedSize(horizontal: false, vertical: true)
+                }.accessibilityIdentifier("sensors.consoleModeMenu")
+            } else {
+                Picker("Console mode", selection: $mode) {
+                    ForEach(ConsoleMode.allCases, id: \.self) { Text($0.rawValue).tag($0) }
+                }.pickerStyle(.segmented).accessibilityIdentifier("sensors.consoleMode")
+            }
+            let controls = typeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: 10)) : AnyLayout(HStackLayout())
+            controls {
+                Button(paused ? "Resume" : "Pause") {
+                    if !paused { frozenLogs = logs; frozenFrames = recentFrames }
+                    paused.toggle()
+                }.accessibilityIdentifier("sensors.consolePause")
+                if !typeSize.isAccessibilitySize { Spacer() }
+                Button("Clear logs") { onClear(); frozenLogs = [] }
+            }.font(.subheadline)
 
             // Type filter (frames mode)
             if mode == .frames {
@@ -98,14 +80,26 @@ struct FirmwareLogConsoleView: View {
                 }
             }
             .frame(height: 200)
-            .background(Color(hex: "0a0a10"))
+            .background(Theme.background)
             .clipShape(RoundedRectangle(cornerRadius: 8))
             .overlay(
                 RoundedRectangle(cornerRadius: 8)
-                    .stroke(Color(hex: "1a1a2e"), lineWidth: 1)
+                    .stroke(Theme.cardBorder, lineWidth: 1)
             )
         }
         .cardStyle()
+        .sheet(item: $selectedFrame) { frame in
+            NavigationStack {
+                ScrollView {
+                    Text(prettyJSON(frame.json)).font(.caption.monospaced()).textSelection(.enabled)
+                        .frame(maxWidth: .infinity, alignment: .leading).padding(16)
+                }.background(Theme.background).navigationTitle(frame.type)
+                    .toolbar {
+                        ToolbarItem(placement: .cancellationAction) { Button("Done") { selectedFrame = nil } }
+                        ToolbarItem(placement: .primaryAction) { ShareLink(item: prettyJSON(frame.json)) }
+                    }
+            }
+        }
     }
 
     // MARK: - Logs View
@@ -114,14 +108,14 @@ struct FirmwareLogConsoleView: View {
         ScrollViewReader { proxy in
             ScrollView {
                 LazyVStack(alignment: .leading, spacing: 2) {
-                    ForEach(logs) { entry in
+                    ForEach(displayedLogs) { entry in
                         logRow(entry).id(entry.id)
                     }
                 }
                 .padding(8)
             }
             .onChange(of: logs.count) {
-                if !paused, let last = logs.last {
+                if !paused, let last = displayedLogs.last {
                     withAnimation(.easeOut(duration: 0.15)) {
                         proxy.scrollTo(last.id, anchor: .bottom)
                     }
@@ -132,8 +126,11 @@ struct FirmwareLogConsoleView: View {
 
     // MARK: - Frames View
 
+    private var displayedLogs: [FirmwareLogEntry] { paused ? frozenLogs : logs }
+    private var displayedFrames: [RawFrameEntry] { paused ? frozenFrames : recentFrames }
+
     private var filteredFrames: [RawFrameEntry] {
-        let src = recentFrames
+        let src = displayedFrames
         if let filter = typeFilter {
             return Array(src.filter { $0.type == filter }.prefix(100))
         }
@@ -141,86 +138,43 @@ struct FirmwareLogConsoleView: View {
     }
 
     private var seenTypes: [String] {
-        Array(Set(recentFrames.map(\.type))).sorted()
+        Array(Set(displayedFrames.map(\.type))).sorted()
     }
 
     private var framesView: some View {
-        HStack(spacing: 0) {
-            // Frame list
-            ScrollView {
-                LazyVStack(spacing: 0) {
-                    ForEach(filteredFrames) { frame in
-                        Button {
-                            if selectedFrame?.id == frame.id {
-                                selectedFrame = nil
-                            } else {
-                                selectedFrame = frame
-                                if !paused { paused = true }
-                            }
-                        } label: {
-                            HStack(spacing: 4) {
-                                Text(Self.timeFmt.string(from: frame.timestamp))
-                                    .foregroundColor(Theme.textMuted)
-                                Text(frame.type)
-                                    .foregroundColor(Self.typeColors[frame.type] ?? Theme.accent)
-                                    .fontWeight(.medium)
-                                Spacer()
-                                let age = Date.now.timeIntervalSince(frame.timestamp)
-                                Text(String(format: "%.1fs", age))
-                                    .foregroundColor(Theme.textMuted.opacity(0.5))
-                            }
-                            .font(.mono(9))
-                            .padding(.horizontal, 6)
-                            .padding(.vertical, 3)
-                            .background(selectedFrame?.id == frame.id ? Theme.accent.opacity(0.1) : .clear)
-                        }
-                        .buttonStyle(.plain)
-                    }
+        ScrollView {
+            LazyVStack(alignment: .leading, spacing: 8) {
+                ForEach(filteredFrames) { frame in
+                    Button {
+                        if !paused { frozenLogs = logs; frozenFrames = recentFrames; paused = true }
+                        selectedFrame = frame
+                    } label: {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(frame.type).font(.subheadline.weight(.medium)).foregroundStyle(Self.typeColors[frame.type] ?? Theme.accent)
+                            Text(Self.timeFmt.string(from: frame.timestamp)).font(.caption.monospacedDigit()).foregroundStyle(Theme.text2)
+                        }.frame(maxWidth: .infinity, minHeight: 44, alignment: .leading).padding(.horizontal, 8)
+                    }.buttonStyle(.plain).accessibilityIdentifier("sensors.rawFrame.\(frame.type)")
                 }
-            }
-            .frame(maxWidth: selectedFrame != nil ? 140 : .infinity)
-
-            // Detail panel
-            if let frame = selectedFrame {
-                Divider()
-                ScrollView {
-                    VStack(alignment: .leading, spacing: 4) {
-                        HStack {
-                            Text(frame.type)
-                                .foregroundColor(Self.typeColors[frame.type] ?? Theme.accent)
-                                .fontWeight(.medium)
-                            Text(Self.timeFmt.string(from: frame.timestamp))
-                                .foregroundColor(Theme.textMuted)
-                        }
-                        .font(.mono(10))
-
-                        // Pretty-print JSON
-                        Text(prettyJSON(frame.json))
-                            .font(.mono(9))
-                            .foregroundColor(Theme.text1.opacity(0.7))
-                            .textSelection(.enabled)
-                    }
-                    .padding(8)
-                }
-            }
+            }.padding(.vertical, 8)
         }
     }
 
     // MARK: - Helpers
 
     private func logRow(_ entry: FirmwareLogEntry) -> some View {
-        HStack(alignment: .top, spacing: 0) {
+        let layout = typeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: 6)) : AnyLayout(HStackLayout(alignment: .top, spacing: 8))
+        return layout {
             Text(Self.timeFmt.string(from: entry.timestamp))
                 .foregroundColor(Theme.textMuted)
-                .frame(width: 55, alignment: .leading)
+                .frame(minWidth: 55, alignment: .leading)
             Text(entry.level.rawValue.prefix(3).uppercased())
                 .foregroundColor(entry.level.color)
-                .frame(width: 30, alignment: .leading)
+                .frame(minWidth: 30, alignment: .leading)
             Text(cleanMessage(entry.message))
                 .foregroundColor(Theme.text1.opacity(0.85))
-                .lineLimit(2)
+                .fixedSize(horizontal: false, vertical: true)
         }
-        .font(.mono(9))
+        .font(.caption2.monospaced())
     }
 
     private static let timeFmt: DateFormatter = {
@@ -256,13 +210,14 @@ private struct FilterPill: View {
     var body: some View {
         Button(action: action) {
             Text(label)
-                .font(.system(size: 9, weight: .medium))
+                .font(.caption2.weight(.medium))
                 .foregroundColor(active ? Theme.accent : Theme.textMuted)
                 .padding(.horizontal, 8)
-                .padding(.vertical, 3)
+                .padding(.vertical, 8)
+                .frame(minHeight: 44)
                 .background(
                     RoundedRectangle(cornerRadius: 4)
-                        .fill(active ? Theme.accent.opacity(0.15) : Color(hex: "1a1a2e"))
+                        .fill(active ? Theme.accent.opacity(0.15) : Theme.card)
                 )
         }
         .buttonStyle(.plain)
