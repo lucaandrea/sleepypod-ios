@@ -19,6 +19,7 @@ struct SleepypodApp: App {
     @State private var userProfile = UserProfile()
     @State private var sensorStream = SensorStreamService()
     @State private var notificationRelay = NotificationRelay()
+    @State private var alertInbox = AlertInboxSession()
     @State private var healthSync: HealthSyncService
     @State private var stageModels: StageModelStore
     @State private var watchMotion = WatchMotionReceiver()
@@ -68,6 +69,7 @@ struct SleepypodApp: App {
                 .environment(userProfile)
                 .environment(sensorStream)
                 .environment(notificationRelay)
+                .environment(alertInbox)
                 .environment(healthSync)
                 .environment(stageModels)
                 .environment(watchMotion)
@@ -105,6 +107,7 @@ struct ContentView: View {
     @Environment(ScheduleManager.self) private var scheduleManager
     @Environment(AlarmWorkspace.self) private var alarms
     @Environment(CurveWorkspace.self) private var curves
+    @Environment(AlertInboxSession.self) private var alertInbox
     @Environment(MetricsManager.self) private var metricsManager
     @Environment(StatusManager.self) private var statusManager
     @Environment(HealthSyncService.self) private var healthSync
@@ -113,6 +116,10 @@ struct ContentView: View {
     @State private var selectedTab = Self.initialTab
     @State private var showWelcome = false
     @AppStorage("apiBackend") private var backendIdentity = ""
+    @AppStorage("podURL") private var inboxOwnerURL = ""
+    @AppStorage("podIPAddress") private var inboxPodHost = ""
+    @AppStorage("ownerConnectionRevision") private var inboxOwnerRevision = ""
+    private var inboxScope: String { "\(backendIdentity)|\(inboxOwnerURL)|\(inboxPodHost)|\(inboxOwnerRevision)" }
 
     private static var initialTab: String {
         switch DebugRoute.current {
@@ -170,6 +177,17 @@ struct ContentView: View {
                 selectedTab = "sleep"
             }
 
+        }
+        .overlay(alignment: .top) { AlertForegroundBanner() }
+        .task(id: "\(inboxScope)-\(scenePhase)") {
+            alertInbox.configure(scope: inboxScope)
+            guard let model = alertInbox.workspace else { return }
+            model.isActive = scenePhase == .active
+            if !model.isActive { model.dismissAnnouncements(); return }
+            while !Task.isCancelled {
+                await model.refresh()
+                do { try await Task.sleep(for: .seconds(5)) } catch { return }
+            }
         }
         .fullScreenCover(isPresented: $showWelcome) {
             WelcomeScreen(onConnect: {

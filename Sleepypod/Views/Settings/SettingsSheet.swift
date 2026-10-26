@@ -208,6 +208,7 @@ struct AllSettingsScreen: View {
                         }
                         if APIBackend.current != .freeSleep {
                             NavigationLink { AutopilotScreen() } label: { SettingsRow("Autopilot", icon: "sparkles", tile: true, chevron: true) }
+                            AlertInboxLink(tile: true)
                         }
                         PodFeatureLink(.comfort, icon: "sparkles", tile: true)
                         PodFeatureLink(.routines, icon: "calendar", tile: true)
