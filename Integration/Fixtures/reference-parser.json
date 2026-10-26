@@ -1,0 +1,86 @@
+[
+  {
+    "name": "quoted-crlf",
+    "format": "csv",
+    "text": "﻿recordKey,metric,value,unit,timestamp,annotation\r\n1,heart_rate,6e1,bpm,2026-10-10T23:00:00Z,\"Line one\r\nLine \"\"two\"\" café\"\r\n",
+    "rows": [
+      {
+        "recordKey": "1",
+        "metric": "heart_rate",
+        "value": 60,
+        "unit": "bpm",
+        "timestamp": "2026-10-10T23:00:00Z",
+        "annotation": "Line one\r\nLine \"two\" café"
+      }
+    ]
+  },
+  {
+    "name": "literal-source",
+    "format": "csv",
+    "text": "recordKey,metric,value,unit,annotation\n1,sleep_stages,deep,stage,=SUM(A1:A2)\n2,heart_rate,+60,bpm,\n",
+    "rows": [
+      {
+        "recordKey": "1",
+        "metric": "sleep_stages",
+        "value": "deep",
+        "unit": "stage",
+        "annotation": "=SUM(A1:A2)"
+      },
+      {
+        "recordKey": "2",
+        "metric": "heart_rate",
+        "value": "+60",
+        "unit": "bpm"
+      }
+    ]
+  },
+  {
+    "name": "numbers",
+    "format": "csv",
+    "text": "recordKey,value,quality,windowMs\na,1.,.5,3e5\nb,-.25,1,300000\n",
+    "rows": [
+      {
+        "recordKey": "a",
+        "value": 1,
+        "quality": 0.5,
+        "windowMs": 300000
+      },
+      {
+        "recordKey": "b",
+        "value": -0.25,
+        "quality": 1,
+        "windowMs": 300000
+      }
+    ]
+  },
+  {
+    "name": "unicode",
+    "format": "csv",
+    "text": "recordKey,annotation\r\na,café 🌙\r\n",
+    "rows": [
+      {
+        "recordKey": "a",
+        "annotation": "café 🌙"
+      }
+    ]
+  },
+  {
+    "name": "unvalidated-rows",
+    "format": "json",
+    "text": "[{\"recordKey\":\"sample\",\"value\":12,\"unknown\":{\"items\":[true,null,\"text\"]}},17]",
+    "rows": [
+      {
+        "recordKey": "sample",
+        "value": 12,
+        "unknown": {
+          "items": [
+            true,
+            null,
+            "text"
+          ]
+        }
+      },
+      17
+    ]
+  }
+]
