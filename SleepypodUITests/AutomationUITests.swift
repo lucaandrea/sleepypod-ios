@@ -1,9 +1,9 @@
 import XCTest
 
 @MainActor final class AutomationUITests: XCTestCase {
-    private func launch(replay: Bool = false) -> XCUIApplication {
+    private func launch(replay: Bool = false, appearance: String = "Dark") -> XCUIApplication {
         let app = XCUIApplication()
-        app.launchArguments = ["-apiBackend", "demo", "--demo", "-onboardingComplete", "YES", "-appearance", "Dark", "-healthSyncEnabled", "NO", "-uiRoute", "autopilot", "-uiAutomationReplay", replay ? "YES" : "NO"]
+        app.launchArguments = ["-apiBackend", "demo", "--demo", "-onboardingComplete", "YES", "-appearance", appearance, "-healthSyncEnabled", "NO", "-uiRoute", "autopilot", "-uiAutomationReplay", replay ? "YES" : "NO"]
         app.launch()
         XCTAssertTrue(app.buttons["automation.new"].waitForExistence(timeout: 15))
         return app
@@ -68,8 +68,56 @@ import XCTest
         XCTAssertTrue(app.buttons["automation.runBacktest"].waitForExistence(timeout: 5)); app.buttons["automation.runBacktest"].tap()
         XCTAssertTrue(app.staticTexts.containing(NSPredicate(format: "label BEGINSWITH %@", "Chart validation fixture")).firstMatch.waitForExistence(timeout: 5))
         capture(app, "Autopilot-replay-provenance")
+        show(app.descendants(matching: .any)["automation.combinedPlot"].firstMatch, app: app)
+        capture(app, "Autopilot-combined-chart")
         show(app.staticTexts["Requested temperature · °F"], app: app)
         capture(app, "Autopilot-replay-chart")
+    }
+    func testNightTimelineInspectorAndRecentNightReplay() {
+        let app = launch(appearance: "Light")
+        let slider = app.sliders["automation.timelineSlider"]
+        show(slider, app: app)
+        let before = app.staticTexts["automation.timelineClock"].label
+        slider.adjust(toNormalizedSliderPosition: 0.75)
+        XCTAssertNotEqual(app.staticTexts["automation.timelineClock"].label, before)
+        capture(app, "Autopilot-night-timeline")
+        for _ in 0..<14 { if app.buttons["automation.edit.1"].isHittable { break }; app.swipeDown() }
+        app.buttons["automation.edit.1"].tap()
+        show(app.buttons["automation.range"], app: app); app.buttons["automation.range"].tap()
+        XCTAssertTrue(app.navigationBars["Recent nights"].waitForExistence(timeout: 5))
+        show(app.buttons["automation.runRange"], app: app); app.buttons["automation.runRange"].tap()
+        show(app.staticTexts["automation.rangeSummary"], app: app)
+        XCTAssertEqual(app.staticTexts["automation.rangeSummary"].label, "No replayable nights returned")
+        capture(app, "Autopilot-recent-nights")
+    }
+    func testActivityMissingFilterShowsRecordedReasonWithoutSentEvents() {
+        let app = launch(replay: true)
+        app.buttons["Activity history"].tap()
+        XCTAssertTrue(app.staticTexts["Synthetic missing movement"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["Synthetic dry run"].exists)
+        app.buttons["automation.activityFilter"].tap()
+        app.buttons["Missing"].tap()
+        XCTAssertTrue(app.staticTexts["Synthetic missing movement"].exists)
+        XCTAssertFalse(app.staticTexts["Synthetic dry run"].exists)
+        XCTAssertFalse(app.staticTexts["Synthetic sent event"].exists)
+        capture(app, "Autopilot-filtered-activity")
+    }
+    func testRecordedZonesScrubAndPlayWithSyntheticProvenance() {
+        let app = launch(replay: true)
+        app.buttons["automation.edit.1"].tap()
+        show(app.buttons["automation.backtest"], app: app); app.buttons["automation.backtest"].tap()
+        XCTAssertTrue(app.buttons["Recorded pressure zones"].waitForExistence(timeout: 5)); app.buttons["Recorded pressure zones"].tap()
+        XCTAssertTrue(app.buttons["automation.playZones"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["Synthetic pressure-zone fixture · not your bed data"].exists)
+        let slider = app.sliders["Replay frame"]; show(slider, app: app); slider.adjust(toNormalizedSliderPosition: 0.8)
+        XCTAssertNotEqual(app.staticTexts["automation.zoneFrame"].label, "Frame 1 of 20")
+        app.buttons["automation.playZones"].tap()
+        XCTAssertEqual(app.buttons["automation.playZones"].label, "Pause replay")
+        app.buttons["automation.playZones"].tap()
+        XCTAssertEqual(app.buttons["automation.playZones"].label, "Play replay")
+        // The native button crossfades its label; capture after that visual transition.
+        Thread.sleep(forTimeInterval: 0.4)
+        capture(app, "Autopilot-pressure-replay")
     }
     private func show(_ element: XCUIElement, app: XCUIApplication) {
         for _ in 0..<14 {

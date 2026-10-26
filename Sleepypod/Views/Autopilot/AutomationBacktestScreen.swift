@@ -64,8 +64,7 @@ struct AutomationBacktestCharts: View {
                     Text(result.mode == "edge" ? "Edge replay uses a nominal temperature baseline because target history is unavailable. This is not a prediction of your bed temperature." : "Policy replay shows calculated setpoints, not measured bed temperatures.").font(.footnote).foregroundStyle(Theme.text2)
                 }.padding(16)
             }
-            if let primary = result.primary { trace(primary.label, values: primary.values, threshold: result.threshold, color: Theme.amber, axis: result.primaryAxis) }
-            if let average = result.avg { trace(average.label, values: average.values, threshold: result.threshold, color: Theme.green, axis: result.primaryAxis) }
+            AutomationCombinedReplayChart(result: result)
             trace("Requested temperature · °F", values: result.setpoint, threshold: nil, color: Theme.text1, axis: result.tempAxis, events: true)
             if let raw = result.setpointRaw { trace("Before limits · °F", values: raw, threshold: nil, color: Theme.text2, axis: result.tempAxis) }
             Text("Gaps mean no fresh signal was available. Green diamonds mark firings; amber crosses mark suppressed firings. Missing data is never drawn as zero.").font(.footnote).foregroundStyle(Theme.text2)

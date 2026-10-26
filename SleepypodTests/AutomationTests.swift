@@ -160,6 +160,8 @@ private actor ControlledAutomationClient: AutomationClient {
         if let rule = await demo.rules().first { var definition = rule.definition; definition.name = "Other device"; _ = try await demo.update(id: rule.id, definition: definition) }
     }
     func rules() async throws -> [AutomationRule] { if failed { throw APIError.noBaseURL }; return await demo.rules() }
+    func summaries() async -> [AutomationReplaySummary] { await demo.summaries() }
+    func range(_ definition: AutomationDefinition, nights: Int) async -> AutomationReplaySummary { await demo.range(definition, nights: nights) }
     func globalEnabled() async -> Bool { await demo.globalEnabled() }
     func setGlobalEnabled(_ enabled: Bool) async -> Bool { writeCount += 1; return await demo.setGlobalEnabled(enabled) }
     func create(_ definition: AutomationDefinition) async throws -> AutomationRule { writeCount += 1; return try await demo.create(definition) }

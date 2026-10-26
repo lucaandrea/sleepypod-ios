@@ -4,6 +4,7 @@ import FreeSleepKit
 struct AutopilotScreen: View {
     @Environment(DeviceManager.self) private var device
     @Environment(SettingsManager.self) private var settings
+    @Environment(ScheduleManager.self) private var schedules
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.dynamicTypeSize) private var typeSize
     @State private var model: AutomationWorkspace
@@ -72,6 +73,7 @@ struct AutopilotScreen: View {
         VStack(alignment: .leading, spacing: 14) {
             ruleHeadingLayout { Text("Automations").font(.title3.bold()); if !typeSize.isAccessibilitySize { Spacer() }; Button { model.error = nil; editor = .init(original: nil, definition: .init(side: device.selectedSide.primarySide)) } label: { Label("New", systemImage: "plus") }.accessibilityIdentifier("automation.new").disabled(!model.ready || model.saving) }
             if model.ready, model.rules.isEmpty { Text("Create a rule to respond to your room or bed conditions.").foregroundStyle(Theme.text2) }
+            if let error = model.summariesError { Text("Replay summaries: \(error)").font(.footnote).foregroundStyle(Theme.amber) }
             ForEach(model.rules) { rule in
                 GroupedCard {
                     VStack(alignment: .leading, spacing: 12) {
@@ -90,6 +92,9 @@ struct AutopilotScreen: View {
                         }
                         Text("\(rule.definition.trigger.summary) · \(rule.definition.conditions.summary)").font(.footnote).foregroundStyle(Theme.text2).fixedSize(horizontal: false, vertical: true)
                         ForEach(Array(rule.definition.actions.enumerated()), id: \.offset) { _, action in Text(action.summary).font(.footnote).fixedSize(horizontal: false, vertical: true) }
+                        if let summary = model.summaries.first(where: { $0.id == rule.id }) {
+                            Text(summary.headline + " · last 5 nights").font(.caption).foregroundStyle(Theme.text2)
+                        }
                         Picker("Mode for \(rule.definition.name)", selection: Binding(get: { rule.definition.mode }, set: { mode in
                             if mode == .active { activating = rule } else { Task { await model.setMode(mode, for: rule) } }
                         })) { ForEach(AutomationMode.allCases) { Text($0.rawValue).tag($0) } }.pickerStyle(.segmented)
@@ -101,6 +106,9 @@ struct AutopilotScreen: View {
     private var tonight: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Tonight").font(.title3.bold())
+            if let error = schedules.error { Text("Schedule: \(error)").font(.footnote).foregroundStyle(Theme.amber) }
+            if let error = model.timelineError { Text("Recorded firings: \(error)").font(.footnote).foregroundStyle(Theme.amber) }
+            AutomationTonightTimeline(timeline: AutomationTimeline(schedules: schedules.error == nil ? schedules.schedules : nil, rules: model.ready ? model.rules : [], timezone: settings.timeZone, now: model.tonight.map { Date(timeIntervalSince1970: $0.now / 1000) } ?? .now), snapshot: model.tonight, activity: model.timelineActivity, enabled: model.ready ? model.globalEnabled : nil)
             if let error = model.tonightError { Text(error).font(.footnote).foregroundStyle(Theme.amber) }
             if let snapshot = model.tonight {
                 ForEach(Side.allCases) { side in
@@ -125,6 +133,7 @@ struct AutopilotScreen: View {
             Text("Evaluations").font(.title3.bold())
             Text("Signals below are a live snapshot. They are not the values observed during earlier evaluations.").font(.footnote).foregroundStyle(Theme.text2)
             if let error = model.diagnosticsError { Text(error).foregroundStyle(Theme.amber) }
+            GroupedCard { AutomationLiveZones(side: nil).padding(16) }
             if let snapshot = model.diagnostics {
                 Text("Snapshot: \(AutomationDates.parse(snapshot.now).map { AutomationDates.label($0.timeIntervalSince1970 * 1000, timeZone: settings.timeZone, includeDate: true) } ?? snapshot.now) · \(settings.timeZone)").font(.caption).foregroundStyle(Theme.text2)
                 ForEach(snapshot.rules) { rule in
@@ -165,6 +174,9 @@ struct AutopilotScreen: View {
         await model.load()
         async let diagnostics: Void = model.loadDiagnostics()
         async let tonight: Void = model.loadTonight()
-        _ = await (diagnostics, tonight)
+        async let summaries: Void = model.loadSummaries()
+        async let activity: Void = model.loadTimelineActivity(timeZone: settings.timeZone)
+        async let scheduleLoad: Void = schedules.fetchSchedules()
+        _ = await (diagnostics, tonight, summaries, activity, scheduleLoad)
     }
 }

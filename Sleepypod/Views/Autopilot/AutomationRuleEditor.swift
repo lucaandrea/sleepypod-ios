@@ -49,10 +49,15 @@ struct AutomationRuleEditor: View {
                 TextField("Priority", value: $draft.priority, format: .number).keyboardType(.numberPad)
                 Text("Higher priority rules appear first (0–1000). Equal priorities use creation order.").font(.footnote).foregroundStyle(Theme.text2)
             }
+            if draft.conditions.signals.union(draft.actions.reduce(into: Set<String>()) { if let temp = $1.temp { $0.formUnion(temp.signals) } }).contains(where: { $0.contains(".cap.") }) {
+                Section { AutomationLiveZones(side: draft.side) }
+            }
             Section("Review") {
                 Text("\(draft.trigger.summary). If \(draft.conditions.summary), \(draft.actions.map(\.summary).joined(separator: "; ")).").fixedSize(horizontal: false, vertical: true)
                 NavigationLink { AutomationBacktestScreen(definition: draft, client: workspace.client) } label: { Label("Backtest this draft", systemImage: "clock.arrow.circlepath") }
                     .disabled(draft.validation != nil).accessibilityIdentifier("automation.backtest")
+                NavigationLink { AutomationRangeScreen(definition: draft, client: workspace.client) } label: { Label("Replay recent nights", systemImage: "calendar") }
+                    .disabled(draft.validation != nil).accessibilityIdentifier("automation.range")
                 if let validation = draft.validation { Text(validation).foregroundStyle(Theme.amber) }
                 if let error = workspace.error {
                     Text(error).foregroundStyle(Theme.amber).accessibilityIdentifier("automation.saveError")

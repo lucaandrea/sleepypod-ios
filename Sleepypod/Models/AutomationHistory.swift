@@ -24,6 +24,14 @@ struct AutomationActivity: Decodable, Sendable {
 
 struct AutomationZoneReplay: Decodable, Sendable {
     struct Frame: Decodable, Sendable { let tMs: Double; let zones: [Double]; let peakZone: Double? }
+    /// A fixed night scale keeps identical loads the same color while scrubbing.
+    var scale: Double { max(0.01, frames.flatMap(\.zones).filter(\.isFinite).max() ?? 0.01) }
+    static func liveZones(_ variance: [Float]) -> [Double] {
+        (0..<3).map { zone in
+            let pair = [zone * 2, zone * 2 + 1].compactMap { variance.indices.contains($0) && variance[$0].isFinite ? Double(variance[$0]) : nil }
+            return pair.max() ?? .nan
+        }
+    }
     let ok: Bool
     let night: AutomationBacktest.Night?
     let frames: [Frame]
@@ -38,5 +46,20 @@ enum AutomationDates {
         let formatter = DateFormatter(); formatter.timeZone = TimeZone(identifier: timeZone)
         formatter.dateStyle = includeDate ? .medium : .none; formatter.timeStyle = .short
         return formatter.string(from: Date(timeIntervalSince1970: milliseconds / 1000))
+    }
+}
+
+enum AutomationActivityFilter: String, CaseIterable, Identifiable {
+    case all = "All", wouldFire = "Would fire", fired = "Fired", skipped = "Skipped", missing = "Missing", errors = "Errors"
+    var id: Self { self }
+    func matches(_ entry: AutomationActivity.Entry) -> Bool {
+        switch self {
+        case .all: true
+        case .wouldFire: entry.outcome == "dry_run"
+        case .fired: entry.outcome == "fired" || entry.outcome == "clamped"
+        case .skipped: entry.outcome == "skipped"
+        case .missing: entry.code == "signal-unavailable" || entry.code.contains("unknown") || entry.code.contains("missing")
+        case .errors: entry.outcome == "error"
+        }
     }
 }

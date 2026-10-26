@@ -45,6 +45,7 @@ final class SensorStreamService {
     var lastFrameTime: Date?
     var framesPerSecond: Int = 0
 
+    var presenceUpdatedAt: Date?
     var leftPresence: CapSenseSide?
     var rightPresence: CapSenseSide?
     var leftVitals = LiveVitals()
@@ -206,6 +207,8 @@ final class SensorStreamService {
         streamURL = nil
         isConnected = false
         latestDeviceStatus = nil
+        presenceUpdatedAt = nil; lastCapUpdate = .distantPast
+        leftHistory = []; rightHistory = []; leftPresence = nil; rightPresence = nil
     }
 
     func clearLogs() { firmwareLogs.removeAll() }
@@ -255,6 +258,7 @@ final class SensorStreamService {
                 if self.rightHistory.count > self.varianceWindow { self.rightHistory.removeFirst() }
                 self.leftVariance = self.computeVariance(self.leftHistory)
                 self.rightVariance = self.computeVariance(self.rightHistory)
+                if self.leftHistory.count >= 2 && self.rightHistory.count >= 2 { self.presenceUpdatedAt = .now }
                 self.trackDemoFrame("capSense2")
 
                 // --- Piezo (every 2 ticks = 1s) ---
@@ -444,6 +448,7 @@ final class SensorStreamService {
             if rightHistory.count > varianceWindow { rightHistory.removeFirst() }
             leftVariance = computeVariance(leftHistory)
             rightVariance = computeVariance(rightHistory)
+            if leftHistory.count >= 2 && rightHistory.count >= 2 { presenceUpdatedAt = now }
 
         case .piezoDual(let piezo):
             if piezo.freq > 0 { piezoHz = piezo.freq }
