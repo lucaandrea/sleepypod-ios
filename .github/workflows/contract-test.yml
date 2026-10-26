@@ -87,10 +87,11 @@ jobs:
 
       - name: Copy iOS model files into Swift package
         run: |
-          for f in Side DeviceStatus TemperatureControlStatus VitalsRecord SleepRecord MovementRecord ServerStatus Settings Schedule CoreScheduleRows Services TemperatureConversion; do
+          for f in Side DeviceStatus TemperatureControlStatus VitalsRecord SleepRecord JSONValue MovementRecord ServerStatus Settings Schedule CoreScheduleRows Services TemperatureConversion; do
             cp "Sleepypod/Models/${f}.swift" contract-tests/Sources/SleepypodModels/
           done
           cp SleepypodUI/Theme.swift contract-tests/Sources/SleepypodModels/
+          cp Sleepypod/Networking/APIError.swift contract-tests/Sources/SleepypodModels/
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4

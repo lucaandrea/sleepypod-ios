@@ -12,6 +12,7 @@ struct TemperatureContextCards: View {
     var body: some View {
         VStack(spacing: 16) {
             if homeRoom.workspace?.status?.config.mappings.isEmpty == false { HomeRoomSummaryCard(compact: true) }
+            TemperatureHistoryLink()
             if workspace.side != side || (workspace.loading && workspace.result == nil) {
                 ProgressView("Loading room and sleep…").frame(maxWidth: .infinity).cardStyle()
             } else if let result = workspace.result {

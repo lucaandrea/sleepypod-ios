@@ -21,3 +21,6 @@ The initial synthetic flow exposed duplicate inherited accessibility identifiers
 No live MQTT measurements, physical room sensor setup, controller mapping mutation, app version change or release is part of these local checks.
 
 The save regression verifies that withdrawing the pre-save status does not briefly announce a conflict. Maximum-text captures include this correction; the earlier phone/iPad saved-mapping capture records the superseded transient message. A subsequent layout check replaces the clipped timestamp-format Picker with a labelled wrapping menu. `Room-format-accessibility.xcresult` passes (69.112 seconds), and its final format/normal-Demo captures supersede those earlier maximum-text images. Mapping entries use metric-based bindings across refresh. Strict SwiftLint, diff checks and the built-product presentation guard pass.
+
+
+PR #27 passed all four GitHub checks (build, contract-test, lint and done; run 40299557735) and merged into owner main at `d655af38653f22097f89e9c863e9a52582d149d3`. Its feature branch is removed.

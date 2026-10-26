@@ -426,7 +426,7 @@ struct NightPhasesTests {
 
     @Test func stepsInDisplayDegrees() {
         #expect(NightPhasesStore.step(72, delta: 1, format: .fahrenheit) == 73)
-        #expect(NightPhasesStore.step(72, delta: 1, format: .celsius) == 73)
+        #expect(NightPhasesStore.step(72, delta: 1, format: .celsius) == 74) // Web: add 1°C before rounding the Fahrenheit setpoint.
         #expect(NightPhasesStore.step(110, delta: 1, format: .fahrenheit) == 110)
     }
 }

@@ -29,10 +29,8 @@ struct SleepRecord: Codable, Sendable, Identifiable, Equatable {
         timesExitedBed = (try? c.decode(Int.self, forKey: .timesExitedBed))
             ?? (try? c.decode(Int.self, forKey: .times_exited_bed)) ?? 0
 
-        presentIntervals = (try? c.decodeIfPresent(String.self, forKey: .presentIntervals))
-            ?? (try? c.decodeIfPresent(String.self, forKey: .present_intervals))
-        notPresentIntervals = (try? c.decodeIfPresent(String.self, forKey: .notPresentIntervals))
-            ?? (try? c.decodeIfPresent(String.self, forKey: .not_present_intervals))
+        presentIntervals = Self.parseIntervals(c, keys: [.presentIntervals, .present_intervals])
+        notPresentIntervals = Self.parseIntervals(c, keys: [.notPresentIntervals, .not_present_intervals])
 
         _sleepSeconds = (try? c.decode(Int.self, forKey: .sleepDurationSeconds))
             ?? (try? c.decode(Int.self, forKey: .sleep_period_seconds)) ?? 0
@@ -58,6 +56,17 @@ struct SleepRecord: Codable, Sendable, Identifiable, Equatable {
         try c.encodeIfPresent(_leftBedAt.map(Int.init), forKey: .leftBedAt)
         try c.encodeIfPresent(presentIntervals, forKey: .presentIntervals)
         try c.encodeIfPresent(notPresentIntervals, forKey: .notPresentIntervals)
+    }
+
+    /// Core can return decoded interval arrays; legacy controllers retain JSON strings.
+    private static func parseIntervals(_ container: KeyedDecodingContainer<CodingKeys>, keys: [CodingKeys]) -> String? {
+        for key in keys {
+            if let text = try? container.decode(String.self, forKey: key) { return text }
+            if let value = try? container.decode(JSONValue.self, forKey: key), let data = try? JSONEncoder().encode(value) {
+                return String(decoding: data, as: UTF8.self)
+            }
+        }
+        return nil
     }
 
     private static func parseTimestamp(_ c: KeyedDecodingContainer<CodingKeys>, keys: [CodingKeys]) -> TimeInterval {

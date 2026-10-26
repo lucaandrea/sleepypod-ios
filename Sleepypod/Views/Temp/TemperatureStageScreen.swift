@@ -7,21 +7,30 @@ struct TemperatureStageScreen: View {
     @Environment(ScheduleManager.self) private var schedules
     @Environment(SensorStreamService.self) private var sensor
     @Environment(UserProfile.self) private var profile
+    @Environment(CurveWorkspace.self) private var curves
+    @Environment(\.dynamicTypeSize) private var typeSize
+    @Environment(\.scenePhase) private var scenePhase
+    @AppStorage("ownerConnectionRevision") private var ownerRevision = ""
+    @AppStorage("podURL") private var podURL = ""
+    @AppStorage("podIPAddress") private var podIP = ""
+    @AppStorage("apiBackend") private var backend = ""
+    @State private var history = TemperatureHistoryWorkspace()
+    private var historyScope: String { "\(backend)|\(podURL)|\(podIP)|\(ownerRevision)" }
     @State private var cameraReset = 0
     @State private var previewFraction: Double?
 
     var body: some View {
         TimelineView(.periodic(from: .now, by: 5)) { context in
-            let timeline = TemperatureTimeline(schedules: schedules.schedules, timezone: settings.timeZone, now: context.date)
+            let timeline = TemperatureTimeline(schedules: schedules.error == nil ? schedules.schedules : nil, timezone: settings.timeZone, now: context.date)
             let previewDate = previewFraction.map { timeline.date(at: $0) }
             let stale = sensor.bedTempUpdatedAt.map { context.date.timeIntervalSince($0) >= ThermalBedCard.staleSeconds } ?? true
             let left = values(for: .left, timeline: timeline, date: previewDate, stale: stale)
             let right = values(for: .right, timeline: timeline, date: previewDate, stale: stale)
             ScrollView {
                 VStack(spacing: 18) {
-                    HStack(spacing: 10) {
-                        sideLabel(.left, preview: previewDate.map { timeline.state(for: .left, at: $0) })
-                        sideLabel(.right, preview: previewDate.map { timeline.state(for: .right, at: $0) })
+                    sideLayout {
+                        sideLabel(.left, preview: previewDate.map { previewState(.left, timeline: timeline, at: $0) })
+                        sideLabel(.right, preview: previewDate.map { previewState(.right, timeline: timeline, at: $0) })
                     }
                     ZStack(alignment: .bottomTrailing) {
                         ThermalBedSceneView(left: left, right: right, interactive: true,
@@ -52,7 +61,7 @@ struct TemperatureStageScreen: View {
                         if previewDate != nil {
                             VStack(spacing: 12) {
                                 Label("Schedule preview", systemImage: "clock").font(.subheadline.weight(.semibold))
-                                Text("Saved targets only. Live sensor colors return when you leave preview.")
+                                Text("Saved targets and current Run Once only. Autopilot decisions are not predicted. Live sensor colors return when you leave preview.")
                                     .font(.footnote).foregroundStyle(Theme.text2).multilineTextAlignment(.center)
                                 Button("Back to live") { previewFraction = nil }
                                     .buttonStyle(.borderedProminent).tint(Theme.text1).foregroundStyle(Theme.background)
@@ -65,11 +74,40 @@ struct TemperatureStageScreen: View {
                 }.padding(16)
             }.refreshable { await device.fetchStatus(); await schedules.fetchSchedules() }
         }
+        .task(id: "\(historyScope)|\(scenePhase)") {
+            history.reset()
+            guard scenePhase == .active, APIBackend.current != .freeSleep else { return }
+            let client: any TemperatureHistoryClient
+            if APIBackend.current.isDemo { client = DemoTemperatureHistoryClient(sessions: curves.sessions) }
+            else if let transport = try? CoreRESTClient.configured() { client = CoreTemperatureHistoryClient(transport: transport) }
+            else { return }
+            while !Task.isCancelled {
+                let timeline = TemperatureTimeline(schedules: schedules.error == nil ? schedules.schedules : nil, timezone: settings.timeZone)
+                await history.load(client: client, range: timeline.range)
+                do { try await Task.sleep(for: .seconds(60)) } catch { return }
+            }
+        }
+    }
+
+    private var sideLayout: AnyLayout { typeSize.isAccessibilitySize ? AnyLayout(VStackLayout(spacing: 10)) : AnyLayout(HStackLayout(spacing: 10)) }
+    private var zoneLayout: AnyLayout { typeSize.isAccessibilitySize ? AnyLayout(VStackLayout(spacing: 8)) : AnyLayout(HStackLayout(spacing: 8)) }
+
+    private func previewState(_ side: Side, timeline: TemperatureTimeline, at date: Date) -> TemperatureTimeline.State {
+        if APIBackend.current != .freeSleep {
+            guard let observed = history.observedAt, (0..<90).contains(Date.now.timeIntervalSince(observed)),
+                  let result = history.result, result.sessions[side]?.error == nil else { return .init() }
+            if let session = result.sessions[side]?.value {
+                let points = TemperatureHistory.runOnce(session, side: side, timezone: settings.timeZone)
+                guard !points.isEmpty else { return .init() }
+                if let target = TemperatureHistory.runOnceTarget(points, at: date) { return .init(temperature: Int(target.rounded()), powered: true) }
+            }
+        }
+        return timeline.state(for: side, at: date)
     }
 
     private func values(for side: Side, timeline: TemperatureTimeline, date: Date?, stale: Bool) -> [Double?] {
         if let date {
-            let state = timeline.state(for: side, at: date)
+            let state = previewState(side, timeline: timeline, at: date)
             let value = state.powered == false ? nil : state.temperature.map(Double.init)
             return Array(repeating: value, count: 3)
         }
@@ -84,7 +122,7 @@ struct TemperatureStageScreen: View {
             if !device.isLinked { device.selectSide(side == .left ? .left : .right) }
         } label: {
             VStack(spacing: 5) {
-                Text(settings.sideName(for: side)).font(.subheadline.weight(.semibold)).lineLimit(1)
+                Text(settings.sideName(for: side)).font(.subheadline.weight(.semibold))
                 Text(target.map { profile.temperatureDisplay.text($0, unit: settings.temperatureFormat) } ?? "—")
                     .font(.mono(30, weight: .light, relativeTo: .title))
                 Text(stateWord(status: status, preview: preview)).font(.mono(10, relativeTo: .caption2))
@@ -98,7 +136,7 @@ struct TemperatureStageScreen: View {
             .accessibilityAddTraits(selected ? .isSelected : [])
     }
     private func stateWord(status: SideStatus?, preview: TemperatureTimeline.State?) -> String {
-        if let preview { return preview.powered == false ? "SCHEDULED OFF" : "SAVED TARGET" }
+        if let preview { return preview.powered == false ? "SCHEDULED OFF" : "PLANNED TARGET" }
         guard let status else { return "UNAVAILABLE" }
         guard status.isOn else { return "OFF" }
         guard let target = status.targetTemperatureF, let bed = status.currentTemperatureF else { return "ON" }
@@ -108,7 +146,7 @@ struct TemperatureStageScreen: View {
         VStack(spacing: 8) {
             ForEach(Side.allCases.filter { profile.stageZones == .always || device.isLinked || device.selectedSide.primarySide == $0 }) { side in
                 let readings = side == .left ? left : right
-                HStack(spacing: 8) {
+                zoneLayout {
                     ForEach(0..<3, id: \.self) { index in
                         let value = readings[index]
                         VStack(spacing: 5) {
@@ -126,9 +164,9 @@ struct TemperatureStageScreen: View {
     }
     private func timelineCard(_ timeline: TemperatureTimeline, preview: Date?) -> some View {
         VStack(alignment: .leading, spacing: 12) {
-            HStack {
+            (typeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: 6)) : AnyLayout(HStackLayout())) {
                 Eyebrow("TONIGHT")
-                Spacer()
+                if !typeSize.isAccessibilitySize { Spacer() }
                 if let preview { Text(clock(preview)).font(.mono(13, relativeTo: .caption)) }
                 else { Label("Live", systemImage: "circle.fill").font(.caption).foregroundStyle(Theme.green) }
             }
@@ -138,6 +176,12 @@ struct TemperatureStageScreen: View {
                         LineMark(x: .value("Time", sample.date), y: .value("°F", sample.temperature), series: .value("Side", side.rawValue))
                             .lineStyle(StrokeStyle(lineWidth: 2, dash: side == .left ? [] : [5, 4]))
                             .foregroundStyle(side == .left ? Theme.cool : Theme.warm)
+                    }
+                    if let session = history.result?.sessions[side]?.value {
+                        ForEach(TemperatureHistory.runOnce(session, side: side, timezone: settings.timeZone)) { point in
+                            LineMark(x: .value("Time", point.date), y: .value("°F", point.temperature), series: .value("Source", "Run Once \(side.rawValue)"))
+                                .interpolationMethod(.stepEnd).foregroundStyle(Theme.violet).lineStyle(.init(lineWidth: 2, dash: [3, 3]))
+                        }
                     }
                 }
                 if let preview { RuleMark(x: .value("Preview", preview)).foregroundStyle(Theme.text1) }
@@ -151,11 +195,22 @@ struct TemperatureStageScreen: View {
             }.font(.caption2)
             Slider(value: Binding(get: { previewFraction ?? 0 }, set: { previewFraction = $0 }), in: 0...1)
                 .accessibilityLabel("Preview tonight's schedule").accessibilityValue(preview.map(clock) ?? "Live")
-                .disabled(schedules.schedules == nil)
-            HStack { Text(clock(timeline.range.lowerBound)); Spacer(); Text(clock(timeline.range.upperBound)) }
-                .font(.mono(11, relativeTo: .caption2)).foregroundStyle(Theme.text2)
+                .disabled(schedules.schedules == nil || schedules.error != nil)
+            (typeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: 6)) : AnyLayout(HStackLayout())) {
+                Text(typeSize.isAccessibilitySize ? "Start · \(clock(timeline.range.lowerBound))" : clock(timeline.range.lowerBound))
+                if !typeSize.isAccessibilitySize { Spacer() }
+                Text(typeSize.isAccessibilitySize ? "End · \(clock(timeline.range.upperBound))" : clock(timeline.range.upperBound))
+            }.font(.mono(11, relativeTo: .caption2)).foregroundStyle(Theme.text2)
             Text("Drag to preview · \(settings.timeZone)").font(.caption2).foregroundStyle(Theme.text3)
-            if schedules.schedules == nil { Text(schedules.error ?? "No schedule loaded.").font(.footnote).foregroundStyle(Theme.text2) }
+            if APIBackend.current != .freeSleep {
+                Text("Violet dashes show Run Once at the last history read. Recorded power and in-bed intervals appear below; gaps are not filled.").font(.caption).foregroundStyle(Theme.text2)
+                ForEach(Side.allCases) { side in
+                    Text(settings.sideName(for: side)).font(.subheadline)
+                    TemperatureActivityRows(result: history.result, side: side, range: timeline.range, observedAt: history.observedAt ?? .now, selected: preview, timelines: [timeline])
+                }
+            }
+            if let error = schedules.error { Text("Saved schedules unavailable: \(error)").font(.footnote).foregroundStyle(Theme.amber) }
+            else if schedules.schedules == nil { Text("No schedule loaded.").font(.footnote).foregroundStyle(Theme.text2) }
         }.cardStyle()
     }
     private func clock(_ date: Date) -> String {

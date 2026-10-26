@@ -19,6 +19,12 @@ struct TempScreen: View {
     @Environment(SensorStreamService.self) private var sensor
     @Environment(UserProfile.self) private var profile
     @Environment(\.dynamicTypeSize) private var typeSize
+    @Environment(\.scenePhase) private var scenePhase
+    @AppStorage("ownerConnectionRevision") private var ownerRevision = ""
+    @AppStorage("podURL") private var podURL = ""
+    @AppStorage("podIPAddress") private var podIP = ""
+    @AppStorage("apiBackend") private var backend = ""
+    private var nightScope: String { "\(profile.tempControl)|\(scenePhase)|\(backend)|\(podURL)|\(podIP)|\(ownerRevision)|\(settingsManager.timeZone)|\(settingsManager.settings?.defaultScheduleEndAction?.rawValue ?? "turn_off")" }
     @State private var curveError: String?
     @State private var activeCurve: ActiveCurve?
     @State private var nightPhases = NightPhasesStore()
@@ -179,8 +185,20 @@ struct TempScreen: View {
                 }
             }
         }
-        .task(id: profile.tempControl) {
-            if profile.tempControl == .stepper { await nightPhases.load([.left, .right]) }
+        .task(id: nightScope) {
+            nightPhases.suspend()
+            guard scenePhase == .active, profile.tempControl == .stepper else { return }
+            let client: (any NightPhaseClient)?
+            if APIBackend.current.isDemo { client = DemoNightPhaseClient(api: APIBackend.current.createClient(), scenario: DebugRoute.temperatureContextScenario) }
+            else if APIBackend.current == .sleepypodCore, let transport = try? CoreRESTClient.configured() { client = CoreNightPhaseClient(transport: transport) }
+            else { client = nil }
+            nightPhases.configure(client: client, timezone: settingsManager.timeZone, endAction: settingsManager.settings?.defaultScheduleEndAction ?? .turnOff)
+            await nightPhases.load([.left, .right])
+        }
+        .onDisappear { nightPhases.suspend() }
+        .onChange(of: nightPhases.phases) { _, values in
+            guard !values.isEmpty else { return }
+            Task { await scheduleManager.fetchSchedules(); await fetchActiveCurve() }
         }
         .task {
             await settingsManager.fetchSettings()

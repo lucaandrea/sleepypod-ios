@@ -25,6 +25,10 @@ struct TempStepperView: View {
     private var side: Side { device.selectedSide.primarySide }
     private var sides: [Side] { device.isLinked ? [.left, .right] : [side] }
     private var phases: NightPhases? { store.phases[side] }
+    private var phaseError: String? {
+        let messages = sides.compactMap { affected in store.errors[affected].map { sides.count > 1 ? "\(settings.sideName(for: affected)): \($0)" : $0 } }
+        return messages.isEmpty ? nil : messages.joined(separator: "\n")
+    }
     private var target: Int { device.currentSideStatus?.targetTemperatureF ?? 80 }
     private var bed: Int { device.currentSideStatus?.currentTemperatureF ?? 80 }
     private var format: TemperatureFormat { settings.temperatureFormat }
@@ -91,7 +95,7 @@ struct TempStepperView: View {
         }
         .padding(.vertical, 14)
         .padding(.horizontal, 12)
-        .frame(height: 250)
+        .frame(minHeight: 250)
         .background { TempBackdrop(tempF: value(selected), minutes: backdropMinutes, off: off) }
         .cardSurface(fill: .clear)
         .animation(.snappy(duration: 0.2), value: value(selected))
@@ -140,17 +144,18 @@ struct TempStepperView: View {
     @ViewBuilder private var caption: some View {
         VStack(spacing: 3) {
             if case .phase(let key) = selected, let phase = phases?.phase(key), !off {
-                if let error = store.error {
+                if let error = phaseError {
                     Text(error).foregroundStyle(Theme.amber)
                 } else {
-                    Text("\(DisplayTime.clock(phase.start)) → \(DisplayTime.clock(phase.end))").foregroundStyle(Theme.text2)
+                    Text(phase.start == phase.end ? "From \(DisplayTime.clock(phase.start))" : "\(DisplayTime.clock(phase.start)) → \(DisplayTime.clock(phase.end))").foregroundStyle(Theme.text2)
                 }
                 if phases?.draft == true {
                     Text("Suggested · − / + saves it").foregroundStyle(Theme.text2)
-                } else if let phases, store.error == nil {
+                } else if let phases, phaseError == nil {
                     Text(phases.daysSummary).foregroundStyle(Theme.text3)
                 }
             } else {
+                if let error = phaseError { Text(error).foregroundStyle(Theme.amber) }
                 let state = TemperatureConversion.stateWord(target: target, bed: bed, isOn: !off)
                 let bedText = TemperatureConversion.displayTemp(bed, format: format == .relative ? .fahrenheit : format)
                 let stateText = Text(state).foregroundStyle(off ? Theme.text3 : TempColor.forDelta(target: target, current: bed))
@@ -159,18 +164,23 @@ struct TempStepperView: View {
                     Button("Set up Night & Dawn") { withAnimation(.snappy(duration: 0.2)) { tab = .phase(.night) } }
                         .foregroundStyle(Theme.text1)
                 } else if store.unsupported && !off {
-                    Text(store.error ?? "").foregroundStyle(Theme.text3)
+                    Text("Night & Dawn requires a Sleepypod controller.").foregroundStyle(Theme.text3)
                 }
             }
+            if phaseError != nil {
+                Button("Reload Night & Dawn") { Task { await store.load(sides) } }.accessibilityIdentifier("nightPhases.reload")
+            }
+            if sides.contains(where: { store.saving.contains($0) }) { Text("Saving schedule…").foregroundStyle(Theme.text2) }
+            else if store.saved.contains(side) { Label("Schedule saved", systemImage: "checkmark").foregroundStyle(Theme.green).accessibilityIdentifier("nightPhases.saved") }
         }
         .font(.mono(13, relativeTo: .footnote))
-        .lineLimit(1).minimumScaleFactor(0.8)
+        .fixedSize(horizontal: false, vertical: true)
         .frame(minHeight: 36, alignment: .top)
         .buttonStyle(.plain)
     }
 
     private func stepButton(_ delta: Int) -> some View {
-        let disabled = (selected == .now && device.controlsBlocked(for: device.selectedSide.primarySide)) || value(selected) == nil
+        let disabled = (selected == .now && device.controlsBlocked(for: device.selectedSide.primarySide)) || value(selected) == nil || (selected != .now && !sides.allSatisfy(store.canEdit))
         return Button { step(delta) } label: {
             Image(systemName: delta < 0 ? "minus" : "plus").font(.system(size: 22))
                 .foregroundStyle(Theme.text1)

@@ -18,9 +18,7 @@ Evidence:
 
 Still open within Temperature:
 
-- Reconcile Run Once, Autopilot/current-night ownership and historical occupancy with the timeline; it currently projects saved weekly schedules only.
-- Audit every Night & Dawn edit/recovery path against the current web implementation.
-- Full schedule/sleep history parity. Room/light/recent-sleep context is implemented below; next-alarm controls are recorded in `ALARM_VALIDATION.md`.
+- Run Once, recorded activity, Autopilot timeline, two-night history and Night/Dawn REST reconciliation are implemented and documented in `TEMPERATURE_HISTORY_PHASES_AUDIT.md`. Room/light/recent-sleep context is described below; next-alarm coverage is recorded in `ALARM_VALIDATION.md`.
 - Dedicated notice fixtures and UI/error checks, pinch/auto-return accessibility checks, iPad and large-text coverage.
 - Physical controller verification. Simulator and request assertions do not establish real hardware behavior.
 
@@ -32,4 +30,4 @@ The recent-sleep card uses the selected side's latest record and asks for vitals
 
 Read-only API contracts were checked against `sleepypod-core/src/server/routers/environment.ts`, `biometrics.ts` and `src/biometrics/profiles/vital-summary-provenance.ts`. Tests use synthetic responses shaped from those contracts, not live Pod measurements. Eight transport/state tests pass in `/tmp/SleepypodHealthAndContextIPad.xcresult`. The two context interaction tests pass on standard iPhone (`/tmp/SleepypodTemperatureContext5.xcresult`), maximum Dynamic Type (`/tmp/SleepypodTemperatureContextLargest.xcresult`) and iPad (`/tmp/SleepypodHealthAndContextIPad.xcresult`). Rendered captures are in `previews/temperature-context/`. The final cards separate metric labels and units; the standard iPhone captures precede that small spacing change, while the largest-text and iPad captures include it. The affected sleep-data/temperature suites also passed 36 focused unit checks in `/tmp/SleepypodTemperatureContext3.xcresult`; its earlier UI failures were test locator/scrolling issues corrected in the succeeding runs.
 
-The saved schedule projection also honors Core's explicit `offDayOffset`, including next-day windows whose end clock is later than the start clock. Calendar arithmetic preserves the Pod timezone across daylight saving transitions. Run Once, Autopilot, history and the other open items above remain pending.
+The saved schedule projection also honors Core's explicit `offDayOffset`, including next-day windows whose end clock is later than the start clock. Calendar arithmetic preserves the Pod timezone across daylight saving transitions. Run Once, Autopilot/history and Night/Dawn are covered by `TEMPERATURE_HISTORY_PHASES_AUDIT.md`; the remaining notice, camera and final controller checks above stay open.
