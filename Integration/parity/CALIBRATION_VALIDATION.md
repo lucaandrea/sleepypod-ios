@@ -27,4 +27,4 @@ The WebSocket decoder now accepts optional ambient/humidity fields in `bedTemp2`
 - Strict SwiftLint, the native presentation guard and whitespace checks pass. The presentation guard verifies that retired Free Sleep UI is absent.
 - Local results: `Calibration-accessibility-final.xcresult` (eleven units and UI), `Calibration-phone-final.xcresult`, `Calibration-ipad-final.xcresult`, and `Calibration-accessibility-alert-final.xcresult` (final alert interaction).
 
-Owner PR and final CI merge evidence: pending.
+Owner [PR #7](https://github.com/lucaandrea/sleepypod-ios/pull/7) merged into main at `8efb4f3a3bc1e0f4c4c932e04d5ee436d0643bf8`. [CI run 40256500743](https://github.com/lucaandrea/sleepypod-ios/actions/runs/40256500743) passed build, unit/transport regressions, API contracts, strict lint and the aggregate check.

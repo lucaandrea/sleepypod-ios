@@ -53,6 +53,7 @@ final class SensorStreamService {
     var leftTemps: BedTempSide?
     var rightTemps: BedTempSide?
     var calibrationSignals = CalibrationSignalBuffer()
+    var streamActivity = SensorStreamActivity()
     /// When the last bedTemp frame arrived, so views can grey out stale surface readings.
     var bedTempUpdatedAt: Date?
     var frzHealth: FrzHealthFrame?
@@ -211,6 +212,7 @@ final class SensorStreamService {
         presenceUpdatedAt = nil; lastCapUpdate = .distantPast
         leftHistory = []; rightHistory = []; leftPresence = nil; rightPresence = nil
         calibrationSignals = .init()
+        streamActivity = .init()
     }
 
     func clearLogs() { firmwareLogs.removeAll() }
@@ -377,6 +379,7 @@ final class SensorStreamService {
     }
 
     private func trackDemoFrame(_ type: String) {
+        streamActivity.append(type: type)
         frameCounts[type, default: 0] += 1
         recentFrames.insert(
             RawFrameEntry(timestamp: .now, type: type, json: "{\"type\":\"\(type)\",\"demo\":true}"),
@@ -421,6 +424,7 @@ final class SensorStreamService {
     }
 
     private func handleFrame(_ data: Data) {
+        streamActivity.append(data: data)
         guard let frame = SensorFrame.decode(from: data) else { return }
 
         calibrationSignals.append(frame)
