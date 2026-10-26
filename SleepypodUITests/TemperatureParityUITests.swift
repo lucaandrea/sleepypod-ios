@@ -59,6 +59,24 @@ final class TemperatureParityUITests: XCTestCase {
         app.buttons["On selection"].tap()
         capture(app, "Appearance-light")
     }
+
+    func testDialDragAndButtonsUseTheSelectedTemperatureScale() {
+        let app = launch(layout: "cards")
+        let dial = app.descendants(matching: .any).matching(identifier: "Target temperature").firstMatch
+        XCTAssertTrue(dial.waitForExistence(timeout: 10))
+        let start = dial.coordinate(withNormalizedOffset: CGVector(dx: 0.15, dy: 0.15))
+        let finish = dial.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.05))
+        start.press(forDuration: 0.1, thenDragTo: finish)
+        let neutral = NSPredicate { _, _ in (dial.value as? String)?.hasPrefix("0,") == true }
+        expectation(for: neutral, evaluatedWith: nil)
+        waitForExpectations(timeout: 5)
+        app.buttons["Increase temperature"].tap()
+        let warmer = NSPredicate { _, _ in (dial.value as? String)?.hasPrefix("+1,") == true }
+        expectation(for: warmer, evaluatedWith: nil)
+        waitForExpectations(timeout: 5)
+        capture(app, "Cards-dial-adjusted")
+    }
+
     private func capture(_ app: XCUIApplication, _ name: String) {
         let screenshot = XCTAttachment(screenshot: app.screenshot())
         screenshot.name = name

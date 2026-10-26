@@ -16,39 +16,29 @@ struct TemperatureDialView: View {
     private var bedFormat: TemperatureFormat {
         settings.temperatureFormat == .relative ? .fahrenheit : settings.temperatureFormat
     }
+    private var indicatorOffset: CGSize {
+        let angle = (135 + progress * 270) * Double.pi / 180
+        return CGSize(width: CGFloat(cos(angle)) * radius, height: CGFloat(sin(angle)) * radius)
+    }
+    private var bedLabel: String {
+        let difference = TemperatureConversion.offsetDisplay(target - bed)
+        let measured = TemperatureConversion.displayTemp(bed, format: bedFormat)
+        return "\(difference) · bed \(measured)"
+    }
 
     var body: some View {
         ZStack {
             DialArc(radius: radius, progress: 1).stroke(Theme.track, style: StrokeStyle(lineWidth: 6, lineCap: .round))
             DialArc(radius: radius, progress: progress)
                 .stroke(device.isOn ? color : Theme.text3, style: StrokeStyle(lineWidth: 6, lineCap: .round))
-            let angle = (135 + progress * 270) * .pi / 180
             Circle().fill(Theme.text1).frame(width: 24, height: 24)
-                .offset(x: cos(angle) * radius, y: sin(angle) * radius)
-            VStack(spacing: 8) {
-                Text(value).font(.mono(76, weight: .light, relativeTo: .largeTitle)).tracking(-2)
-                    .foregroundStyle(Theme.text1).minimumScaleFactor(0.5).lineLimit(1)
-                    .contentTransition(.numericText(value: Double(target)))
-                Text("\(TemperatureConversion.offsetDisplay(target - bed)) · bed \(TemperatureConversion.displayTemp(bed, format: bedFormat))")
-                    .font(.mono(13, relativeTo: .footnote)).foregroundStyle(Theme.text2)
-                Text(state).font(.caption.weight(.semibold)).tracking(1.2)
-                    .foregroundStyle(device.isOn ? color : Theme.text3)
-            }
-            .padding(.horizontal, 40)
-            .padding(.top, 8)
-            .dynamicTypeSize(...DynamicTypeSize.xxLarge)
+                .offset(indicatorOffset)
+            labels
         }
         .frame(width: size, height: size)
         .contentShape(Circle())
         .animation(.snappy(duration: 0.2), value: target)
-        .gesture(DragGesture(minimumDistance: 4).onChanged { drag in
-            guard !device.controlsBlocked(for: device.selectedSide.primarySide) else { return }
-            var angle = atan2(drag.location.y - size / 2, drag.location.x - size / 2) * 180 / .pi
-            if angle < 90 { angle += 360 }
-            let clamped = min(405, max(135, angle))
-            let value = profile.temperatureDisplay.target(at: (clamped - 135) / 270)
-            if value != target { Haptics.light(); device.setTemperature(value) }
-        })
+        .gesture(DragGesture(minimumDistance: 4).onChanged { drag in updateTarget(at: drag.location) })
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("Target temperature")
         .accessibilityValue("\(value), \(state.lowercased())")
@@ -56,6 +46,32 @@ struct TemperatureDialView: View {
             guard !device.controlsBlocked(for: device.selectedSide.primarySide) else { return }
             device.setTemperature(profile.temperatureDisplay.step(target, by: direction == .increment ? 1 : -1, unit: settings.temperatureFormat))
         }
+    }
+
+    private var labels: some View {
+        VStack(spacing: 8) {
+            Text(value).font(.mono(76, weight: .light, relativeTo: .largeTitle)).tracking(-2)
+                .foregroundStyle(Theme.text1).minimumScaleFactor(0.5).lineLimit(1)
+                .contentTransition(.numericText(value: Double(target)))
+            Text(bedLabel).font(.mono(13, relativeTo: .footnote)).foregroundStyle(Theme.text2)
+            Text(state).font(.caption.weight(.semibold)).tracking(1.2)
+                .foregroundStyle(device.isOn ? color : Theme.text3)
+        }
+        .padding(.horizontal, 40)
+        .padding(.top, 8)
+        .dynamicTypeSize(...DynamicTypeSize.xxLarge)
+    }
+
+    /// Map the touch angle onto the same 270-degree target range as the dial arc.
+    private func updateTarget(at location: CGPoint) {
+        guard !device.controlsBlocked(for: device.selectedSide.primarySide) else { return }
+        let horizontal = Double(location.x - size / 2)
+        let vertical = Double(location.y - size / 2)
+        var angle = atan2(vertical, horizontal) * 180 / Double.pi
+        if angle < 90 { angle += 360 }
+        let clamped = min(405, max(135, angle))
+        let nextTarget = profile.temperatureDisplay.target(at: (clamped - 135) / 270)
+        if nextTarget != target { Haptics.light(); device.setTemperature(nextTarget) }
     }
 }
 
