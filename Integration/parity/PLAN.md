@@ -20,21 +20,21 @@ Each item needs source/API coverage, accessible native UI, loading/error/offline
 
 ### Temperature and appearance
 
-- [ ] Cards/Stage choice, retained per device; existing Dial/Slider/Now–Night–Dawn/Both-sides layouts remain available.
-- [ ] Interactive 3D Stage: rotation/zoom/reset, select left/right, controls, live target labels, six measured zones, zone visibility options and camera auto-return preference.
+- [x] Cards/Stage choice, retained per device; existing Dial/Slider/Now–Night–Dawn/Both-sides layouts remain available.
+- [x] Interactive 3D Stage: rotation/zoom/reset, select left/right, controls, live target labels, six measured zones, zone visibility options and camera auto-return preference.
 - [x] Stage schedule timeline with scrub preview and Back to live; preview never writes to the Pod. Saved calendar targets, current Run Once and recorded power/presence are distinct from Autopilot observations; see `TEMPERATURE_HISTORY_PHASES_AUDIT.md`.
 - [x] Degrees, whole-Fahrenheit Offset from 80°F, Eight Sleep −10…+10 (82.5°F neutral) independent of °F/°C units; matching increments and accessibility adjustments.
-- [ ] Manual hold durations 15/30/60/120 minutes; ownership labels, expiry and Resume.
+- [x] Manual hold durations 15/30/60/120 minutes; ownership labels, expiry and Resume.
 - [ ] Power, All off and side linking with current web-source semantics and clear failure reporting. The current SideProvider links future changes without an initial hardware copy; this differs from the temperature documentation, so do not introduce surprise actuation.
 - [x] Night/Dawn schedules: matching-day edits, shape-preserving shifts, missing-night setup, no-Dawn single point, side handling and error recovery.
 - [ ] Room humidity/light/air, last-night summary, next alarm toggle/editor, tonight's next setpoint and schedule/sleep history.
-- [ ] Pump-stall restore/dismiss, priming completion, active alarm stop/snooze/cancel banners.
+- [x] Pump-stall restore/dismiss, priming completion, active alarm stop/snooze/cancel banners.
 
 ### Adjustable base
 
-- [ ] 3D articulated preview with mattress/frame, simple view, rotation/zoom and reported/requested positions.
-- [ ] Head/feet, supported speeds, presets, optional immediate preset behavior, whole-bed/independent-side capability handling, Stop and reconnect.
-- [ ] Base schedule CRUD, side/day/time, conflicts, preset names, enable/disable and confirmation/error states.
+- [x] 3D articulated preview with mattress/frame, simple view, rotation/zoom and reported/requested positions.
+- [x] Head/feet, supported speeds, presets, optional immediate preset behavior, whole-bed/independent-side capability handling, Stop and reconnect.
+- [x] Base schedule CRUD, side/day/time, conflicts, preset names, enable/disable and confirmation/error states.
 
 ### Schedule
 
@@ -150,4 +150,6 @@ Controller updates, alert inbox and room mapping are integrated by PR #27 after 
 
 Temperature history and Night/Dawn PR #28 passed all four GitHub checks and merged into owner main at `473656e3c26c35bd4a9804bccd864bd388268557`; its feature branch was removed. Final controls, curve dragging and scoped save reconciliation are tracked in `NATIVE_CONTROLS_RECONCILIATION.md`.
 
-The remaining control interactions are implemented in PR #29 (`NATIVE_CONTROLS_RECONCILIATION.md`). The first device-CI compiler timeout was corrected by splitting the curve handle view; the local generic-iOS build and the graph drag/save/cancel regression pass. Personal comfort now has direct Core Preview settings, sensor/entry guards, check-ins and exact overnight report review (`PERSONAL_COMFORT_AUDIT.md`), with twelve focused checks and both flows on phone/iPad/maximum text. Its mode-only Shortcut mapping remains in the final integration work.
+The remaining control interactions passed all four CI checks and merged in PR #29 at `7ca0cc74a59d7f8828d00a049b148fb977afcc69` (`NATIVE_CONTROLS_RECONCILIATION.md`); its feature branch is removed. The first device-CI compiler timeout was corrected by splitting the curve handle view; the local generic-iOS build and the graph drag/save/cancel regression pass. Personal comfort now has direct Core Preview settings, sensor/entry guards, check-ins and exact overnight report review (`PERSONAL_COMFORT_AUDIT.md`), with twelve focused checks and both flows on phone/iPad/maximum text. Its mode-only Shortcut mapping remains in the final integration work.
+
+Complete native bedtime routines now use versioned Core routes and reviewed atomic whole-night saves (`BEDTIME_ROUTINES_AUDIT.md`). Alarm/temperature context for solo and away states, stale-read handling, curve AI/legacy UI, personal API mapping and final release checks remain in progress.

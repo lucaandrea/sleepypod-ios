@@ -13,6 +13,7 @@ struct PodFeatureLink: View {
         NavigationLink {
             Group {
                 if feature == .comfort { PersonalComfortDestination(side: device.selectedSide.primarySide) }
+                else if feature == .routines { BedtimeRoutinesDestination(side: device.selectedSide.primarySide) }
                 else {
                     PodFeatureScreen(feature, side: device.selectedSide.primarySide.rawValue,
                                      homeContent: feature == .home && APIBackend.current != .freeSleep ? AnyView(HomeRoomSummaryCard(compact: true)) : nil)

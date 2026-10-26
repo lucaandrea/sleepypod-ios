@@ -1,0 +1,128 @@
+{
+  "book": {
+    "version": 1,
+    "side": "left",
+    "canCreate": true,
+    "routines": [
+      {
+        "dayOfWeek": "monday",
+        "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "draft": {
+          "power": {
+            "onTime": "22:00",
+            "offTime": "07:00",
+            "onTemperature": 74,
+            "enabled": true,
+            "endAction": "turn_off"
+          },
+          "temperatures": [
+            {
+              "time": "23:00",
+              "temperature": 72,
+              "enabled": true
+            },
+            {
+              "time": "02:00",
+              "temperature": 70,
+              "enabled": true
+            }
+          ],
+          "alarm": {
+            "time": "07:00",
+            "vibrationIntensity": 50,
+            "vibrationPattern": "rise",
+            "duration": 10,
+            "alarmTemperature": 74,
+            "wakeWindow": 0,
+            "enabled": true,
+            "snoozeDuration": 420,
+            "snoozeTaper": 40
+          },
+          "notes": "Read before bed"
+        }
+      }
+    ]
+  },
+  "changes": {
+    "side": "left",
+    "changes": [
+      {
+        "dayOfWeek": "tuesday",
+        "expectedRevision": null,
+        "replacement": {
+          "power": {
+            "onTime": "22:00",
+            "offTime": "07:00",
+            "onTemperature": 74,
+            "enabled": false,
+            "endAction": "turn_off"
+          },
+          "temperatures": [],
+          "alarm": null,
+          "notes": ""
+        }
+      }
+    ]
+  },
+  "receipt": {
+    "version": 1,
+    "side": "left",
+    "canCreate": true,
+    "routines": [
+      {
+        "dayOfWeek": "monday",
+        "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "draft": {
+          "power": {
+            "onTime": "22:00",
+            "offTime": "07:00",
+            "onTemperature": 74,
+            "enabled": true,
+            "endAction": "turn_off"
+          },
+          "temperatures": [
+            {
+              "time": "23:00",
+              "temperature": 72,
+              "enabled": true
+            },
+            {
+              "time": "02:00",
+              "temperature": 70,
+              "enabled": true
+            }
+          ],
+          "alarm": {
+            "time": "07:00",
+            "vibrationIntensity": 50,
+            "vibrationPattern": "rise",
+            "duration": 10,
+            "alarmTemperature": 74,
+            "wakeWindow": 0,
+            "enabled": true,
+            "snoozeDuration": 420,
+            "snoozeTaper": 40
+          },
+          "notes": "Read before bed"
+        }
+      },
+      {
+        "dayOfWeek": "tuesday",
+        "revision": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "draft": {
+          "power": {
+            "onTime": "22:00",
+            "offTime": "07:00",
+            "onTemperature": 74,
+            "enabled": false,
+            "endAction": "turn_off"
+          },
+          "temperatures": [],
+          "alarm": null,
+          "notes": ""
+        }
+      }
+    ],
+    "schedulerApplied": false
+  }
+}

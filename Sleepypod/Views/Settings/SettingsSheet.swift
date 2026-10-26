@@ -16,6 +16,7 @@ struct SettingsSheet: View {
     @State private var primeError: String?
     @State private var showBase = false
     @State private var showStatus = false
+    @State private var showRoutines = DebugRoute.current == "routines"
     @State private var showComfort = DebugRoute.current == "comfort"
     @State private var showAutopilot = DebugRoute.current == "autopilot"
 
@@ -142,6 +143,13 @@ struct SettingsSheet: View {
             NavigationStack {
                 PersonalComfortDestination(side: device.selectedSide.primarySide).toolbar {
                     ToolbarItem(placement: .topBarTrailing) { Button("Done") { showComfort = false } }
+                }
+            }
+        }
+        .fullScreenCover(isPresented: $showRoutines) {
+            NavigationStack {
+                BedtimeRoutinesDestination(side: device.selectedSide.primarySide).toolbar {
+                    ToolbarItem(placement: .topBarTrailing) { Button("Done") { showRoutines = false } }
                 }
             }
         }
