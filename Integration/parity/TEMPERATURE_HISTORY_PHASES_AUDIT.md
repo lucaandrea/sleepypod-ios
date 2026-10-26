@@ -27,3 +27,5 @@ The web's `nightCurve()` shifts a saved night's morning points into the followin
 - Strict SwiftLint, diff validation and `Integration/verify_presentation.py` passed. GitHub CI and merge are pending at this snapshot. Version/build stays 0.2.0 (7).
 
 The hardware qualification and final TestFlight distribution remain separate from synthetic request, state and simulator evidence. Remaining temperature notice/camera and cross-feature checks are tracked in `TEMPERATURE_VALIDATION.md` and `PLAN.md`.
+
+CI follow-up: the first contract job found that its standalone model-copy list omitted `JSONValue`, newly needed to retain interval arrays. The workflow now includes that shared model and its `APIError` dependency; the isolated package builds successfully in `contract-model-build-v2.log`; the contract test remains enabled. Simulator target coverage alone did not detect this separate package dependency.
