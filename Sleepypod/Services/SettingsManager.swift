@@ -41,7 +41,13 @@ final class SettingsManager {
     }
 
     /// Keep Health sample identity stable across Bonjour address changes.
-    var podID: String { Self.registerPodIdentity(address: podIP) }
+    var podID: String { Self.registerPodIdentity(address: Self.healthAddress) }
+
+    static var healthAddress: String {
+        let stored = UserDefaults.standard.string(forKey: "podIPAddress") ?? ""
+        if !stored.isEmpty { return stored }
+        return APIBackend.current == .sleepypodCore ? OwnerConnection.endpoint?.absoluteString ?? "" : ""
+    }
 
     @discardableResult
     static func registerPodIdentity(address: String, bonjourID: String? = nil) -> String {

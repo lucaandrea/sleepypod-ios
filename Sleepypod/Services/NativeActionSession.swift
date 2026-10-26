@@ -11,18 +11,20 @@ import Observation
     private let comfort: @MainActor () throws -> any PersonalComfortClient
     private let owner: @MainActor () -> [String]
     private let live: @MainActor () -> Bool
+    private let healthSync: @MainActor () async throws -> Int
     var bridge: NativePodActionBridge { .init { [self] in try await perform($0) } }
 
     init(historyExample: Bool = false, controls: Result<NativeControlService, Error>,
          personal: @escaping @MainActor () throws -> any NativePersonalActionClient,
          alarms: @escaping @MainActor () throws -> any NextAlarmClient,
          comfort: @escaping @MainActor () throws -> any PersonalComfortClient,
+         healthSync: @escaping @MainActor () async throws -> Int = { throw APIError.serverError(message: "Open Apple Health settings in sleepypod to configure sync.") },
          owner: @escaping @MainActor () -> [String] = { OwnerConnection.revision },
          live: @escaping @MainActor () -> Bool = { APIBackend.current == .sleepypodCore }) {
         self.historyExample = historyExample; self.controls = controls; self.personal = personal; self.alarms = alarms; self.comfort = comfort
-        self.owner = owner; self.live = live
+        self.owner = owner; self.live = live; self.healthSync = healthSync
     }
-    static func configured() -> NativeActionSession {
+    static func configured(healthSync: @escaping @MainActor () async throws -> Int) -> NativeActionSession {
         var example = false
         #if DEBUG
         example = APIBackend.current.isDemo && DebugRoute.commandHistoryScenario != "normal"
@@ -34,7 +36,7 @@ import Observation
             return try NativeControlService(ledger: .persistent(), client: { try CoreNativeControlClient(transport: .configured()) })
         }
         return .init(historyExample: example, controls: controls, personal: { try CoreNativePersonalActionClient(transport: .configured()) },
-                     alarms: { try CoreNextAlarmClient(transport: .configured()) }, comfort: { try CorePersonalComfortClient(transport: .configured()) })
+                     alarms: { try CoreNextAlarmClient(transport: .configured()) }, comfort: { try CorePersonalComfortClient(transport: .configured()) }, healthSync: healthSync)
     }
     func history() throws -> [NativeControlAttempt] { try controls.get().history() }
     func refresh(_ id: UUID) async throws { _ = try await controls.get().refresh(id) }
@@ -91,7 +93,8 @@ import Observation
             let side = try Self.side(value), result = try await client.read(side: side)
             try result.validate(side: side); return .message(Self.alarmSummary(result))
         case .changeAlarm(let value, let action, let time): return try await changeAlarm(side: Self.side(value), action: action, time: time, scope: scope)
-        case .summary, .syncHealth: throw APIError.serverError(message: "Open the app to use your personal Health integration.")
+        case .syncHealth: return .healthSamples(try await healthSync())
+        case .summary: throw APIError.serverError(message: "Open the app to use your personal Health integration.")
         default: throw NativeControlFailure.invalid
         }
     }

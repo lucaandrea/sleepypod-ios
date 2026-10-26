@@ -37,7 +37,7 @@ struct ModernizationTests {
             #expect(sample.startDate >= record.enteredBedDate && sample.endDate <= record.leftBedDate)
         }
         var prefs = HealthSyncService.Preferences()
-        prefs.sleep = false; prefs.hrv = false; prefs.respiration = false
+        prefs.presence = false; prefs.sleep = false; prefs.hrv = false; prefs.respiration = false
         let onlyHR = HealthSyncService.samples(record: record, epochs: epochs, podID: "pod-a", preferences: prefs)
         #expect(onlyHR.count == 4)
         #expect(onlyHR.allSatisfy { $0.sampleType == HKQuantityType(.heartRate) })
@@ -130,6 +130,7 @@ struct HealthSyncLifecycleTests {
         store.available = false
         #expect(!service.authorizationDenied, "nothing to open in Settings where Health does not exist")
         store.available = true
+        service.preferences.presence = false
         service.preferences.sleep = false; service.preferences.heartRate = false
         service.preferences.hrv = false; service.preferences.respiration = false
         #expect(!service.authorizationDenied, "no write types means no sheet was ever refused")
@@ -139,6 +140,7 @@ struct HealthSyncLifecycleTests {
         let store = FakeHealthStore()
         let defaults = UserDefaults(suiteName: "health-tests-\(UUID().uuidString)")!
         let service = HealthSyncService(store: store, defaults: defaults)
+        service.preferences.presence = false
         service.preferences.sleep = false
         service.preferences.hrv = false
         service.preferences.respiration = false
@@ -158,6 +160,7 @@ struct HealthSyncLifecycleTests {
         let store = FakeHealthStore()
         let defaults = UserDefaults(suiteName: "health-tests-\(UUID().uuidString)")!
         let service = HealthSyncService(store: store, defaults: defaults)
+        service.preferences.hrv = false // These fixture nights do not provide recorded SDNN.
         service.enabled = true
         let api = MockClient()
         store.failSave = true
@@ -191,6 +194,7 @@ struct HealthSyncLifecycleTests {
     @Test func eachNightDropsOnlyOlderSamplesAfterItIsWritten() async throws {
         let store = FakeHealthStore()
         let service = HealthSyncService(store: store, defaults: UserDefaults(suiteName: "health-tests-\(UUID().uuidString)")!)
+        service.preferences.hrv = false // These fixture nights do not provide recorded SDNN.
         service.enabled = true
         await service.syncRecent(api: MockClient(), podID: "test-pod", side: .left, demo: false)
         #expect(!store.batches.isEmpty)
@@ -215,6 +219,7 @@ struct HealthSyncLifecycleTests {
         })
         defaults.set(try JSONEncoder().encode(legacy), forKey: "healthSyncReceipts")
         let service = HealthSyncService(store: store, defaults: defaults)
+        service.preferences.hrv = false // These fixture nights do not provide recorded SDNN.
         service.enabled = true
         await service.syncRecent(api: api, podID: "test-pod", side: .left, demo: false)
         #expect(!store.batches.isEmpty)
@@ -233,6 +238,7 @@ struct HealthSyncLifecycleTests {
             HealthSyncService.Receipt(date: Date(), signature: "old", closedAt: written.leftBedDate, enteredAt: written.enteredBedDate)]),
                      forKey: "healthSyncReceipts")
         let service = HealthSyncService(store: store, defaults: defaults)
+        service.preferences.hrv = false // These fixture nights do not provide recorded SDNN.
         service.enabled = true
         await service.syncRecent(api: api, podID: "test-pod", side: .left, demo: false)
         #expect(store.batches.isEmpty)
@@ -246,6 +252,7 @@ struct HealthSyncLifecycleTests {
     @Test func rebuildRewritesRecentAndOlderNightsThenSweepsOnlyThisSide() async throws {
         let store = FakeHealthStore()
         let service = HealthSyncService(store: store, defaults: UserDefaults(suiteName: "health-tests-\(UUID().uuidString)")!)
+        service.preferences.hrv = false // These fixture nights do not provide recorded SDNN.
         service.enabled = true
         let api = HealthRebuildClient()
         await service.syncRecent(api: api, podID: "test-pod", side: .left, demo: false)
@@ -268,6 +275,7 @@ struct HealthSyncLifecycleTests {
         let store = FakeHealthStore()
         let defaults = UserDefaults(suiteName: "health-tests-\(UUID().uuidString)")!
         let service = HealthSyncService(store: store, defaults: defaults)
+        service.preferences.hrv = false // These fixture nights do not provide recorded SDNN.
         service.enabled = true
         let api = HealthRebuildClient()
         await service.syncRecent(api: api, podID: "test-pod", side: .left, demo: false)
@@ -282,10 +290,13 @@ struct HealthSyncLifecycleTests {
     @Test func aNightWithoutEligibleSelectedMetricsCannotTriggerCleanup() async {
         let store = FakeHealthStore()
         let service = HealthSyncService(store: store, defaults: UserDefaults(suiteName: "health-tests-\(UUID().uuidString)")!)
+        service.preferences.hrv = false // These fixture nights do not provide recorded SDNN.
         service.enabled = true
+        service.preferences.presence = false
         service.preferences.sleep = false
         service.preferences.heartRate = false
         service.preferences.respiration = false
+        service.preferences.hrv = true
         // The fixture's HRV has no recorded SDNN provenance and must not become a Health sample.
         #expect(await !service.rebuild(api: HealthRebuildClient(), podID: "test-pod", side: .left, demo: false))
         #expect(store.batches.isEmpty && store.sweeps.isEmpty)
@@ -298,6 +309,7 @@ struct HealthSyncLifecycleTests {
         let futureVersion = Int(Date().addingTimeInterval(86400).timeIntervalSince1970 * 1000)
         defaults.set(futureVersion, forKey: "healthSyncLastVersion")
         let service = HealthSyncService(store: store, defaults: defaults)
+        service.preferences.hrv = false // These fixture nights do not provide recorded SDNN.
         service.enabled = true
         let api = HealthRebuildClient()
         await service.syncRecent(api: api, podID: "other-pod", side: .left, demo: false)
@@ -317,6 +329,7 @@ struct HealthSyncLifecycleTests {
     @Test func failedRebuildKeepsOlderHealthData() async {
         let store = FakeHealthStore()
         let service = HealthSyncService(store: store, defaults: UserDefaults(suiteName: "health-tests-\(UUID().uuidString)")!)
+        service.preferences.hrv = false // These fixture nights do not provide recorded SDNN.
         service.enabled = true
         store.failSave = true
         #expect(await !service.rebuild(api: MockClient(), podID: "test-pod", side: .left, demo: false))
@@ -344,6 +357,7 @@ struct HealthSyncLifecycleTests {
         let store = FakeHealthStore()
         store.allowed = false
         let service = HealthSyncService(store: store, defaults: UserDefaults(suiteName: "health-tests-\(UUID().uuidString)")!)
+        service.preferences.hrv = false // These fixture nights do not provide recorded SDNN.
         service.enabled = true
         await service.syncRecent(api: MockClient(), podID: "test-pod", side: .left, demo: false)
         #expect(store.batches.isEmpty)

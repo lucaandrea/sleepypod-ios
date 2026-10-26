@@ -64,19 +64,21 @@ final class SystemHealthSyncStore: HealthSyncStore {
 @Observable
 final class HealthSyncService {
     struct Preferences: Codable, Equatable {
+        var presence = true
         var sleep = true
         var heartRate = true
         var hrv = true
         var respiration = true
         var readSleep = true
         var readVitals = true
-        var signature: String { "\(sleep)-\(heartRate)-\(hrv)-\(respiration)" }
+        var signature: String { "\(presence)-\(sleep)-\(heartRate)-\(hrv)-\(respiration)" }
 
         init() {}
         // Keys added after a build shipped decode as their defaults rather than resetting every preference.
         init(from decoder: Decoder) throws {
             let c = try decoder.container(keyedBy: CodingKeys.self)
             sleep = try c.decodeIfPresent(Bool.self, forKey: .sleep) ?? true
+            presence = try c.decodeIfPresent(Bool.self, forKey: .presence) ?? sleep
             heartRate = try c.decodeIfPresent(Bool.self, forKey: .heartRate) ?? true
             hrv = try c.decodeIfPresent(Bool.self, forKey: .hrv) ?? true
             respiration = try c.decodeIfPresent(Bool.self, forKey: .respiration) ?? true
@@ -99,6 +101,8 @@ final class HealthSyncService {
     private(set) var receipts: [String: Receipt]
     private(set) var failures: [String: String] = [:]
     private(set) var isSyncing = false
+    private(set) var lastSyncSampleCount = 0
+    private let ownerRevision: @MainActor () -> [String]
     private(set) var rebuildProgress: (done: Int, total: Int)?
     var authorizationError: String?
     /// Personal stage models; when one is active, synced nights are staged by it and its version is in the receipt.
@@ -109,7 +113,9 @@ final class HealthSyncService {
     private let persistence: UserDefaults
     @ObservationIgnored private var rebuiltKeys = Set<String>()
 
-    init(store: any HealthSyncStore = SystemHealthSyncStore(), defaults: UserDefaults = .standard) {
+    init(store: any HealthSyncStore = SystemHealthSyncStore(), defaults: UserDefaults = .standard,
+         ownerRevision: @escaping @MainActor () -> [String] = { OwnerConnection.revision }) {
+        self.ownerRevision = ownerRevision
         self.store = store
         persistence = defaults
         preferences = defaults.data(forKey: "healthSyncPreferences").flatMap { try? JSONDecoder().decode(Preferences.self, from: $0) } ?? Preferences()
@@ -122,7 +128,7 @@ final class HealthSyncService {
 
     var writeTypes: Set<HKSampleType> {
         var types: Set<HKSampleType> = []
-        if preferences.sleep { types.insert(HKCategoryType(.sleepAnalysis)) }
+        if preferences.presence || preferences.sleep { types.insert(HKCategoryType(.sleepAnalysis)) }
         if preferences.heartRate { types.insert(HKQuantityType(.heartRate)) }
         if preferences.hrv { types.insert(HKQuantityType(.heartRateVariabilitySDNN)) }
         if preferences.respiration { types.insert(HKQuantityType(.respiratoryRate)) }
@@ -160,7 +166,7 @@ final class HealthSyncService {
             authorizationError = nil
             return true
         } catch {
-            authorizationError = error.localizedDescription
+            authorizationError = APIError.message(for: error)
             Log.health.error("Health authorization failed: \(error.localizedDescription, privacy: .private)")
             return false
         }
@@ -170,13 +176,13 @@ final class HealthSyncService {
     static func deviceID(podID: String, record: SleepRecord) -> String { "\(podID)-\(record.side)" }
 
     /// Bump when the samples written for a night change, so every synced night is rewritten once.
-    /// v2: full-night vitals (previously truncated to the last 288 rows), capped and fragment records dropped.
-    static let syncVersion = 2
+    /// v3: separately consented, disjoint reported presence; explicit sample provenance.
+    static let syncVersion = 3
     static func receiptSignature(_ preferences: Preferences, model: String? = nil) -> String {
         "v\(syncVersion)-a\(SleepAnalyzer.version)-m\(model ?? "rules")-\(preferences.signature)"
     }
     func receiptSignature(_ preferences: Preferences) -> String {
-        Self.receiptSignature(preferences, model: stageModels?.activeVersion)
+        Self.receiptSignature(preferences, model: preferences.sleep ? stageModels?.activeVersion : nil)
     }
 
     /// The pod force-closes a session after 16 h (MAX_SESSION_S in sleep-detector); those are stuck presence, not sleep.
@@ -215,13 +221,36 @@ final class HealthSyncService {
     /// writes fail, so the next wake-up retries instead of recording a failure.
     func syncInBackground() async {
         guard enabled, UIApplication.shared.isProtectedDataAvailable else { return }
-        let backend = APIBackend.current
-        guard !backend.isDemo,
-              let address = UserDefaults.standard.string(forKey: "podIPAddress"), !address.isEmpty else { return }
-        let side = Side(rawValue: UserDefaults.standard.string(forKey: "userDefaultSide") ?? "") ?? .left
-        await syncRecent(api: backend.createClient(), podID: SettingsManager.registerPodIdentity(address: address),
-                         side: side, demo: false)
+        guard let source = Self.linkedSource() else { return }
+        await syncRecent(api: source.api, podID: source.podID, side: source.side, demo: false)
         Log.health.info("Background Health sync finished")
+    }
+
+    /// Freeze the endpoint and linked side before fetching any records. Preserve existing identity aliases.
+    static func linkedSource() -> (api: any SleepypodProtocol, podID: String, side: Side)? {
+        let backend = APIBackend.current, address = SettingsManager.healthAddress
+        guard !backend.isDemo, !address.isEmpty else { return nil }
+        let side = linkedSide()
+        let api: any SleepypodProtocol
+        if backend == .sleepypodCore {
+            guard let endpoint = OwnerConnection.endpoint else { return nil }
+            api = SleepypodCoreClient(baseURL: endpoint)
+        } else { api = backend.createClient() }
+        return (api, SettingsManager.registerPodIdentity(address: address), side)
+    }
+
+    static func linkedSide(defaults: UserDefaults = .standard) -> Side {
+        Side(rawValue: defaults.string(forKey: "userDefaultSide") ?? defaults.string(forKey: "bedSide") ?? "left") ?? .left
+    }
+
+    func syncLinkedThirtyDays() async throws -> Int {
+        guard let source = Self.linkedSource() else { throw APIError.noBaseURL }
+        return try await syncThirtyDays(api: source.api, podID: source.podID, side: source.side, demo: false)
+    }
+
+    static func frozenClient() -> any SleepypodProtocol {
+        if APIBackend.current == .sleepypodCore, let endpoint = OwnerConnection.endpoint { return SleepypodCoreClient(baseURL: endpoint) }
+        return APIBackend.current.createClient()
     }
 
     static let recentDays = 7
@@ -234,6 +263,27 @@ final class HealthSyncService {
         _ = await sync(api: api, podID: podID, side: side, days: Self.recentDays)
     }
 
+    /// The Shortcut uses the same writer and consent as the app, with an explicit thirty-day window.
+    func syncThirtyDays(api: SleepypodProtocol, podID: String, side: Side, demo: Bool) async throws -> Int {
+        guard !demo, enabled, store.available, !writeTypes.isEmpty else {
+            throw APIError.serverError(message: "Connect your Pod and enable the desired Apple Health write types in Settings first.")
+        }
+        guard !isSyncing else { throw APIError.serverError(message: "A Health sync is already running. Let it finish before starting another.") }
+        guard !podID.isEmpty, writeTypes.allSatisfy({ store.authorizationStatus(for: $0) == .sharingAuthorized }) else {
+            throw APIError.serverError(message: "Select your linked Pod side and allow the selected write types in Apple Health.")
+        }
+        try Task.checkCancellation()
+        isSyncing = true; defer { isSyncing = false }
+        let context = syncContext()
+        let complete = await sync(api: api, podID: podID, side: side, days: 30)
+        try Task.checkCancellation()
+        guard isCurrent(context) else { throw APIError.serverError(message: "Your connection or Health choices changed. Sync stopped; review the current linked side before continuing.") }
+        guard complete else {
+            throw APIError.serverError(message: "Health sync is incomplete. Saved \(lastSyncSampleCount) \(lastSyncSampleCount == 1 ? "sample" : "samples"); open Apple Health settings in the app to review remaining errors.")
+        }
+        return lastSyncSampleCount
+    }
+
     /// Rewrites this Pod/side before removing its older samples. Incomplete analysis or writes
     /// keep the old data; other Pods and sides are outside the cleanup scope.
     func rebuild(api: SleepypodProtocol, podID: String, side: Side, demo: Bool) async -> Bool {
@@ -242,21 +292,24 @@ final class HealthSyncService {
         rebuildProgress = (0, 0)
         defer { isSyncing = false; rebuildProgress = nil; rebuiltKeys.removeAll() }
         let version = nextWriteVersion()
+        let context = syncContext()
         let deviceID = "\(podID)-\(side.rawValue)"
         let keyPrefix = deviceID + "-"
         failures = failures.filter { !$0.key.hasPrefix(keyPrefix) }
         rebuiltKeys.removeAll()
-        guard await sync(api: api, podID: podID, side: side, days: Self.rebuildDays, forceRewrite: true) else { return false }
+        guard await sync(api: api, podID: podID, side: side, days: Self.rebuildDays, forceRewrite: true), isCurrent(context) else { return false }
         // Types switched off since an earlier sync may still hold samples; only granted types can be deleted.
         let types = Set(Self.allWriteTypes.filter { store.authorizationStatus(for: $0) == .sharingAuthorized })
         do {
             try await store.deleteAll(types: types, deviceID: deviceID, olderThan: version)
+            guard isCurrent(context) else { return false }
             receipts = receipts.filter { !$0.key.hasPrefix(keyPrefix) || rebuiltKeys.contains($0.key) }
             persistence.set(try JSONEncoder().encode(receipts), forKey: "healthSyncReceipts")
             Log.health.info("Rebuilt Health data")
             return true
         } catch {
-            authorizationError = error.localizedDescription
+            guard isCurrent(context), !Self.isCancellation(error) else { return false }
+            authorizationError = APIError.message(for: error)
             Log.health.error("Health rebuild cleanup failed: \(error.localizedDescription, privacy: .public)")
             return false
         }
@@ -266,14 +319,22 @@ final class HealthSyncService {
     /// and a week that hits the cap (fragmented nights) is fetched again a day at a time.
     nonisolated static let recordsPageLimit = 30
     static func sleepRecords(api: SleepypodProtocol, side: Side, start: Date, end: Date, chunk: TimeInterval = 7 * 86400) async throws -> [SleepRecord] {
+        // Core already uses a bounded, recursively split 100-row range loader.
+        if api is SleepypodCoreClient { return try await api.getSleepRecords(side: side, start: start, end: end) }
         var seen = Set<Int>()
         var records: [SleepRecord] = []
         var chunkStart = start
         while chunkStart < end {
             let chunkEnd = min(end, chunkStart.addingTimeInterval(chunk))
             var batch = try await api.getSleepRecords(side: side, start: chunkStart, end: chunkEnd)
-            if batch.count >= recordsPageLimit && chunk > 86400 {
-                batch = try await sleepRecords(api: api, side: side, start: chunkStart, end: chunkEnd, chunk: 86400)
+            if batch.count >= recordsPageLimit {
+                if chunk > 86400 {
+                    batch = try await sleepRecords(api: api, side: side, start: chunkStart, end: chunkEnd, chunk: 86400)
+                } else {
+                    batch = try await MetricRangeLoader.load(start: chunkStart, end: chunkEnd, limit: recordsPageLimit) { lower, upper in
+                        try await api.getSleepRecords(side: side, start: lower, end: upper)
+                    }
+                }
             }
             for record in batch where seen.insert(record.id).inserted {
                 records.append(record)
@@ -285,14 +346,18 @@ final class HealthSyncService {
 
     /// Returns false if the sync stopped early or any night failed to write, so a rebuild knows not to sweep.
     private func sync(api: SleepypodProtocol, podID: String, side: Side, days: Int, forceRewrite: Bool = false) async -> Bool {
-        let requestedPreferences = preferences
+        let requestedPreferences = preferences, context = syncContext()
+        lastSyncSampleCount = 0; authorizationError = nil
         let end = Date()
         let start = Calendar.current.date(byAdding: .day, value: -days, to: end) ?? end
         var complete = true
         do {
-            let records = try await Self.sleepRecords(api: api, side: side, start: start, end: end).filter {
-                $0.side == side.rawValue && $0.enteredBedDate.timeIntervalSince1970 > 0 && $0.leftBedDate > $0.enteredBedDate && $0.leftBedDate <= end
+            let fetched = try await Self.sleepRecords(api: api, side: side, start: start, end: end)
+            guard isCurrent(context) else { return false }
+            guard fetched.allSatisfy({ $0.side == side.rawValue && $0.enteredBedDate.timeIntervalSince1970 > 0 && ($0.completedAt == nil || $0.leftBedDate > $0.enteredBedDate) }) else {
+                throw APIError.serverError(message: "The controller returned an invalid or different side's sleep record. Existing Health data was kept.")
             }
+            let records = fetched.filter { $0.completedAt != nil && $0.leftBedDate <= end }
             if rebuildProgress != nil { rebuildProgress = (0, records.count) }
             for record in records {
                 if let progress = rebuildProgress { rebuildProgress = (progress.done + 1, progress.total) }
@@ -301,7 +366,7 @@ final class HealthSyncService {
                 // An excluded record with a receipt was written by an earlier version; only those need cleanup.
                 guard syncable ? (forceRewrite || receipt(podID: podID, record: record) == nil) : receipts[key] != nil else { continue }
                 do {
-                    guard !Task.isCancelled, enabled, preferences == requestedPreferences else { return false }
+                    guard isCurrent(context) else { return false }
                     guard writeTypes.allSatisfy({ store.authorizationStatus(for: $0) == .sharingAuthorized }) else {
                         failures[key] = "Allow the selected write types in Apple Health."
                         complete = false
@@ -314,14 +379,19 @@ final class HealthSyncService {
                     let clearEnd = max(record.leftBedDate, previous?.closedAt ?? record.leftBedDate)
                     guard syncable else {
                         try await store.delete(types: writeTypes, deviceID: deviceID, start: clearStart, end: clearEnd, olderThan: nil)
+                        guard isCurrent(context) else { return false }
                         receipts[key] = nil
                         failures[key] = nil
                         persistence.set(try JSONEncoder().encode(receipts), forKey: "healthSyncReceipts")
                         continue
                     }
-                    let vitals = try await api.getVitals(side: side, start: record.enteredBedDate, end: record.leftBedDate)
-                    let movement = try await api.getMovement(side: side, start: record.enteredBedDate, end: record.leftBedDate)
-                    let calibration = try? await api.getCalibrationStatus(side: side)
+                    let needsVitals = requestedPreferences.sleep || requestedPreferences.heartRate || requestedPreferences.hrv || requestedPreferences.respiration
+                    let vitals = needsVitals ? try await api.getVitals(side: side, start: record.enteredBedDate, end: record.leftBedDate) : []
+                    guard isCurrent(context) else { return false }
+                    let movement = requestedPreferences.sleep ? try await api.getMovement(side: side, start: record.enteredBedDate, end: record.leftBedDate) : []
+                    guard isCurrent(context) else { return false }
+                    let calibration = requestedPreferences.sleep ? try? await api.getCalibrationStatus(side: side) : nil
+                    guard isCurrent(context) else { return false }
                     let analyzer = SleepAnalyzer()
                     // One snapshot of the active model per night: it stages the night and names the receipt. If the
                     // analyzer fell back to the rules, the receipt says so, and the night is retried next sync.
@@ -329,15 +399,19 @@ final class HealthSyncService {
                     let staging = activeModel.map {
                         SleepAnalyzer.ModelStaging(classifier: $0.classifier, contract: $0.contract, enteredBed: record.enteredBedDate, leftBed: record.leftBedDate)
                     }
-                    analyzer.analyze(vitals: vitals.filter { $0.side == side.rawValue && $0.date >= record.enteredBedDate && $0.date < record.leftBedDate },
-                                     movement: movement, calibrationQuality: calibration?.piezo?.qualityScore ?? 0, model: staging)
+                    if requestedPreferences.sleep { analyzer.analyze(vitals: vitals.filter { $0.side == side.rawValue && $0.date >= record.enteredBedDate && $0.date < record.leftBedDate },
+                                     movement: movement, calibrationQuality: calibration?.piezo?.qualityScore ?? 0, model: staging) }
                     let stagedBy = analyzer.source == .model ? activeModel?.version : nil
                     let filtered = analyzer.filterOutliers(vitals: vitals.filter { $0.side == side.rawValue && $0.date >= record.enteredBedDate && $0.date < record.leftBedDate })
-                    guard !Task.isCancelled, enabled, preferences == requestedPreferences else { return false }
-                    guard !filtered.isEmpty, !preferences.sleep || !analyzer.stages.isEmpty else {
+                    guard isCurrent(context) else { return false }
+                    guard !needsVitals || !filtered.isEmpty, !requestedPreferences.sleep || !analyzer.stages.isEmpty else {
                         failures[key] = "Waiting for enough vitals to analyze this night."
                         complete = false
                         continue
+                    }
+                    if requestedPreferences.presence && TemperatureHistory.presence([record], side: side, in: record.enteredBedDate...record.leftBedDate, now: end).isEmpty {
+                        failures[key] = "This record has no complete reported bed-presence intervals."
+                        complete = false; continue
                     }
                     let version = nextWriteVersion()
                     let samples = Self.samples(record: record, epochs: analyzer.stages, podID: podID, preferences: requestedPreferences,
@@ -347,10 +421,22 @@ final class HealthSyncService {
                         complete = false
                         continue
                     }
+                    let availableTypes = Set(samples.map(\.sampleType))
+                    let missingTypes = writeTypes.subtracting(availableTypes)
+                    guard isCurrent(context) else { return false }
                     try await store.save(samples)
+                    guard isCurrent(context) else { return false }
+                    lastSyncSampleCount += samples.count
                     // Save first, then drop whatever this write didn't replace, so a failed save never empties the night.
-                    try await store.delete(types: writeTypes, deviceID: deviceID, start: clearStart, end: clearEnd, olderThan: version)
+                    try await store.delete(types: availableTypes, deviceID: deviceID, start: clearStart, end: clearEnd, olderThan: version)
+                    guard isCurrent(context) else { return false }
                     Log.health.info("Saved \(samples.count, privacy: .private) samples to Health")
+                    guard missingTypes.isEmpty else {
+                        failures[key] = missingTypes.contains(HKQuantityType(.heartRateVariabilitySDNN))
+                            ? "No eligible recorded SDNN for this night. Other available samples were saved; previous HRV data was kept. Deselect HRV to sync only the available types."
+                            : "Some selected measurements are missing. Available samples were saved; missing types' earlier data was kept."
+                        complete = false; continue
+                    }
                     receipts[key] = Receipt(date: Date(), signature: Self.receiptSignature(requestedPreferences, model: stagedBy),
                                             closedAt: record.leftBedDate, enteredAt: record.enteredBedDate)
                     failures[key] = nil
@@ -358,20 +444,31 @@ final class HealthSyncService {
                     persistence.set(try JSONEncoder().encode(receipts), forKey: "healthSyncReceipts")
                 } catch {
                     // A cancelled sync (scene change, backgrounding) retries next time; it isn't a failed night.
-                    if Self.isCancellation(error) { return false }
-                    failures[key] = error.localizedDescription
+                    if Self.isCancellation(error) || !isCurrent(context) { return false }
+                    failures[key] = APIError.message(for: error)
                     complete = false
                     Log.health.error("Health sync failed: \(error.localizedDescription, privacy: .public)")
                 }
             }
         } catch {
-            if Self.isCancellation(error) { return false }
-            authorizationError = error.localizedDescription
+            if Self.isCancellation(error) || !isCurrent(context) { return false }
+            authorizationError = APIError.message(for: error)
             Log.health.error("Health sync fetch failed: \(error.localizedDescription, privacy: .public)")
             return false
         }
         return complete
     }
+
+    private struct SyncContext: Equatable {
+        let owner: [String]
+        let side: String
+        let preferences: Preferences
+        let model: String?
+    }
+    private func syncContext() -> SyncContext {
+        .init(owner: ownerRevision(), side: Self.linkedSide(defaults: persistence).rawValue, preferences: preferences, model: stageModels?.activeVersion)
+    }
+    private func isCurrent(_ context: SyncContext) -> Bool { !Task.isCancelled && enabled && syncContext() == context }
 
     /// HealthKit replacement versions must increase even within one millisecond or after a clock correction.
     private func nextWriteVersion() -> Int {
@@ -397,15 +494,19 @@ final class HealthSyncService {
         let device = HKDevice(name: "sleepypod", manufacturer: nil, model: "Pod",
                               hardwareVersion: nil, firmwareVersion: nil, softwareVersion: nil,
                               localIdentifier: deviceID(podID: podID, record: record), udiDeviceIdentifier: nil)
-        func metadata(_ epoch: String, type: String) -> [String: Any] {
+        func metadata(_ epoch: String, type: String, source: String) -> [String: Any] {
             [HKMetadataKeyExternalUUID: "\(key)-\(epoch)", HKMetadataKeyWasUserEntered: false,
              HKMetadataKeySyncIdentifier: "\(key)-\(epoch)-\(type)", HKMetadataKeySyncVersion: version,
-             "sleepypod_side": record.side]
+             "sleepypod_side": record.side, "sleepypod_source": source]
         }
         var result: [HKSample] = []
-        if preferences.sleep {
-            result.append(HKCategorySample(type: HKCategoryType(.sleepAnalysis), value: HKCategoryValueSleepAnalysis.inBed.rawValue,
-                start: record.enteredBedDate, end: record.leftBedDate, device: device, metadata: metadata("inBed", type: "sleep")))
+        if preferences.presence, let side = Side(rawValue: record.side) {
+            let intervals = TemperatureHistory.presence([record], side: side, in: record.enteredBedDate...record.leftBedDate, now: record.leftBedDate)
+            for interval in intervals {
+                let identifier = "inBed-\(Int64(interval.start.timeIntervalSince1970 * 1000))"
+                result.append(HKCategorySample(type: HKCategoryType(.sleepAnalysis), value: HKCategoryValueSleepAnalysis.inBed.rawValue,
+                    start: interval.start, end: interval.end, device: device, metadata: metadata(identifier, type: "sleep", source: "reported_pod_presence")))
+            }
         }
         for epoch in epochs where epoch.start >= record.enteredBedDate && epoch.start < record.leftBedDate {
             let end = min(record.leftBedDate, epoch.start.addingTimeInterval(epoch.duration))
@@ -413,7 +514,7 @@ final class HealthSyncService {
             let id = String(Int(epoch.start.timeIntervalSince1970))
             if preferences.sleep {
                 result.append(HKCategorySample(type: HKCategoryType(.sleepAnalysis), value: stageValue(epoch.stage),
-                    start: epoch.start, end: end, device: device, metadata: metadata(id, type: "sleep")))
+                    start: epoch.start, end: end, device: device, metadata: metadata(id, type: "sleep", source: "on_device_stage_estimate")))
             }
         }
         let values = vitals ?? epochs.map {
@@ -431,7 +532,7 @@ final class HealthSyncService {
             for (enabled, type, value, unit, range) in quantities {
                 if enabled, let value, value.isFinite, range.contains(value) {
                     result.append(HKQuantitySample(type: HKQuantityType(type), quantity: HKQuantity(unit: unit, doubleValue: value),
-                        start: vital.date, end: end, device: device, metadata: metadata(id, type: type.rawValue)))
+                        start: vital.date, end: end, device: device, metadata: metadata(id, type: type.rawValue, source: "recorded_pod_vitals")))
                 }
             }
         }

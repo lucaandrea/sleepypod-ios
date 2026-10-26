@@ -783,6 +783,7 @@
 		EDE2E84611AD94D84F558093 /* TemperatureHistoryWorkspace.swift in Sources */ = {isa = PBXBuildFile; fileRef = 276EA05955D37315A2BAEE72 /* TemperatureHistoryWorkspace.swift */; };
 		EE00F9E8C9592B129AD32731 /* NativeControlService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CD792E01EB7857AA57DFB82 /* NativeControlService.swift */; };
 		EE7D16378C8C819ED935F485 /* BiometricValidatedActivationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B520CE38158D9C5F75FEF3C /* BiometricValidatedActivationTests.swift */; };
+		EEBC703B153A685B794C2688 /* NativeHealthUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 891A86BBAF938DD824549117 /* NativeHealthUITests.swift */; };
 		EFD3873F0F8BC260AE720ED5 /* BiometricObservationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A21864FFB14D64BC7091B459 /* BiometricObservationTests.swift */; };
 		F12E85CCC02B3FEB10616368 /* JournalCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF045AD8768C904A1C0C4A34 /* JournalCard.swift */; };
 		F2D4A78D60CB0904321B6D8A /* SystemSchedulerWorkspace.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5530B3BB1C6AA593D7D346FC /* SystemSchedulerWorkspace.swift */; };
@@ -801,6 +802,7 @@
 		F5F19CF5D22CA7F58D37E2D5 /* SleepPeriodStageWorkspace.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2FAE14081775C6A49D93614 /* SleepPeriodStageWorkspace.swift */; };
 		F60BFFDA797B398A9AA1043D /* AutomationWorkspace.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0A787B35F57292C947A06A9 /* AutomationWorkspace.swift */; };
 		F634EFD632A7C9028E9965C1 /* AppearanceSettingsScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = F221EA82AAF5D5A6D3D8B424 /* AppearanceSettingsScreen.swift */; };
+		F646C003698A7073751482B0 /* NativeHealthSyncTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94C11787DA7523C31CF4215F /* NativeHealthSyncTests.swift */; };
 		F71CAB9C42324642CD1813C3 /* TokenStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6609B20274A647020E72383E /* TokenStore.swift */; };
 		F74F19D2A38A9AF0BA404838 /* SystemDashboard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08527E45E0F6339D904A08D3 /* SystemDashboard.swift */; };
 		F7921B49A17F1C4AC4DA52C7 /* RecordEditingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9EDF450C033AA154BDAC8DC0 /* RecordEditingTests.swift */; };
@@ -1348,6 +1350,7 @@
 		88C302DC0E2C9CEBE115E7D8 /* DemoDataCoverage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoDataCoverage.swift; sourceTree = "<group>"; };
 		88C3AB302761868EF5EDB606 /* SystemStorageWorkspace.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemStorageWorkspace.swift; sourceTree = "<group>"; };
 		88D507ED3358EAA28B7E69CB /* Journal.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Journal.swift; sourceTree = "<group>"; };
+		891A86BBAF938DD824549117 /* NativeHealthUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeHealthUITests.swift; sourceTree = "<group>"; };
 		89B649ABDD62849748B5BB95 /* PumpAlertsScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PumpAlertsScreen.swift; sourceTree = "<group>"; };
 		89CD4ECADF3F6D0195F32FF6 /* BedtimeRoutineClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BedtimeRoutineClient.swift; sourceTree = "<group>"; };
 		8B5876050A79A4953BE41D91 /* SystemStorageScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemStorageScreen.swift; sourceTree = "<group>"; };
@@ -1372,6 +1375,7 @@
 		94626F409075968906488C46 /* BaseStatus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BaseStatus.swift; sourceTree = "<group>"; };
 		948F9BAA88B81D25AA9E0B6F /* FirmwareLogConsoleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirmwareLogConsoleView.swift; sourceTree = "<group>"; };
 		94A15AB45E9FC33A01A60469 /* TemperatureContextUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemperatureContextUITests.swift; sourceTree = "<group>"; };
+		94C11787DA7523C31CF4215F /* NativeHealthSyncTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeHealthSyncTests.swift; sourceTree = "<group>"; };
 		94F1F324E2E7F5F47904A263 /* BiometricReferencesUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiometricReferencesUITests.swift; sourceTree = "<group>"; };
 		95332C75292417CDB7E36117 /* room-context-core.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "room-context-core.json"; sourceTree = "<group>"; };
 		9593DE03B480FCFB24C98A30 /* HardwareVibrationClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HardwareVibrationClient.swift; sourceTree = "<group>"; };
@@ -2362,6 +2366,7 @@
 				82927082BE9A326410A83C44 /* NativeActionSessionTests.swift */,
 				285116A4A0611E92B2A443C2 /* NativeControlRESTTests.swift */,
 				6F6D0C1C0BADB07D816E4DEE /* NativeControlTests.swift */,
+				94C11787DA7523C31CF4215F /* NativeHealthSyncTests.swift */,
 				26149D422D4EB5ACD548A5A8 /* NextAlarmRESTTests.swift */,
 				C91C38D0EBFF44D19A8ED9C8 /* NextAlarmTests.swift */,
 				BADDF7DDF0A7DDAFC154ACBA /* NightPhaseParityTests.swift */,
@@ -2783,6 +2788,7 @@
 				F548261B6FA017552631862C /* ModernizationTests.swift */,
 				6355F251729F759C26157111 /* MorningJournalUITests.swift */,
 				85C300694CBFA0FB68C2C5C5 /* NativeCommandHistoryUITests.swift */,
+				891A86BBAF938DD824549117 /* NativeHealthUITests.swift */,
 				606843814A97634D3882BA38 /* NextAlarmUITests.swift */,
 				8E07F05739B7B948A42DC3F1 /* NightPhaseUITests.swift */,
 				425BF9F5381B8180CDE653E7 /* PersonalComfortUITests.swift */,
@@ -3240,6 +3246,7 @@
 				D91EFA1E69A31EEDED757416 /* NativeActionSessionTests.swift in Sources */,
 				796C756716BC7EA13C694BE8 /* NativeControlRESTTests.swift in Sources */,
 				9B44EFF49E195CFEEE017B3A /* NativeControlTests.swift in Sources */,
+				F646C003698A7073751482B0 /* NativeHealthSyncTests.swift in Sources */,
 				09B2667D5E0E3F504B606261 /* NextAlarmRESTTests.swift in Sources */,
 				2ED3E60D307CDB1CCE629A7E /* NextAlarmTests.swift in Sources */,
 				DAA3EA7441AB63FE618D4490 /* NightPhaseParityTests.swift in Sources */,
@@ -3337,6 +3344,7 @@
 				44664352D73C4A1AD9CC123A /* ModernizationTests.swift in Sources */,
 				D310C3D45CDE11F673D1516B /* MorningJournalUITests.swift in Sources */,
 				E8657F30BB4A7D21B773210C /* NativeCommandHistoryUITests.swift in Sources */,
+				EEBC703B153A685B794C2688 /* NativeHealthUITests.swift in Sources */,
 				559AA2ABEB253005B0BD1525 /* NextAlarmUITests.swift in Sources */,
 				FA9BF489D77187DE740784A9 /* NightPhaseUITests.swift in Sources */,
 				1DC00D38C5DD53C91327C5B4 /* PersonalComfortUITests.swift in Sources */,

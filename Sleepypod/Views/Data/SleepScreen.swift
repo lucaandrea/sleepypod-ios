@@ -444,7 +444,7 @@ struct SleepScreen: View {
                 Button("Retry") {
                     Task {
                         await health.syncRecent(
-                            api: APIBackend.current.createClient(), podID: settings.podID,
+                            api: HealthSyncService.frozenClient(), podID: settings.podID,
                             side: profile.defaultSide, demo: APIBackend.current.isDemo)
                     }
                 }

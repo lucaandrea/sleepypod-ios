@@ -1,15 +1,19 @@
 import SwiftUI
 import AppIntents
+import BackgroundTasks
 
 public enum UnifiedRuntime {
-    @MainActor public static func initialize() { NativeModelClient.configureSDK() }
+    @MainActor public static func initialize() {
+        NativeModelClient.configureSDK()
+        if AppMode.isCore { BGTaskScheduler.shared.cancel(taskRequestWithIdentifier: HealthBackgroundScheduler.identifier) }
+    }
     @MainActor public static func refreshHealth() async {
         guard !AppMode.isDemo else { return }
-        await HealthSyncService.shared.refreshOnActivation()
+        if !AppMode.isCore { await HealthSyncService.shared.refreshOnActivation() }
         await IntelligenceWorkspace.shared.refreshOnActivation()
     }
     @MainActor public static func backgroundHealth() async {
-        guard !AppMode.isDemo else { return }
+        guard !AppMode.isDemo, !AppMode.isCore else { return }
         await HealthSyncService.shared.runBackground()
     }
     public static func savedKey(for address: String) -> String { TokenStore.read(for: address) }

@@ -55,7 +55,7 @@ struct SleepypodApp: App {
         health.stageModels = models
         _stageModels = State(initialValue: models)
         _healthSync = State(initialValue: health)
-        let actions = NativeActionSession.configured()
+        let actions = NativeActionSession.configured { try await health.syncLinkedThirtyDays() }
         _nativeActions = State(initialValue: actions)
         let bridge = actions.bridge
         AppDependencyManager.shared.add(dependency: bridge)
@@ -245,7 +245,7 @@ struct ContentView: View {
             guard scenePhase == .active else { return }
             while !Task.isCancelled {
                 if deviceManager.isConnected {
-                    await healthSync.syncRecent(api: APIBackend.current.createClient(), podID: settingsManager.podID,
+                    await healthSync.syncRecent(api: HealthSyncService.frozenClient(), podID: settingsManager.podID,
                                                 side: profile.defaultSide, demo: isDemo)
                 }
                 do { try await Task.sleep(for: .seconds(60)) } catch { return }

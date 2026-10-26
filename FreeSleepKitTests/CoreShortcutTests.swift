@@ -58,6 +58,19 @@ import Testing
         }
         #expect(recorded.actions == [.readTemperature(side: "right", current: false), .nextAlarm(side: "right")])
     }
+    @Test func healthShortcutUsesTheRegisteredWriterAndPreservesErrors() async throws {
+        let recorded = CoreActionCapture()
+        try await AppMode.$suppliedBackend.withValue("sleepypod-core") {
+            let intent = SyncHealthIntent()
+            intent.nativeActions = .init { action in recorded.actions.append(action); return .healthSamples(17) }
+            let count = try await intent.perform().value
+            #expect(count == 17)
+            intent.nativeActions = .init { _ in throw PodError.message("Consent changed") }
+            do { _ = try await intent.perform(); Issue.record("A failed sync cannot become zero or success") }
+            catch { #expect(error.localizedDescription == "Consent changed") }
+        }
+        #expect(recorded.actions == [.syncHealth])
+    }
     @Test func demoCancellationAndNativeErrorsCannotBecomeSuccessOrRetry() async throws {
         let recorded = CoreActionCapture(), bridge = NativePodActionBridge { action in recorded.actions.append(action); throw PodError.message("Uncertain receipt") }
         await AppMode.$suppliedBackend.withValue("sleepypod-core") {
