@@ -300,6 +300,11 @@ struct AllSettingsScreen: View {
                         }
                         PodFeatureLink(.preferences, icon: "slider.horizontal.3", tile: true)
                         PodFeatureLink(.services, icon: "server.rack", tile: true)
+                        if APIBackend.current != .freeSleep {
+                            NavigationLink { ArchivePushSettingsScreen() } label: {
+                                SettingsRow("Backup", icon: "externaldrive.badge.icloud", tile: true, chevron: true)
+                            }.accessibilityIdentifier("settings.backup")
+                        }
                         Button { showWater = true } label: {
                             SettingsRow("Water & priming", icon: "drop", tile: true, chevron: true)
                         }
