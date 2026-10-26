@@ -5,6 +5,7 @@ protocol SleepypodProtocol: Sendable {
     func updateDeviceStatus(_ update: DeviceStatusUpdate) async throws
     func getSettings() async throws -> PodSettings
     func updateSettings(_ settings: PodSettings) async throws -> PodSettings
+    func updateSettings(_ settings: PodSettings, original: PodSettings) async throws -> PodSettings
     func getSchedules() async throws -> Schedules
     func updateSchedules(_ schedules: Schedules, days: Set<DayOfWeek>?) async throws -> Schedules
     func getServerStatus() async throws -> ServerStatus
@@ -68,6 +69,7 @@ struct LogSource: Codable, Sendable, Identifiable {
 
 // Backends without a priming endpoint must fail explicitly rather than rebooting.
 extension SleepypodProtocol {
+    func updateSettings(_ settings: PodSettings, original: PodSettings) async throws -> PodSettings { try await updateSettings(settings) }
     func startPriming() async throws { throw URLError(.unsupportedURL) }
     func getNightPhases(side: Side) async throws -> NightPhases? { throw URLError(.unsupportedURL) }
     func setNightPhase(side: Side, phase: NightPhaseKey, temperatureF: Int) async throws -> NightPhases? {

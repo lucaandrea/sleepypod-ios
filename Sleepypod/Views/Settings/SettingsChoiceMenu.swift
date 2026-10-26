@@ -10,9 +10,7 @@ struct SettingsChoiceMenu: View {
         VStack(alignment: .leading, spacing: 8) {
             Text(title).font(.subheadline.weight(.semibold))
             Menu {
-                Picker(title, selection: $selection) {
-                    ForEach(options, id: \.0) { Text($0.1).tag($0.0) }
-                }
+                SettingsChoiceOptions(selection: $selection, options: options, identifier: identifier)
             } label: {
                 HStack(spacing: 8) {
                     Text(options.first { $0.0 == selection }?.1 ?? selection)
@@ -21,6 +19,20 @@ struct SettingsChoiceMenu: View {
                 }.frame(minHeight: 44, alignment: .leading).contentShape(Rectangle())
             }.buttonStyle(.plain).accessibilityLabel(title).accessibilityValue(options.first { $0.0 == selection }?.1 ?? selection)
                 .accessibilityIdentifier(identifier)
+        }
+    }
+}
+
+/// Explicit actions allow server-confirmed bindings to update after a menu dismisses.
+struct SettingsChoiceOptions: View {
+    @Binding var selection: String
+    let options: [(String, String)]
+    let identifier: String
+    var body: some View {
+        ForEach(options, id: \.0) { option in
+            Button { selection = option.0 } label: {
+                if selection == option.0 { Label(option.1, systemImage: "checkmark") } else { Text(option.1) }
+            }.accessibilityIdentifier("\(identifier).option.\(option.1)")
         }
     }
 }

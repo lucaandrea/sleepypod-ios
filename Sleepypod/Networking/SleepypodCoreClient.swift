@@ -99,34 +99,49 @@ final class SleepypodCoreClient: SleepypodProtocol, @unchecked Sendable {
     }
 
     func updateSettings(_ settings: PodSettings) async throws -> PodSettings {
-        // Update device-level settings
-        // primePodDaily and primePodTime must always be sent together — backend requires both.
-        let primePodEnabled = settings.primePodDaily.enabled
-        let primePodTime = settings.primePodDaily.time.isEmpty ? "14:00" : settings.primePodDaily.time
-        var deviceInput: [String: Any] = [:]
-        if let action = settings.defaultScheduleEndAction {
-            deviceInput["defaultScheduleEndAction"] = action.rawValue
+        throw APIError.notSupported("Core settings edits require their original snapshot. Reload before saving.")
+    }
+
+    // Freeze the controller and compare only edited fields before issuing targeted patches.
+    func updateSettings(_ settings: PodSettings, original: PodSettings) async throws -> PodSettings {
+        guard let endpoint = baseURL else { throw APIError.noBaseURL }
+        let scoped = SleepypodCoreClient(session: session, baseURL: endpoint)
+        let changes = SettingsChanges(desired: settings, original: original)
+        let current = try await scoped.getSettings()
+        guard !changes.isEmpty else { return current }
+        guard !changes.conflicts(with: current) else {
+            throw APIError.serverError(message: "A setting you edited changed on the Pod. Reload and review before saving.")
         }
-        deviceInput["timezone"] = settings.timeZone
-        deviceInput["temperatureUnit"] = settings.temperatureFormat == .fahrenheit ? "F" : "C"
-        deviceInput["rebootDaily"] = settings.rebootDaily
-        deviceInput["rebootTime"] = settings.rebootTime.isEmpty ? "03:00" : settings.rebootTime
-        deviceInput["primePodDaily"] = primePodEnabled
-        deviceInput["primePodTime"] = primePodTime
-
-        let _: TRPCDeviceSettings = try await mutate("settings.updateDevice", input: deviceInput)
-
-        // Update side settings
-        for side in ["left", "right"] {
-            let sideSettings = side == "left" ? settings.left : settings.right
-            let _: TRPCSideSettings = try await mutate("settings.updateSide", input: [
-                "side": side,
-                "name": sideSettings.name,
-                "awayMode": sideSettings.awayMode
-            ])
+        let transport = CoreRESTClient(endpoint: endpoint, session: session)
+        var sent = false
+        var acknowledged = false
+        do {
+            if !changes.device.isEmpty {
+                try Task.checkCancellation(); sent = true
+                try await transport.patch("settings/device", body: changes.device)
+                acknowledged = true
+            }
+            for side in Side.allCases {
+                let patch = side == .left ? changes.left : changes.right
+                guard !patch.isEmpty else { continue }
+                try Task.checkCancellation()
+                var fields = patch.fields; fields["side"] = .string(side.rawValue)
+                sent = true
+                try await transport.patch("settings/side", body: SettingsFieldPatch(fields: fields))
+                acknowledged = true
+            }
+            let reported = try await scoped.getSettings()
+            guard changes.isReflected(in: reported) else {
+                throw APIError.serverError(message: "The latest settings do not reflect every requested change. Reload to inspect the Pod before saving again.")
+            }
+            return reported
+        } catch {
+            if acknowledged {
+                throw APIError.serverError(message: "A change was acknowledged, but the complete save and readback did not finish. Reload to inspect the latest settings. \(error.localizedDescription)")
+            }
+            if sent { throw APIError.serverError(message: "Save was not confirmed. Reload before retrying. \(error.localizedDescription)") }
+            throw error
         }
-
-        return try await getSettings()
     }
 
     // MARK: - Schedules
