@@ -25,13 +25,18 @@ struct CoreBaseClient: BaseClient {
 
 /// A local simulation, isolated from the configured controller and its credentials.
 actor DemoBaseClient: BaseClient {
+    private let scenario: String
+    init(scenario: String = "whole") { self.scenario = scenario }
     private var position = BasePositions(left: BasePreset.relax.angles, right: BasePreset.relax.angles)
     private var rows = [BaseSchedule(id: 1)]
     private var nextID = 2
     func status() -> UnifiedBaseStatus {
-        UnifiedBaseStatus(state: "connected", position: position, stale: false, busy: false,
-                          lastUpdate: Date().timeIntervalSince1970 * 1000, independentControl: false,
-                          movingBySide: .init(left: false, right: false), moving: false, splitBase: false)
+        if scenario == "offline" {
+            return UnifiedBaseStatus(state: "disconnected", position: nil, stale: true, busy: false, error: "The base is disconnected.", independentControl: false)
+        }
+        return UnifiedBaseStatus(state: "connected", position: position, stale: false, busy: false,
+                          lastUpdate: Date().timeIntervalSince1970 * 1000, independentControl: scenario == "independent",
+                          movingBySide: .init(left: false, right: false), moving: false, splitBase: scenario == "independent")
     }
     func move(_ request: BaseMoveRequest) {
         for side in request.sides {

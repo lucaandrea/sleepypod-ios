@@ -160,9 +160,9 @@ struct ContentView: View {
                     else { NavigationStack { DisconnectedTabView(tab: "Sleep", selectedTab: $selectedTab).settingsToolbar() } }
                 } label: { tabLabel("Sleep", "moon") }
             }
-            .id(backendIdentity)
+            .id(inboxScope)
             .tabBarMinimizeBehavior(.onScrollDown)
-            .onChange(of: backendIdentity) { alarms.configure(); curves.configure() }
+            .onChange(of: inboxScope) { alarms.configure(); curves.configure() }
             .onChange(of: selectedTab) {
                 Haptics.tap()
             }

@@ -10,8 +10,12 @@ protocol AlarmClient: Sendable {
 extension AlarmClient { func supportsSnooze() async -> Bool { false } }
 
 struct CoreAlarmClient: AlarmClient {
-    var client: CoreRESTClient?
-    private func connection() throws -> CoreRESTClient { try client ?? .configured() }
+    let client: CoreRESTClient?
+    init(client: CoreRESTClient? = try? .configured()) { self.client = client }
+    private func connection() throws -> CoreRESTClient {
+        guard let client else { throw APIError.noBaseURL }
+        return client
+    }
     func all() async throws -> [CoreAlarmRow] {
         let connection = try connection()
         async let left: CoreScheduleRows = connection.get("schedules", query: ["side": "left", "unit": "F"])

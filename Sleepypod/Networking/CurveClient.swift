@@ -49,8 +49,12 @@ protocol CurveClient: Sendable {
 }
 
 struct CoreCurveClient: CurveClient {
-    var transport: CoreRESTClient?
-    private func client() throws -> CoreRESTClient { try transport ?? .configured() }
+    let transport: CoreRESTClient?
+    init(transport: CoreRESTClient? = try? .configured()) { self.transport = transport }
+    private func client() throws -> CoreRESTClient {
+        guard let transport else { throw APIError.noBaseURL }
+        return transport
+    }
     func library() async throws -> CurveLibrarySnapshot {
         let api = try client()
         let curves: [PodCurve] = try await api.get("curve-templates")

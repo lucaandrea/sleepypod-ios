@@ -144,7 +144,6 @@ struct TempScreen: View {
             VStack(spacing: 0) {
                 if deviceManager.isConnected {
                     layoutToolbar
-                    TemperatureNoticesView()
                 }
                 Group {
                 if deviceManager.isConnected {
@@ -155,7 +154,7 @@ struct TempScreen: View {
                     case .slider:
                         TempSliderView(curve: activeCurve, profileName: activeCurve.map { profileName($0.setPoints) } ?? "")
                     case .sides:
-                        ScrollView { BothSidesView(curve: activeCurve) }
+                        ScrollView { VStack(spacing: 16) { TemperatureNoticesView(); BothSidesView(curve: activeCurve) } }
                             .refreshable { await deviceManager.fetchStatus(); await fetchActiveCurve() }
                     } }
                 } else {
@@ -229,6 +228,7 @@ struct TempScreen: View {
     private var centeredControl: some View {
         ScrollView {
             VStack(spacing: 0) {
+                TemperatureNoticesView()
                 SideSelectorView()
                 if profile.tempControl == .stepper {
                     TempStepperView(store: nightPhases, tab: $stepperTab).padding(.top, 20)

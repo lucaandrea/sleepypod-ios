@@ -23,11 +23,12 @@ struct TemperatureStageScreen: View {
         TimelineView(.periodic(from: .now, by: 5)) { context in
             let timeline = TemperatureTimeline(schedules: schedules.error == nil ? schedules.schedules : nil, timezone: settings.timeZone, now: context.date)
             let previewDate = previewFraction.map { timeline.date(at: $0) }
-            let stale = sensor.bedTempUpdatedAt.map { context.date.timeIntervalSince($0) >= ThermalBedCard.staleSeconds } ?? true
+            let stale = !SensorObservation.fresh(sensor.bedTempUpdatedAt, age: ThermalBedCard.staleSeconds, now: context.date)
             let left = values(for: .left, timeline: timeline, date: previewDate, stale: stale)
             let right = values(for: .right, timeline: timeline, date: previewDate, stale: stale)
             ScrollView {
                 VStack(spacing: 18) {
+                    TemperatureNoticesView()
                     sideLayout {
                         sideLabel(.left, preview: previewDate.map { previewState(.left, timeline: timeline, at: $0) })
                         sideLabel(.right, preview: previewDate.map { previewState(.right, timeline: timeline, at: $0) })

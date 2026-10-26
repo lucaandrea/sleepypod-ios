@@ -106,6 +106,7 @@ final class SleepypodCoreClient: SleepypodProtocol, @unchecked Sendable {
     func updateSettings(_ settings: PodSettings, original: PodSettings) async throws -> PodSettings {
         guard let endpoint = baseURL else { throw APIError.noBaseURL }
         let scoped = SleepypodCoreClient(session: session, baseURL: endpoint)
+        let ownerRevision = OwnerConnection.revision
         let changes = SettingsChanges(desired: settings, original: original)
         let current = try await scoped.getSettings()
         guard !changes.isEmpty else { return current }
@@ -117,14 +118,14 @@ final class SleepypodCoreClient: SleepypodProtocol, @unchecked Sendable {
         var acknowledged = false
         do {
             if !changes.device.isEmpty {
-                try Task.checkCancellation(); sent = true
+                try ensureCurrentOwner(ownerRevision); sent = true
                 try await transport.patch("settings/device", body: changes.device)
                 acknowledged = true
             }
             for side in Side.allCases {
                 let patch = side == .left ? changes.left : changes.right
                 guard !patch.isEmpty else { continue }
-                try Task.checkCancellation()
+                try ensureCurrentOwner(ownerRevision)
                 var fields = patch.fields; fields["side"] = .string(side.rawValue)
                 sent = true
                 try await transport.patch("settings/side", body: SettingsFieldPatch(fields: fields))
@@ -147,26 +148,39 @@ final class SleepypodCoreClient: SleepypodProtocol, @unchecked Sendable {
     // MARK: - Schedules
 
     func getSchedules() async throws -> Schedules {
-        let leftScheds: CoreScheduleRows = try await query("schedules.getAll", input: ["side": "left", "unit": "F"])
-        let rightScheds: CoreScheduleRows = try await query("schedules.getAll", input: ["side": "right", "unit": "F"])
-        return Schedules(
-            left: leftScheds.projected,
-            right: rightScheds.projected
-        )
+        guard let endpoint = baseURL else { throw APIError.noBaseURL }
+        let scoped = SleepypodCoreClient(session: session, baseURL: endpoint)
+        return try await scoped.readSchedules()
+    }
+
+    private func readSchedules() async throws -> Schedules {
+        let left: CoreScheduleRows = try await query("schedules.getAll", input: ["side": "left", "unit": "F"])
+        let right: CoreScheduleRows = try await query("schedules.getAll", input: ["side": "right", "unit": "F"])
+        return Schedules(left: left.projected, right: right.projected)
     }
 
     func updateSchedules(_ schedules: Schedules, days: Set<DayOfWeek>? = nil) async throws -> Schedules {
+        guard let endpoint = baseURL else { throw APIError.noBaseURL }
+        let scoped = SleepypodCoreClient(session: session, baseURL: endpoint)
+        let ownerRevision = OwnerConnection.revision
         let selectedDays = days ?? Set(DayOfWeek.allCases)
         var patch = CoreSchedulePatch()
         for side in Side.allCases {
-            let latest: CoreScheduleRows = try await query("schedules.getAll", input: ["side": side.rawValue, "unit": "F"])
+            let latest: CoreScheduleRows = try await scoped.query("schedules.getAll", input: ["side": side.rawValue, "unit": "F"])
+            try ensureCurrentOwner(ownerRevision)
             try patch.append(requested: schedules.schedule(for: side), latest: latest, side: side, days: selectedDays)
         }
         if !patch.isEmpty {
-            // Keep one transaction: a partial multi-request replacement can lose the user's alarms.
-            let _: TRPCSuccess = try await mutate("schedules.batchUpdate", input: patch.input)
+            // One transaction preserves all alarms; an owner change cancels an unsent batch.
+            try ensureCurrentOwner(ownerRevision)
+            let _: TRPCSuccess = try await scoped.mutate("schedules.batchUpdate", input: patch.input)
         }
-        return try await getSchedules()
+        return try await scoped.readSchedules()
+    }
+
+    private func ensureCurrentOwner(_ revision: [String]) throws {
+        try Task.checkCancellation()
+        guard OwnerConnection.revision == revision else { throw CancellationError() }
     }
 
     // MARK: - Server Status

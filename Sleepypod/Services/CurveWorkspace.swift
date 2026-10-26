@@ -16,9 +16,10 @@ final class CurveWorkspace {
     init(api: (any CurveClient)? = nil, demo: Bool = APIBackend.current.isDemo) {
         self.api = api ?? (demo ? DemoCurveClient() : CoreCurveClient())
     }
-    func configure() {
-        revision += 1; api = APIBackend.current.isDemo ? DemoCurveClient() : CoreCurveClient()
+    func configure(api: (any CurveClient)? = nil, demo: Bool = APIBackend.current.isDemo) {
+        revision += 1; self.api = api ?? (demo ? DemoCurveClient() : CoreCurveClient())
         curves = []; sessions = [:]; loaded = false; loading = false; saving = false; error = nil; notice = nil
+        supportsAssignments = false
     }
     func refresh() async {
         guard !saving, !loading else { return }

@@ -47,6 +47,18 @@ import XCTest
         catch { XCTAssertTrue(error.localizedDescription.contains("original snapshot")) }
         XCTAssertTrue(fixture.state.inspect { $0.patches.isEmpty })
     }
+    func testConnectionKeyChangeDuringPreflightCancelsUnsentSettingsPatch() async throws {
+        let originalRevision = UserDefaults.standard.object(forKey: "ownerConnectionRevision")
+        defer { UserDefaults.standard.set(originalRevision, forKey: "ownerConnectionRevision") }
+        let fixture = SettingsHTTPFixture(), (client, session) = fixture.client()
+        defer { session.invalidateAndCancel(); fixture.remove() }
+        let original = try await client.getSettings()
+        var desired = original; desired.temperatureFormat = .celsius
+        fixture.state.change { $0.changeOwnerOnRead = true }
+        do { _ = try await client.updateSettings(desired, original: original); XCTFail("The old scope must not write") }
+        catch is CancellationError {} catch { XCTFail("Unexpected error: \(error)") }
+        XCTAssertTrue(fixture.state.inspect { $0.patches.isEmpty })
+    }
     func testAcknowledgmentIsRetainedWhenReadbackFails() async throws {
         let restore = preserveDisplayDefaults(); defer { restore() }
         let fixture = SettingsHTTPFixture(), (client, session) = fixture.client()
@@ -95,6 +107,7 @@ private final class SettingsHTTPState: @unchecked Sendable {
         var loseWriteReply = false
         var failReadAfterPatch = false
         var ignoreUnitWrite = false
+        var changeOwnerOnRead = false
     }
     private var value = Value()
     private let lock = NSLock()
@@ -106,6 +119,7 @@ private final class SettingsHTTPState: @unchecked Sendable {
             switch (request.httpMethod, request.url?.path) {
             case ("GET", "/api/trpc/settings.getAll"):
                 value.reads += 1
+                if value.changeOwnerOnRead { UserDefaults.standard.set(UUID().uuidString, forKey: "ownerConnectionRevision") }
                 if value.failReadAfterPatch && !value.patches.isEmpty { throw URLError(.notConnectedToInternet) }
                 return try JSONSerialization.data(withJSONObject: ["result": ["data": ["json": ["device": value.device, "sides": ["left": value.left, "right": value.right], "gestures": ["left": [], "right": []]]]]])
             case ("PATCH", "/api/settings/device"):

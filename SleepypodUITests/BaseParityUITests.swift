@@ -2,10 +2,11 @@ import XCTest
 
 @MainActor
 final class BaseParityUITests: XCTestCase {
-    private func launch(_ appearance: String = "Dark") -> XCUIApplication {
+    private func launch(_ appearance: String = "Dark", scenario: String = "whole") -> XCUIApplication {
+        continueAfterFailure = false
         let app = XCUIApplication()
         app.launchArguments = ["-apiBackend", "demo", "--demo", "-onboardingComplete", "YES", "-appearance", appearance,
-                               "-healthSyncEnabled", "NO", "-uiRoute", "", "--reset-base-preferences"]
+                               "-healthSyncEnabled", "NO", "-uiRoute", "", "--reset-base-preferences", "-uiBaseScenario", scenario]
         app.launch()
         XCTAssertTrue(app.buttons["Settings"].waitForExistence(timeout: 15))
         app.buttons["Settings"].tap()
@@ -81,6 +82,46 @@ final class BaseParityUITests: XCTestCase {
         app.buttons["Delete Read at 22:00"].tap()
         app.buttons["Delete adjustment"].tap()
         XCTAssertTrue(app.staticTexts["No scheduled positions yet."].waitForExistence(timeout: 3))
+    }
+    func testIndependentSideCardsKeepOtherSideSeparateAndCameraPinchResets() {
+        let app = launch("Light", scenario: "independent")
+        XCTAssertTrue(app.staticTexts["Each side can move independently."].waitForExistence(timeout: 5))
+        let scene = app.otherElements["positionBed.scene"].firstMatch
+        revealFully(scene, app: app)
+        let original = scene.value as? String; XCTAssertNotNil(original)
+        scene.pinch(withScale: 1.2, velocity: 1)
+        XCTAssertNotEqual(scene.value as? String, original); capture(app, "Base-independent-zoom")
+        app.buttons["Reset view"].firstMatch.tap()
+        XCTAssertEqual(scene.value as? String, original)
+        let cards = app.segmentedControls.buttons["Side cards"]
+        revealFully(cards, app: app); cards.tap()
+        let preset = app.buttons["base.preset.left.read"]; revealFully(preset, app: app); preset.tap()
+        let left = app.buttons["base.move.left"]; revealFully(left, app: app)
+        XCTAssertTrue(left.label.contains("40° / 0°")); XCTAssertTrue(left.isEnabled); capture(app, "Base-independent-left-draft")
+        let right = app.buttons["base.move.right"]; revealFully(right, app: app)
+        XCTAssertTrue(right.label.contains("0° / 0°")); capture(app, "Base-independent-right-unchanged")
+        XCTAssertTrue(app.navigationBars.buttons["Stop"].isEnabled)
+    }
+    func testDisconnectedBasePreventsMovementAndKeepsStopAndReconnectReachable() {
+        let app = launch(scenario: "offline")
+        XCTAssertTrue(app.staticTexts["The base is disconnected."].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.buttons["Reconnect base"].isEnabled); capture(app, "Base-offline-status")
+        let move = app.buttons["base.move.both"]; revealFully(move, app: app)
+        XCTAssertFalse(move.isEnabled); XCTAssertTrue(app.navigationBars.buttons["Stop"].isEnabled); capture(app, "Base-offline-controls")
+        app.navigationBars.buttons["Stop"].tap()
+        let reconnect = app.buttons["Reconnect base"]; revealFully(reconnect, app: app); reconnect.tap()
+        XCTAssertTrue(app.staticTexts["The base is disconnected."].exists)
+        revealFully(move, app: app); XCTAssertFalse(move.isEnabled)
+    }
+    private func revealFully(_ element: XCUIElement, app: XCUIApplication) {
+        let scroll = app.scrollViews.firstMatch
+        for _ in 0..<30 {
+            let bounds = scroll.frame.intersection(app.frame).insetBy(dx: 2, dy: 16)
+            if element.exists, element.isHittable, bounds.contains(element.frame) { return }
+            let direction = !element.exists || element.frame.midY > bounds.midY ? 1.0 : -1.0
+            scroll.coordinate(withNormalizedOffset: .init(dx: 0.02, dy: 0.5 + direction * 0.15)).press(forDuration: 0.05, thenDragTo: scroll.coordinate(withNormalizedOffset: .init(dx: 0.02, dy: 0.5 - direction * 0.15)))
+        }
+        XCTFail("Cannot reach \(element.identifier)")
     }
     private func capture(_ app: XCUIApplication, _ name: String) {
         let attachment = XCTAttachment(screenshot: app.screenshot())

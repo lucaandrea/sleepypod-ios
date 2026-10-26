@@ -147,3 +147,5 @@ Work on one cohesive portion at a time without dropping later requirements. No r
 
 
 Controller updates, alert inbox and room mapping are integrated by PR #27 after all four CI checks passed (`d655af38653f22097f89e9c863e9a52582d149d3`); the branch is removed. Temperature history and Night/Dawn reconciliation continue in `TEMPERATURE_HISTORY_PHASES_AUDIT.md`.
+
+Temperature history and Night/Dawn PR #28 passed all four GitHub checks and merged into owner main at `473656e3c26c35bd4a9804bccd864bd388268557`; its feature branch was removed. Final controls, curve dragging and scoped save reconciliation are tracked in `NATIVE_CONTROLS_RECONCILIATION.md`.

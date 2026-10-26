@@ -13,6 +13,8 @@ struct PositionBedScene: UIViewRepresentable {
     func makeCoordinator() -> Coordinator { Coordinator() }
     func makeUIView(context: Context) -> SCNView {
         let view = SCNView()
+        view.accessibilityIdentifier = "positionBed.scene"
+        context.coordinator.view = view
         view.scene = context.coordinator.scene
         view.pointOfView = context.coordinator.camera
         view.backgroundColor = .clear
@@ -32,6 +34,7 @@ struct PositionBedScene: UIViewRepresentable {
             UIAccessibilityCustomAction(name: "Zoom out", target: context.coordinator, selector: #selector(Coordinator.zoomOut)),
             UIAccessibilityCustomAction(name: "Reset view", target: context.coordinator, selector: #selector(Coordinator.resetView))
         ]
+        context.coordinator.updateAccessibility()
         return view
     }
     func updateUIView(_ view: SCNView, context: Context) {
@@ -44,6 +47,7 @@ struct PositionBedScene: UIViewRepresentable {
     @MainActor final class Coordinator: NSObject, UIGestureRecognizerDelegate {
         let scene = SCNScene()
         let camera = SCNNode()
+        weak var view: SCNView?
         var resetToken = 0
         private var yaw = 0.7
         private var pitch = 0.6
@@ -105,8 +109,13 @@ struct PositionBedScene: UIViewRepresentable {
         }
         private func positionCamera() {
             camera.position = SCNVector3(sin(yaw) * cos(pitch) * 5, sin(pitch) * 5 + 0.45, cos(yaw) * cos(pitch) * 5)
-            camera.look(at: SCNVector3(0, 0.45, 0))
+            // Keep the horizon fixed; the convenience overload reuses the previous camera up vector.
+            camera.look(at: SCNVector3(0, 0.45, 0), up: SCNVector3(0, 1, 0), localFront: SCNVector3(0, 0, -1))
             camera.camera?.orthographicScale = zoom
+            view?.setNeedsDisplay(); updateAccessibility()
+        }
+        func updateAccessibility() {
+            view?.accessibilityValue = "Rotation \(Int((yaw * 180 / .pi).rounded())) degrees, zoom \(Int((1.55 / zoom * 100).rounded())) percent"
         }
         func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
             guard let pan = gestureRecognizer as? UIPanGestureRecognizer, pan.numberOfTouches < 2 else { return true }

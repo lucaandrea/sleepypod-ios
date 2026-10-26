@@ -22,9 +22,9 @@ final class AlarmWorkspace {
     init(api: (any AlarmClient)? = nil, demo: Bool = APIBackend.current.isDemo) {
         self.demo = demo; self.api = api ?? (demo ? DemoAlarmClient() : CoreAlarmClient())
     }
-    func configure() {
+    func configure(api: (any AlarmClient)? = nil, demo: Bool = APIBackend.current.isDemo) {
         revision += 1; commandRevision += 1
-        demo = APIBackend.current.isDemo; api = demo ? DemoAlarmClient() : CoreAlarmClient()
+        self.demo = demo; self.api = api ?? (demo ? DemoAlarmClient() : CoreAlarmClient())
         rows = []; loaded = false; loading = false; saving = false; testing = false; stopping = false
         error = nil; commandError = nil; notice = nil; testingSides = []
         schemaSnooze = false
@@ -38,11 +38,12 @@ final class AlarmWorkspace {
     }
     func refresh() async {
         guard !loading, !saving else { return }
-        loading = true; revision += 1; let operation = revision
+        loading = true; revision += 1; let operation = revision; let client = api
         do {
-            let current = try await api.all()
+            let current = try await client.all()
+            guard revision == operation else { return }
             var supportsSnooze = current.contains { $0.snoozeDuration != nil && $0.snoozeTaper != nil }
-            if !supportsSnooze { supportsSnooze = await api.supportsSnooze() }
+            if !supportsSnooze { supportsSnooze = await client.supportsSnooze() }
             guard revision == operation else { return }
             rows = current; schemaSnooze = supportsSnooze; loaded = true; error = nil
         } catch { if revision == operation { self.error = error.localizedDescription } }

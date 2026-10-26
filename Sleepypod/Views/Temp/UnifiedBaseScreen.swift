@@ -105,10 +105,11 @@ private struct CoreBaseScreen: View {
         let target = model.targets[selected]
         let shown = model.previewRequested ? model.targets : (model.measured ?? .flat)
         return VStack(spacing: 18) {
-            HStack {
+            let headingLayout = typeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: 8)) : AnyLayout(HStackLayout())
+            headingLayout {
                 Text(useCards ? name(requested) : "Position").font(.headline)
-                Spacer()
-            Text(model.measured == nil ? "UNAVAILABLE" : model.status?.isMoving(selected) == true ? "MOVING" : model.atTarget(selected) ? "AT TARGET" : "NOT APPLIED")
+                if !typeSize.isAccessibilitySize { Spacer() }
+                Text(model.measured == nil ? "UNAVAILABLE" : model.status?.isMoving(selected) == true ? "MOVING" : model.atTarget(selected) ? "AT TARGET" : "NOT APPLIED")
                     .font(.mono(10, relativeTo: .caption)).foregroundStyle(Theme.text3)
             }
             Picker("Bed rendering", selection: $model.previewRequested) {
@@ -141,7 +142,7 @@ private struct CoreBaseScreen: View {
             BaseAngleControls(angles: Binding(get: { model.targets[selected] }, set: { model.edit($0, scope: selected) }))
             BaseSpeedPicker(speed: $model.speed)
             Button { Task { await model.move(selected) } } label: {
-                Text(typeSize.isAccessibilitySize && model.canMove(selected) ? (model.demo ? "Simulate move" : "Move bed") : moveTitle(selected))
+                Text(typeSize.isAccessibilitySize && !model.sending && model.status?.isMoving(selected) != true && !model.atTarget(selected) ? (model.demo ? "Simulate move" : "Move bed") : moveTitle(selected))
                     .multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true)
                     .padding(.horizontal, 20).padding(.vertical, 12)
             }

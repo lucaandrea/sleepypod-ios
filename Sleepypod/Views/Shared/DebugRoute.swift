@@ -16,6 +16,13 @@ enum DebugRoute {
         "complete"
         #endif
     }
+    static var baseScenario: String {
+        #if DEBUG
+        UserDefaults.standard.string(forKey: "uiBaseScenario") ?? "whole"
+        #else
+        "whole"
+        #endif
+    }
     static var current: String? {
         #if DEBUG
         UserDefaults.standard.string(forKey: "uiRoute")
