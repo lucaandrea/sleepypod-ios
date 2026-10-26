@@ -4,7 +4,7 @@ struct AutomationActionEditor: View {
     @Binding var action: AutomationAction
     var body: some View {
         Form {
-            Picker("Action", selection: Binding(get: { action.kind }, set: changeKind)) {
+            Picker("Action", selection: Binding(get: { action.kind }, set: { kind in changeKind(kind) })) {
                 Text("Set temperature").tag(AutomationAction.Kind.setTemperature)
                 Text("Power").tag(AutomationAction.Kind.setPower)
                 Text("Notify").tag(AutomationAction.Kind.notify)

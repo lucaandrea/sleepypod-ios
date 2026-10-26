@@ -15,7 +15,7 @@ struct AutomationExpressionEditor: View {
     }
     var body: some View {
         Form {
-            Picker("Value", selection: Binding(get: { kind }, set: changeKind)) {
+            Picker("Value", selection: Binding(get: { kind }, set: { kind in changeKind(kind) })) {
                 ForEach(["Number", "Signal", "Aggregate", "Calculation", "Limit"], id: \.self) { Text($0) }
             }
             switch expression {

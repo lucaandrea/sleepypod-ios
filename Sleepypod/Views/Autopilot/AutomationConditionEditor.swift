@@ -16,7 +16,7 @@ struct AutomationConditionEditor: View {
     }
     var body: some View {
         Form {
-            Picker("Match", selection: Binding(get: { kind }, set: changeKind)) {
+            Picker("Match", selection: Binding(get: { kind }, set: { kind in changeKind(kind) })) {
                 ForEach(["All", "Any", "Not", "Compare", "Between", "Time", "Days"], id: \.self) { Text($0) }
             }
             fields
