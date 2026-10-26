@@ -3,7 +3,6 @@ import FreeSleepKit
 
 /// The gear sheet (1l): quick actions and the most-used rows over the current tab.
 struct SettingsSheet: View {
-    @State private var presentationDetent: PresentationDetent = .medium
     @Environment(\.dismiss) private var dismiss
     @Environment(\.colorScheme) private var scheme
     @Environment(DeviceManager.self) private var device
@@ -16,6 +15,7 @@ struct SettingsSheet: View {
     @State private var confirmPrime = false
     @State private var primeError: String?
     @State private var showBase = false
+    @State private var showStatus = false
     @State private var showComfort = false
     @State private var showAutopilot = DebugRoute.current == "autopilot"
 
@@ -61,7 +61,7 @@ struct SettingsSheet: View {
                         NavigationLink { OwnerConnectionView() } label: {
                             SettingsRow("Pod connection", icon: "network", iconColor: Theme.text1, chevron: true)
                         }
-                        NavigationLink { StatusScreen().navigationTitle("Status") } label: {
+                        Button { showStatus = true } label: {
                             SettingsRow("Status", icon: "waveform.path.ecg", iconColor: Theme.text1, chevron: true) {
                                 RowValue(status.totalCount > 0 ? "\(status.healthyCount)/\(status.totalCount)" : "—", mono: true,
                                          color: status.totalCount == 0 ? Theme.text2 : status.healthyCount == status.totalCount ? Theme.green : Theme.amber)
@@ -117,12 +117,16 @@ struct SettingsSheet: View {
             .navigationDestination(isPresented: $showHealth) { HealthAccessView() }
         }
         .tint(Theme.text1)
-        .presentationDetents([.medium, .large], selection: $presentationDetent)
-        .onPreferenceChange(ExpandedSettingsPresentationKey.self) { expanded in
-            if expanded { presentationDetent = .large }
-        }
+        .presentationDetents([.medium, .large])
         .presentationDragIndicator(.visible)
         .modifier(SettingsSheetBackground())
+        .fullScreenCover(isPresented: $showStatus) {
+            NavigationStack {
+                StatusScreen().navigationTitle("Status").toolbar {
+                    ToolbarItem(placement: .topBarTrailing) { Button("Done") { showStatus = false } }
+                }
+            }
+        }
         .fullScreenCover(isPresented: $showBase) {
             NavigationStack {
                 UnifiedBaseScreen().toolbar {
@@ -526,10 +530,4 @@ private struct SettingsSheetBackground: ViewModifier {
         if reduceTransparency { content.presentationBackground(Theme.card) }
         else { content }
     }
-}
-
-// Detailed diagnostics expand the gear sheet while quick settings keep their compact entry.
-struct ExpandedSettingsPresentationKey: PreferenceKey {
-    static let defaultValue = false
-    static func reduce(value: inout Bool, nextValue: () -> Bool) { value = value || nextValue() }
 }

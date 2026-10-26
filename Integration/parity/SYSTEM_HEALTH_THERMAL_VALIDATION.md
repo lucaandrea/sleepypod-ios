@@ -1,6 +1,6 @@
 # Native health and thermal diagnostics
 
-Status: implementation complete; focused simulator validation passed; CI pending. This is one portion of the parity program, not a TestFlight release or a physical Pod recovery claim.
+Status: implementation complete; focused simulator validation and all four CI checks passed; merged into owner main. This is one portion of the parity program, not a TestFlight release or a physical Pod recovery claim.
 
 ## Source coverage
 
@@ -32,3 +32,5 @@ An earlier iPad run was interrupted after all 17 unit tests passed because the t
 Strict SwiftLint and the native-presentation guard pass. No real Pod restart, calibration, pump-setting mutation or TestFlight release was performed. All demo histories and recovery results are synthetic.
 
 Local result bundles under `build/parity-validation/`: `HealthThermal-ipad.xcresult` (17 passing units before the interrupted UI attempt), `HealthThermal-phone2.xcresult`, `HealthThermal-ipad2.xcresult`, `HealthThermal-accessibility.xcresult` (passing Health flow), and final Thermal flows in `HealthThermal-accessibility-pump.xcresult`, `HealthThermal-phone-pump.xcresult`, `HealthThermal-ipad-pump.xcresult`.
+
+Delivery: PR [#8](https://github.com/lucaandrea/sleepypod-ios/pull/8) merged into owner main at `603311d1b613c14a974823b167ceedec959391bc`; build, contract-test, lint and done passed in GitHub run `40258239487`. No new App Store build was uploaded.
