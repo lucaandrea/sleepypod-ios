@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct StatusScreen: View {
+    @Environment(\.scenePhase) private var scenePhase
     @Environment(StatusManager.self) private var statusManager
     @Environment(ScheduleManager.self) private var scheduleManager
     @Environment(DeviceManager.self) private var deviceManager
@@ -22,6 +23,10 @@ struct StatusScreen: View {
 
                 if APIBackend.current != .freeSleep {
                     GroupedCard {
+                        NavigationLink { SystemDashboardScreen() } label: {
+                            SettingsRow("Overview", subtitle: "Tonight, maintenance and controller health", icon: "square.grid.2x2", iconColor: Theme.cool, chevron: true)
+                        }.accessibilityIdentifier("system.dashboard")
+                        Divider()
                         NavigationLink { SystemHealthScreen() } label: {
                             SettingsRow("Health", subtitle: "Data path, recovery and recorded checks", icon: "point.3.connected.trianglepath.dotted", iconColor: Theme.green, chevron: true)
                         }.accessibilityIdentifier("system.health")
@@ -56,6 +61,10 @@ struct StatusScreen: View {
                     }
                 }
 
+                if !statusManager.statusIsFresh() {
+                    Text(statusManager.serverStatus == nil ? "Service status is unavailable." : "Service status may be stale. Last successful readings are shown below.")
+                        .font(.footnote).foregroundStyle(Theme.amber)
+                }
                 // Service categories + hardware details
                 let cats = statusManager.categories(schedules: scheduleManager.schedules)
                 if cats.isEmpty && statusManager.isLoading {
@@ -117,7 +126,9 @@ struct StatusScreen: View {
             .padding(.bottom, 20)
         }
         .background(Theme.background)
-        .task {
+        .onDisappear { statusManager.stopPolling() }
+        .task(id: scenePhase) {
+            guard scenePhase == .active else { statusManager.stopPolling(); return }
             statusManager.startPolling()
             await scheduleManager.fetchSchedules()
             let api = APIBackend.current.createClient()

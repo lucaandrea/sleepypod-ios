@@ -34,3 +34,5 @@ Strict SwiftLint and the native-presentation guard pass. No real Pod restart, ca
 Local result bundles under `build/parity-validation/`: `HealthThermal-ipad.xcresult` (17 passing units before the interrupted UI attempt), `HealthThermal-phone2.xcresult`, `HealthThermal-ipad2.xcresult`, `HealthThermal-accessibility.xcresult` (passing Health flow), and final Thermal flows in `HealthThermal-accessibility-pump.xcresult`, `HealthThermal-phone-pump.xcresult`, `HealthThermal-ipad-pump.xcresult`.
 
 Delivery: PR [#8](https://github.com/lucaandrea/sleepypod-ios/pull/8) merged into owner main at `603311d1b613c14a974823b167ceedec959391bc`; build, contract-test, lint and done passed in GitHub run `40258239487`. No new App Store build was uploaded.
+
+Scope reconciliation: re-read the complete ThermalPanel in Core `diagnostics/DiagnosticsConsole.tsx` on 2026-10-25. Its range selector, five charts, thermal side facts, pump-protection warning, guard/alarm status and powered-since metadata are present natively. Ownership and intervention workflows remain tracked under Temperature/Autopilot rather than being an unimplemented Thermal-tab feature.

@@ -152,7 +152,9 @@ final class MockClient: SleepypodProtocol, @unchecked Sendable {
             primeSchedule: info("Prime Schedule", desc: "Daily prime scheduler", msg: "1 prime jobs"),
             rebootSchedule: info("Reboot Schedule", desc: "Daily reboot scheduler", msg: "0 reboot jobs"),
             systemDate: info("Biometrics", desc: "Sleep data processing", msg: "Idle"),
-            temperatureSchedule: info("Temperature Schedule", desc: "Temperature curve scheduler", msg: "8 temp jobs")
+            temperatureSchedule: info("Temperature Schedule", desc: "Temperature curve scheduler", msg: "8 temp jobs"),
+            coreFirewall: .init(ok: true, missing: []),
+            coreWiFi: .init(connected: true, ssid: "DemoNetwork", signal: 82)
         )
     }
 

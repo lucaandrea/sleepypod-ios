@@ -1,6 +1,6 @@
 # Native hardware vibration test
 
-Status: implemented and validated on iPhone, iPad and maximum Dynamic Type; local validation complete; CI pending. No real Pod cleanup or vibration command has been sent.
+Status: implemented and validated on iPhone, iPad and maximum Dynamic Type; merged into owner main after all CI checks passed. No real Pod cleanup or vibration command has been sent.
 
 Compared with Core `HapticsTestCard.tsx`, `vibrationPatterns.ts` and the `device.setAlarm`/`device.clearAlarm` contracts. Quick (10s), Standard (30s), Long (60s) and Custom (1–60s) use intensity 100 and pattern rise. Preset names select durations; they do not claim to produce different motor strengths. Firmware interpretation still requires a physical test.
 
@@ -23,3 +23,7 @@ The existing Core status adapter no longer marks absent DAC/hardware responses h
 - `HardwareVibration-phone-menu.xcresult`: the final hardware flow passed after the test tapped the menu option's center, waited for dismissal, and verified the Play target before proceeding. The production vibration code is unchanged by this test correction.
 
 - `SystemStorage-ipad-final.xcresult`: final iPad Storage flow passed after the accessibility/copy adjustment. Twenty-one final screenshots cover seven states on each of iPhone dark, iPad light and maximum-text iPhone.
+
+Publication: [PR #9](https://github.com/lucaandrea/sleepypod-ios/pull/9) merged into owner main at `a606419c6a097b5edf819c7699260c7af41f0e2e` on 2026-10-25 after all four CI checks passed (run `40260543487`).
+
+Scope reconciliation: inspected Core `System/SystemScreen.tsx` on 2026-10-25. Its Hardware tab renders only `HapticsTestCard`; sensor telemetry belongs to Sensors/Thermal and bed movement to Base. The native vibration workflow covers the actual web Hardware tab.

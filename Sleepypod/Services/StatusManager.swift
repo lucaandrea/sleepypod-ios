@@ -11,6 +11,12 @@ final class StatusManager {
     var error: String?
     var lastUpdated: Date?
     var isInternetBlocked = false
+    private(set) var serverStatusError: String?
+    private(set) var internetError: String?
+    private(set) var internetUpdatedAt: Date?
+    private(set) var isChangingInternet = false
+    private var generation = UUID()
+    private var internetRevision = UUID()
     private var internetCooldownUntil: Date?
 
     private var api: SleepypodProtocol
@@ -20,7 +26,25 @@ final class StatusManager {
         self.api = api
     }
 
-    func switchBackend(_ client: SleepypodProtocol) { api = client }
+    // Invalidate in-flight responses before changing the connected controller.
+    func switchBackend(_ client: SleepypodProtocol) {
+        stopPolling()
+        generation = UUID(); internetRevision = UUID(); api = client
+        serverStatus = nil; services = nil; logSources = []; lastUpdated = nil
+        error = nil; serverStatusError = nil; internetError = nil
+        internetUpdatedAt = nil; internetCooldownUntil = nil
+        isInternetBlocked = false; isChangingInternet = false; isLoading = false
+    }
+
+    func statusIsFresh(now: Date = .now) -> Bool {
+        guard serverStatusError == nil, let lastUpdated else { return false }
+        return (0...30).contains(now.timeIntervalSince(lastUpdated))
+    }
+
+    func internetIsFresh(now: Date = .now) -> Bool {
+        guard internetError == nil, let internetUpdatedAt else { return false }
+        return (0...30).contains(now.timeIntervalSince(internetUpdatedAt))
+    }
 
     // MARK: - Computed
 
@@ -123,17 +147,15 @@ final class StatusManager {
     // MARK: - Fetch
 
     func fetchAll() async {
-        isLoading = true
-        error = nil
-
-        async let statusTask: () = fetchServerStatus()
-        async let servicesTask: () = fetchServices()
-        async let internetTask: () = fetchInternetStatus()
-        async let logSourcesTask: () = fetchLogSources()
+        guard !isLoading else { return }
+        let generation = generation, client = api
+        isLoading = true; error = nil
+        defer { if self.generation == generation { isLoading = false } }
+        async let statusTask: () = fetchServerStatus(client, generation: generation)
+        async let servicesTask: () = fetchServices(client, generation: generation)
+        async let internetTask: () = fetchInternetStatus(client, generation: generation)
+        async let logSourcesTask: () = fetchLogSources(client, generation: generation)
         _ = await (statusTask, servicesTask, internetTask, logSourcesTask)
-
-        lastUpdated = Date()
-        isLoading = false
     }
 
     func startPolling() {
@@ -156,35 +178,41 @@ final class StatusManager {
     func toggleBiometrics() async {
         guard var services else { return }
         services.biometrics.enabled.toggle()
-        self.services = services
-        do {
-            self.services = try await api.updateServices(services)
-        } catch {
-            self.error = error.localizedDescription
-        }
+        await updateServices(services)
     }
 
     func toggleSentryLogging() async {
         guard var services else { return }
         services.sentryLogging.enabled.toggle()
-        self.services = services
+        await updateServices(services)
+    }
+
+    private func updateServices(_ proposed: Services) async {
+        let generation = generation, client = api
         do {
-            self.services = try await api.updateServices(services)
-        } catch {
-            self.error = error.localizedDescription
-        }
+            let updated = try await client.updateServices(proposed)
+            guard current(generation) else { return }
+            services = updated
+        } catch { if current(generation) { self.error = error.localizedDescription } }
     }
 
     // MARK: - Internet Access
 
     func setInternetAccess(blocked: Bool) async {
+        guard !isChangingInternet else { return }
+        let generation = generation, client = api, previous = isInternetBlocked
+        internetRevision = UUID(); isChangingInternet = true; internetError = nil
         isInternetBlocked = blocked
-        internetCooldownUntil = Date().addingTimeInterval(10) // Don't let polls override for 10s
+        internetCooldownUntil = Date().addingTimeInterval(10)
+        defer { if self.generation == generation { isChangingInternet = false } }
         do {
-            try await api.setInternetAccess(blocked: blocked)
+            try await client.setInternetAccess(blocked: blocked)
+            guard current(generation) else { return }
+            internetUpdatedAt = .now
         } catch {
-            isInternetBlocked = !blocked
-            internetCooldownUntil = nil
+            guard current(generation) else { return }
+            isInternetBlocked = previous; internetCooldownUntil = nil; internetUpdatedAt = nil
+            internetError = "Internet setting was not confirmed. Refresh before changing it again."
             self.error = error.localizedDescription
         }
     }
@@ -198,41 +226,45 @@ final class StatusManager {
 
     // MARK: - Private
 
-    private func fetchServerStatus() async {
+    private func current(_ expected: UUID) -> Bool { generation == expected && !Task.isCancelled }
+
+    private func fetchServerStatus(_ client: SleepypodProtocol, generation: UUID) async {
         do {
-            serverStatus = try await api.getServerStatus()
+            let value = try await client.getServerStatus()
+            guard current(generation) else { return }
+            serverStatus = value; lastUpdated = .now; serverStatusError = nil
         } catch {
-            self.error = error.localizedDescription
+            if current(generation) { serverStatusError = error.localizedDescription; self.error = error.localizedDescription }
         }
     }
 
-    private func fetchInternetStatus() async {
-        // Don't override optimistic update during cooldown
+    private func fetchInternetStatus(_ client: SleepypodProtocol, generation: UUID) async {
+        if isChangingInternet { return }
         if let cooldown = internetCooldownUntil, Date() < cooldown { return }
         internetCooldownUntil = nil
+        let revision = internetRevision
         do {
-            let blocked = try await api.getInternetStatus()
-            // A toggle may have started while the query was in flight.
-            guard internetCooldownUntil == nil, !Task.isCancelled else { return }
-            isInternetBlocked = blocked
+            let blocked = try await client.getInternetStatus()
+            guard current(generation), internetRevision == revision, !isChangingInternet else { return }
+            isInternetBlocked = blocked; internetUpdatedAt = .now; internetError = nil
         } catch {
-            // Keep previous value
+            if current(generation), internetRevision == revision { internetError = error.localizedDescription }
         }
     }
 
-    private func fetchServices() async {
+    private func fetchServices(_ client: SleepypodProtocol, generation: UUID) async {
         do {
-            services = try await api.getServices()
-        } catch {
-            self.error = error.localizedDescription
-        }
+            let value = try await client.getServices()
+            guard current(generation) else { return }
+            services = value
+        } catch { if current(generation) { self.error = error.localizedDescription } }
     }
 
-    private func fetchLogSources() async {
+    private func fetchLogSources(_ client: SleepypodProtocol, generation: UUID) async {
         do {
-            logSources = try await api.getLogSources()
-        } catch {
-            // Non-critical — keep previous value
-        }
+            let value = try await client.getLogSources()
+            guard current(generation) else { return }
+            logSources = value
+        } catch { /* Log-source failures do not invalidate the independent health observation. */ }
     }
 }

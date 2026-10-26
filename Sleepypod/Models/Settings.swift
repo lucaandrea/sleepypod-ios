@@ -101,6 +101,13 @@ struct PrimePodDaily: Codable, Sendable {
 }
 
 struct PodSettings: Codable, Sendable {
+    var bedMode: String?
+    // Visibility follows active sleepers; this does not change either thermal zone's policy.
+    var shownSides: [Side] {
+        let configured: [Side] = bedMode == "solo-left" ? [.left] : bedMode == "solo-right" ? [.right] : Side.allCases
+        let active = configured.filter { $0 == .left ? !left.awayMode : !right.awayMode }
+        return active.count == 1 ? active : Side.allCases
+    }
     var defaultScheduleEndAction: ScheduleEndAction?
     var id: String
     var timeZone: String
