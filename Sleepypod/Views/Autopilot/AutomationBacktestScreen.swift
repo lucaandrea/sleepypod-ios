@@ -52,7 +52,6 @@ struct AutomationTracePoint: Identifiable {
 }
 
 struct AutomationBacktestCharts: View {
-    @Environment(\.dynamicTypeSize) private var typeSize
     let result: AutomationBacktest.Result
     var body: some View {
         VStack(alignment: .leading, spacing: 18) {
@@ -71,49 +70,73 @@ struct AutomationBacktestCharts: View {
         }
     }
     private func trace(_ title: String, values: [Double?], threshold: Double?, color: Color, axis: AutomationBacktest.Result.Axis? = nil, events: Bool = false) -> some View {
+        AutomationTraceChart(title: title, values: values, threshold: threshold, color: color, axis: axis,
+                             stepMinutes: result.stepMin, fires: events ? result.fires : [], suppressed: events ? result.suppressed : [], stepped: events)
+    }
+}
+
+/// Keep chart data and marks separately typed for the supported Xcode compilers.
+private struct AutomationTraceChart: View {
+    @Environment(\.dynamicTypeSize) private var typeSize
+    let title: String
+    let values: [Double?]
+    let threshold: Double?
+    let color: Color
+    let axis: AutomationBacktest.Result.Axis?
+    let stepMinutes: Int
+    let fires: [Int]
+    let suppressed: [Int]
+    let stepped: Bool
+    private var points: [AutomationTracePoint] { AutomationTracePoint.points(values) }
+    private var bounds: ClosedRange<Double> { domain(values, threshold: threshold, axis: axis) }
+    private var horizontalTicks: [Int] {
+        let end = max(1, values.count - 1) * stepMinutes
+        if typeSize.isAccessibilitySize { return [0, end] }
+        let interval = max(1, values.count * stepMinutes / 4)
+        return Array(stride(from: 0, through: end, by: interval))
+    }
+    private var verticalTicks: [Double] { [bounds.lowerBound, (bounds.lowerBound + bounds.upperBound) / 2, bounds.upperBound] }
+    var body: some View {
         GroupedCard {
             VStack(alignment: .leading, spacing: 12) {
                 Text(title).font(.subheadline.weight(.semibold))
-                if AutomationTracePoint.points(values).isEmpty { Text("No recorded values").foregroundStyle(Theme.text2) }
+                if points.isEmpty { Text("No recorded values").foregroundStyle(Theme.text2) }
                 else {
-                    Chart {
-                        ForEach(AutomationTracePoint.points(values)) { point in
-                            LineMark(x: .value("Replay minute", point.id * result.stepMin), y: .value(title, point.value), series: .value("Segment", point.segment))
-                                .interpolationMethod(events ? .stepEnd : .linear).foregroundStyle(color)
-                        }
-                        if events {
-                            ForEach(result.fires, id: \.self) { index in
-                                if values.indices.contains(index), let value = values[index], value.isFinite {
-                                    PointMark(x: .value("Replay minute", index * result.stepMin), y: .value(title, value)).symbol(.diamond).foregroundStyle(Theme.green)
-                                }
-                            }
-                            ForEach(result.suppressed, id: \.self) { index in
-                                if values.indices.contains(index), let value = values[index], value.isFinite {
-                                    PointMark(x: .value("Replay minute", index * result.stepMin), y: .value(title, value)).symbol(.cross).foregroundStyle(Theme.amber)
-                                }
-                            }
-                        }
-                        if let threshold, threshold.isFinite { RuleMark(y: .value("Threshold", threshold)).lineStyle(StrokeStyle(lineWidth: 1, dash: [4, 4])).foregroundStyle(Theme.text2) }
-                    }.chartYScale(domain: domain(values, threshold: threshold, axis: axis))
-                        .chartXAxis {
-                            AxisMarks(values: typeSize.isAccessibilitySize ? [0, max(1, values.count - 1) * result.stepMin] : stride(from: 0, through: max(1, values.count - 1) * result.stepMin, by: max(1, values.count * result.stepMin / 4)).map { $0 }) {
-                                AxisGridLine(); AxisTick(); AxisValueLabel()
-                            }
-                        }
-                        .chartYAxis {
-                            let bounds = domain(values, threshold: threshold, axis: axis)
-                            AxisMarks(values: [bounds.lowerBound, (bounds.lowerBound + bounds.upperBound) / 2, bounds.upperBound]) { value in
-                                AxisGridLine(); AxisTick()
-                                AxisValueLabel {
-                                    if let number = value.as(Double.self) { Text(number, format: .number.precision(.fractionLength(0))) }
-                                }
-                            }
-                        }
-                        .frame(height: typeSize.isAccessibilitySize ? 320 : 180)
-                        .accessibilityLabel(title).accessibilityValue(Text("\(AutomationTracePoint.points(values).count) recorded values"))
-                    Text("0–\(max(0, values.count - 1) * result.stepMin) minutes into replay").font(.caption).foregroundStyle(Theme.text2).fixedSize(horizontal: false, vertical: true)
+                    chart
+                    Text("0–\(max(0, values.count - 1) * stepMinutes) minutes into replay").font(.caption).foregroundStyle(Theme.text2).fixedSize(horizontal: false, vertical: true)
                 }
             }.padding(16)
+        }
+    }
+    private var chart: some View {
+        Chart { marks }.chartYScale(domain: bounds)
+            .chartXAxis { AxisMarks(values: horizontalTicks) { AxisGridLine(); AxisTick(); AxisValueLabel() } }
+            .chartYAxis {
+                AxisMarks(values: verticalTicks) { value in
+                    AxisGridLine(); AxisTick()
+                    AxisValueLabel { if let number = value.as(Double.self) { Text(number, format: .number.precision(.fractionLength(0))) } }
+                }
+            }
+            .frame(height: typeSize.isAccessibilitySize ? 320 : 180)
+            .accessibilityLabel(title).accessibilityValue(Text("\(points.count) recorded values"))
+    }
+    @ChartContentBuilder private var marks: some ChartContent {
+        ForEach(points) { point in
+            LineMark(x: .value("Replay minute", point.id * stepMinutes), y: .value(title, point.value), series: .value("Segment", point.segment))
+                .interpolationMethod(stepped ? .stepEnd : .linear).foregroundStyle(color)
+        }
+        ForEach(eventPoints(fires)) { point in
+            PointMark(x: .value("Replay minute", point.id * stepMinutes), y: .value(title, point.value)).symbol(.diamond).foregroundStyle(Theme.green)
+        }
+        ForEach(eventPoints(suppressed)) { point in
+            PointMark(x: .value("Replay minute", point.id * stepMinutes), y: .value(title, point.value)).symbol(.cross).foregroundStyle(Theme.amber)
+        }
+        if let threshold, threshold.isFinite { RuleMark(y: .value("Threshold", threshold)).lineStyle(StrokeStyle(lineWidth: 1, dash: [4, 4])).foregroundStyle(Theme.text2) }
+    }
+    private func eventPoints(_ indices: [Int]) -> [AutomationTracePoint] {
+        indices.compactMap { index in
+            guard values.indices.contains(index), let value = values[index], value.isFinite else { return nil }
+            return .init(id: index, value: value, segment: 0)
         }
     }
     private func domain(_ values: [Double?], threshold: Double?, axis: AutomationBacktest.Result.Axis?) -> ClosedRange<Double> {
