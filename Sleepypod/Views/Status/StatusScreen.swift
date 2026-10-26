@@ -22,6 +22,10 @@ struct StatusScreen: View {
 
                 if APIBackend.current != .freeSleep {
                     GroupedCard {
+                        NavigationLink { SensorCalibrationScreen() } label: {
+                            SettingsRow("Calibration", subtitle: "Sensor baselines, signals and validity", icon: "tuningfork", iconColor: Theme.cool, chevron: true)
+                        }.accessibilityIdentifier("system.calibration")
+                        Divider()
                         NavigationLink { SystemLogsScreen() } label: {
                             SettingsRow("Logs", subtitle: "Filter, follow and export service activity", icon: "doc.text", iconColor: Theme.text2, chevron: true)
                         }.accessibilityIdentifier("system.logs")
@@ -49,7 +53,6 @@ struct StatusScreen: View {
                         // Insert hardware-related cards after the Hardware category
                         if category.name == "Hardware" {
                             processingCard
-                            calibrationCard
                             networkDiscoveryCard
 
                             if let runOnceError { Text(runOnceError).foregroundStyle(Theme.amber) }
@@ -103,8 +106,6 @@ struct StatusScreen: View {
             statusManager.startPolling()
             await scheduleManager.fetchSchedules()
             let api = APIBackend.current.createClient()
-            leftCalibration = try? await api.getCalibrationStatus(side: .left)
-            rightCalibration = try? await api.getCalibrationStatus(side: .right)
             activeRunOnceLeft = try? await api.getActiveRunOnce(side: .left)
             activeRunOnceRight = try? await api.getActiveRunOnce(side: .right)
         }
@@ -123,196 +124,6 @@ struct StatusScreen: View {
             runOnceNotice = "Run once cancelled. The recurring schedule resumes."
             await deviceManager.fetchStatus()
         } catch { runOnceError = error.localizedDescription }
-    }
-
-    // MARK: - Calibration
-
-    @State private var isCalibrationExpanded = false
-    @State private var leftCalibration: CalibrationStatus?
-    @State private var rightCalibration: CalibrationStatus?
-    @State private var showCalibrationSheet = false
-
-    private var calHealthy: Int {
-        func goodSensors(_ cal: CalibrationStatus?) -> Int {
-            guard let cal else { return 0 }
-            return cal.sensors.filter { $0.status == "completed" && ($0.qualityScore ?? 0) >= 0.5 }.count
-        }
-        return goodSensors(leftCalibration) + goodSensors(rightCalibration)
-    }
-
-    private var calibrationCard: some View {
-        VStack(spacing: 0) {
-            Button {
-                Haptics.light()
-                withAnimation(.easeInOut(duration: 0.2)) { isCalibrationExpanded.toggle() }
-                if isCalibrationExpanded && leftCalibration == nil {
-                    Task {
-                        let api = APIBackend.current.createClient()
-                        leftCalibration = try? await api.getCalibrationStatus(side: .left)
-                        rightCalibration = try? await api.getCalibrationStatus(side: .right)
-                    }
-                }
-            } label: {
-                HStack(spacing: 12) {
-                    Image(systemName: "tuningfork")
-                        .font(.system(size: 14))
-                        .foregroundColor(Theme.cool)
-                        .frame(width: 32, height: 32)
-                        .background(Theme.cool.opacity(0.2))
-                        .clipShape(RoundedRectangle(cornerRadius: 8))
-
-                    Text("Calibration")
-                        .font(.subheadline.weight(.medium))
-                        .foregroundColor(Theme.text1)
-
-                    Spacer()
-
-                    HStack(spacing: 4) {
-                        let total = 6
-                        let allGood = calHealthy == total
-                        Image(systemName: allGood ? "checkmark.circle.fill" : "exclamationmark.triangle.fill")
-                            .font(.caption2)
-                            .foregroundColor(allGood ? Theme.healthy : Theme.amber)
-                        Text("\(calHealthy)/\(total)")
-                            .font(.caption.weight(.medium))
-                            .foregroundColor(Theme.textSecondary)
-                    }
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 4)
-                    .background(Theme.active)
-                    .clipShape(Capsule())
-
-                    Image(systemName: "chevron.right")
-                        .font(.caption)
-                        .foregroundColor(Theme.textMuted)
-                        .rotationEffect(.degrees(isCalibrationExpanded ? 90 : 0))
-                }
-            }
-            .buttonStyle(.plain)
-
-            if isCalibrationExpanded {
-                Divider().background(Theme.cardBorder).padding(.vertical, 8)
-
-                VStack(spacing: 8) {
-                    if let left = leftCalibration {
-                        sideCalibrationSection("Left", cal: left)
-                    }
-                    if let right = rightCalibration {
-                        Divider().background(Theme.cardBorder).padding(.vertical, 4)
-                        sideCalibrationSection("Right", cal: right)
-                    }
-                    if leftCalibration == nil {
-                        HStack {
-                            ProgressView().tint(Theme.accent).scaleEffect(0.7)
-                            Text("Loading…").font(.caption).foregroundColor(Theme.textMuted)
-                        }
-                    }
-
-                    // Single calibration button
-                    Button {
-                        Haptics.medium()
-                        showCalibrationSheet = true
-                    } label: {
-                        HStack(spacing: 6) {
-                            Image(systemName: "tuningfork")
-                            Text("Run Calibration")
-                        }
-                        .font(.caption.weight(.semibold))
-                        .foregroundColor(Theme.cool)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 10)
-                        .background(Theme.cool.opacity(0.1))
-                        .clipShape(RoundedRectangle(cornerRadius: 8))
-                    }
-                    .buttonStyle(.plain)
-                    .padding(.top, 4)
-                }
-            }
-        }
-        .padding(16)
-        .background(Theme.card)
-        .clipShape(RoundedRectangle(cornerRadius: 16))
-        .sheet(isPresented: $showCalibrationSheet) {
-            CalibrationSheet(
-                onComplete: {
-                    Task {
-                        let api = APIBackend.current.createClient()
-                        leftCalibration = try? await api.getCalibrationStatus(side: .left)
-                        rightCalibration = try? await api.getCalibrationStatus(side: .right)
-                    }
-                }
-            )
-            .presentationDetents([.large])
-            .presentationDragIndicator(.visible)
-        }
-    }
-
-    private func sideCalibrationSection(_ side: String, cal: CalibrationStatus) -> some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Text("\(side) Side")
-                .font(.caption.weight(.semibold))
-                .foregroundColor(Theme.accent)
-
-            ForEach(cal.sensors, id: \.id) { sensor in
-                VStack(alignment: .leading, spacing: 2) {
-                    HStack(spacing: 8) {
-                        Image(systemName: sensorIcon(sensor))
-                            .font(.system(size: 11))
-                            .foregroundColor(sensorColor(sensor))
-                        Text(sensorDisplayName(sensor.sensorType))
-                            .font(.caption)
-                            .foregroundColor(Theme.text1)
-                        Spacer()
-                        if let score = sensor.qualityScore {
-                            let pct = score * 100
-                            Text(String(format: "%.0f%%", pct))
-                                .font(.caption2.weight(.medium).monospaced())
-                                .foregroundColor(qualityColor(pct))
-                        }
-                        if let samples = sensor.samplesUsed {
-                            Text("\(samples) samples")
-                                .font(.caption2)
-                                .foregroundColor(Theme.textMuted)
-                        }
-                    }
-                    if let err = sensor.errorMessage {
-                        Text(err)
-                            .font(.caption2)
-                            .foregroundColor(Theme.error)
-                            .padding(.leading, 19)
-                    }
-                }
-            }
-        }
-    }
-
-    private func sensorDisplayName(_ type: String) -> String {
-        switch type.lowercased() {
-        case "piezo": "Piezo (heartbeat)"
-        case "temperature": "Temperature (body heat)"
-        case "capacitance": "Capacitance (presence)"
-        default: type.capitalized
-        }
-    }
-
-    private func qualityColor(_ pct: Double) -> Color {
-        if pct >= 70 { return Theme.healthy }
-        if pct >= 40 { return Theme.amber }
-        if pct > 0 { return Theme.error }
-        return Theme.textMuted
-    }
-
-    private func sensorIcon(_ sensor: CalibrationSensor) -> String {
-        if sensor.status != "completed" { return "xmark.circle.fill" }
-        let q = (sensor.qualityScore ?? 0) * 100
-        if q >= 50 { return "checkmark.circle.fill" }
-        if q > 0 { return "exclamationmark.circle.fill" }
-        return "exclamationmark.circle.fill"
-    }
-
-    private func sensorColor(_ sensor: CalibrationSensor) -> Color {
-        if sensor.status != "completed" { return Theme.error }
-        return qualityColor((sensor.qualityScore ?? 0) * 100)
     }
 
     // MARK: - Processing
