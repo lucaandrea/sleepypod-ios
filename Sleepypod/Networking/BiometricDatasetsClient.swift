@@ -1,6 +1,6 @@
 import Foundation
 
-protocol BiometricDatasetsServing: Sendable {
+protocol BiometricDatasetsServing: BiometricExperimentsServing {
     var scope: String { get }
     func sessions(side: Side, cursor: ReplaySessionPage.Cursor?) async throws -> ReplaySessionPage
     func capabilities(side: Side, id: Int) async throws -> ReplaySessionCapabilities

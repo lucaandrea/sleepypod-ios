@@ -171,6 +171,9 @@ private actor WaveformTestClient: BiometricDatasetsServing {
         if outcome == .lost { outcome = .published; throw URLError(.timedOut) }
         return .init(status: .published, dataset: published)
     }
+    func experiments(side: Side, cursor: BiometricExperimentPage.Cursor?) async throws -> BiometricExperimentPage { try await demo.experiments(side: side, cursor: cursor) }
+    func experiment(id: String) async throws -> BiometricExperiment { try await demo.experiment(id: id) }
+    func create(_ request: BiometricExperimentRequest) async throws -> BiometricExperiment { try await demo.create(request) }
     func sessions(side: Side, cursor: ReplaySessionPage.Cursor?) async throws -> ReplaySessionPage { try await demo.sessions(side: side, cursor: cursor) }
     func capabilities(side: Side, id: Int) async throws -> ReplaySessionCapabilities { try await demo.capabilities(side: side, id: id) }
     func references(side: Side, cursor: ReferenceLibraryPage.Cursor?) async throws -> ReferenceLibraryPage { try await demo.references(side: side, cursor: cursor) }

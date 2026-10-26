@@ -1,0 +1,364 @@
+{
+  "protocols": [
+    {
+      "protocol": {
+        "version": "descriptive-evaluation-v1",
+        "mode": "comparison",
+        "assumedStageCalibrationQuality": 0,
+        "pointToleranceMs": 30000,
+        "clockOffsetMs": 0
+      },
+      "canonical": "{\"assumedStageCalibrationQuality\":0,\"clockOffsetMs\":0,\"mode\":\"comparison\",\"pointToleranceMs\":30000,\"version\":\"descriptive-evaluation-v1\"}",
+      "hash": "646ef384b7024e42e4b861c738b896296344067136c6396c2f4b2f95af676517"
+    },
+    {
+      "protocol": {
+        "version": "descriptive-evaluation-v1",
+        "mode": "stage_replay",
+        "assumedStageCalibrationQuality": 0,
+        "pointToleranceMs": 30000,
+        "clockOffsetMs": 0,
+        "nightUncertainty": {
+          "version": "paired-night-percentile-v1",
+          "seed": "Synthetic 🛏️\n\"seed\" /  ",
+          "resamples": 1000,
+          "minimumNights": 3
+        }
+      },
+      "canonical": "{\"assumedStageCalibrationQuality\":0,\"clockOffsetMs\":0,\"mode\":\"stage_replay\",\"nightUncertainty\":{\"minimumNights\":3,\"resamples\":1000,\"seed\":\"Synthetic 🛏️\\n\\\"seed\\\" /  \",\"version\":\"paired-night-percentile-v1\"},\"pointToleranceMs\":30000,\"version\":\"descriptive-evaluation-v1\"}",
+      "hash": "117265ae73bbb33ac7c93baa52318c6f805b051fd6eaee77d14fdfa358e688bf"
+    },
+    {
+      "protocol": {
+        "version": "descriptive-evaluation-v1",
+        "mode": "stage_replay",
+        "assumedStageCalibrationQuality": 0.1,
+        "pointToleranceMs": 30000,
+        "clockOffsetMs": 0,
+        "nightUncertainty": {
+          "version": "paired-night-percentile-v1",
+          "seed": "Synthetic 🛏️\n\"seed\" /  ",
+          "resamples": 1000,
+          "minimumNights": 3
+        }
+      },
+      "canonical": "{\"assumedStageCalibrationQuality\":0.1000000000000000055511151231257827021181583404541015625,\"clockOffsetMs\":0,\"mode\":\"stage_replay\",\"nightUncertainty\":{\"minimumNights\":3,\"resamples\":1000,\"seed\":\"Synthetic 🛏️\\n\\\"seed\\\" /  \",\"version\":\"paired-night-percentile-v1\"},\"pointToleranceMs\":30000,\"version\":\"descriptive-evaluation-v1\"}",
+      "hash": "cd6a43c91debb38f48f33895658c6fe73561adbeef5b0dc9ff4829e9f93accfd"
+    },
+    {
+      "protocol": {
+        "version": "descriptive-evaluation-v1",
+        "mode": "stage_replay",
+        "assumedStageCalibrationQuality": 0.6,
+        "pointToleranceMs": 30000,
+        "clockOffsetMs": 0,
+        "nightUncertainty": {
+          "version": "paired-night-percentile-v1",
+          "seed": "Synthetic 🛏️\n\"seed\" /  ",
+          "resamples": 1000,
+          "minimumNights": 3
+        }
+      },
+      "canonical": "{\"assumedStageCalibrationQuality\":0.59999999999999997779553950749686919152736663818359375,\"clockOffsetMs\":0,\"mode\":\"stage_replay\",\"nightUncertainty\":{\"minimumNights\":3,\"resamples\":1000,\"seed\":\"Synthetic 🛏️\\n\\\"seed\\\" /  \",\"version\":\"paired-night-percentile-v1\"},\"pointToleranceMs\":30000,\"version\":\"descriptive-evaluation-v1\"}",
+      "hash": "4b3eb4dc686af38e35df9828e4743213ee95b930da1d5118268637db3d203c80"
+    },
+    {
+      "protocol": {
+        "version": "descriptive-evaluation-v1",
+        "mode": "stage_replay",
+        "assumedStageCalibrationQuality": 1,
+        "pointToleranceMs": 30000,
+        "clockOffsetMs": 0,
+        "nightUncertainty": {
+          "version": "paired-night-percentile-v1",
+          "seed": "Synthetic 🛏️\n\"seed\" /  ",
+          "resamples": 1000,
+          "minimumNights": 3
+        }
+      },
+      "canonical": "{\"assumedStageCalibrationQuality\":1,\"clockOffsetMs\":0,\"mode\":\"stage_replay\",\"nightUncertainty\":{\"minimumNights\":3,\"resamples\":1000,\"seed\":\"Synthetic 🛏️\\n\\\"seed\\\" /  \",\"version\":\"paired-night-percentile-v1\"},\"pointToleranceMs\":30000,\"version\":\"descriptive-evaluation-v1\"}",
+      "hash": "4a473933e30bd78720f4e5ab7fd8651f4f5494010dbe04d765173911a01a5e8f"
+    },
+    {
+      "protocol": {
+        "version": "descriptive-evaluation-v1",
+        "mode": "stage_replay",
+        "assumedStageCalibrationQuality": 5e-324,
+        "pointToleranceMs": 30000,
+        "clockOffsetMs": 0,
+        "nightUncertainty": {
+          "version": "paired-night-percentile-v1",
+          "seed": "Synthetic 🛏️\n\"seed\" /  ",
+          "resamples": 1000,
+          "minimumNights": 3
+        }
+      },
+      "canonical": "{\"assumedStageCalibrationQuality\":0.000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000004940656458412465441765687928682213723650598026143247644255856825006755072702087518652998363616359923797965646954457177309266567103559397963987747960107818781263007131903114045278458171678489821036887186360569987307230500063874091535649843873124733972731696151400317153853980741262385655911710266585566867681870395603106249319452715914924553293054565444011274801297099995419319894090804165633245247571478690147267801593552386115501348035264934720193790268107107491703332226844753335720832431936092382893458368060106011506169809753078342277318329247904982524730776375927247874656084778203734469699533647017972677717585125660551199131504891101451037862738167250955837389733598993664809941164205702637090279242767544565229087538682506419718265533447265625,\"clockOffsetMs\":0,\"mode\":\"stage_replay\",\"nightUncertainty\":{\"minimumNights\":3,\"resamples\":1000,\"seed\":\"Synthetic 🛏️\\n\\\"seed\\\" /  \",\"version\":\"paired-night-percentile-v1\"},\"pointToleranceMs\":30000,\"version\":\"descriptive-evaluation-v1\"}",
+      "hash": "80e31b772ea6f7a944b4e76768729c2b2622dbb8b7c1e9b6196c93ddf4e6add7"
+    },
+    {
+      "protocol": {
+        "version": "descriptive-evaluation-v1",
+        "mode": "stage_replay",
+        "assumedStageCalibrationQuality": 0.9999999999999999,
+        "pointToleranceMs": 30000,
+        "clockOffsetMs": 0,
+        "nightUncertainty": {
+          "version": "paired-night-percentile-v1",
+          "seed": "Synthetic 🛏️\n\"seed\" /  ",
+          "resamples": 1000,
+          "minimumNights": 3
+        }
+      },
+      "canonical": "{\"assumedStageCalibrationQuality\":0.99999999999999988897769753748434595763683319091796875,\"clockOffsetMs\":0,\"mode\":\"stage_replay\",\"nightUncertainty\":{\"minimumNights\":3,\"resamples\":1000,\"seed\":\"Synthetic 🛏️\\n\\\"seed\\\" /  \",\"version\":\"paired-night-percentile-v1\"},\"pointToleranceMs\":30000,\"version\":\"descriptive-evaluation-v1\"}",
+      "hash": "4d134c8be25061ed4a3d1102dfa4116d66644c77ce9d3c0454d57065cc48d6c3"
+    },
+    {
+      "protocol": {
+        "version": "descriptive-evaluation-v1",
+        "mode": "signal_replay",
+        "waveformStages": false,
+        "assumedStageCalibrationQuality": 0,
+        "pointToleranceMs": 0,
+        "clockOffsetMs": -3600000
+      },
+      "canonical": "{\"assumedStageCalibrationQuality\":0,\"clockOffsetMs\":-3600000,\"mode\":\"signal_replay\",\"pointToleranceMs\":0,\"version\":\"descriptive-evaluation-v1\",\"waveformStages\":false}",
+      "hash": "69f86d7dd710d80ecda61e1098a61b5cf7fcf9ef04df6d11b1cf91fb28bd059f"
+    },
+    {
+      "protocol": {
+        "version": "descriptive-evaluation-v1",
+        "mode": "signal_replay",
+        "waveformStages": true,
+        "assumedStageCalibrationQuality": 0.3,
+        "pointToleranceMs": 300000,
+        "clockOffsetMs": 3600000,
+        "nightUncertainty": {
+          "version": "paired-night-percentile-v1",
+          "seed": "Synthetic 🛏️\n\"seed\" /  ",
+          "resamples": 1000,
+          "minimumNights": 3
+        }
+      },
+      "canonical": "{\"assumedStageCalibrationQuality\":0.299999999999999988897769753748434595763683319091796875,\"clockOffsetMs\":3600000,\"mode\":\"signal_replay\",\"nightUncertainty\":{\"minimumNights\":3,\"resamples\":1000,\"seed\":\"Synthetic 🛏️\\n\\\"seed\\\" /  \",\"version\":\"paired-night-percentile-v1\"},\"pointToleranceMs\":300000,\"version\":\"descriptive-evaluation-v1\",\"waveformStages\":true}",
+      "hash": "d37da3ef8daf8e85a0f8ff152a077d95296e62c1711e81caf76d7222b854e02e"
+    },
+    {
+      "protocol": {
+        "version": "descriptive-evaluation-v1",
+        "mode": "signal_replay",
+        "waveformStages": true,
+        "assumedStageCalibrationQuality": 0.3,
+        "pointToleranceMs": 30000,
+        "clockOffsetMs": 0,
+        "objectivePolicy": {
+          "version": "numeric-objective-v1",
+          "qualificationId": "synthetic-undesignated-policy",
+          "metric": "heart_rate",
+          "minimumNights": 3,
+          "minimumPairedReferencesPerNight": 20,
+          "maximumLostObservationFraction": 0.1,
+          "minimumMaeImprovement": 0.2,
+          "maximumNightMaeRegression": 1,
+          "maximumRegressedNightFraction": 0.2,
+          "maximumSubgroupMaeRegression": 1,
+          "requiredSubgroups": [],
+          "operational": {
+            "maximumWallMs": 10000,
+            "maximumPeakRssBytes": 64000000,
+            "maximumIngestionAgeMs": 5000
+          }
+        },
+        "stageObjectivePolicy": {
+          "version": "stage-objective-v1",
+          "qualificationId": "synthetic-undesignated-stages",
+          "minimumNights": 3,
+          "minimumPairedDurationMsPerNight": 60000,
+          "minimumOutputCoverage": 0.9,
+          "maximumLostOutputFraction": 0.1,
+          "minimumAgreementImprovement": 0.01,
+          "maximumNightAgreementRegression": 0.02,
+          "maximumRegressedNightFraction": 0.1,
+          "maximumMacroF1Regression": 0.02,
+          "maximumStageF1Regression": 0.02,
+          "minimumStageReferenceMsPerNight": 30000,
+          "requiredStages": [
+            "wake",
+            "light"
+          ],
+          "operational": {
+            "maximumWallMs": 10000,
+            "maximumPeakRssBytes": 64000000,
+            "maximumIngestionAgeMs": 5000
+          }
+        }
+      },
+      "canonical": "{\"assumedStageCalibrationQuality\":0.299999999999999988897769753748434595763683319091796875,\"clockOffsetMs\":0,\"mode\":\"signal_replay\",\"objectivePolicy\":{\"maximumLostObservationFraction\":0.1000000000000000055511151231257827021181583404541015625,\"maximumNightMaeRegression\":1,\"maximumRegressedNightFraction\":0.200000000000000011102230246251565404236316680908203125,\"maximumSubgroupMaeRegression\":1,\"metric\":\"heart_rate\",\"minimumMaeImprovement\":0.200000000000000011102230246251565404236316680908203125,\"minimumNights\":3,\"minimumPairedReferencesPerNight\":20,\"operational\":{\"maximumIngestionAgeMs\":5000,\"maximumPeakRssBytes\":64000000,\"maximumWallMs\":10000},\"qualificationId\":\"synthetic-undesignated-policy\",\"requiredSubgroups\":[],\"version\":\"numeric-objective-v1\"},\"pointToleranceMs\":30000,\"stageObjectivePolicy\":{\"maximumLostOutputFraction\":0.1000000000000000055511151231257827021181583404541015625,\"maximumMacroF1Regression\":0.0200000000000000004163336342344337026588618755340576171875,\"maximumNightAgreementRegression\":0.0200000000000000004163336342344337026588618755340576171875,\"maximumRegressedNightFraction\":0.1000000000000000055511151231257827021181583404541015625,\"maximumStageF1Regression\":0.0200000000000000004163336342344337026588618755340576171875,\"minimumAgreementImprovement\":0.01000000000000000020816681711721685132943093776702880859375,\"minimumNights\":3,\"minimumOutputCoverage\":0.90000000000000002220446049250313080847263336181640625,\"minimumPairedDurationMsPerNight\":60000,\"minimumStageReferenceMsPerNight\":30000,\"operational\":{\"maximumIngestionAgeMs\":5000,\"maximumPeakRssBytes\":64000000,\"maximumWallMs\":10000},\"qualificationId\":\"synthetic-undesignated-stages\",\"requiredStages\":[\"wake\",\"light\"],\"version\":\"stage-objective-v1\"},\"version\":\"descriptive-evaluation-v1\",\"waveformStages\":true}",
+      "hash": "573b9c761625603d444aeeb4f9d78223ef07527f4618ddf240b36cda1852f62d"
+    },
+    {
+      "protocol": {
+        "version": "descriptive-evaluation-v1",
+        "mode": "signal_replay",
+        "waveformStages": true,
+        "assumedStageCalibrationQuality": 0.3,
+        "pointToleranceMs": 30000,
+        "clockOffsetMs": 0,
+        "objectivePolicies": [
+          {
+            "version": "numeric-objective-v1",
+            "qualificationId": "synthetic-undesignated-policy",
+            "metric": "heart_rate",
+            "minimumNights": 3,
+            "minimumPairedReferencesPerNight": 20,
+            "maximumLostObservationFraction": 0.1,
+            "minimumMaeImprovement": 0.2,
+            "maximumNightMaeRegression": 1,
+            "maximumRegressedNightFraction": 0.2,
+            "maximumSubgroupMaeRegression": 1,
+            "requiredSubgroups": [],
+            "operational": {
+              "maximumWallMs": 10000,
+              "maximumPeakRssBytes": 64000000,
+              "maximumIngestionAgeMs": 5000
+            }
+          }
+        ],
+        "stageObjectivePolicy": {
+          "version": "stage-objective-v1",
+          "qualificationId": "synthetic-undesignated-stages",
+          "minimumNights": 3,
+          "minimumPairedDurationMsPerNight": 60000,
+          "minimumOutputCoverage": 0.9,
+          "maximumLostOutputFraction": 0.1,
+          "minimumAgreementImprovement": 0.01,
+          "maximumNightAgreementRegression": 0.02,
+          "maximumRegressedNightFraction": 0.1,
+          "maximumMacroF1Regression": 0.02,
+          "maximumStageF1Regression": 0.02,
+          "minimumStageReferenceMsPerNight": 30000,
+          "requiredStages": [
+            "wake",
+            "light"
+          ],
+          "operational": {
+            "maximumWallMs": 10000,
+            "maximumPeakRssBytes": 64000000,
+            "maximumIngestionAgeMs": 5000
+          }
+        }
+      },
+      "canonical": "{\"assumedStageCalibrationQuality\":0.299999999999999988897769753748434595763683319091796875,\"clockOffsetMs\":0,\"mode\":\"signal_replay\",\"objectivePolicies\":[{\"maximumLostObservationFraction\":0.1000000000000000055511151231257827021181583404541015625,\"maximumNightMaeRegression\":1,\"maximumRegressedNightFraction\":0.200000000000000011102230246251565404236316680908203125,\"maximumSubgroupMaeRegression\":1,\"metric\":\"heart_rate\",\"minimumMaeImprovement\":0.200000000000000011102230246251565404236316680908203125,\"minimumNights\":3,\"minimumPairedReferencesPerNight\":20,\"operational\":{\"maximumIngestionAgeMs\":5000,\"maximumPeakRssBytes\":64000000,\"maximumWallMs\":10000},\"qualificationId\":\"synthetic-undesignated-policy\",\"requiredSubgroups\":[],\"version\":\"numeric-objective-v1\"}],\"pointToleranceMs\":30000,\"stageObjectivePolicy\":{\"maximumLostOutputFraction\":0.1000000000000000055511151231257827021181583404541015625,\"maximumMacroF1Regression\":0.0200000000000000004163336342344337026588618755340576171875,\"maximumNightAgreementRegression\":0.0200000000000000004163336342344337026588618755340576171875,\"maximumRegressedNightFraction\":0.1000000000000000055511151231257827021181583404541015625,\"maximumStageF1Regression\":0.0200000000000000004163336342344337026588618755340576171875,\"minimumAgreementImprovement\":0.01000000000000000020816681711721685132943093776702880859375,\"minimumNights\":3,\"minimumOutputCoverage\":0.90000000000000002220446049250313080847263336181640625,\"minimumPairedDurationMsPerNight\":60000,\"minimumStageReferenceMsPerNight\":30000,\"operational\":{\"maximumIngestionAgeMs\":5000,\"maximumPeakRssBytes\":64000000,\"maximumWallMs\":10000},\"qualificationId\":\"synthetic-undesignated-stages\",\"requiredStages\":[\"wake\",\"light\"],\"version\":\"stage-objective-v1\"},\"version\":\"descriptive-evaluation-v1\",\"waveformStages\":true}",
+      "hash": "bb32ac5ef15f76a6187d1544a25153ecf65e114dca519a9fe09dabb71ef52b71"
+    },
+    {
+      "protocol": {
+        "version": "descriptive-evaluation-v1",
+        "mode": "signal_replay",
+        "assumedStageCalibrationQuality": 0,
+        "pointToleranceMs": 30000,
+        "clockOffsetMs": 0,
+        "objectivePolicies": [
+          {
+            "version": "numeric-objective-v1",
+            "qualificationId": "synthetic-undesignated-policy",
+            "metric": "heart_rate",
+            "minimumNights": 3,
+            "minimumPairedReferencesPerNight": 20,
+            "maximumLostObservationFraction": 0.1,
+            "minimumMaeImprovement": 0.2,
+            "maximumNightMaeRegression": 1,
+            "maximumRegressedNightFraction": 0.2,
+            "maximumSubgroupMaeRegression": 1,
+            "requiredSubgroups": [],
+            "operational": {
+              "maximumWallMs": 10000,
+              "maximumPeakRssBytes": 64000000,
+              "maximumIngestionAgeMs": 5000
+            }
+          },
+          {
+            "version": "numeric-objective-v1",
+            "qualificationId": "synthetic-undesignated-policy",
+            "metric": "breathing_rate",
+            "minimumNights": 3,
+            "minimumPairedReferencesPerNight": 20,
+            "maximumLostObservationFraction": 0.1,
+            "minimumMaeImprovement": 0.2,
+            "maximumNightMaeRegression": 1,
+            "maximumRegressedNightFraction": 0.2,
+            "maximumSubgroupMaeRegression": 1,
+            "requiredSubgroups": [],
+            "operational": {
+              "maximumWallMs": 10000,
+              "maximumPeakRssBytes": 64000000,
+              "maximumIngestionAgeMs": 5000
+            }
+          },
+          {
+            "version": "numeric-objective-v1",
+            "qualificationId": "synthetic-undesignated-policy",
+            "metric": "window_ibi_variability_v1",
+            "minimumNights": 3,
+            "minimumPairedReferencesPerNight": 20,
+            "maximumLostObservationFraction": 0.1,
+            "minimumMaeImprovement": 0.2,
+            "maximumNightMaeRegression": 1,
+            "maximumRegressedNightFraction": 0.2,
+            "maximumSubgroupMaeRegression": 1,
+            "requiredSubgroups": [],
+            "operational": {
+              "maximumWallMs": 10000,
+              "maximumPeakRssBytes": 64000000,
+              "maximumIngestionAgeMs": 5000
+            }
+          }
+        ]
+      },
+      "canonical": "{\"assumedStageCalibrationQuality\":0,\"clockOffsetMs\":0,\"mode\":\"signal_replay\",\"objectivePolicies\":[{\"maximumLostObservationFraction\":0.1000000000000000055511151231257827021181583404541015625,\"maximumNightMaeRegression\":1,\"maximumRegressedNightFraction\":0.200000000000000011102230246251565404236316680908203125,\"maximumSubgroupMaeRegression\":1,\"metric\":\"heart_rate\",\"minimumMaeImprovement\":0.200000000000000011102230246251565404236316680908203125,\"minimumNights\":3,\"minimumPairedReferencesPerNight\":20,\"operational\":{\"maximumIngestionAgeMs\":5000,\"maximumPeakRssBytes\":64000000,\"maximumWallMs\":10000},\"qualificationId\":\"synthetic-undesignated-policy\",\"requiredSubgroups\":[],\"version\":\"numeric-objective-v1\"},{\"maximumLostObservationFraction\":0.1000000000000000055511151231257827021181583404541015625,\"maximumNightMaeRegression\":1,\"maximumRegressedNightFraction\":0.200000000000000011102230246251565404236316680908203125,\"maximumSubgroupMaeRegression\":1,\"metric\":\"breathing_rate\",\"minimumMaeImprovement\":0.200000000000000011102230246251565404236316680908203125,\"minimumNights\":3,\"minimumPairedReferencesPerNight\":20,\"operational\":{\"maximumIngestionAgeMs\":5000,\"maximumPeakRssBytes\":64000000,\"maximumWallMs\":10000},\"qualificationId\":\"synthetic-undesignated-policy\",\"requiredSubgroups\":[],\"version\":\"numeric-objective-v1\"},{\"maximumLostObservationFraction\":0.1000000000000000055511151231257827021181583404541015625,\"maximumNightMaeRegression\":1,\"maximumRegressedNightFraction\":0.200000000000000011102230246251565404236316680908203125,\"maximumSubgroupMaeRegression\":1,\"metric\":\"window_ibi_variability_v1\",\"minimumMaeImprovement\":0.200000000000000011102230246251565404236316680908203125,\"minimumNights\":3,\"minimumPairedReferencesPerNight\":20,\"operational\":{\"maximumIngestionAgeMs\":5000,\"maximumPeakRssBytes\":64000000,\"maximumWallMs\":10000},\"qualificationId\":\"synthetic-undesignated-policy\",\"requiredSubgroups\":[],\"version\":\"numeric-objective-v1\"}],\"pointToleranceMs\":30000,\"version\":\"descriptive-evaluation-v1\"}",
+      "hash": "7928e2cd8ddbd3bc979cc197eb6e701c342263170a326dcf98be65762fa46f99"
+    }
+  ],
+  "canonicalVectors": [
+    {
+      "value": null,
+      "canonical": "null",
+      "hash": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b"
+    },
+    {
+      "value": false,
+      "canonical": "false",
+      "hash": "fcbcf165908dd18a9e49f7ff27810176db8e9f63b4352213741664245224f8aa"
+    },
+    {
+      "value": "quote\" slash/ newline\n\u0001  😀",
+      "canonical": "\"quote\\\" slash/ newline\\n\\u0001  😀\"",
+      "hash": "6d522847f2578201de1b82eb38cf130530496c4d995516a27cb442aad5f8a94a"
+    },
+    {
+      "value": {
+        "�": 1,
+        "😀": 2,
+        "a": 3
+      },
+      "canonical": "{\"a\":3,\"😀\":2,\"�\":1}",
+      "hash": "76d5a5feb9c236eda85f03c6db96116dda55470ad65eca7a538fcf544a0de282"
+    },
+    {
+      "value": [
+        0,
+        0,
+        0.1,
+        -0.1,
+        5e-324,
+        -5e-324,
+        1.7976931348623157e+308,
+        9007199254740991,
+        1e-100,
+        1e+100
+      ],
+      "canonical": "[0,0,0.1000000000000000055511151231257827021181583404541015625,-0.1000000000000000055511151231257827021181583404541015625,0.000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000004940656458412465441765687928682213723650598026143247644255856825006755072702087518652998363616359923797965646954457177309266567103559397963987747960107818781263007131903114045278458171678489821036887186360569987307230500063874091535649843873124733972731696151400317153853980741262385655911710266585566867681870395603106249319452715914924553293054565444011274801297099995419319894090804165633245247571478690147267801593552386115501348035264934720193790268107107491703332226844753335720832431936092382893458368060106011506169809753078342277318329247904982524730776375927247874656084778203734469699533647017972677717585125660551199131504891101451037862738167250955837389733598993664809941164205702637090279242767544565229087538682506419718265533447265625,-0.000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000004940656458412465441765687928682213723650598026143247644255856825006755072702087518652998363616359923797965646954457177309266567103559397963987747960107818781263007131903114045278458171678489821036887186360569987307230500063874091535649843873124733972731696151400317153853980741262385655911710266585566867681870395603106249319452715914924553293054565444011274801297099995419319894090804165633245247571478690147267801593552386115501348035264934720193790268107107491703332226844753335720832431936092382893458368060106011506169809753078342277318329247904982524730776375927247874656084778203734469699533647017972677717585125660551199131504891101451037862738167250955837389733598993664809941164205702637090279242767544565229087538682506419718265533447265625,179769313486231570814527423731704356798070567525844996598917476803157260780028538760589558632766878171540458953514382464234321326889464182768467546703537516986049910576551282076245490090389328944075868508455133942304583236903222948165808559332123348274797826204144723168738177180919299881250404026184124858368,9007199254740991,0.000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000100000000000000001999189980260288361964776078853415942018260300593659569925554346761767628861329298958274607481091185079852827053974965402226843604196126360835628314127871794272492894246908066589163059300043457860230145025079449986855914338755579873208034769049845635890960693359375,10000000000000000159028911097599180468360808563945281389781327557747838772170381060813469985856815104]",
+      "hash": "a9f660957365dcd3fba03a6fae077ea5c8952bbcaa7ae72197d1f26348cbf5a9"
+    }
+  ]
+}
