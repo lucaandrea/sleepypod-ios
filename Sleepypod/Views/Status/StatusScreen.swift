@@ -10,12 +10,23 @@ struct StatusScreen: View {
 
     @State private var activeRunOnceLeft: RunOnceSession?
     @State private var activeRunOnceRight: RunOnceSession?
+    @State private var cancellingRunOnce: Set<Side> = []
+    @State private var runOnceError: String?
+    @State private var runOnceNotice: String?
 
     var body: some View {
         ScrollView {
             VStack(spacing: 16) {
                 // Health circle
                 HealthCircleView()
+
+                if APIBackend.current != .freeSleep {
+                    GroupedCard {
+                        NavigationLink { SystemDatabaseScreen() } label: {
+                            SettingsRow("Databases", subtitle: "Inventory, rows and backups", icon: "externaldrive", iconColor: Theme.cool, chevron: true)
+                        }.accessibilityIdentifier("system.databases")
+                    }
+                }
 
                 // Service categories + hardware details
                 let cats = statusManager.categories(schedules: scheduleManager.schedules)
@@ -33,6 +44,9 @@ struct StatusScreen: View {
                             calibrationCard
                             networkDiscoveryCard
 
+                            if let runOnceError { Text(runOnceError).foregroundStyle(Theme.amber) }
+                            if let runOnceNotice { Text(runOnceNotice).foregroundStyle(Theme.text2) }
+
                             // Active run-once curves
                             if let session = activeRunOnceLeft {
                                 VStack(alignment: .leading, spacing: 4) {
@@ -41,13 +55,8 @@ struct StatusScreen: View {
                                         .foregroundColor(Theme.accent)
                                         .padding(.leading, 4)
                                     RunOnceActiveBanner(session: session, onCancel: {
-                                        Task {
-                                            let api = APIBackend.current.createClient()
-                                            try? await api.cancelRunOnce(side: .left)
-                                            try? await api.updateDeviceStatus(DeviceStatusUpdate(left: SideStatusUpdate(isOn: false)))
-                                            withAnimation { activeRunOnceLeft = nil }
-                                        }
-                                    })
+                                        Task { await cancelRunOnce(.left) }
+                                    }).disabled(cancellingRunOnce.contains(.left))
                                 }
                             }
                             if let session = activeRunOnceRight {
@@ -57,13 +66,8 @@ struct StatusScreen: View {
                                         .foregroundColor(Color(hex: "40e0d0"))
                                         .padding(.leading, 4)
                                     RunOnceActiveBanner(session: session, onCancel: {
-                                        Task {
-                                            let api = APIBackend.current.createClient()
-                                            try? await api.cancelRunOnce(side: .right)
-                                            try? await api.updateDeviceStatus(DeviceStatusUpdate(right: SideStatusUpdate(isOn: false)))
-                                            withAnimation { activeRunOnceRight = nil }
-                                        }
-                                    })
+                                        Task { await cancelRunOnce(.right) }
+                                    }).disabled(cancellingRunOnce.contains(.right))
                                 }
                             }
                         }
@@ -86,6 +90,7 @@ struct StatusScreen: View {
             .padding(.bottom, 20)
         }
         .background(Theme.background)
+        .presentationDetents([.large])
         .task {
             statusManager.startPolling()
             await scheduleManager.fetchSchedules()
@@ -95,6 +100,21 @@ struct StatusScreen: View {
             activeRunOnceLeft = try? await api.getActiveRunOnce(side: .left)
             activeRunOnceRight = try? await api.getActiveRunOnce(side: .right)
         }
+    }
+
+    // Core cancellation resumes the recurring schedule; it must not send a separate power-off.
+    private func cancelRunOnce(_ side: Side) async {
+        guard !cancellingRunOnce.contains(side) else { return }
+        cancellingRunOnce.insert(side); runOnceError = nil; runOnceNotice = nil
+        defer { cancellingRunOnce.remove(side) }
+        do {
+            try await APIBackend.current.createClient().cancelRunOnce(side: side)
+            withAnimation {
+                if side == .left { activeRunOnceLeft = nil } else { activeRunOnceRight = nil }
+            }
+            runOnceNotice = "Run once cancelled. The recurring schedule resumes."
+            await deviceManager.fetchStatus()
+        } catch { runOnceError = error.localizedDescription }
     }
 
     // MARK: - Calibration

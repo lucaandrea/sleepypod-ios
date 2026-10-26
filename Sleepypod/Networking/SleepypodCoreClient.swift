@@ -392,7 +392,8 @@ final class SleepypodCoreClient: SleepypodProtocol, @unchecked Sendable {
     }
 
     func cancelRunOnce(side: Side) async throws {
-        let _: TRPCSuccess = try await mutate("runOnce.cancel", input: ["side": side.rawValue])
+        let result: TRPCSuccess = try await mutate("runOnce.cancel", input: ["side": side.rawValue])
+        guard result.success == true else { throw APIError.serverError(message: "The controller did not confirm run-once cancellation. Refresh its status before trying again.") }
     }
 
     func getNightPhases(side: Side) async throws -> NightPhases? {
