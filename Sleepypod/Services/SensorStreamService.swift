@@ -52,6 +52,7 @@ final class SensorStreamService {
     var rightVitals = LiveVitals()
     var leftTemps: BedTempSide?
     var rightTemps: BedTempSide?
+    var calibrationSignals = CalibrationSignalBuffer()
     /// When the last bedTemp frame arrived, so views can grey out stale surface readings.
     var bedTempUpdatedAt: Date?
     var frzHealth: FrzHealthFrame?
@@ -209,6 +210,7 @@ final class SensorStreamService {
         latestDeviceStatus = nil
         presenceUpdatedAt = nil; lastCapUpdate = .distantPast
         leftHistory = []; rightHistory = []; leftPresence = nil; rightPresence = nil
+        calibrationSignals = .init()
     }
 
     func clearLogs() { firmwareLogs.removeAll() }
@@ -252,6 +254,7 @@ final class SensorStreamService {
                 )
                 self.leftPresence = leftCap
                 self.rightPresence = rightCap
+                self.calibrationSignals.append(.capSense2(.init(ts: Int(Date.now.timeIntervalSince1970), left: leftCap, right: rightCap)))
                 self.leftHistory.append(leftCap.values)
                 self.rightHistory.append(rightCap.values)
                 if self.leftHistory.count > self.varianceWindow { self.leftHistory.removeFirst() }
@@ -276,6 +279,7 @@ final class SensorStreamService {
                         right.append(Int32(breath + heart * 0.8 + noise))
                     }
                     self.piezoHz = freq
+                    self.calibrationSignals.append(.piezoDual(.init(ts: Int(Date.now.timeIntervalSince1970), freq: freq, left1: left, right1: right)))
                     self.piezoLeft.append(contentsOf: left)
                     self.piezoRight.append(contentsOf: right)
                     self.piezoLeftEnd += left.count
@@ -357,6 +361,7 @@ final class SensorStreamService {
                     self.leftTemps = BedTempSide(amb: ambC, hu: huPct, temps: leftZones)
                     self.rightTemps = BedTempSide(amb: ambC, hu: huPct, temps: rightZones)
                     self.bedTempUpdatedAt = .now
+                    self.calibrationSignals.append(.bedTemp2(.init(ts: Int(Date.now.timeIntervalSince1970), mcu: nil, left: .init(amb: ambC, hu: huPct, temps: leftZones), right: .init(amb: ambC, hu: huPct, temps: rightZones))))
                     if let avgL = self.leftTemps?.avgSurfaceTempF {
                         self.leftTempHistory.append((.now, Float(avgL)))
                         if self.leftTempHistory.count > self.maxTempHistory { self.leftTempHistory.removeFirst() }
@@ -418,6 +423,8 @@ final class SensorStreamService {
     private func handleFrame(_ data: Data) {
         guard let frame = SensorFrame.decode(from: data) else { return }
 
+        calibrationSignals.append(frame)
+
         lastFrameTime = .now
         frameCount += 1
         let elapsed = Date.now.timeIntervalSince(fpsTimer)
@@ -436,7 +443,7 @@ final class SensorStreamService {
         }
 
         switch frame {
-        case .capSense2(let cap):
+        case .capSense2(let cap), .capSense(let cap):
             let now = Date.now
             guard now.timeIntervalSince(lastCapUpdate) > 0.2 else { return }
             lastCapUpdate = now
@@ -473,7 +480,7 @@ final class SensorStreamService {
                 }
             }
 
-        case .bedTemp2(let temp):
+        case .bedTemp2(let temp), .bedTemp(let temp):
             leftTemps = temp.left
             rightTemps = temp.right
             bedTempUpdatedAt = .now

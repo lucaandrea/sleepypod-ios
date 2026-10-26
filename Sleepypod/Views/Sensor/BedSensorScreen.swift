@@ -336,13 +336,13 @@ struct BedSensorScreen: View {
     }
 
     private func validHumidity(_ temps: BedTempSide?) -> String {
-        guard let t = temps, t.hu > 0, t.hu < 100 else { return "--" }
-        return "\(Int(t.hu))%"
+        guard let humidity = temps?.hu, humidity.isFinite, (0...100).contains(humidity) else { return "--" }
+        return "\(Int(humidity))%"
     }
 
     private func validAmbient(_ temps: BedTempSide?) -> String {
-        guard let t = temps, t.amb > -100 else { return "--" }
-        return "\(Int(t.amb))°C"
+        guard let ambient = temps?.amb, ambient.isFinite, ambient > -100 else { return "--" }
+        return "\(Int(ambient))°C"
     }
 
     private func envItem(icon: String, color: Color, value: String, label: String) -> some View {

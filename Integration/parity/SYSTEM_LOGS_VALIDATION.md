@@ -18,4 +18,4 @@ Inspected Core `src/server/routers/system.ts` and `src/components/status/SystemL
 - The first two UI attempts failed because iOS 27 exposes the picker's Cancel affordance as an accessibility Other element rather than a Button. The query was corrected after inspecting its hierarchy and rendered picker; product behavior was unchanged.
 - Retained screenshots in `previews/system-logs/` cover the filtered log and system export picker on each form factor. Strict SwiftLint, the compiled presentation guard and diff whitespace checks passed before publication.
 
-Owner PR/CI merge: pending publication. No live controller commands, TestFlight upload or physical firmware-console acceptance are claimed.
+Owner PR #6 merged into `main` at `ec2acc9b11507de1c983897bdb62f44dbf61cc04`; GitHub run `40254876376` passed build/unit tests, transport contracts, lint and final aggregation. No live controller commands, TestFlight upload or physical firmware-console acceptance are claimed.

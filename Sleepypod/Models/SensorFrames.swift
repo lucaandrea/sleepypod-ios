@@ -6,7 +6,9 @@ import Foundation
 enum SensorFrame: Sendable {
     case piezoDual(PiezoDualFrame)
     case capSense2(CapSense2Frame)
+    case capSense(CapSense2Frame)
     case bedTemp2(BedTemp2Frame)
+    case bedTemp(BedTemp2Frame)
     case frzHealth(FrzHealthFrame)
     case log(LogFrame)
     case notification(NotificationFrame)
@@ -18,7 +20,9 @@ enum SensorFrame: Sendable {
         switch self {
         case .piezoDual: return "piezo-dual"
         case .capSense2: return "capSense2"
+        case .capSense: return "capSense"
         case .bedTemp2: return "bedTemp2"
+        case .bedTemp: return "bedTemp"
         case .frzHealth: return "frzHealth"
         case .log: return "log"
         case .notification: return "notification"
@@ -38,8 +42,12 @@ enum SensorFrame: Sendable {
             return (try? decoder.decode(PiezoDualFrame.self, from: data)).map { .piezoDual($0) }
         case "capSense2":
             return (try? decoder.decode(CapSense2Frame.self, from: data)).map { .capSense2($0) }
+        case "capSense":
+            return (try? decoder.decode(CapSense2Frame.self, from: data)).map { .capSense($0) }
         case "bedTemp2":
             return (try? decoder.decode(BedTemp2Frame.self, from: data)).map { .bedTemp2($0) }
+        case "bedTemp":
+            return (try? decoder.decode(LegacyBedTemperatureFrame.self, from: data)).map { .bedTemp($0.normalized) }
         case "frzHealth":
             return (try? decoder.decode(FrzHealthFrame.self, from: data)).map { .frzHealth($0) }
         case "log":
@@ -85,6 +93,27 @@ struct CapSenseSide: Decodable, Sendable {
     let values: [Float]  // 8 values: [0:2]=A (head), [2:4]=B (torso), [4:6]=C (legs), [6:8]=REF
     let status: String
 
+    init(values: [Float], status: String) { self.values = values; self.status = status }
+    private enum CodingKeys: String, CodingKey { case values, status, out, cen, `in` }
+    init(from decoder: Decoder) throws {
+        if let fields = try? decoder.container(keyedBy: CodingKeys.self) {
+            status = (try? fields.decode(String.self, forKey: .status)) ?? "unknown"
+            if let channels = try? fields.decode([Float].self, forKey: .values) { values = channels }
+            else if fields.contains(.out) || fields.contains(.cen) || fields.contains(.in) {
+                // Retain missing channel positions; never shift another zone into a missing slot.
+                values = [CodingKeys.out, .cen, .in].flatMap { key -> [Float] in
+                    let value = (try? fields.decode(Float.self, forKey: key)) ?? -1
+                    return [value, value]
+                }
+            } else { values = [] }
+        } else {
+            let field = try decoder.singleValueContainer()
+            if let channels = try? field.decode([Float].self) { values = channels }
+            else { values = [try field.decode(Float.self)] }
+            status = "unknown"
+        }
+    }
+
     /// Raw channel averages (paired channels)
     var channelAverages: (a: Float, b: Float, c: Float, ref: Float) {
         guard values.count >= 8 else { return (0, 0, 0, 0) }
@@ -124,17 +153,36 @@ struct BedTemp2Frame: Decodable, Sendable {
 }
 
 struct BedTempSide: Decodable, Sendable {
-    let amb: Float   // ambient °C
-    let hu: Float    // humidity %
+    let amb: Float?   // ambient °C; unavailable sensors remain unknown
+    let hu: Float?    // humidity %
     let temps: [Float]  // 4 zone temps °C
 
     /// Average valid surface temp in °F (filters -327 sentinel values)
     var avgSurfaceTempF: Int? {
-        let valid = temps.filter { $0 > -100 }
+        let valid = temps.filter { $0.isFinite && $0 > -100 }
         guard !valid.isEmpty else { return nil }
         let avgC = valid.reduce(0, +) / Float(valid.count)
         return Int(avgC * 9.0 / 5.0 + 32)
     }
+}
+
+/// Pod 3 uses centidegrees and flat zone keys; later Pods already send Celsius arrays.
+private struct LegacyBedTemperatureFrame: Decodable {
+    struct Zones: Decodable { let out: Float?; let cen: Float?; let `in`: Float? }
+    let ts: Int
+    let amb: Float?
+    let hu: Float?
+    let mcu: Float?
+    let left: Zones
+    let right: Zones
+    private func converted(_ value: Float?) -> Float? {
+        guard let value, value.isFinite, value != -32768 else { return nil }
+        return value / 100
+    }
+    private func side(_ zones: Zones) -> BedTempSide {
+        .init(amb: converted(amb), hu: converted(hu), temps: [zones.out, zones.cen, zones.in].map { converted($0) ?? -327.68 })
+    }
+    var normalized: BedTemp2Frame { .init(ts: ts, mcu: converted(mcu), left: side(left), right: side(right)) }
 }
 
 // MARK: - Freezer Health
