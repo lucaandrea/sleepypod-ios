@@ -50,3 +50,5 @@ Validation completed:
 - Strict SwiftLint, `git diff --check` and the built-product presentation guard pass. Sleepypod's cards/settings navigation remain; no retired shell or assets enter the product.
 
 One early UI run failed because XCTest exposed both a parent and child representation of the same confirmation button. Selecting its first matching representation resolved the test ambiguity; the final full flows pass. No owner health records or live Pod mutations are used. Reference overlays inside Backtests remain in the separate unfinished report workflow.
+
+GitHub Xcode 26.6 found a closure name-resolution cycle that local Xcode 27.1 accepted: a later local `descriptor` shadowed the member lookup inside Optional.map. The lookup now explicitly uses `self.descriptor`, and the new revision has a distinct local name. This preserves the tested correction behavior; the follow-up CI run must pass before merge.

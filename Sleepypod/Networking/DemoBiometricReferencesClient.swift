@@ -31,7 +31,7 @@ actor DemoBiometricReferencesClient: BiometricReferencesServing {
         let fixture = try fixture(request.input)
         guard request.previewHash == fixture.summary.contentHash, fixture.summary.rejected == 0 || request.acceptRejectedRows else { throw ReferenceTextError(message: "Review this exact example and acknowledge omitted rows before saving.") }
         if let found = imports.first(where: { request.matches($0) && $0.available }) { return described(found, alreadyImported: true) }
-        let parent = try request.supersedesImportId.map { try descriptor(id: $0) }
+        let parent = try request.supersedesImportId.map { try self.descriptor(id: $0) }
         if let parent {
             guard parent.available, parent.summary.side == request.input.side, parent.summary.source == request.input.source,
                   parent.summary.subjectId == request.input.subjectId,
@@ -40,12 +40,12 @@ actor DemoBiometricReferencesClient: BiometricReferencesServing {
             }
         }
         let family = parent?.familyId ?? UUID().uuidString
-        let descriptor = ReferenceDescriptor(id: UUID().uuidString, familyId: family,
+        let createdRevision = ReferenceDescriptor(id: UUID().uuidString, familyId: family,
                                              revision: (imports.filter { $0.familyId == family }.map(\.revision).max() ?? 0) + 1,
                                              supersedesImportId: parent?.id, summary: fixture.summary, createdAtMs: Date.now.timeIntervalSince1970 * 1000,
                                              deletedAtMs: nil, available: true, alreadyImported: false)
-        imports.append(descriptor); normalized[descriptor.id] = fixture.measurements
-        return descriptor
+        imports.append(createdRevision); normalized[createdRevision.id] = fixture.measurements
+        return createdRevision
     }
     func library(side: Side, cursor: ReferenceLibraryPage.Cursor?) -> ReferenceLibraryPage {
         let values = imports.filter { value in
