@@ -1,0 +1,782 @@
+[
+  {
+    "corrected": false,
+    "input": {
+      "side": "left",
+      "subjectId": "demo-sleeper",
+      "source": "Example watch",
+      "rows": [
+        {
+          "recordKey": "synthetic-heart",
+          "metric": "heart_rate",
+          "value": 60,
+          "unit": "bpm",
+          "timestamp": "2026-10-24T22:00:00Z",
+          "annotation": "Synthetic demonstration measurement"
+        },
+        {
+          "recordKey": "synthetic-heart",
+          "metric": "heart_rate",
+          "value": 60,
+          "unit": "bpm",
+          "timestamp": "2026-10-24T22:00:00Z",
+          "annotation": "Synthetic demonstration measurement"
+        },
+        {
+          "recordKey": "synthetic-breathing",
+          "metric": "breathing_rate",
+          "value": 0.25,
+          "unit": "Hz",
+          "start": "2026-10-24T22:00:00Z",
+          "end": "2026-10-24T22:05:00Z"
+        },
+        {
+          "recordKey": "synthetic-hrv",
+          "metric": "hrv_unknown",
+          "value": 38,
+          "unit": "ms",
+          "timestamp": "2026-10-24T22:00:00Z"
+        },
+        {
+          "recordKey": "synthetic-stage",
+          "metric": "sleep_stages",
+          "value": "light",
+          "unit": "stage",
+          "start": "2026-10-24T22:00:00Z",
+          "end": "2026-10-24T22:30:00Z"
+        },
+        {
+          "recordKey": "wrong-sleeper",
+          "subjectId": "someone-else",
+          "metric": "heart_rate",
+          "value": 70,
+          "unit": "bpm",
+          "timestamp": "2026-10-24T22:00:00Z"
+        }
+      ]
+    },
+    "summary": {
+      "adapterVersion": "normalized-reference-v1",
+      "side": "left",
+      "subjectId": "demo-sleeper",
+      "source": "Example watch",
+      "timePolicy": {
+        "disambiguation": "reject"
+      },
+      "received": 6,
+      "accepted": 4,
+      "rejected": 1,
+      "duplicates": 1,
+      "unscorable": 1,
+      "conflicts": 0,
+      "startMs": 1792879200000,
+      "endMs": 1792881000000,
+      "metrics": [
+        "breathing_rate",
+        "heart_rate",
+        "hrv_unknown",
+        "sleep_stages"
+      ],
+      "rejectionCounts": {
+        "SUBJECT_MISMATCH": 1
+      },
+      "rejectionExamples": [
+        {
+          "row": 6,
+          "code": "SUBJECT_MISMATCH",
+          "message": "Row belongs to a different subject; split the export and map each sleeper explicitly"
+        }
+      ],
+      "warnings": [
+        "Agreement with a reference source is not clinical accuracy.",
+        "Stage overlaps with conflicting labels are excluded from scoring.",
+        "RMSSD, SDNN and unknown HRV definitions cannot directly score the pod window-level IBI variability index."
+      ],
+      "contentHash": "e3a80505421bfcb6c39d9c1965a82bb011844fdedcff2830a78d6b9ae738c4b7"
+    },
+    "measurements": [
+      {
+        "id": 1,
+        "recordKey": "synthetic-heart",
+        "metric": "heart_rate",
+        "value": 60,
+        "stage": null,
+        "unit": "bpm",
+        "startMs": 1792879200000,
+        "endMs": 1792879200000,
+        "temporalKind": "point",
+        "aggregation": "instant",
+        "windowMs": null,
+        "quality": null,
+        "scorable": true,
+        "exclusions": [],
+        "original": {
+          "recordKey": "synthetic-heart",
+          "metric": "heart_rate",
+          "value": 60,
+          "unit": "bpm",
+          "timestamp": "2026-10-24T22:00:00Z",
+          "annotation": "Synthetic demonstration measurement"
+        }
+      },
+      {
+        "id": 2,
+        "recordKey": "synthetic-breathing",
+        "metric": "breathing_rate",
+        "value": 15,
+        "stage": null,
+        "unit": "breaths/min",
+        "startMs": 1792879200000,
+        "endMs": 1792879500000,
+        "temporalKind": "interval",
+        "aggregation": "mean",
+        "windowMs": null,
+        "quality": null,
+        "scorable": true,
+        "exclusions": [],
+        "original": {
+          "recordKey": "synthetic-breathing",
+          "metric": "breathing_rate",
+          "value": 0.25,
+          "unit": "Hz",
+          "start": "2026-10-24T22:00:00Z",
+          "end": "2026-10-24T22:05:00Z"
+        }
+      },
+      {
+        "id": 3,
+        "recordKey": "synthetic-hrv",
+        "metric": "hrv_unknown",
+        "value": 38,
+        "stage": null,
+        "unit": "ms",
+        "startMs": 1792879200000,
+        "endMs": 1792879200000,
+        "temporalKind": "point",
+        "aggregation": "instant",
+        "windowMs": null,
+        "quality": null,
+        "scorable": false,
+        "exclusions": [
+          "unknown_hrv_definition"
+        ],
+        "original": {
+          "recordKey": "synthetic-hrv",
+          "metric": "hrv_unknown",
+          "value": 38,
+          "unit": "ms",
+          "timestamp": "2026-10-24T22:00:00Z"
+        }
+      },
+      {
+        "id": 4,
+        "recordKey": "synthetic-stage",
+        "metric": "sleep_stages",
+        "value": null,
+        "stage": "light",
+        "unit": "stage",
+        "startMs": 1792879200000,
+        "endMs": 1792881000000,
+        "temporalKind": "interval",
+        "aggregation": "stage",
+        "windowMs": null,
+        "quality": null,
+        "scorable": true,
+        "exclusions": [],
+        "original": {
+          "recordKey": "synthetic-stage",
+          "metric": "sleep_stages",
+          "value": "light",
+          "unit": "stage",
+          "start": "2026-10-24T22:00:00Z",
+          "end": "2026-10-24T22:30:00Z"
+        }
+      }
+    ]
+  },
+  {
+    "corrected": true,
+    "input": {
+      "side": "left",
+      "subjectId": "demo-sleeper",
+      "source": "Example watch",
+      "rows": [
+        {
+          "recordKey": "synthetic-heart",
+          "metric": "heart_rate",
+          "value": 62,
+          "unit": "bpm",
+          "timestamp": "2026-10-24T22:00:00Z",
+          "annotation": "Synthetic demonstration measurement"
+        },
+        {
+          "recordKey": "synthetic-heart",
+          "metric": "heart_rate",
+          "value": 62,
+          "unit": "bpm",
+          "timestamp": "2026-10-24T22:00:00Z",
+          "annotation": "Synthetic demonstration measurement"
+        },
+        {
+          "recordKey": "synthetic-breathing",
+          "metric": "breathing_rate",
+          "value": 0.25,
+          "unit": "Hz",
+          "start": "2026-10-24T22:00:00Z",
+          "end": "2026-10-24T22:05:00Z"
+        },
+        {
+          "recordKey": "synthetic-hrv",
+          "metric": "hrv_unknown",
+          "value": 38,
+          "unit": "ms",
+          "timestamp": "2026-10-24T22:00:00Z"
+        },
+        {
+          "recordKey": "synthetic-stage",
+          "metric": "sleep_stages",
+          "value": "light",
+          "unit": "stage",
+          "start": "2026-10-24T22:00:00Z",
+          "end": "2026-10-24T22:30:00Z"
+        },
+        {
+          "recordKey": "wrong-sleeper",
+          "subjectId": "someone-else",
+          "metric": "heart_rate",
+          "value": 70,
+          "unit": "bpm",
+          "timestamp": "2026-10-24T22:00:00Z"
+        }
+      ]
+    },
+    "summary": {
+      "adapterVersion": "normalized-reference-v1",
+      "side": "left",
+      "subjectId": "demo-sleeper",
+      "source": "Example watch",
+      "timePolicy": {
+        "disambiguation": "reject"
+      },
+      "received": 6,
+      "accepted": 4,
+      "rejected": 1,
+      "duplicates": 1,
+      "unscorable": 1,
+      "conflicts": 0,
+      "startMs": 1792879200000,
+      "endMs": 1792881000000,
+      "metrics": [
+        "breathing_rate",
+        "heart_rate",
+        "hrv_unknown",
+        "sleep_stages"
+      ],
+      "rejectionCounts": {
+        "SUBJECT_MISMATCH": 1
+      },
+      "rejectionExamples": [
+        {
+          "row": 6,
+          "code": "SUBJECT_MISMATCH",
+          "message": "Row belongs to a different subject; split the export and map each sleeper explicitly"
+        }
+      ],
+      "warnings": [
+        "Agreement with a reference source is not clinical accuracy.",
+        "Stage overlaps with conflicting labels are excluded from scoring.",
+        "RMSSD, SDNN and unknown HRV definitions cannot directly score the pod window-level IBI variability index."
+      ],
+      "contentHash": "9ece6c8150d9149fba8cd2ab998bf8f31c31677c9efe0ba047701012f7ed8d18"
+    },
+    "measurements": [
+      {
+        "id": 1,
+        "recordKey": "synthetic-heart",
+        "metric": "heart_rate",
+        "value": 62,
+        "stage": null,
+        "unit": "bpm",
+        "startMs": 1792879200000,
+        "endMs": 1792879200000,
+        "temporalKind": "point",
+        "aggregation": "instant",
+        "windowMs": null,
+        "quality": null,
+        "scorable": true,
+        "exclusions": [],
+        "original": {
+          "recordKey": "synthetic-heart",
+          "metric": "heart_rate",
+          "value": 62,
+          "unit": "bpm",
+          "timestamp": "2026-10-24T22:00:00Z",
+          "annotation": "Synthetic demonstration measurement"
+        }
+      },
+      {
+        "id": 2,
+        "recordKey": "synthetic-breathing",
+        "metric": "breathing_rate",
+        "value": 15,
+        "stage": null,
+        "unit": "breaths/min",
+        "startMs": 1792879200000,
+        "endMs": 1792879500000,
+        "temporalKind": "interval",
+        "aggregation": "mean",
+        "windowMs": null,
+        "quality": null,
+        "scorable": true,
+        "exclusions": [],
+        "original": {
+          "recordKey": "synthetic-breathing",
+          "metric": "breathing_rate",
+          "value": 0.25,
+          "unit": "Hz",
+          "start": "2026-10-24T22:00:00Z",
+          "end": "2026-10-24T22:05:00Z"
+        }
+      },
+      {
+        "id": 3,
+        "recordKey": "synthetic-hrv",
+        "metric": "hrv_unknown",
+        "value": 38,
+        "stage": null,
+        "unit": "ms",
+        "startMs": 1792879200000,
+        "endMs": 1792879200000,
+        "temporalKind": "point",
+        "aggregation": "instant",
+        "windowMs": null,
+        "quality": null,
+        "scorable": false,
+        "exclusions": [
+          "unknown_hrv_definition"
+        ],
+        "original": {
+          "recordKey": "synthetic-hrv",
+          "metric": "hrv_unknown",
+          "value": 38,
+          "unit": "ms",
+          "timestamp": "2026-10-24T22:00:00Z"
+        }
+      },
+      {
+        "id": 4,
+        "recordKey": "synthetic-stage",
+        "metric": "sleep_stages",
+        "value": null,
+        "stage": "light",
+        "unit": "stage",
+        "startMs": 1792879200000,
+        "endMs": 1792881000000,
+        "temporalKind": "interval",
+        "aggregation": "stage",
+        "windowMs": null,
+        "quality": null,
+        "scorable": true,
+        "exclusions": [],
+        "original": {
+          "recordKey": "synthetic-stage",
+          "metric": "sleep_stages",
+          "value": "light",
+          "unit": "stage",
+          "start": "2026-10-24T22:00:00Z",
+          "end": "2026-10-24T22:30:00Z"
+        }
+      }
+    ]
+  },
+  {
+    "corrected": false,
+    "input": {
+      "side": "right",
+      "subjectId": "demo-sleeper",
+      "source": "Example watch",
+      "rows": [
+        {
+          "recordKey": "synthetic-heart",
+          "metric": "heart_rate",
+          "value": 60,
+          "unit": "bpm",
+          "timestamp": "2026-10-24T22:00:00Z",
+          "annotation": "Synthetic demonstration measurement"
+        },
+        {
+          "recordKey": "synthetic-heart",
+          "metric": "heart_rate",
+          "value": 60,
+          "unit": "bpm",
+          "timestamp": "2026-10-24T22:00:00Z",
+          "annotation": "Synthetic demonstration measurement"
+        },
+        {
+          "recordKey": "synthetic-breathing",
+          "metric": "breathing_rate",
+          "value": 0.25,
+          "unit": "Hz",
+          "start": "2026-10-24T22:00:00Z",
+          "end": "2026-10-24T22:05:00Z"
+        },
+        {
+          "recordKey": "synthetic-hrv",
+          "metric": "hrv_unknown",
+          "value": 38,
+          "unit": "ms",
+          "timestamp": "2026-10-24T22:00:00Z"
+        },
+        {
+          "recordKey": "synthetic-stage",
+          "metric": "sleep_stages",
+          "value": "light",
+          "unit": "stage",
+          "start": "2026-10-24T22:00:00Z",
+          "end": "2026-10-24T22:30:00Z"
+        },
+        {
+          "recordKey": "wrong-sleeper",
+          "subjectId": "someone-else",
+          "metric": "heart_rate",
+          "value": 70,
+          "unit": "bpm",
+          "timestamp": "2026-10-24T22:00:00Z"
+        }
+      ]
+    },
+    "summary": {
+      "adapterVersion": "normalized-reference-v1",
+      "side": "right",
+      "subjectId": "demo-sleeper",
+      "source": "Example watch",
+      "timePolicy": {
+        "disambiguation": "reject"
+      },
+      "received": 6,
+      "accepted": 4,
+      "rejected": 1,
+      "duplicates": 1,
+      "unscorable": 1,
+      "conflicts": 0,
+      "startMs": 1792879200000,
+      "endMs": 1792881000000,
+      "metrics": [
+        "breathing_rate",
+        "heart_rate",
+        "hrv_unknown",
+        "sleep_stages"
+      ],
+      "rejectionCounts": {
+        "SUBJECT_MISMATCH": 1
+      },
+      "rejectionExamples": [
+        {
+          "row": 6,
+          "code": "SUBJECT_MISMATCH",
+          "message": "Row belongs to a different subject; split the export and map each sleeper explicitly"
+        }
+      ],
+      "warnings": [
+        "Agreement with a reference source is not clinical accuracy.",
+        "Stage overlaps with conflicting labels are excluded from scoring.",
+        "RMSSD, SDNN and unknown HRV definitions cannot directly score the pod window-level IBI variability index."
+      ],
+      "contentHash": "0c0bae13ca3aa5ee64d9ab5018b1422e9bd3f3259ed7b6228ee1d27f1dfce6a1"
+    },
+    "measurements": [
+      {
+        "id": 1,
+        "recordKey": "synthetic-heart",
+        "metric": "heart_rate",
+        "value": 60,
+        "stage": null,
+        "unit": "bpm",
+        "startMs": 1792879200000,
+        "endMs": 1792879200000,
+        "temporalKind": "point",
+        "aggregation": "instant",
+        "windowMs": null,
+        "quality": null,
+        "scorable": true,
+        "exclusions": [],
+        "original": {
+          "recordKey": "synthetic-heart",
+          "metric": "heart_rate",
+          "value": 60,
+          "unit": "bpm",
+          "timestamp": "2026-10-24T22:00:00Z",
+          "annotation": "Synthetic demonstration measurement"
+        }
+      },
+      {
+        "id": 2,
+        "recordKey": "synthetic-breathing",
+        "metric": "breathing_rate",
+        "value": 15,
+        "stage": null,
+        "unit": "breaths/min",
+        "startMs": 1792879200000,
+        "endMs": 1792879500000,
+        "temporalKind": "interval",
+        "aggregation": "mean",
+        "windowMs": null,
+        "quality": null,
+        "scorable": true,
+        "exclusions": [],
+        "original": {
+          "recordKey": "synthetic-breathing",
+          "metric": "breathing_rate",
+          "value": 0.25,
+          "unit": "Hz",
+          "start": "2026-10-24T22:00:00Z",
+          "end": "2026-10-24T22:05:00Z"
+        }
+      },
+      {
+        "id": 3,
+        "recordKey": "synthetic-hrv",
+        "metric": "hrv_unknown",
+        "value": 38,
+        "stage": null,
+        "unit": "ms",
+        "startMs": 1792879200000,
+        "endMs": 1792879200000,
+        "temporalKind": "point",
+        "aggregation": "instant",
+        "windowMs": null,
+        "quality": null,
+        "scorable": false,
+        "exclusions": [
+          "unknown_hrv_definition"
+        ],
+        "original": {
+          "recordKey": "synthetic-hrv",
+          "metric": "hrv_unknown",
+          "value": 38,
+          "unit": "ms",
+          "timestamp": "2026-10-24T22:00:00Z"
+        }
+      },
+      {
+        "id": 4,
+        "recordKey": "synthetic-stage",
+        "metric": "sleep_stages",
+        "value": null,
+        "stage": "light",
+        "unit": "stage",
+        "startMs": 1792879200000,
+        "endMs": 1792881000000,
+        "temporalKind": "interval",
+        "aggregation": "stage",
+        "windowMs": null,
+        "quality": null,
+        "scorable": true,
+        "exclusions": [],
+        "original": {
+          "recordKey": "synthetic-stage",
+          "metric": "sleep_stages",
+          "value": "light",
+          "unit": "stage",
+          "start": "2026-10-24T22:00:00Z",
+          "end": "2026-10-24T22:30:00Z"
+        }
+      }
+    ]
+  },
+  {
+    "corrected": true,
+    "input": {
+      "side": "right",
+      "subjectId": "demo-sleeper",
+      "source": "Example watch",
+      "rows": [
+        {
+          "recordKey": "synthetic-heart",
+          "metric": "heart_rate",
+          "value": 62,
+          "unit": "bpm",
+          "timestamp": "2026-10-24T22:00:00Z",
+          "annotation": "Synthetic demonstration measurement"
+        },
+        {
+          "recordKey": "synthetic-heart",
+          "metric": "heart_rate",
+          "value": 62,
+          "unit": "bpm",
+          "timestamp": "2026-10-24T22:00:00Z",
+          "annotation": "Synthetic demonstration measurement"
+        },
+        {
+          "recordKey": "synthetic-breathing",
+          "metric": "breathing_rate",
+          "value": 0.25,
+          "unit": "Hz",
+          "start": "2026-10-24T22:00:00Z",
+          "end": "2026-10-24T22:05:00Z"
+        },
+        {
+          "recordKey": "synthetic-hrv",
+          "metric": "hrv_unknown",
+          "value": 38,
+          "unit": "ms",
+          "timestamp": "2026-10-24T22:00:00Z"
+        },
+        {
+          "recordKey": "synthetic-stage",
+          "metric": "sleep_stages",
+          "value": "light",
+          "unit": "stage",
+          "start": "2026-10-24T22:00:00Z",
+          "end": "2026-10-24T22:30:00Z"
+        },
+        {
+          "recordKey": "wrong-sleeper",
+          "subjectId": "someone-else",
+          "metric": "heart_rate",
+          "value": 70,
+          "unit": "bpm",
+          "timestamp": "2026-10-24T22:00:00Z"
+        }
+      ]
+    },
+    "summary": {
+      "adapterVersion": "normalized-reference-v1",
+      "side": "right",
+      "subjectId": "demo-sleeper",
+      "source": "Example watch",
+      "timePolicy": {
+        "disambiguation": "reject"
+      },
+      "received": 6,
+      "accepted": 4,
+      "rejected": 1,
+      "duplicates": 1,
+      "unscorable": 1,
+      "conflicts": 0,
+      "startMs": 1792879200000,
+      "endMs": 1792881000000,
+      "metrics": [
+        "breathing_rate",
+        "heart_rate",
+        "hrv_unknown",
+        "sleep_stages"
+      ],
+      "rejectionCounts": {
+        "SUBJECT_MISMATCH": 1
+      },
+      "rejectionExamples": [
+        {
+          "row": 6,
+          "code": "SUBJECT_MISMATCH",
+          "message": "Row belongs to a different subject; split the export and map each sleeper explicitly"
+        }
+      ],
+      "warnings": [
+        "Agreement with a reference source is not clinical accuracy.",
+        "Stage overlaps with conflicting labels are excluded from scoring.",
+        "RMSSD, SDNN and unknown HRV definitions cannot directly score the pod window-level IBI variability index."
+      ],
+      "contentHash": "387e99212136f7f30ca897c38530ac8a6457023938001c4d702297c374a8bca4"
+    },
+    "measurements": [
+      {
+        "id": 1,
+        "recordKey": "synthetic-heart",
+        "metric": "heart_rate",
+        "value": 62,
+        "stage": null,
+        "unit": "bpm",
+        "startMs": 1792879200000,
+        "endMs": 1792879200000,
+        "temporalKind": "point",
+        "aggregation": "instant",
+        "windowMs": null,
+        "quality": null,
+        "scorable": true,
+        "exclusions": [],
+        "original": {
+          "recordKey": "synthetic-heart",
+          "metric": "heart_rate",
+          "value": 62,
+          "unit": "bpm",
+          "timestamp": "2026-10-24T22:00:00Z",
+          "annotation": "Synthetic demonstration measurement"
+        }
+      },
+      {
+        "id": 2,
+        "recordKey": "synthetic-breathing",
+        "metric": "breathing_rate",
+        "value": 15,
+        "stage": null,
+        "unit": "breaths/min",
+        "startMs": 1792879200000,
+        "endMs": 1792879500000,
+        "temporalKind": "interval",
+        "aggregation": "mean",
+        "windowMs": null,
+        "quality": null,
+        "scorable": true,
+        "exclusions": [],
+        "original": {
+          "recordKey": "synthetic-breathing",
+          "metric": "breathing_rate",
+          "value": 0.25,
+          "unit": "Hz",
+          "start": "2026-10-24T22:00:00Z",
+          "end": "2026-10-24T22:05:00Z"
+        }
+      },
+      {
+        "id": 3,
+        "recordKey": "synthetic-hrv",
+        "metric": "hrv_unknown",
+        "value": 38,
+        "stage": null,
+        "unit": "ms",
+        "startMs": 1792879200000,
+        "endMs": 1792879200000,
+        "temporalKind": "point",
+        "aggregation": "instant",
+        "windowMs": null,
+        "quality": null,
+        "scorable": false,
+        "exclusions": [
+          "unknown_hrv_definition"
+        ],
+        "original": {
+          "recordKey": "synthetic-hrv",
+          "metric": "hrv_unknown",
+          "value": 38,
+          "unit": "ms",
+          "timestamp": "2026-10-24T22:00:00Z"
+        }
+      },
+      {
+        "id": 4,
+        "recordKey": "synthetic-stage",
+        "metric": "sleep_stages",
+        "value": null,
+        "stage": "light",
+        "unit": "stage",
+        "startMs": 1792879200000,
+        "endMs": 1792881000000,
+        "temporalKind": "interval",
+        "aggregation": "stage",
+        "windowMs": null,
+        "quality": null,
+        "scorable": true,
+        "exclusions": [],
+        "original": {
+          "recordKey": "synthetic-stage",
+          "metric": "sleep_stages",
+          "value": "light",
+          "unit": "stage",
+          "start": "2026-10-24T22:00:00Z",
+          "end": "2026-10-24T22:30:00Z"
+        }
+      }
+    ]
+  }
+]

@@ -29,6 +29,7 @@ import XCTest
         tap("candidate.review", app)
         XCTAssertTrue(app.staticTexts["Schema checks passed"].waitForExistence(timeout: 5))
         capture(app, "Profiles-candidate-review")
+        reveal(app.buttons["candidate.save"], app); capture(app, "Profiles-save-action")
         tap("candidate.save", app)
         XCTAssertTrue(app.staticTexts["Candidate saved"].waitForExistence(timeout: 5))
         tap("candidate.inspectSaved", app)
@@ -36,6 +37,7 @@ import XCTest
         capture(app, "Profiles-configuration-diff")
         let acknowledgement = app.switches["profiles.acknowledge"]
         reveal(acknowledgement, app); acknowledgement.tap()
+        reveal(app.buttons["profiles.apply"], app); capture(app, "Profiles-apply-action")
         tap("profiles.apply", app)
         tap("profiles.lastReceipt", app)
         XCTAssertTrue(app.staticTexts["Waiting for delivery"].waitForExistence(timeout: 5))

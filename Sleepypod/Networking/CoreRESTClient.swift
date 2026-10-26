@@ -32,6 +32,9 @@ struct CoreRESTClient: Sendable {
     func delete(_ path: String, query: [String: String] = [:]) async throws {
         _ = try await send(path, method: "DELETE", query: query)
     }
+    func delete<Result: Decodable & Sendable>(_ path: String, returning: Result.Type) async throws -> Result {
+        try JSONDecoder().decode(Result.self, from: await send(path, method: "DELETE"))
+    }
 
     /// Build query items separately so values containing spaces, '&' or timestamps stay data.
     func request(_ path: String, method: String, query: [String: String] = [:], body: Data? = nil) throws -> URLRequest {
