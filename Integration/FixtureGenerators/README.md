@@ -42,3 +42,15 @@ PATH=/opt/homebrew/opt/node@24/bin:$PATH ../sleepypod-core/node_modules/.bin/tsx
 ```
 
 An optional third argument chooses another output file. Regeneration may update source provenance; review the resulting JSON and run `MorningJournalTests` and `MorningJournalRESTTests` before replacing the retained example.
+
+## One-occurrence alarms
+
+`generate-next-alarm.ts` runs the real Core next-alarm model against a fresh, migrated in-memory test store. Twelve cases retain the exact occurrence and change preconditions, following alarms, expiry/invalidation, Away mode, conflicts, and attempted/unknown/acknowledged delivery. It starts no scheduler or hardware transport and reads no personal database. The checked-in example records Core `f0c40fabe7f040d8ed35ff6eba0e44d28dc75f1a`.
+
+```sh
+PATH=/opt/homebrew/opt/node@24/bin:$PATH ../sleepypod-core/node_modules/.bin/tsx \
+  --tsconfig ../sleepypod-core/tsconfig.json \
+  Integration/FixtureGenerators/generate-next-alarm.ts ../sleepypod-core
+```
+
+Use a clean Core checkout. An optional third argument selects another output file. The generator resolves Core's CommonJS dependencies through its own package and reads its checked-in migrations. Core generates fresh revision IDs; compare semantics before replacing the example, then run `NextAlarmTests` and `NextAlarmRESTTests`. Synthetic examples cannot establish physical vibration or timer delivery.

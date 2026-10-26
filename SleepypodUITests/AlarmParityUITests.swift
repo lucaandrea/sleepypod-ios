@@ -63,20 +63,16 @@ final class AlarmParityUITests: XCTestCase {
         capture(app, "Alarm-responsive-temperature")
         app.navigationBars.buttons["Cancel"].tap()
     }
-    func testNextAlarmToggleAndEditorOnTemperatureScreen() {
-        let app = XCUIApplication()
-        app.launchArguments = ["-apiBackend", "demo", "--demo", "-onboardingComplete", "YES", "-appearance", "Dark",
-                               "-healthSyncEnabled", "NO", "-uiRoute", "", "-tempControl", "dial", "-temperatureLayout", "cards"]
-        app.launch()
-        let toggle = app.switches["Next alarm enabled"]
-        XCTAssertTrue(toggle.waitForExistence(timeout: 15))
-        XCTAssertEqual(toggle.value as? String, "1")
-        // tap() scrolls to this control; a generic swipe can be consumed by the temperature dial.
-        toggle.tap()
-        XCTAssertEqual(toggle.value as? String, "0")
-        capture(app, "Alarm-next-paused-dark")
-        app.buttons["Edit next alarm at 07:00"].tap()
-        XCTAssertTrue(app.navigationBars["Edit alarm"].waitForExistence(timeout: 3))
+    func testNextAlarmWeeklyEditorKeepsWeeklyScopeExplicit() {
+        let app = launchTemperature()
+        let weekly = app.buttons["nextAlarm.weekly"]
+        showContext(weekly, app: app); XCTAssertEqual(weekly.label, "Weekly schedule")
+        XCTAssertFalse(app.buttons["nextAlarm.skip"].isEnabled, "Ordinary Demo never saves a wake command")
+        weekly.tap(); XCTAssertTrue(app.navigationBars["Edit alarm"].waitForExistence(timeout: 3))
+        XCTAssertEqual(app.switches["Alarm enabled"].value as? String, "1")
+        app.switches["Alarm enabled"].tap(); app.navigationBars.buttons["Save"].tap()
+        showContext(weekly, app: app); capture(app, "Alarm-weekly-paused-dark")
+        weekly.tap(); XCTAssertTrue(app.navigationBars["Edit alarm"].waitForExistence(timeout: 3))
         XCTAssertEqual(app.switches["Alarm enabled"].value as? String, "0")
         app.navigationBars.buttons["Cancel"].tap()
     }
@@ -104,7 +100,7 @@ final class AlarmParityUITests: XCTestCase {
     func testNextAlarmAcrossEveryTemperatureLayout() {
         for (control, layout) in [("dial", "cards"), ("slider", "cards"), ("stepper", "cards"), ("sides", "cards"), ("dial", "stage")] {
             let app = launchTemperature(control: control, layout: layout)
-            let edit = app.buttons["Edit next alarm at 07:00"].firstMatch
+            let edit = app.buttons["nextAlarm.weekly"].firstMatch
             showContext(edit, app: app)
             capture(app, "Alarm-layout-\(control)-\(layout)")
             edit.tap(); XCTAssertTrue(app.navigationBars["Edit alarm"].waitForExistence(timeout: 3))
@@ -116,7 +112,7 @@ final class AlarmParityUITests: XCTestCase {
         for scenario in ["solo-right", "left-away", "both-away"] {
             let app = launchTemperature(scenario: scenario)
             let right = scenario != "both-away"
-            let edit = app.buttons[right ? "Edit next alarm at 06:30" : "Edit next alarm at 07:00"]
+            let edit = app.buttons["nextAlarm.weekly"]
             showContext(edit, app: app)
             XCTAssertTrue(app.staticTexts[right ? "NEXT ALARM · RIGHT" : "NEXT ALARM · LEFT"].exists)
             capture(app, "Alarm-context-\(scenario)")
@@ -133,12 +129,12 @@ final class AlarmParityUITests: XCTestCase {
         XCTAssertTrue(empty.navigationBars["New alarm"].waitForExistence(timeout: 3))
         empty.navigationBars.buttons["Cancel"].tap(); empty.terminate()
         let offline = launchTemperature(scenario: "offline")
-        showContext(offline.buttons["Reload alarms"], app: offline)
+        showContext(offline.buttons["nextAlarm.reload"], app: offline)
         XCTAssertTrue(offline.staticTexts["Alarm status unavailable"].exists)
         XCTAssertFalse(offline.buttons["Add alarm"].exists)
         XCTAssertFalse(offline.switches["Next alarm enabled"].exists)
         capture(offline, "Alarm-offline")
-        offline.buttons["Reload alarms"].tap()
+        offline.buttons["nextAlarm.reload"].tap()
         XCTAssertTrue(offline.staticTexts["Alarm status unavailable"].waitForExistence(timeout: 3))
     }
 

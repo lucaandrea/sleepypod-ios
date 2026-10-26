@@ -91,6 +91,7 @@ struct ScheduleScreen: View {
                             if APIBackend.current == .freeSleep { PodFeatureScreen(.alarms, side: schedule.selectedSide.primarySide.rawValue) }
                             else { NativeAlarmsScreen(sides: schedule.selectedSide) }
                         }
+                        if APIBackend.current != .freeSleep { NavigationLink("Next alarm") { NativeNextAlarmScreen(side: schedule.selectedSide.primarySide) } }
                         NavigationLink("Routine editor") { BedtimeRoutinesDestination(side: schedule.selectedSide.primarySide) }
                     } label: { Image(systemName: "ellipsis") }
                     .accessibilityLabel("Schedule options")

@@ -1,0 +1,22 @@
+# Native one-occurrence alarms
+
+Implemented against accepted Core main `f0c40fabe7f040d8ed35ff6eba0e44d28dc75f1a`, `docs/NEXT_ALARMS.md` and `src/components/TempScreen/AlarmCard.tsx`.
+
+Temp, Schedule options → Next alarm and Settings → Next alarm use the native occurrence controls. The dedicated page retains separate cards for both sides. The Temp context card separates Skip this alarm, Change this time and Restore routine alarm from Weekly schedule. Requests preserve exact displayed revision/occurrence/expiry strings. A changed time stays on the original local wake date; Core validates future, crossing and DST restrictions. Skipped alarms retain their suppressed time and show the following routine event separately. Pending timer registration and attempted/acknowledged/unknown delivery never claim physical vibration.
+
+Time drafts retain their original occurrence while polling or recovering. Failed/uncertain mutations block automatic retry and background unlocking; explicit readback keeps a stale time draft for review. Connection changes and cancellation cannot dispatch an old action or publish a late result. Restore also uses the server's generation precondition.
+
+The twelve-case fixture is generated from the actual migrated in-memory Core store, including skipped, restored, changed, expired, invalidated, away, conflicting, attempted, unknown and acknowledged states. No scheduler or transport starts during generation. Ordinary Demo reads the same weekly rows as the existing native editor and cannot save a one-time wake command; synthetic debug cases are labelled separately.
+
+Validation on October 26, 2026:
+
+- 27 focused model/transport tests pass: nine occurrence tests, three exact REST checks and fifteen existing weekly-alarm tests. The source-generated fixture is decoded directly; wrong side/revision/write receipts, malformed action fields, stale owner, pre-cancellation, interrupted writes, conflicts, lost replies and ordinary Demo row synchronization are covered.
+- All five new UI flows pass on iPhone: skip/following/restore and separate weekly editing; time-picker save on the existing wake date; uncertain reply/readback and pending timer registration; ordinary Demo/conflicting/attempted/Away/offline presentation; Settings navigation to both sides.
+- All six existing weekly-alarm UI regressions pass on iPhone, including create/smart wake/snooze/pause/delete, responsive editor, every temperature layout, weekly pause persistence, solo/Away context and empty/offline behavior.
+- All five new UI flows pass on iPad in Light appearance (92.318 seconds). Fifteen retained iPad captures were reviewed, including the expanded time editor and two-side page.
+- All five new flows pass at maximum Dynamic Type on iPhone (282.529 seconds). Fifteen accessibility captures were reviewed; controls wrap and remain reachable by scrolling. Sixty-two captures are retained under `previews/next-alarm`: fifteen each for iPhone Dark, iPad Light and maximum text, plus seventeen weekly regressions.
+- Strict lint, generated project, diff whitespace checks and the compiled presentation guard pass. The guard confirms Sleepypod controls/components and absence of the retired app shell/assets.
+
+Reproduction evidence is retained under ignored `build/parity-validation`: `NextAlarm-phone-v2` has the 27 passing logic/REST checks and three passing UI flows; `phone-v3` has all six passing weekly regressions and an interrupted navigation assertion; `phone-v4` has the nine updated model checks and two passing time-save/navigation flows; `ipad-v5` and `accessibility-v6` each have all five passing UI flows. The first build exposed a Swift catch-variable shadowing mistake, corrected to explicit `self.error`. Initial Settings assertions encountered duplicate accessibility representations and then an overly restrictive scroll inset; the final test finds the labelled heading once and accepts its visible top position. These harness failures did not establish a product-layout defect. The synthetic time example now reflects the edited clock rather than always returning its fixed fixture clock.
+
+The exact fixture generator is checked in and was reproduced against clean Core source. No live Pod alarm, base, temperature, Health, or cloud-model action was issued. Local fixtures and simulator results do not establish physical vibration or scheduling on the owner's controller. CI, merge and the final release remain pending.

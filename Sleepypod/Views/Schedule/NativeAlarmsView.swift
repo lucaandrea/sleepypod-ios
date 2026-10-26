@@ -235,7 +235,7 @@ struct NativeAlarmEditor: View {
     }
 }
 
-struct NextAlarmCard: View {
+struct WeeklyAlarmCard: View {
     let side: Side
     @Environment(AlarmWorkspace.self) private var model
     @Environment(SettingsManager.self) private var settings
@@ -250,8 +250,8 @@ struct NextAlarmCard: View {
                 if let group {
                     HStack(alignment: .top) {
                         Button { editing = AlarmDraft(group: group) } label: { AlarmSummary(group: group).frame(maxWidth: .infinity, alignment: .leading).contentShape(Rectangle()) }
-                            .buttonStyle(.plain).accessibilityLabel("Edit next alarm at \(group.alarm.time)")
-                        Toggle("Next alarm enabled", isOn: Binding(get: { group.alarm.enabled }, set: { enabled in
+                            .buttonStyle(.plain).accessibilityLabel("Edit weekly alarm at \(group.alarm.time)")
+                        Toggle("Weekly alarm enabled", isOn: Binding(get: { group.alarm.enabled }, set: { enabled in
                             pinnedIDs = Set(group.rows.map(\.id))
                             Task { await model.toggle(group, enabled: enabled); await schedule.fetchSchedules() }
                         })).labelsHidden().fixedSize().tint(Theme.green).disabled(model.saving || !model.loaded)

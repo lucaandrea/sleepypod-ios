@@ -29,6 +29,13 @@ final class AlarmWorkspace {
         error = nil; commandError = nil; notice = nil; testingSides = []
         schemaSnooze = false
     }
+    func occurrenceClient(timeZone: String, scenario: String = "normal") -> (any NextAlarmClient)? {
+        if demo {
+            if scenario == "normal" { return DemoNextAlarmClient(weekly: api, timeZone: timeZone) }
+            return SyntheticNextAlarmClient(scenario: scenario)
+        }
+        return (try? CoreRESTClient.configured()).map { CoreNextAlarmClient(transport: $0) }
+    }
     var supportsSnooze: Bool { demo || schemaSnooze || rows.contains { $0.snoozeDuration != nil && $0.snoozeTaper != nil } }
     func groups(_ side: Side) -> [AlarmGroup] { AlarmGroup.group(rows, side: side) }
     func nextGroup(_ side: Side, now: Date, timeZone: TimeZone) -> AlarmGroup? {
