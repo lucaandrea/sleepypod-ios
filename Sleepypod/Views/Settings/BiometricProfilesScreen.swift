@@ -5,6 +5,7 @@ struct BiometricProfilesScreen: View {
     @State private var side: Side = .left
     @State private var model: BiometricProfilesWorkspace?
     @State private var error: String?
+    @State private var observationsClient: (any BiometricObservationsServing)?
     @State private var demo = BiometricDemoSession()
     var body: some View {
         ScrollView {
@@ -15,6 +16,9 @@ struct BiometricProfilesScreen: View {
                 if let model {
                     if APIBackend.current.isDemo { Text("Demo · profile changes stay in memory. No processor or validation evidence is simulated.").font(.footnote).foregroundStyle(Theme.text2) }
                     GroupedCard {
+                        if let observationsClient {
+                            NavigationLink { BiometricObservationsScreen(side: model.side, client: observationsClient) } label: { SettingsRow("Observations", icon: "waveform.badge.magnifyingglass", tile: true, chevron: true) }.accessibilityIdentifier("profiles.observations")
+                        }
                         NavigationLink { BiometricBacktestsScreen(side: model.side, demo: demo.datasets) } label: { SettingsRow("Backtests", icon: "chart.xyaxis.line", tile: true, chevron: true) }.accessibilityIdentifier("profiles.backtests")
                         NavigationLink { BiometricReferencesScreen(side: model.side) } label: { SettingsRow("References", icon: "doc.text.magnifyingglass", tile: true, chevron: true) }.accessibilityIdentifier("profiles.references")
                         NavigationLink { BiometricProfileLibraryScreen(model: model) } label: { SettingsRow("Profiles", icon: "slider.horizontal.3", tile: true, chevron: true) }.accessibilityIdentifier("profiles.library")
@@ -34,13 +38,20 @@ struct BiometricProfilesScreen: View {
             .modifier(BiometricProfileObservation(model: model))
     }
     private func configure() async {
-        model = nil; error = nil
+        model = nil; observationsClient = nil; error = nil
         do {
-            let client: any BiometricProfilesServing = APIBackend.current.isDemo ? demo.profiles : CoreBiometricProfilesClient(transport: try .configured())
+            let client: any BiometricProfilesServing
+            let observations: any BiometricObservationsServing
+            if APIBackend.current.isDemo { client = demo.profiles; observations = demo.observations }
+            else {
+                let transport = try CoreRESTClient.configured()
+                client = CoreBiometricProfilesClient(transport: transport)
+                observations = CoreBiometricObservationsClient(transport: transport)
+            }
             let store = APIBackend.current.isDemo ? BiometricProfilePendingStore(directory: nil) : try .persistent()
             let workspace = BiometricProfilesWorkspace(side: side, client: client, pendingStore: store)
             guard !Task.isCancelled else { return }
-            model = workspace
+            model = workspace; observationsClient = observations
             await workspace.refresh()
         } catch { if !Task.isCancelled { self.error = error.localizedDescription } }
     }

@@ -1,0 +1,488 @@
+{
+  "generatedFrom": "Core pure observation report evaluator",
+  "run": {
+    "id": "60000000-0000-4000-8000-000000000001",
+    "side": "left",
+    "subjectId": "synthetic-observation-example",
+    "state": "completed",
+    "planHash": "13794b452b1af60ef8df990dcf33ec8f2f8e0117a04020dfad6b0d04c9fab4fb",
+    "candidateConfigHash": "933fb4329b8c24091565b43388576d641f2806e0fda52bad44f2a2968b997aba",
+    "activeConfigHash": "933fb4329b8c24091565b43388576d641f2806e0fda52bad44f2a2968b997aba",
+    "candidateRevisionId": null,
+    "candidateIdentitySaved": true,
+    "startMs": 1700000001000,
+    "endMs": 1700000010000,
+    "createdAtMs": 1700000000000,
+    "endedAtMs": 1700000010000,
+    "heartbeatAtMs": 1700000010000,
+    "reason": "precomputed_synthetic_example",
+    "pointCount": 9,
+    "byteCount": 3677,
+    "workerReceiptAvailable": false
+  },
+  "prepared": {
+    "status": "prepared_not_admitted",
+    "plan": {
+      "schema": "biometric-shadow-plan-v1",
+      "side": "left",
+      "execution": {
+        "version": "shadow-execution-policy-v1",
+        "configHashes": {
+          "left": "933fb4329b8c24091565b43388576d641f2806e0fda52bad44f2a2968b997aba",
+          "right": "933fb4329b8c24091565b43388576d641f2806e0fda52bad44f2a2968b997aba"
+        },
+        "maximumRecords": 10,
+        "maximumOutputs": 10,
+        "maximumCpuMs": 1000,
+        "maximumInputBytes": 100000,
+        "maximumOutputBytes": 100000,
+        "budgets": {
+          "cpuSeconds": 2,
+          "addressSpaceBytes": 100000000,
+          "maximumRssBytes": 100000000,
+          "wallMs": 10000,
+          "acknowledgmentMs": 1000,
+          "idleMs": 1000,
+          "rssIntervalMs": 100,
+          "rssTimeoutMs": 100
+        },
+        "leaseMs": 1500,
+        "heartbeatMs": 200,
+        "sources": {
+          "pollMs": 50,
+          "maximumActiveRows": 10,
+          "databaseBusyTimeoutMs": 50,
+          "frames": {
+            "maximumFrames": 10,
+            "maximumBytes": 100000,
+            "maximumEventAgeMs": 1000,
+            "maximumFutureSkewMs": 0
+          },
+          "context": {
+            "presenceStaleMs": 300000,
+            "pumpStaleMs": 5000,
+            "maximumPresenceBytes": 4096
+          }
+        }
+      },
+      "candidateRevisionId": null,
+      "expectedBindings": {
+        "left": {
+          "generation": 1,
+          "resolvedHash": "933fb4329b8c24091565b43388576d641f2806e0fda52bad44f2a2968b997aba"
+        },
+        "right": {
+          "generation": 2,
+          "resolvedHash": "933fb4329b8c24091565b43388576d641f2806e0fda52bad44f2a2968b997aba"
+        }
+      },
+      "subjectId": "synthetic-observation-example",
+      "monitoring": {
+        "expectedIntervalMs": 1000,
+        "maximumGapMs": 2000,
+        "heartbeatStaleMs": 1000,
+        "minimumCandidateCoverage": 0.8,
+        "maximumCoverageLoss": 0.1,
+        "minimumQuality": 0.8,
+        "alignment": {
+          "version": "reference-alignment-v1",
+          "pointToleranceMs": 0,
+          "clockOffsetMs": 0,
+          "offsetSource": "fixed"
+        }
+      },
+      "joining": {
+        "maximumPendingPoints": 10,
+        "maximumLatenessMs": 100,
+        "drainGraceMs": 500
+      },
+      "candidateConfigHash": "933fb4329b8c24091565b43388576d641f2806e0fda52bad44f2a2968b997aba",
+      "activeConfigHash": "933fb4329b8c24091565b43388576d641f2806e0fda52bad44f2a2968b997aba",
+      "qualificationHash": "7b77c20d2c441a5c9e84fde8cace5182f99d56ad9f08e2d09afb21c670413fd0",
+      "engineBuildHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "startMs": 1700000001000,
+      "endMs": 1700000010000,
+      "maximumPoints": 10,
+      "maximumBytes": 10000,
+      "metrics": [
+        "heart_rate"
+      ]
+    },
+    "planHash": "13794b452b1af60ef8df990dcf33ec8f2f8e0117a04020dfad6b0d04c9fab4fb"
+  },
+  "reference": {
+    "side": "left",
+    "subjectId": "synthetic-observation-example",
+    "source": "Synthetic example reference",
+    "timePolicy": {
+      "disambiguation": "reject"
+    },
+    "rows": [
+      {
+        "recordKey": "synthetic-0",
+        "metric": "heart_rate",
+        "value": 60,
+        "unit": "bpm",
+        "timestampMs": 1700000001000
+      },
+      {
+        "recordKey": "synthetic-1",
+        "metric": "heart_rate",
+        "value": 61,
+        "unit": "bpm",
+        "timestampMs": 1700000002000
+      },
+      {
+        "recordKey": "synthetic-2",
+        "metric": "heart_rate",
+        "value": 62,
+        "unit": "bpm",
+        "timestampMs": 1700000003000
+      },
+      {
+        "recordKey": "synthetic-3",
+        "metric": "heart_rate",
+        "value": 60,
+        "unit": "bpm",
+        "timestampMs": 1700000004000
+      },
+      {
+        "recordKey": "synthetic-4",
+        "metric": "heart_rate",
+        "value": 61,
+        "unit": "bpm",
+        "timestampMs": 1700000005000
+      },
+      {
+        "recordKey": "synthetic-5",
+        "metric": "heart_rate",
+        "value": 62,
+        "unit": "bpm",
+        "timestampMs": 1700000006000
+      },
+      {
+        "recordKey": "synthetic-6",
+        "metric": "heart_rate",
+        "value": 60,
+        "unit": "bpm",
+        "timestampMs": 1700000007000
+      },
+      {
+        "recordKey": "synthetic-7",
+        "metric": "heart_rate",
+        "value": 61,
+        "unit": "bpm",
+        "timestampMs": 1700000008000
+      },
+      {
+        "recordKey": "synthetic-8",
+        "metric": "heart_rate",
+        "value": 62,
+        "unit": "bpm",
+        "timestampMs": 1700000009000
+      }
+    ]
+  },
+  "report": {
+    "schema": "biometric-shadow-report-v1",
+    "runId": "60000000-0000-4000-8000-000000000001",
+    "planHash": "13794b452b1af60ef8df990dcf33ec8f2f8e0117a04020dfad6b0d04c9fab4fb",
+    "snapshotHash": "b87ca49d08c28db7305df809b2746f9fa1331785c487e580226d0e2d45c88df5",
+    "reportHash": "2e782676e1dcc31a7a9f40981a8cfc65aa8f657d65a9202e9470457edbfd4a86",
+    "capturedAtMs": 1700000010000,
+    "state": "completed",
+    "reason": "precomputed_synthetic_example",
+    "health": "issues_detected",
+    "issues": [
+      "simulated_demo",
+      "coverage_degraded"
+    ],
+    "expectedSlots": 9,
+    "observedSamples": 9,
+    "maximumGapMs": 1000,
+    "attemptsObserved": 1,
+    "alignment": {
+      "version": "reference-alignment-v1",
+      "pointToleranceMs": 0,
+      "clockOffsetMs": 0,
+      "offsetSource": "fixed"
+    },
+    "metrics": [
+      {
+        "metric": "heart_rate",
+        "windowMs": null,
+        "current": {
+          "usableCount": 9,
+          "usableSlots": 9,
+          "coverage": 1
+        },
+        "candidate": {
+          "usableCount": 7,
+          "usableSlots": 7,
+          "coverage": 0.7777777777777778
+        },
+        "coverageDifference": -0.2222222222222222,
+        "issues": [
+          "candidate_coverage_below_minimum",
+          "coverage_regression"
+        ],
+        "referenceExclusions": {},
+        "comparison": {
+          "version": "paired-numeric-support-v1",
+          "metric": "heart_rate",
+          "baseline": "current",
+          "candidate": "candidate",
+          "baselineHash": "933fb4329b8c24091565b43388576d641f2806e0fda52bad44f2a2968b997aba",
+          "candidateHash": "933fb4329b8c24091565b43388576d641f2806e0fda52bad44f2a2968b997aba",
+          "commonSupportScope": "all_configurations",
+          "supportDefinition": "identical_unambiguous_observation_timestamps",
+          "commonObservationCount": 7,
+          "ownSupport": {
+            "baseline": {
+              "status": "no_reference",
+              "metrics": null,
+              "pairedCount": 0,
+              "referenceCoverage": null,
+              "validObservationCount": 9,
+              "unmatchedReferences": 0,
+              "unmatchedObservations": 9
+            },
+            "candidate": {
+              "status": "no_reference",
+              "metrics": null,
+              "pairedCount": 0,
+              "referenceCoverage": null,
+              "validObservationCount": 7,
+              "unmatchedReferences": 0,
+              "unmatchedObservations": 7
+            }
+          },
+          "commonSupport": {
+            "baseline": {
+              "status": "no_reference",
+              "metrics": null,
+              "pairedCount": 0,
+              "referenceCoverage": null,
+              "validObservationCount": 7,
+              "unmatchedReferences": 0,
+              "unmatchedObservations": 7
+            },
+            "candidate": {
+              "status": "no_reference",
+              "metrics": null,
+              "pairedCount": 0,
+              "referenceCoverage": null,
+              "validObservationCount": 7,
+              "unmatchedReferences": 0,
+              "unmatchedObservations": 7
+            }
+          },
+          "differences": {
+            "commonMae": null,
+            "commonMedianAbsoluteError": null,
+            "commonP95AbsoluteError": null,
+            "commonSignedBias": null,
+            "ownMae": null,
+            "referenceCoverage": null
+          },
+          "lostObservationTimestamps": 2,
+          "addedObservationTimestamps": 0,
+          "ambiguousObservationTimestamps": {
+            "baseline": 0,
+            "candidate": 0
+          },
+          "coverageReduced": true,
+          "interpretation": "descriptive_numeric_agreement_not_validated_improvement"
+        }
+      }
+    ],
+    "pairing": {
+      "activeOnly": 0,
+      "candidateOnly": 0,
+      "unknownInputIdentity": 9
+    },
+    "workerReceipt": null,
+    "executionPolicyHash": "31841c5af66f7a0d5e35095cabddda0d02854c245305108b62be48abc3e75259",
+    "contextEvidence": "host_observations_not_live_processor_cache_attestation",
+    "limitations": [
+      "Precomputed synthetic example. No hardware, worker execution, or qualified activation evidence."
+    ],
+    "referenceSummary": null,
+    "excludedBoundaryReferences": 0,
+    "interpretation": "prospective_observation_and_reference_agreement_not_activation_authorization"
+  },
+  "comparison": {
+    "schema": "biometric-shadow-report-v1",
+    "runId": "60000000-0000-4000-8000-000000000001",
+    "planHash": "13794b452b1af60ef8df990dcf33ec8f2f8e0117a04020dfad6b0d04c9fab4fb",
+    "snapshotHash": "b87ca49d08c28db7305df809b2746f9fa1331785c487e580226d0e2d45c88df5",
+    "reportHash": "d79f60770602c73891a7b5b233d7bb8dac39b1aaeeeff3260be3adf306ca7996",
+    "capturedAtMs": 1700000010000,
+    "state": "completed",
+    "reason": "precomputed_synthetic_example",
+    "health": "issues_detected",
+    "issues": [
+      "simulated_demo",
+      "coverage_degraded"
+    ],
+    "expectedSlots": 9,
+    "observedSamples": 9,
+    "maximumGapMs": 1000,
+    "attemptsObserved": 1,
+    "alignment": {
+      "version": "reference-alignment-v1",
+      "pointToleranceMs": 0,
+      "clockOffsetMs": 0,
+      "offsetSource": "fixed"
+    },
+    "metrics": [
+      {
+        "metric": "heart_rate",
+        "windowMs": null,
+        "current": {
+          "usableCount": 9,
+          "usableSlots": 9,
+          "coverage": 1
+        },
+        "candidate": {
+          "usableCount": 7,
+          "usableSlots": 7,
+          "coverage": 0.7777777777777778
+        },
+        "coverageDifference": -0.2222222222222222,
+        "issues": [
+          "candidate_coverage_below_minimum",
+          "coverage_regression"
+        ],
+        "referenceExclusions": {},
+        "comparison": {
+          "version": "paired-numeric-support-v1",
+          "metric": "heart_rate",
+          "baseline": "current",
+          "candidate": "candidate",
+          "baselineHash": "933fb4329b8c24091565b43388576d641f2806e0fda52bad44f2a2968b997aba",
+          "candidateHash": "933fb4329b8c24091565b43388576d641f2806e0fda52bad44f2a2968b997aba",
+          "commonSupportScope": "all_configurations",
+          "supportDefinition": "identical_unambiguous_observation_timestamps",
+          "commonObservationCount": 7,
+          "ownSupport": {
+            "baseline": {
+              "status": "compared",
+              "metrics": {
+                "mae": 0,
+                "medianAbsoluteError": 0,
+                "p95AbsoluteError": 0,
+                "signedBias": 0
+              },
+              "pairedCount": 9,
+              "referenceCoverage": 1,
+              "validObservationCount": 9,
+              "unmatchedReferences": 0,
+              "unmatchedObservations": 0
+            },
+            "candidate": {
+              "status": "compared",
+              "metrics": {
+                "mae": 1,
+                "medianAbsoluteError": 1,
+                "p95AbsoluteError": 1,
+                "signedBias": -1
+              },
+              "pairedCount": 7,
+              "referenceCoverage": 0.7777777777777778,
+              "validObservationCount": 7,
+              "unmatchedReferences": 2,
+              "unmatchedObservations": 0
+            }
+          },
+          "commonSupport": {
+            "baseline": {
+              "status": "compared",
+              "metrics": {
+                "mae": 0,
+                "medianAbsoluteError": 0,
+                "p95AbsoluteError": 0,
+                "signedBias": 0
+              },
+              "pairedCount": 7,
+              "referenceCoverage": 0.7777777777777778,
+              "validObservationCount": 7,
+              "unmatchedReferences": 2,
+              "unmatchedObservations": 0
+            },
+            "candidate": {
+              "status": "compared",
+              "metrics": {
+                "mae": 1,
+                "medianAbsoluteError": 1,
+                "p95AbsoluteError": 1,
+                "signedBias": -1
+              },
+              "pairedCount": 7,
+              "referenceCoverage": 0.7777777777777778,
+              "validObservationCount": 7,
+              "unmatchedReferences": 2,
+              "unmatchedObservations": 0
+            }
+          },
+          "differences": {
+            "commonMae": 1,
+            "commonMedianAbsoluteError": 1,
+            "commonP95AbsoluteError": 1,
+            "commonSignedBias": -1,
+            "ownMae": 1,
+            "referenceCoverage": -0.2222222222222222
+          },
+          "lostObservationTimestamps": 2,
+          "addedObservationTimestamps": 0,
+          "ambiguousObservationTimestamps": {
+            "baseline": 0,
+            "candidate": 0
+          },
+          "coverageReduced": true,
+          "interpretation": "descriptive_numeric_agreement_not_validated_improvement"
+        }
+      }
+    ],
+    "pairing": {
+      "activeOnly": 0,
+      "candidateOnly": 0,
+      "unknownInputIdentity": 9
+    },
+    "workerReceipt": null,
+    "executionPolicyHash": "31841c5af66f7a0d5e35095cabddda0d02854c245305108b62be48abc3e75259",
+    "contextEvidence": "host_observations_not_live_processor_cache_attestation",
+    "limitations": [
+      "Precomputed synthetic example. No hardware, worker execution, or qualified activation evidence."
+    ],
+    "referenceSummary": {
+      "contentHash": "89da1b3b4205e391f0017c57cb9cd76c6ac0fc97f17170b1e5d811b2f9f896b0",
+      "adapterVersion": "normalized-reference-v1",
+      "side": "left",
+      "subjectId": "synthetic-observation-example",
+      "source": "Synthetic example reference",
+      "timePolicy": {
+        "disambiguation": "reject"
+      },
+      "received": 9,
+      "accepted": 9,
+      "rejected": 0,
+      "duplicates": 0,
+      "unscorable": 0,
+      "conflicts": 0,
+      "startMs": 1700000001000,
+      "endMs": 1700000009000,
+      "metrics": [
+        "heart_rate"
+      ],
+      "rejectionCounts": {},
+      "rejectionExamples": [],
+      "warnings": [
+        "Agreement with a reference source is not clinical accuracy.",
+        "Stage overlaps with conflicting labels are excluded from scoring."
+      ]
+    },
+    "excludedBoundaryReferences": 0,
+    "interpretation": "prospective_observation_and_reference_agreement_not_activation_authorization"
+  }
+}
