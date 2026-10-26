@@ -115,5 +115,9 @@ actor DemoBiometricDatasetsClient: BiometricDatasetsServing {
 struct BiometricDemoSession {
     let profiles: DemoBiometricProfilesClient
     let datasets: DemoBiometricDatasetsClient
-    init() { let profiles = DemoBiometricProfilesClient(); self.profiles = profiles; datasets = .init(profiles: profiles) }
+    let observations: DemoBiometricObservationsClient
+    init() {
+        let profiles = DemoBiometricProfilesClient()
+        self.profiles = profiles; datasets = .init(profiles: profiles); observations = .init(profiles: profiles)
+    }
 }

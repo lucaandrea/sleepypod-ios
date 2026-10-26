@@ -1,6 +1,6 @@
 # Native application of an evaluated biometric profile
 
-2026-10-26. Implemented and locally verified; GitHub CI is pending. Audited Core `ValidatedProfileActivation.tsx`, `biometricTuning.ts`, `profiles/activation.ts`, `evaluation-store.ts`, `evaluation-assessment.ts` and `history.ts`.
+2026-10-26. Implemented and locally verified; All four GitHub checks passed in run 40291427687 (build 15m35s). PR #24 merged into owner main at `2b8e3077a29ddb1cd86424a615d341f0b09c2213` on 2026-10-26 at 08:35 UTC. Audited Core `ValidatedProfileActivation.tsx`, `biometricTuning.ts`, `profiles/activation.ts`, `evaluation-store.ts`, `evaluation-assessment.ts` and `history.ts`.
 
 A retained evaluation links to a native review of its exact candidate revision, resolved configuration hash, evaluation ID and complete report hash. Review reads the current profile, requests Core's evidence eligibility, compares the candidate, and rechecks the saved binding. Applying remains disabled during an overview read, after a failed or stale read, after a changed binding, or once the review expires. Core independently rechecks evidence, installed qualification, runtime baseline and generation at submission.
 
@@ -16,6 +16,6 @@ Validation:
 - `Validated-phone-v6.xcresult`: all 19 checks pass (eight new checks plus eleven report regressions), and the complete native review flow passes in 38.943 seconds. The test verifies exact retained identity, timing selection and explicit refusal of synthetic Demo evidence, with no saved activation.
 - `Validated-ipad.xcresult`: the same flow passes in 31.401 seconds with the light appearance. `Validated-accessibility.xcresult` passes at maximum Dynamic Type in 117.289 seconds. Four captures per device/text configuration are retained under `previews/biometric-validated/`; all twelve were reviewed. `Validated-accessibility-final.xcresult` also passes in 128.483 seconds, explicitly asserting the timing accessibility value and retaining a fully visible timing control capture. All twelve final captures are reviewed. `Validated-lifecycle-final.xcresult` passes all fourteen checks (eight new model/REST and six profile regressions) after replacing a test spin loop with a deterministic read gate.
 - Earlier compile attempts caught an oversized view expression, a missing captured profile-client property and a test actor-isolation declaration. The report view was split into focused builders, all dataset clients expose the captured profile client, and Demo exposes that immutable dependency as nonisolated.
-- Strict SwiftLint, diff validation and the presentation guard pass. GitHub CI is pending. No live controller mutation or processor adoption is claimed.
+- Strict SwiftLint, diff validation and the presentation guard pass. All four GitHub checks passed in run 40291427687 (build 15m35s). PR #24 merged into owner main at `2b8e3077a29ddb1cd86424a615d341f0b09c2213` on 2026-10-26 at 08:35 UTC. No live controller mutation or processor adoption is claimed.
 
  Version/build remain 0.2.0 (7); the complete parity effort and TestFlight release remain unfinished.
