@@ -1,0 +1,19 @@
+# Native imported history
+
+Implemented and locally validated, October 26, 2026. CI and merge are tracked separately. No real archive was copied, shared, rewritten or uploaded during these tests.
+
+The accepted contract is Core main `5297048787c6b53c54bf4add9897a85ddd433069`, `src/history/contract.ts`, `src/history/read.ts`, `src/history/intervals.ts` and `docs/IMPORTED_HISTORY.md`. The native destination uses read-only `/api/v1/history`, `/records` and `/presence`; it does not depend on the unavailable legacy compatibility router.
+
+Sleep → Personal tools and Settings → Imported history open the same native Sleepypod cards for historical Left/Right, Presence/Vitals/Movement and inclusive source-calendar dates. Dates become half-open API intervals using the archive timezone, including daylight-saving transitions, and must fit the server's 90-day elapsed limit. Viewing records is explicit. Paging retains newest timestamp/ID order, rejects repeated or mismatched pages, and is bounded to 5,000 displayed records with lazy rows. Source changes discard all pages and cursors; transient failures label retained rows as stale and require an explicit reload or new query. Owner/navigation invalidation prevents late results from being shown under a different connection.
+
+The original database checksum, snapshot identity, timezone, import timestamp and unassigned-row count remain visible. Ordinary Demo has no archive; DEBUG test scenarios use an explicitly labelled synthetic fixture validated against Core's actual Zod schemas. Missing metrics remain unavailable. Presence is occupancy, not measured sleep or sleep stages. Vitals retain their five-minute interval-start meaning; the original HRV estimator is unverified and is not relabelled as Apple Health SDNN. Movement retains its original scale. None of this history is used for bed control, Preview qualification or Health writes.
+
+Presence inspection preserves the reported duration/exits separately from independent normalized present and absent interval claims. Conflicts are not repaired, missing evidence does not become zero, and unavailable/invalid/oversized/unsupported-window states remain distinct. Interval lists page at 50; original text previews are bounded to 4,000 characters, with explicit copy of the full bounded source text.
+
+## Validation
+
+- `History-unit-v2.xcresult`: all 12 focused model, state and REST checks pass. Coverage includes DST, null values, exact GET/query routing and cache policy, opaque cursor encoding, snapshot changes, repeated pages, failed pagination, owner invalidation and independent presence claims.
+- `History-phone-v10.xcresult`: both full phone flows pass after the final menu/label changes. `History-accessibility-v11.xcresult`: both flows pass at maximum text size, with regular size restored afterwards. `History-ipad-v12.xcresult`: both flows plus the Settings entry pass in iPad light mode.
+- All 41 reviewed captures live in `previews/imported-history/` (14 phone, 14 iPad, 13 maximum-text). The supplemental phone Settings route also passes in `History-settings-phone-v13.xcresult`. Largest-text inspection found a truncated value label, now fixed with intrinsic-height wrapping. A long native context menu became unreachable at maximum text size; that layout now uses a standard scrollable options page. Regular layouts group personal tools in a native submenu. The first iPad automation attempt also raced the initial Demo load; it now waits for the loaded Sleep controls before opening the menu.
+- Swift 6 compilation with warnings as errors, strict SwiftLint, `git diff --check` and `Integration/verify_presentation.py --derived-data build/parity-validation/DerivedData` pass. The presentation guard confirms the retired app shell and assets are absent.
+- All UI data is synthetic and read-only. Live owner archive acceptance and TestFlight distribution remain separate, unfinished work.

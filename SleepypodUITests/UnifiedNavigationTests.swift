@@ -29,12 +29,14 @@ final class UnifiedNavigationTests: XCTestCase {
         XCTAssertTrue(app.buttons["Week"].waitForExistence(timeout: 10))
         attach(app, name: "04-Sleep-dark")
         app.buttons["Sleep options"].tap()
+        if app.buttons["Personal tools"].exists { app.buttons["Personal tools"].tap() }
         app.buttons["Morning check-in"].tap()
         XCTAssertTrue(app.navigationBars["Morning check-in"].waitForExistence(timeout: 5))
         XCTAssertTrue(app.buttons["Save check-in"].waitForExistence(timeout: 5))
         attach(app, name: "05-Check-in-dark")
         app.navigationBars.buttons.element(boundBy: 0).tap()
         app.buttons["Sleep options"].tap()
+        if app.buttons["Personal tools"].exists { app.buttons["Personal tools"].tap() }
         app.buttons["Personal reports"].tap()
         XCTAssertTrue(app.navigationBars["Personal reports"].waitForExistence(timeout: 5))
         attach(app, name: "06-Personal-reports-dark")
@@ -64,7 +66,7 @@ final class UnifiedNavigationTests: XCTestCase {
                                "-healthSyncEnabled", "NO", "-uiRoute", "allsettings", "-tempControl", "dial"]
         app.launch()
         XCTAssertTrue(app.navigationBars["Settings"].waitForExistence(timeout: 10))
-        for title in ["Personal comfort", "Routine editor", "Health history", "Pod Health export", "Morning check-in", "Sleep coach", "Models", "Recorded episodes", "Home & Shortcuts"] {
+        for title in ["Personal comfort", "Routine editor", "Health history", "Pod Health export", "Morning check-in", "Sleep coach", "Models", "Imported history", "Home & Shortcuts"] {
             let link = app.buttons[title].firstMatch
             for _ in 0..<12 where !link.isHittable { app.swipeUp() }
             XCTAssertTrue(link.isHittable, "Missing settings entry: \(title)")
