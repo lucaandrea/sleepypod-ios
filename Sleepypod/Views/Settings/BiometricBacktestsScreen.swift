@@ -20,6 +20,10 @@ struct BiometricBacktestsScreen: View {
                         NavigationLink { BiometricBacktestJobsScreen(model: model) } label: { SettingsRow("Evaluation jobs", icon: "list.bullet.rectangle", tile: true, chevron: true) }.accessibilityIdentifier("backtests.jobs")
                         NavigationLink { BiometricExperimentLibraryScreen(model: model) } label: { SettingsRow("Saved experiments", icon: "flask", tile: true, chevron: true) }.accessibilityIdentifier("backtests.experiments")
                     }
+                    if APIBackend.current.isDemo, model.side == .left {
+                        NavigationLink { BiometricReportExamplesScreen(model: model) } label: { SettingsRow("Example evaluation reports", icon: "chart.xyaxis.line", tile: true, chevron: true) }
+                            .cardStyle().accessibilityIdentifier("backtests.exampleReports")
+                    }
                 } else if let error {
                     BiometricProfileError(error: error)
                     Button("Retry") { Task { configure() } }
@@ -81,6 +85,11 @@ struct BiometricBacktestPendingCard: View {
                                 ForEach(cohort.sourceIds, id: \.self) { BiometricProfileIdentity(title: "Source", value: $0) }
                             }
                         }
+                    case .releaseReport(let identity):
+                        Text("Release this retained report")
+                        BiometricProfileIdentity(title: "Job", value: identity.job.id)
+                        BiometricProfileIdentity(title: "Reviewed report hash", value: identity.contentHash)
+                        Button("Check report release status") { Task { await model.inspectReportRelease() } }.disabled(model.busy)
                     case .releaseDataset(let identity):
                         Text("Release retained dataset inputs")
                         BiometricProfileIdentity(title: "Dataset", value: identity.id)

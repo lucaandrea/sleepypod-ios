@@ -2,6 +2,7 @@ import Foundation
 
 protocol BiometricDatasetsServing: BiometricExperimentsServing, BiometricBacktestJobsServing {
     var scope: String { get }
+    var reportClient: any BiometricReportsServing { get }
     func sessions(side: Side, cursor: ReplaySessionPage.Cursor?) async throws -> ReplaySessionPage
     func capabilities(side: Side, id: Int) async throws -> ReplaySessionCapabilities
     func references(side: Side, cursor: ReferenceLibraryPage.Cursor?) async throws -> ReferenceLibraryPage
@@ -16,6 +17,7 @@ protocol BiometricDatasetsServing: BiometricExperimentsServing, BiometricBacktes
 }
 struct CoreBiometricDatasetsClient: BiometricDatasetsServing {
     let transport: CoreRESTClient
+    var reportClient: any BiometricReportsServing { CoreBiometricReportsClient(transport: transport) }
     var scope: String { transport.endpoint.absoluteString }
     private let root = "biometric-tuning"
     func sessions(side: Side, cursor: ReplaySessionPage.Cursor?) async throws -> ReplaySessionPage {
