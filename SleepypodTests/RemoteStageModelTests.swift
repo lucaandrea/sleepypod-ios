@@ -70,8 +70,18 @@ import XCTest
         let id = try await client.upload(side: .right, document: document()); XCTAssertEqual(id, 2)
         try await client.select(side: .right, id: 1, active: true)
         try await client.setActive(side: .right, active: false)
-        let result = try await client.preview(side: .right, document: document(), nights: 7)
+        let result = try await client.preview(side: .right, document: document(), modelId: nil, nights: 7)
         XCTAssertTrue(result.nights.isEmpty); XCTAssertNil(result.pooled)
+        let chosen = try await client.preview(side: .right, document: nil, modelId: 12, nights: 7)
+        XCTAssertEqual(chosen.version, "Chosen candidate")
+        do {
+            _ = try await client.preview(side: .right, document: document(), modelId: 12, nights: 7)
+            XCTFail("Ambiguous preview must not send")
+        } catch { }
+        do {
+            _ = try await client.preview(side: .right, document: nil, modelId: -1, nights: 7)
+            XCTFail("Invalid library identity must not send")
+        } catch { }
     }
     func testMissingModelRoutesDoNotSendUnsupportedRequests() async throws {
         let state = try await client(host: "model-old.invalid").state(side: .right)
@@ -103,7 +113,7 @@ private actor ModelMemoryClient: RemoteStageModelClient {
     func select(side: Side, id: Int, active: Bool) { activations += 1; self.active = active }
     func setActive(side: Side, active: Bool) { activations += 1; self.active = active }
     func changeSelection() { active = true }
-    func preview(side: Side, document: RemoteStageModelDocument?, nights: Int) -> RemoteStageModelPreview { .init(version: document?.version, nights: [], pooled: nil, rulesPooled: nil) }
+    func preview(side: Side, document: RemoteStageModelDocument?, modelId: Int?, nights: Int) -> RemoteStageModelPreview { .init(version: document?.version, nights: [], pooled: nil, rulesPooled: nil) }
 }
 private final class ModelContractProtocol: URLProtocol, @unchecked Sendable {
     override class func canInit(with request: URLRequest) -> Bool { ["model-current.invalid", "model-old.invalid"].contains(request.url?.host ?? "") }
@@ -136,7 +146,14 @@ private final class ModelContractProtocol: URLProtocol, @unchecked Sendable {
             case ("/api/sleep-stages/model/active", "PUT"):
                 XCTAssertEqual(body["active"] as? Bool, false); response = ["active": false]
             case ("/api/sleep-stages/model/preview", "POST"):
-                XCTAssertEqual(body["nights"] as? Int, 7); XCTAssertNotNil(body["model"]); response = ["version": "Demo forest", "nights": [], "pooled": NSNull(), "rulesPooled": NSNull()]
+                XCTAssertEqual(body["nights"] as? Int, 7)
+                if body["modelId"] != nil {
+                    XCTAssertEqual(body["modelId"] as? Int, 12); XCTAssertEqual(Set(body.keys), ["side", "modelId", "nights"])
+                    response = ["version": "Chosen candidate", "nights": [], "pooled": NSNull(), "rulesPooled": NSNull()]
+                } else {
+                    XCTAssertNotNil(body["model"]); XCTAssertEqual(Set(body.keys), ["side", "model", "nights"])
+                    response = ["version": "Demo forest", "nights": [], "pooled": NSNull(), "rulesPooled": NSNull()]
+                }
             default: XCTFail("Unexpected model request: \(request)"); response = [:]
             }
             client?.urlProtocol(self, didReceive: HTTPURLResponse(url: url, statusCode: 200, httpVersion: nil, headerFields: ["Content-Type": "application/json"])!, cacheStoragePolicy: .notAllowed)

@@ -16,16 +16,24 @@ import XCTest
         return app
     }
     private func show(_ element: XCUIElement, in app: XCUIApplication, up: Bool = true) {
-        for _ in 0..<35 {
-            if element.isHittable { break }
-            let scrollUp = element.exists && !element.frame.isEmpty ? element.frame.midY > app.frame.midY : up
-            let start = app.coordinate(withNormalizedOffset: CGVector(dx: 0.97, dy: scrollUp ? 0.70 : 0.35))
-            let end = app.coordinate(withNormalizedOffset: CGVector(dx: 0.97, dy: scrollUp ? 0.35 : 0.70))
-            start.press(forDuration: 0.1, thenDragTo: end)
+        for _ in 0..<60 {
+            let scroll = app.scrollViews.firstMatch
+            let surface = scroll.exists && scroll.isHittable ? scroll : app
+            let bounds = surface.frame.intersection(app.frame), nav = app.navigationBars.firstMatch
+            let top = nav.exists ? max(bounds.minY, nav.frame.maxY + 8) : bounds.minY
+            let visible = CGRect(x: bounds.minX, y: top, width: bounds.width, height: max(0, bounds.maxY - top - 12))
+            let frame = element.exists ? element.frame : .zero
+            if element.exists, element.isHittable, visible.contains(frame) { return }
+            let delta = !frame.isEmpty ? frame.midY - visible.midY : (up ? visible.height : -visible.height)
+            let distance = min(0.4, max(0.08, abs(delta) / max(bounds.height, 1)))
+            let direction = delta >= 0 ? 1.0 : -1.0
+            surface.coordinate(withNormalizedOffset: CGVector(dx: 0.97, dy: 0.5 + direction * distance / 2)).press(forDuration: 0.05, thenDragTo: surface.coordinate(withNormalizedOffset: CGVector(dx: 0.97, dy: 0.5 - direction * distance / 2)))
         }
-        XCTAssertTrue(element.isHittable)
+        XCTFail("Cannot reach \(element.identifier)")
     }
     private func capture(_ app: XCUIApplication, _ name: String) {
+        // Disclosure clipping can animate briefly after XCTest reports the app idle.
+        Thread.sleep(forTimeInterval: 0.5)
         let image = XCTAttachment(screenshot: app.screenshot()); image.name = name; image.lifetime = .keepAlways; add(image)
     }
     func testRuleEditorAndPreviewSaveHistory() {
@@ -76,9 +84,18 @@ import XCTest
         let rules = app.buttons["stageModel.rulesOnly"]; show(rules, in: app, up: false); rules.tap()
         show(apply, in: app); apply.tap()
         app.buttons.matching(NSPredicate(format: "label == 'Use rules only' AND identifier != 'stageModel.apply'")).firstMatch.tap()
+        show(choice, in: app, up: false); choice.tap()
+        let identity = app.buttons["stageModel.identity"]; show(identity, in: app); identity.tap()
+        XCTAssertTrue(app.staticTexts["8a5032bd96d24ea97d5c122da89e804d6c7a72be757c87829974a185d3b5d54e"].exists)
+        capture(app, "Stage-model-identity")
         let compare = app.buttons["Compare with rules"]; show(compare, in: app); compare.tap()
         XCTAssertTrue(app.staticTexts["0 nights scored"].waitForExistence(timeout: 5)); capture(app, "Stage-model-preview")
-        XCTAssertFalse(app.buttons["Choose model JSON"].isEnabled)
+        let chooseFile = app.buttons["stageModel.chooseFile"]; show(chooseFile, in: app, up: false)
+        XCTAssertTrue(chooseFile.isEnabled); chooseFile.tap()
+        let cancel = app.buttons["Cancel"]; XCTAssertTrue(cancel.waitForExistence(timeout: 8))
+        capture(app, "Stage-model-file-picker"); cancel.tap()
+        show(rules, in: app, up: false); rules.tap()
+        XCTAssertFalse(app.staticTexts["0 nights scored"].exists)
     }
     func testNightStageSourceCanShowPodOrPhone() {
         let app = XCUIApplication()
@@ -88,6 +105,8 @@ import XCTest
         show(source, in: app)
         source.buttons["Pod"].tap()
         XCTAssertTrue(app.staticTexts["Pod rules"].waitForExistence(timeout: 8)); show(app.staticTexts["Pod rules"], in: app); capture(app, "Stage-source-pod")
+        let provenance = app.buttons["sleep.classifierDetails"]; show(provenance, in: app); provenance.tap()
+        capture(app, "Stage-source-identity")
         show(source, in: app, up: false)
         source.buttons["This iPhone"].tap(); capture(app, "Stage-source-phone")
         XCTAssertTrue(source.buttons["This iPhone"].isSelected)

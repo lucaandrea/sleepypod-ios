@@ -6,15 +6,15 @@
 
 - Compared the public web demo's Sleep stages settings and Core dev `47034d44b9dd113890ca05e3ba6af38a29978e1d`: `src/components/Settings/{SleepStageRules,PersonalModelCard,ModelScorecard}.tsx`, `src/server/routers/sleepStages.ts`, `src/lib/personal-stage-model.ts` and `src/server/routers/biometrics.ts`.
 - The coordinated Core fork's rule editor follows desired versus acknowledged classifier generations. Saved pending rules do not relabel the displayed historical view before processor adoption.
-- Model-library routes are detected from OpenAPI. The coordinated Core `personal-stage-models` working branch now supplies the six library/selection/activation/preview routes; their method and response shapes were compared with this client. Its final merged revision and integration evidence are still pending. Controllers without these routes retain the independent iPhone model tools and show the missing remote capability explicitly.
+- Model-library routes are detected from OpenAPI. The coordinated Core personal-model contract is merged (PR #10, `c24e70c`); its library/selection/activation/preview routes are reconciled in `STAGE_MODEL_ALIGNMENT.md`. Controllers without these routes retain independent iPhone model tools and show the missing remote capability explicitly.
 
 ## Implemented
 
 - Native per-side ordered compound rules, first-match semantics, presets, quick thresholds, fallback, signal limits, low-signal rules, smoothing and transition CRUD. Finite numbers, ranges and contract limits are validated.
 - Debounced candidate preview, last-night/seven-night scope, saved/candidate stage distributions and durations, quality, Watch agreement, changed-epoch strip, rule hit/fallback/shadowing counts and cleanup effects. A preview must match both the draft and its selected night window before Save is enabled. Stable sorted JSON keeps the preview task identity from changing with object-key order.
 - History/revert/reset with scope confirmation; explicit JSON null for reset; desired/pending/acknowledged state and provenance. Side changes and reloads protect unsaved drafts. A preflight read detects an observed conflicting remote edit; this is not atomic compare-and-swap.
-- Native model library: JSON import up to 10 MiB, local feature-contract/test-vector validation, immutable prepared document, full metadata/class-order preservation, explicit upload review, independent model selection/activation and rules fallback. The controller independently validates the exact document. Demo mode disables file upload and clearly labels its synthetic scorecard.
-- Held-out `nestedSelection`/`lono` scorecards with kappa, rules comparison and per-stage recall. Training scores are not substituted; missing or out-of-range values remain missing. Preview can compare a prepared document or the stored model against rules over 1/7/30 nights, with per-night and pooled reference agreement.
+- Native model library: JSON import up to 4 MiB, local feature-contract/test-vector validation, immutable prepared document, full metadata/class-order preservation, explicit upload review, independent model selection/activation and rules fallback. The controller independently validates the exact document. Demo permits local file inspection, disables upload and scoring of that file, and clearly labels its synthetic library scorecard.
+- Held-out `nestedSelection`/`lono` scorecards with kappa, rules comparison and per-stage recall. Training scores are not substituted; missing or out-of-range values remain missing. Preview can compare a prepared document or the explicitly chosen library model against rules over 1/7/30 nights, with per-night and pooled reference agreement.
 - Sleep Night now offers Pod and This iPhone stage sources. The Pod route uses its returned classifier/model identity, quality and provenance; it does not silently substitute local stages on failure. Returned stage blocks retain gaps and are split into minute slices only for Watch agreement; vital readings remain separate. Health sync continues to use its existing iPhone settings.
 - Late or mismatched record responses are rejected. The phone's personal model is only used for its owner's side in the main local Night/week analysis.
 
@@ -31,7 +31,7 @@
 
 ## Remaining
 
-- Finish normal/iPad/largest-text captures, failure/retry presentation and direct model-import file-picker/device checks.
+- The normal/iPad/largest-text model flows, file-picker opening/cancellation and failure/retry model checks are reconciled in `STAGE_MODEL_ALIGNMENT.md`. A real on-device import/upload remains a live integration check, not a claim from Demo.
 - Week/month summaries and chart sessions are now implemented; see `SLEEP_VALIDATION.md`. Advanced biometric profile workflows remain a separate Settings section.
-- Integrate the coordinated Core model API, then verify fixture compatibility against its actual responses. No processor adoption, real model upload, Health-store write or live Pod actuation is established by simulator/demo tests.
+- Core model identity and fallback are verified with a fixture generated from its pure schema/classifier functions. No processor adoption, real model upload, Health-store write or live Pod actuation is established by simulator/demo tests.
 - Complete other parity sections and final cross-feature QA before changing release version, archiving or uploading. Version remains 0.2.0 (7).

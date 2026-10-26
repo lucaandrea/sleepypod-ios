@@ -11,11 +11,11 @@ struct RemoteStageModelDocument: Codable, Equatable, Sendable {
     var version: String { json["version"]?.string ?? "Unknown version" }
     var kind: String { json["kind"]?.string ?? "unknown" }
     var metrics: StageModelJSON? { json["metrics"] }
-    static let maximumBytes = 10 * 1024 * 1024
+    static let maximumBytes = 4 * 1024 * 1024
 
     /// Validate the evaluator contract locally; the controller independently validates the exact upload.
     static func read(_ data: Data) throws -> Self {
-        guard !data.isEmpty, data.count <= maximumBytes else { throw APIError.serverError(message: "Choose a model JSON file of at most 10 MB.") }
+        guard !data.isEmpty, data.count <= maximumBytes else { throw APIError.serverError(message: "Choose a model JSON file of at most 4 MiB.") }
         let document = try JSONDecoder().decode(Self.self, from: data)
         guard case .object(var fields) = document.json,
               let version = fields["version"]?.string, !version.isEmpty, version.count <= 120,
@@ -46,7 +46,7 @@ struct RemoteStageModelDocument: Codable, Equatable, Sendable {
         let scoped = url.startAccessingSecurityScopedResource(); defer { if scoped { url.stopAccessingSecurityScopedResource() } }
         let values = try url.resourceValues(forKeys: [.isRegularFileKey, .fileSizeKey])
         guard url.pathExtension.lowercased() == "json", values.isRegularFile == true, (values.fileSize ?? 0) <= maximumBytes else {
-            throw APIError.serverError(message: "Choose a model JSON file of at most 10 MB.")
+            throw APIError.serverError(message: "Choose a model JSON file of at most 4 MiB.")
         }
         let handle = try FileHandle(forReadingFrom: url); defer { try? handle.close() }
         return try read(handle.read(upToCount: maximumBytes + 1) ?? Data())
@@ -60,11 +60,20 @@ struct RemoteStageModelItem: Decodable, Identifiable, Sendable, Equatable {
     let metrics: StageModelJSON?
     let selected: Bool
     let active: Bool
+    let modelHash: String?
+    init(id: Int, version: String, kind: String, uploadedAt: Double, metrics: StageModelJSON?, selected: Bool, active: Bool, modelHash: String? = nil) {
+        self.id = id; self.version = version; self.kind = kind; self.uploadedAt = uploadedAt; self.metrics = metrics
+        self.selected = selected; self.active = active; self.modelHash = modelHash
+    }
 }
 struct RemoteStageModelSelection: Decodable, Sendable, Equatable {
     let model: RemoteStageModelDocument?
     let uploadedAt: Double?
     let active: Bool
+    let modelHash: String?
+    init(model: RemoteStageModelDocument?, uploadedAt: Double?, active: Bool, modelHash: String? = nil) {
+        self.model = model; self.uploadedAt = uploadedAt; self.active = active; self.modelHash = modelHash
+    }
 }
 struct RemoteStageModelState: Sendable {
     let supported: Bool
@@ -108,4 +117,20 @@ struct RemoteStageModelPreview: Decodable, Sendable {
     let nights: [Night]
     let pooled: Agreement?
     let rulesPooled: Agreement?
+    /// Reject malformed scores before percentage formatting or plotting controller data.
+    func validate(expectedVersion: String, maximumNights: Int) throws {
+        func valid(_ agreement: Agreement?) -> Bool {
+            guard let agreement else { return true }
+            return (0...1000000).contains(agreement.epochs) && (0...1).contains(agreement.accuracy)
+                && agreement.kappa.map { (-1...1).contains($0) } != false
+                && agreement.recall?.values.allSatisfy { $0.map { (0...1).contains($0) } != false } != false
+        }
+        guard version == expectedVersion else {
+            throw APIError.serverError(message: "The preview identifies a different model. Reload the library before comparing again.")
+        }
+        guard nights.count <= maximumNights, valid(pooled), valid(rulesPooled),
+              nights.allSatisfy({ valid($0.agreement) && valid($0.rulesAgreement) }) else {
+            throw APIError.serverError(message: "The controller returned invalid model comparison scores. Reload and compare again.")
+        }
+    }
 }

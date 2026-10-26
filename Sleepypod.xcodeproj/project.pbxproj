@@ -26,6 +26,7 @@
 		059C6EFB1AE9B29B6B15BB77 /* BiometricProfileTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10A4D4F108DB31023E5E7D9F /* BiometricProfileTests.swift */; };
 		06234481AF9A566578FD060D /* StageRuleFields.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36B13B0F3986F237D31DE015 /* StageRuleFields.swift */; };
 		0626B1CCD57628057C17D818 /* ModelSettingsCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FBAC9ABFE54B2F56EFD3DD8 /* ModelSettingsCard.swift */; };
+		06A1E6EF171F91E6A4D28954 /* PodStageSourceDetails.swift in Sources */ = {isa = PBXBuildFile; fileRef = 668B77D37266498F1D7AC0D7 /* PodStageSourceDetails.swift */; };
 		06F96FCB21FA029ACEE36419 /* PersonalSleepReport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7470771DEE9B997D10A33F0B /* PersonalSleepReport.swift */; };
 		070D5E6A7DAEDC71DF2228E1 /* ShortcutTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 93802AD8D0616182B7754100 /* ShortcutTests.swift */; };
 		078DF682D41518A06FA8A105 /* biometric-profile-defaults.json in Resources */ = {isa = PBXBuildFile; fileRef = A7A9BC43ACE9AFCA228BF358 /* biometric-profile-defaults.json */; };
@@ -407,6 +408,7 @@
 		90CA6C2BAE7EF2958E1525E9 /* FeatureComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F7155E0FB0D52CDD320325A /* FeatureComponents.swift */; };
 		910535B30A8B5FBB4DE1B33C /* SleepTimeCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FCC5EA8D41BF91BCCFDEA6D /* SleepTimeCardView.swift */; };
 		9134DC5F465DB3F287914037 /* HealthCircleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3AB3B17FD36D878C2457E20 /* HealthCircleView.swift */; };
+		913CA8109FF6ACDE509C4B6C /* RemoteStageModelAlignmentTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 043D38F11D4ED41C206BF1FA /* RemoteStageModelAlignmentTests.swift */; };
 		9148D856876626AA4C137DC5 /* SensorDiagnosticsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8508C3AEACC0714C30E1DCC6 /* SensorDiagnosticsTests.swift */; };
 		91807F4ADF22BCBC4E969089 /* SystemStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3780FD8C94EEE7AEBF60DC4 /* SystemStorage.swift */; };
 		91C09DA84F334C9133801B31 /* DevicePreferencesScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDB6F0B136FF35A0CCECDD02 /* DevicePreferencesScreen.swift */; };
@@ -638,6 +640,7 @@
 		E62215156B360921B9DBA01A /* SetAwayModeIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF20AD842D7B8CBDABE032BA /* SetAwayModeIntent.swift */; };
 		E6661819B24B1F3364F913AF /* VitalsReport.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2495028E884905FC457615E /* VitalsReport.swift */; };
 		E7BCD727A6C1C76A5F0BAAB6 /* SystemLogTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76EA865AC808E0B1679F66F7 /* SystemLogTests.swift */; };
+		E852779E0752BA7DF774A4CE /* stage-model-core-identity.json in Resources */ = {isa = PBXBuildFile; fileRef = 8280F6C106BD3FD03EC674FE /* stage-model-core-identity.json */; };
 		E888E45E1CE9BB3F0BB2C21E /* BiometricExperimentsUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF0B2422EAC341B690AB1E50 /* BiometricExperimentsUITests.swift */; };
 		E8E6405A2AF6B6C0CC294915 /* BiometricCandidateWorkspace.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B611E87B0B503E48BE954B1 /* BiometricCandidateWorkspace.swift */; };
 		E8E6A2E8A9A8C1D8397D7E15 /* BiometricBacktestPreparation.swift in Sources */ = {isa = PBXBuildFile; fileRef = FFB09D4952BF11F834F6E6AB /* BiometricBacktestPreparation.swift */; };
@@ -787,6 +790,7 @@
 		03E5DFA72720A6968DE3369C /* PrimingIndicator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrimingIndicator.swift; sourceTree = "<group>"; };
 		0406CD3C8FB02E3925530B9D /* OFL.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = OFL.txt; sourceTree = "<group>"; };
 		040C438C33704892DA58CE35 /* SystemLogsScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemLogsScreen.swift; sourceTree = "<group>"; };
+		043D38F11D4ED41C206BF1FA /* RemoteStageModelAlignmentTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteStageModelAlignmentTests.swift; sourceTree = "<group>"; };
 		04710A8ABCD6BE865AA7E37E /* HealthMetricsGridView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthMetricsGridView.swift; sourceTree = "<group>"; };
 		053A0560A629C1A8F3CC8533 /* SystemDatabaseTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemDatabaseTests.swift; sourceTree = "<group>"; };
 		05BB71893DFCBF023FDA2182 /* ConnectionSetup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionSetup.swift; sourceTree = "<group>"; };
@@ -1054,6 +1058,7 @@
 		6609B20274A647020E72383E /* TokenStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokenStore.swift; sourceTree = "<group>"; };
 		6609FBA3B881355B05CD01F8 /* PersonalReportPrompt.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersonalReportPrompt.swift; sourceTree = "<group>"; };
 		66398413AD99177B58D51DA5 /* WaveformDatasetScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WaveformDatasetScreen.swift; sourceTree = "<group>"; };
+		668B77D37266498F1D7AC0D7 /* PodStageSourceDetails.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PodStageSourceDetails.swift; sourceTree = "<group>"; };
 		671824D913AF80DF9257F887 /* DatasetReferencePickerScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DatasetReferencePickerScreen.swift; sourceTree = "<group>"; };
 		677BD56179BBE15ACC5E97C1 /* DeviceSettingsCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceSettingsCardView.swift; sourceTree = "<group>"; };
 		680ABFD49D63974BB40485E0 /* BiometricObservationPendingStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiometricObservationPendingStore.swift; sourceTree = "<group>"; };
@@ -1124,6 +1129,7 @@
 		80D71BF3B2B2140CEA88DBEC /* StopBaseIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StopBaseIntent.swift; sourceTree = "<group>"; };
 		81EF4CCF024C14C6F5034605 /* SensorStreamService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SensorStreamService.swift; sourceTree = "<group>"; };
 		823A1C6FA3F1DD61079E5D20 /* SystemThermal.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemThermal.swift; sourceTree = "<group>"; };
+		8280F6C106BD3FD03EC674FE /* stage-model-core-identity.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "stage-model-core-identity.json"; sourceTree = "<group>"; };
 		8292BF87F6FCC57BE4B982D7 /* SystemStorageClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemStorageClient.swift; sourceTree = "<group>"; };
 		83EF454801FB06154522C928 /* StatusScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusScreen.swift; sourceTree = "<group>"; };
 		8508C3AEACC0714C30E1DCC6 /* SensorDiagnosticsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SensorDiagnosticsTests.swift; sourceTree = "<group>"; };
@@ -1496,6 +1502,7 @@
 				0370A4FF64B61475AC0C1125 /* HealthScreen.swift */,
 				0C70BD4A2C786A698DBBD742 /* HeartRateChartView.swift */,
 				452905BE65E698AC3C3419A6 /* MovementCardView.swift */,
+				668B77D37266498F1D7AC0D7 /* PodStageSourceDetails.swift */,
 				50BD72013CAB411F125A77BC /* RawDataSheet.swift */,
 				A22017869B6697F13244EF76 /* ShareSheet.swift */,
 				7C83FC989D9BA59C116B9A27 /* SleepPeriodViews.swift */,
@@ -2021,6 +2028,7 @@
 				56ED3624911B9339300D1415 /* ReferenceTextParserTests.swift */,
 				35991A9255DE3D1082B796E1 /* ReferenceTransportTests.swift */,
 				502D097D4F32C23FEDC73E0D /* ReferenceWorkspaceTests.swift */,
+				043D38F11D4ED41C206BF1FA /* RemoteStageModelAlignmentTests.swift */,
 				A96F6BE7C511AD9847B989B7 /* RemoteStageModelTests.swift */,
 				54A15A5018010D0BD0940156 /* RemoteStageParityTests.swift */,
 				2E3176EB2A6FF2F190D09EC5 /* SanitizeIPTests.swift */,
@@ -2454,6 +2462,7 @@
 				2747E386120D4871241F6D20 /* reference-parser.json */,
 				1C6FA4635B9D60BD8B1DB1AD /* routines-demo.json */,
 				D980E52F70EEDE02345836AE /* sleep-demo.json */,
+				8280F6C106BD3FD03EC674FE /* stage-model-core-identity.json */,
 				33A63EDBBB1B841B42BAF60B /* stage-model-demo.json */,
 				77921F15D845C5623CE30590 /* stage-rules-defaults.json */,
 				80AEBE93B0AFB151F9A9B28A /* usage-demo.json */,
@@ -2673,6 +2682,7 @@
 				1C9287B6DFAFFCF3F9177E5C /* reference-parser.json in Resources */,
 				A1AE2B54E9837F0141910DD9 /* routines-demo.json in Resources */,
 				3D8396FE00AE59C94AED016E /* sleep-demo.json in Resources */,
+				E852779E0752BA7DF774A4CE /* stage-model-core-identity.json in Resources */,
 				3B3042DE6CFEB904189E6151 /* stage-model-demo.json in Resources */,
 				CCAF01B5BDD8230545622FAC /* stage-rules-defaults.json in Resources */,
 				266DCE841DC296184EECA520 /* system-database-fixture.json in Resources */,
@@ -2798,6 +2808,7 @@
 				FE364D8B4D94DEDA288D7E7F /* ReferenceTextParserTests.swift in Sources */,
 				5680D1F662DB5DFAA9680B1C /* ReferenceTransportTests.swift in Sources */,
 				97378F57930D61D21C139F98 /* ReferenceWorkspaceTests.swift in Sources */,
+				913CA8109FF6ACDE509C4B6C /* RemoteStageModelAlignmentTests.swift in Sources */,
 				12109CC035C97EDFD06CA836 /* RemoteStageModelTests.swift in Sources */,
 				F51166A906CD9389071C9AEE /* RemoteStageParityTests.swift in Sources */,
 				6363D9DF1E8F01CF5B5D7B88 /* SanitizeIPTests.swift in Sources */,
@@ -3219,6 +3230,7 @@
 				096C22DDAFBEBBC52E23DD03 /* PodFeatureLink.swift in Sources */,
 				8EF882F66EFB7BDE9090E767 /* PodSleepStages.swift in Sources */,
 				021518E1D50669ECB1C48A28 /* PodStageNightWorkspace.swift in Sources */,
+				06A1E6EF171F91E6A4D28954 /* PodStageSourceDetails.swift in Sources */,
 				E3F37CF054EAF939155DD257 /* PortableStageModel.swift in Sources */,
 				5AB89293F8E10DB66EE85F3B /* PositionBedScene.swift in Sources */,
 				1C1212D4AE1E9773A795BCD8 /* PresenceHeatmapView.swift in Sources */,

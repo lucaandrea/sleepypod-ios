@@ -367,7 +367,7 @@ final class MockClient: SleepypodProtocol, @unchecked Sendable {
             }
             return (blocks, analyzer.qualityScore)
         }
-        return PodSleepStages(blocks: staged.0, sleepRecordId: record.id, qualityScore: staged.1.map(Double.init), stagedBy: .init(engine: "rules", version: nil))
+        return PodSleepStages(blocks: staged.0, sleepRecordId: record.id, qualityScore: staged.1.map(Double.init), stagedBy: .init(engine: "rules", version: nil, reason: "rules_selected"))
     }
 
     // MARK: - Actions (no-ops)

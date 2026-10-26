@@ -321,6 +321,7 @@ struct SleepScreen: View {
                 SleepStagesTimelineView(
                     stages: displayedEpochs, qualityScore: podStages.result?.score, sourceLabel: displayedStageSource,
                     gapTolerance: 0, showDurations: true)
+                if let result = podStages.result { PodStageSourceDetails(result: result) }
                 if let warning = podStages.result?.stageView?.provenance.warning {
                     Text(warning).font(.footnote).foregroundStyle(Theme.amber)
                 }

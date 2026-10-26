@@ -5,7 +5,7 @@ protocol RemoteStageModelClient: Sendable {
     func upload(side: Side, document: RemoteStageModelDocument) async throws -> Int
     func select(side: Side, id: Int, active: Bool) async throws
     func setActive(side: Side, active: Bool) async throws
-    func preview(side: Side, document: RemoteStageModelDocument?, nights: Int) async throws -> RemoteStageModelPreview
+    func preview(side: Side, document: RemoteStageModelDocument?, modelId: Int?, nights: Int) async throws -> RemoteStageModelPreview
 }
 struct CoreRemoteStageModelClient: RemoteStageModelClient {
     let transport: CoreRESTClient?
@@ -40,21 +40,25 @@ struct CoreRemoteStageModelClient: RemoteStageModelClient {
         struct Response: Decodable, Sendable { let active: Bool }
         let _: Response = try await client.put("sleep-stages/model/active", body: Request(side: side, active: active), returning: Response.self)
     }
-    func preview(side: Side, document: RemoteStageModelDocument?, nights: Int) async throws -> RemoteStageModelPreview {
-        struct Request: Encodable, Sendable { let side: Side; let model: RemoteStageModelDocument?; let nights: Int }
-        return try await client.post("sleep-stages/model/preview", body: Request(side: side, model: document, nights: nights), returning: RemoteStageModelPreview.self)
+    func preview(side: Side, document: RemoteStageModelDocument?, modelId: Int?, nights: Int) async throws -> RemoteStageModelPreview {
+        guard (1...30).contains(nights), document == nil || modelId == nil, modelId.map({ $0 > 0 }) ?? true else {
+            throw APIError.serverError(message: "Choose one model and a preview window of 1–30 nights.")
+        }
+        struct Request: Encodable, Sendable { let side: Side; let model: RemoteStageModelDocument?; let modelId: Int?; let nights: Int }
+        return try await client.post("sleep-stages/model/preview", body: Request(side: side, model: document, modelId: modelId, nights: nights), returning: RemoteStageModelPreview.self)
     }
 }
 actor DemoRemoteStageModelClient: RemoteStageModelClient {
     private var active: [Side: Bool] = [:]
-    private func document() throws -> RemoteStageModelDocument {
-        guard let url = Bundle.main.url(forResource: "stage-model-demo", withExtension: "json") else { throw APIError.serverError(message: "Demo model fixture is missing.") }
-        return try RemoteStageModelDocument.read(Data(contentsOf: url))
+    private struct Fixture: Decodable { let model: RemoteStageModelDocument; let modelHash: String }
+    private func fixture() throws -> Fixture {
+        guard let url = Bundle.main.url(forResource: "stage-model-core-identity", withExtension: "json") else { throw APIError.serverError(message: "Demo model fixture is missing.") }
+        return try JSONDecoder().decode(Fixture.self, from: Data(contentsOf: url))
     }
     func state(side: Side) throws -> RemoteStageModelState {
-        let document = try document(); let enabled = active[side] ?? false
-        return .init(supported: true, previewSupported: true, selection: .init(model: document, uploadedAt: 1792800000000, active: enabled),
-                     library: [.init(id: 1, version: document.version, kind: document.kind, uploadedAt: 1792800000000, metrics: document.metrics, selected: true, active: enabled)])
+        let fixture = try fixture(); let document = fixture.model; let enabled = active[side] ?? false
+        return .init(supported: true, previewSupported: true, selection: .init(model: document, uploadedAt: 1792800000000, active: enabled, modelHash: fixture.modelHash),
+                     library: [.init(id: 1, version: document.version, kind: document.kind, uploadedAt: 1792800000000, metrics: document.metrics, selected: true, active: enabled, modelHash: fixture.modelHash)])
     }
     func upload(side: Side, document: RemoteStageModelDocument) throws -> Int { throw APIError.serverError(message: "Connect to your Pod to upload a model.") }
     func select(side: Side, id: Int, active: Bool) throws {
@@ -62,7 +66,10 @@ actor DemoRemoteStageModelClient: RemoteStageModelClient {
         self.active[side] = active
     }
     func setActive(side: Side, active: Bool) { self.active[side] = active }
-    func preview(side: Side, document: RemoteStageModelDocument?, nights: Int) -> RemoteStageModelPreview {
-        .init(version: document?.version, nights: [], pooled: nil, rulesPooled: nil)
+    func preview(side: Side, document: RemoteStageModelDocument?, modelId: Int?, nights: Int) throws -> RemoteStageModelPreview {
+        guard document == nil, modelId == 1, (1...30).contains(nights) else {
+            throw APIError.serverError(message: "Choose the synthetic demo model to preview. No recorded nights are used.")
+        }
+        return .init(version: try fixture().model.version, nights: [], pooled: nil, rulesPooled: nil)
     }
 }

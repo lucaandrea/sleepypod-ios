@@ -56,7 +56,7 @@ struct RemoteStageModelsScreen: View {
                         library(state)
                         importCard
                         if let prepared = model.prepared { review(prepared) }
-                        if state.previewSupported && (model.prepared != nil || state.selection?.model != nil) {
+                        if state.previewSupported && (model.prepared != nil || model.chosen != nil) {
                             previewCard
                         }
                     } else {
@@ -69,7 +69,6 @@ struct RemoteStageModelsScreen: View {
             }.frame(maxWidth: 780).padding(16).frame(maxWidth: .infinity)
         }.background(Theme.background).navigationTitle("Pod stage models").navigationBarTitleDisplayMode(.inline)
             .task { await model.load() }
-            .onChange(of: model.nights) { model.clearPreview() }
             .fileImporter(isPresented: $showFiles, allowedContentTypes: [.json]) { result in
                 switch result {
                 case .success(let url): Task { await model.prepare(url) }
@@ -144,7 +143,12 @@ struct RemoteStageModelsScreen: View {
                     "Rules only\(state.selection?.active == false ? " · Active" : "")",
                     systemImage: model.choice == nil ? "largecircle.fill.circle" : "circle")
             }.accessibilityIdentifier("stageModel.rulesOnly")
-            if let selected = model.chosen { StageModelScorecard(metrics: selected.metrics) }
+            if let selected = model.chosen {
+                DisclosureGroup("Chosen model identity") {
+                    BiometricProfileIdentity(title: "Controller model hash", value: selected.modelHash ?? "Not reported")
+                }.accessibilityIdentifier("stageModel.identity")
+                StageModelScorecard(metrics: selected.metrics)
+            }
             Button(model.choice == nil ? "Use rules only" : "Use this model") { confirmApply = true }.disabled(
                 !model.canApply
             ).accessibilityIdentifier("stageModel.apply")
@@ -154,12 +158,12 @@ struct RemoteStageModelsScreen: View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Import a model").font(.headline)
             Text(
-                "Choose candidate.json from a training run. The document’s feature contract and test vectors are checked on this iPhone and again by the controller."
+                "Choose a model JSON file of at most 4 MiB. The document’s feature contract and test vectors are checked on this iPhone and again by the controller."
             ).font(.footnote).foregroundStyle(Theme.text2)
             Button("Choose model JSON", systemImage: "doc.badge.plus") { showFiles = true }.disabled(
-                model.busy || isDemo)
+                model.busy).accessibilityIdentifier("stageModel.chooseFile")
             if isDemo {
-                Text("Demo mode does not upload files. Connect to your Pod to manage its models.").font(.footnote)
+                Text("You can inspect a file locally in Demo. Uploading and comparing that file require a connected Pod.").font(.footnote)
                     .foregroundStyle(Theme.text3)
             }
         }.cardStyle()
@@ -176,7 +180,7 @@ struct RemoteStageModelsScreen: View {
     }
     private var previewCard: some View {
         VStack(alignment: .leading, spacing: 14) {
-            Text("Preview \(model.prepared?.version ?? model.state?.selection?.model?.version ?? "model")").font(
+            Text("Preview \(model.previewTitle)").font(
                 .headline
             ).fixedSize(horizontal: false, vertical: true)
             Picker("Model preview nights", selection: $model.nights) {
@@ -185,7 +189,7 @@ struct RemoteStageModelsScreen: View {
                 Text("30 nights").tag(30)
             }.pickerStyle(.menu)
             Button("Compare with rules") { Task { await model.previewModel() } }.disabled(
-                model.previewing || model.busy)
+                !model.canPreview || (isDemo && model.prepared != nil)).accessibilityIdentifier("stageModel.preview")
             if model.previewing { ProgressView("Scoring recent nights…") }
             if let preview = model.preview {
                 Text("\(preview.nights.count) nights scored").font(.subheadline)
@@ -226,7 +230,7 @@ private struct StageModelScorecard: View {
     private var score: RemoteStageModelScore { .init(metrics: metrics) }
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Held-out agreement with Watch").font(.subheadline.bold())
+            Text("Reported held-out agreement with Watch").font(.subheadline.bold())
             Text(score.kappa.map { "κ " + $0.formatted(.number.precision(.fractionLength(2))) } ?? "Not evaluated")
                 .font(.title2.monospacedDigit())
             if let nights = score.nights {
@@ -251,7 +255,7 @@ private struct StageModelScorecard: View {
                 }
             }
             Text(
-                "κ measures agreement beyond chance: 0 is chance-level and 1 is perfect agreement. These are reported held-out scores, not clinical accuracy or a guarantee for future nights. Missing scores remain blank."
+                "κ measures agreement beyond chance: 0 is chance-level and 1 is perfect agreement. These are uploader-provided scores, not independently verified agreement, clinical accuracy or a guarantee for future nights. Missing scores remain blank."
             ).font(.caption).foregroundStyle(Theme.text3)
         }
     }
