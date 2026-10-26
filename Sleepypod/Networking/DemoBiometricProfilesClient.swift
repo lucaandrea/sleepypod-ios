@@ -1,4 +1,3 @@
-import CryptoKit
 import Foundation
 
 /// In-memory configuration only. Demo never manufactures validation evidence or processor adoption.
@@ -79,7 +78,7 @@ actor DemoBiometricProfilesClient: BiometricProfilesServing {
         let parent = try request.parentRevisionId.map { try profile(id: $0) }
         guard parent == nil || parent?.side == request.side else { throw invalid }
         let family = parent?.familyId ?? UUID().uuidString
-        let revision = BiometricProfileRevision(id: UUID().uuidString, familyId: family, revision: (revisions.filter { $0.familyId == family }.map(\.revision).max() ?? 0) + 1, side: request.side, baseManifestHash: manifest.manifestHash, baseManifest: manifest.manifest, overrides: result.overrides, resolved: result.resolved, resolvedHash: result.hash, dependencyHashes: [:], parentRevisionId: request.parentRevisionId, origin: request.origin, requester: request.requester, idempotencyKey: request.idempotencyKey, requestHash: try hash(.encoded(request)), createdAtMs: Date.now.timeIntervalSince1970 * 1000)
+        let revision = BiometricProfileRevision(id: UUID().uuidString, familyId: family, revision: (revisions.filter { $0.familyId == family }.map(\.revision).max() ?? 0) + 1, side: request.side, baseManifestHash: manifest.manifestHash, baseManifest: manifest.manifest, overrides: result.overrides, resolved: result.resolved, resolvedHash: result.hash, dependencyHashes: [:], parentRevisionId: request.parentRevisionId, origin: request.origin, requester: request.requester, idempotencyKey: request.idempotencyKey, requestHash: try hash(.encoded(request)), createdAtMs: (Date.now.timeIntervalSince1970 * 1000).rounded(.down))
         candidateKeys[request.idempotencyKey] = request; revisions.append(revision); return revision
     }
     func compare(side: Side, revisionId: String?, againstRevisionId: String?) throws -> BiometricProfileDiff {
@@ -120,8 +119,7 @@ actor DemoBiometricProfilesClient: BiometricProfilesServing {
     }
     private func binding(_ side: Side) -> BiometricProfileBinding { bindings[side] ?? .init(side: side, generation: 0, desiredRevisionId: nil, previousRevisionId: nil, updatedAtMs: 0) }
     private func hash(_ value: JSONValue) throws -> String {
-        let encoder = JSONEncoder(); encoder.outputFormatting = [.sortedKeys, .withoutEscapingSlashes]
-        return SHA256.hash(data: try encoder.encode(value)).map { String(format: "%02x", $0) }.joined()
+        try BiometricDemoCanonicalJSON.hash(value)
     }
     private var invalid: APIError { .serverError(message: "The profile request is incompatible or its reviewed binding changed.") }
 }

@@ -1,6 +1,6 @@
 import Foundation
 
-protocol BiometricDatasetsServing: BiometricExperimentsServing {
+protocol BiometricDatasetsServing: BiometricExperimentsServing, BiometricBacktestJobsServing {
     var scope: String { get }
     func sessions(side: Side, cursor: ReplaySessionPage.Cursor?) async throws -> ReplaySessionPage
     func capabilities(side: Side, id: Int) async throws -> ReplaySessionCapabilities

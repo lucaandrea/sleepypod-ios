@@ -19,6 +19,12 @@ struct BiometricDatasetDemoFixture: Decodable, Sendable {
 /// Demo copies literal Core-generated synthetic manifests; it never claims a real evaluation ran.
 actor DemoBiometricDatasetsClient: BiometricDatasetsServing {
     nonisolated let scope = "demo-biometric-datasets"
+    let evaluationProfileClient: any BiometricProfilesServing
+    var savedJobs: [String: BiometricBacktestJob] = [:]
+    var jobSides: [String: Side] = [:]
+    var jobRequests: [String: BiometricBacktestSubmission] = [:]
+    var jobRequestIds: [String: String] = [:]
+    init(profiles: any BiometricProfilesServing = DemoBiometricProfilesClient()) { evaluationProfileClient = profiles }
     var savedExperiments: [String: BiometricExperiment] = [:]
     var experimentRequests: [String: BiometricExperimentRequest] = [:]
     var experimentRequestIds: [String: String] = [:]
@@ -39,7 +45,8 @@ actor DemoBiometricDatasetsClient: BiometricDatasetsServing {
     func datasets(side: Side, cursor: BiometricDatasetPage.Cursor?) async throws -> BiometricDatasetPage {
         .init(items: cursor == nil ? retained.values.filter { $0.side == side }.sorted { $0.createdAtMs > $1.createdAtMs } : [], nextCursor: nil)
     }
-    func dataset(id: String) async throws -> BiometricDataset {
+    func dataset(id: String) async throws -> BiometricDataset { try retainedDataset(id: id) }
+    func retainedDataset(id: String) throws -> BiometricDataset {
         guard let value = retained[id] else { throw BiometricBacktestInput.error("This synthetic dataset is unavailable.") }; return value
     }
     func create(_ request: BiometricDatasetRequest) async throws -> BiometricDataset {
@@ -62,6 +69,7 @@ actor DemoBiometricDatasetsClient: BiometricDatasetsServing {
     func release(id: String) async throws -> BiometricDataset {
         let current = try await dataset(id: id)
         guard current.available else { return current }
+        guard !savedJobs.values.contains(where: { $0.datasetId == id && !$0.state.terminal }) else { throw BiometricBacktestInput.error("Cancel or finish active evaluations before releasing their retained inputs.") }
         let processedBytes = try BiometricDatasetDemoFixture.load(side: current.side).snapshots.first { $0.descriptor.contentHash == current.contentHash }?.releasedByteLength
         let waveformBytes = try BiometricWaveformDemoFixture.load().first { $0.descriptor.contentHash == current.contentHash }?.releasedByteLength
         guard let releasedBytes = processedBytes ?? waveformBytes else { throw BiometricBacktestInput.error("The synthetic dataset identity is unavailable.") }
@@ -100,4 +108,11 @@ actor DemoBiometricDatasetsClient: BiometricDatasetsServing {
         retained[fixture.descriptor.id] = fixture.descriptor
         return .init(status: .published, dataset: fixture.descriptor)
     }
+}
+
+/// Keep synthetic candidates and inputs alive while navigating between profile and backtest screens.
+struct BiometricDemoSession {
+    let profiles: DemoBiometricProfilesClient
+    let datasets: DemoBiometricDatasetsClient
+    init() { let profiles = DemoBiometricProfilesClient(); self.profiles = profiles; datasets = .init(profiles: profiles) }
 }

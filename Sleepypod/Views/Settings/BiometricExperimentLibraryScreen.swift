@@ -54,6 +54,10 @@ struct BiometricExperimentDetailScreen: View {
                         Text("Holdout accesses: \(experiment.holdoutAccesses)").accessibilityIdentifier("experiments.holdoutAccesses")
                         if APIBackend.current.isDemo { Text("Demo · synthetic protocol; no job has run.").font(.footnote).foregroundStyle(Theme.text2) }
                     }.cardStyle()
+                    if experiment.protocol.version == "descriptive-evaluation-v1" {
+                        NavigationLink { BiometricBacktestSubmissionScreen(model: model, experiment: experiment) } label: { Label("Prepare evaluation", systemImage: "play.circle") }
+                            .disabled(!model.canMutate || loading || error != nil).accessibilityIdentifier("experiments.prepareJob")
+                    }
                     BiometricExperimentProtocolView(evaluationProtocol: experiment.protocol)
                     NavigationLink { BiometricDatasetDetailScreen(model: model, id: experiment.datasetId) } label: { Label("Inspect frozen inputs", systemImage: "archivebox") }.accessibilityIdentifier("experiments.dataset")
                 }

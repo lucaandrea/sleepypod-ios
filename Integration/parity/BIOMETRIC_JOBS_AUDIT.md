@@ -1,0 +1,18 @@
+# Native evaluation queue and job lifecycle
+
+2026-10-26. Audited Core's BacktestSubmission and BacktestJobs views, strict queue payloads, submission/idempotency ordering, job descriptors, cursor pagination and cancellation state transitions. This portion adds preparation, queueing and job inspection; reports, traces and validated activation remain tracked separately.
+
+A saved experiment opens a candidate selector sharing the profile library and controller scope. Selection pins the immutable candidate ID/hash and desired profile generation; foreground polling refreshes the generation without rewriting that selection. The controller owns the actual acknowledged processing baseline. Only partitions present in the frozen dataset can be selected. Holdout acknowledgment belongs to the exact dataset, protocol, candidate, generation and partition. A changed generation requires explicit new preparation and acknowledgment.
+
+Review retains one exact request and key. New queue requests recheck the experiment/protocol/scope, retained dataset/hash/partition, candidate identity and current profile generation before persisting the request. The public POST contains only experiment ID, candidate revision ID, expected generation, partition and idempotency key. An uncertain write retains its original request across reopening; explicit retry uses that exact key and generation. It never silently substitutes a new draft, candidate, baseline or coincidental library row. Existing dataset/experiment effects share the same protected per-controller/side pending slot.
+
+The job library uses 50-item pages with paired timestamp/UUID cursors and foreground reads. Duplicate or nonadvancing pages preserve prior content and show an error. Job detail validates the experiment side and frozen input identity, exposes execution state, progress and configuration hashes, and preserves content on failed reads. A cancellation receipt supersedes older polls. Cancellation is reviewed and retained before sending; a readback first resolves already-completed or already-requested cancellation without another mutation. `cancel_requested` explicitly does not mean stopped, and a completion discovered during recovery does not falsely claim cancellation changed the result.
+
+Demo shares candidate and retained-input state across navigation. Its queue is synthetic bookkeeping only: no replay worker runs, no results are invented, and no profile is adopted. Concurrent retries resolve to the same job; active inputs cannot be released. Profile hashes now use Core's canonical finite-binary64 encoding, and demo profile timestamps use whole milliseconds as required by Core cursors. Existing profile and experiment regressions cover this shared state change.
+
+## Validation status
+
+- Final phone logic/transport run: 37 checks passed (14 queue/job checks and 23 existing profile/experiment regressions).
+- Complete phone flow passes in `Jobs-final-phone.xcresult`; all seven captures are reviewed. The same iPad flow passes in `Jobs-ipad.xcresult` (66.000 seconds), and the maximum-text flow passes in `Jobs-accessibility.xcresult` (361.405 seconds). All twenty-one captures are reviewed, including the complete queue and inspection actions. The initial run encountered duplicate nested button identifiers in the Simulator's native confirmation sheet; targeting its first match resolved the automation failure.
+- Strict SwiftLint, diff checks and the presentation guard pass. GitHub CI follows publication; this local audit does not substitute for that gate.
+- No personal health records, live worker execution, controller mutation, version change or TestFlight upload is part of these synthetic/local checks.

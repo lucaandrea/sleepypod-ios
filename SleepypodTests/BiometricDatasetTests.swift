@@ -127,6 +127,13 @@ private actor DatasetLifecycleClient: BiometricDatasetsServing {
     func creationRequests() -> [BiometricDatasetRequest] { createRequests }
     func releaseCount() -> Int { releaseRequests }
     func releaseCreatedDataset() async throws { if let created { _ = try await demo.release(id: created.id) } }
+    func evaluationOverview(side: Side) async throws -> BiometricProfileOverview { try await demo.evaluationOverview(side: side) }
+    func evaluationProfiles(side: Side, cursor: BiometricProfilePage.Cursor?) async throws -> BiometricProfilePage { try await demo.evaluationProfiles(side: side, cursor: cursor) }
+    func evaluationProfile(id: String) async throws -> BiometricProfileRevision { try await demo.evaluationProfile(id: id) }
+    func jobs(side: Side, cursor: BiometricBacktestPage.Cursor?) async throws -> BiometricBacktestPage { try await demo.jobs(side: side, cursor: cursor) }
+    func job(id: String) async throws -> BiometricBacktestJob { try await demo.job(id: id) }
+    func submit(_ request: BiometricBacktestSubmission) async throws -> BiometricBacktestJob { try await demo.submit(request) }
+    func cancelJob(id: String) async throws -> BiometricBacktestJob { try await demo.cancelJob(id: id) }
     func experiments(side: Side, cursor: BiometricExperimentPage.Cursor?) async throws -> BiometricExperimentPage { try await demo.experiments(side: side, cursor: cursor) }
     func experiment(id: String) async throws -> BiometricExperiment { try await demo.experiment(id: id) }
     func create(_ request: BiometricExperimentRequest) async throws -> BiometricExperiment { try await demo.create(request) }
