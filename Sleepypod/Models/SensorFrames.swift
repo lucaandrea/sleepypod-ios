@@ -10,6 +10,8 @@ enum SensorFrame: Sendable {
     case bedTemp2(BedTemp2Frame)
     case bedTemp(BedTemp2Frame)
     case frzHealth(FrzHealthFrame)
+    case frzTemp(FrzTemperatureFrame)
+    case frzTherm(FrzThermalFrame)
     case log(LogFrame)
     case notification(NotificationFrame)
     case deviceStatus(DeviceStatusFrame)
@@ -24,6 +26,8 @@ enum SensorFrame: Sendable {
         case .bedTemp2: return "bedTemp2"
         case .bedTemp: return "bedTemp"
         case .frzHealth: return "frzHealth"
+        case .frzTemp: return "frzTemp"
+        case .frzTherm: return "frzTherm"
         case .log: return "log"
         case .notification: return "notification"
         case .deviceStatus: return "deviceStatus"
@@ -48,6 +52,10 @@ enum SensorFrame: Sendable {
             return (try? decoder.decode(BedTemp2Frame.self, from: data)).map { .bedTemp2($0) }
         case "bedTemp":
             return (try? decoder.decode(LegacyBedTemperatureFrame.self, from: data)).map { .bedTemp($0.normalized) }
+        case "frzTemp":
+            return (try? decoder.decode(FrzTemperatureFrame.self, from: data)).map { .frzTemp($0) }
+        case "frzTherm":
+            return (try? decoder.decode(FrzThermalFrame.self, from: data)).map { .frzTherm($0) }
         case "frzHealth":
             return (try? decoder.decode(FrzHealthFrame.self, from: data)).map { .frzHealth($0) }
         case "log":
@@ -189,23 +197,27 @@ private struct LegacyBedTemperatureFrame: Decodable {
 
 struct FrzHealthFrame: Decodable, Sendable {
     let ts: Int
-    let left: FrzSideHealth
-    let right: FrzSideHealth
+    let left: FrzSideHealth?
+    let right: FrzSideHealth?
     let fan: FrzFanHealth?
 }
 
 struct FrzSideHealth: Decodable, Sendable {
-    let tec: TecInfo
-    let pump: PumpInfo
+    let tec: TecInfo?
+    let pump: PumpInfo?
+    var temps: FlowInfo?
+
+    struct FlowInfo: Decodable, Sendable { let flowrate: Double? }
 
     struct TecInfo: Decodable, Sendable {
-        let current: Float
+        let current: Float?
     }
 
     struct PumpInfo: Decodable, Sendable {
         let mode: String?
         let rpm: Int?
         let water: Bool?
+        var duty: Double?
     }
 }
 
@@ -214,7 +226,7 @@ struct FrzFanHealth: Decodable, Sendable {
     let bottom: FanInfo?
 
     struct FanInfo: Decodable, Sendable {
-        let rpm: Int
+        let rpm: Int?
     }
 }
 

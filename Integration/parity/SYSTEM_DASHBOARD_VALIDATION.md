@@ -1,6 +1,6 @@
 # Native System overview and pump incidents
 
-Status: implemented and validated; publication and CI merge are in progress. This milestone does not complete the wider iOS parity audit or authorize an early release.
+Status: implemented, validated and merged into owner main. This milestone does not complete the wider iOS parity audit or authorize an early release.
 
 ## Source and behavior
 
@@ -25,7 +25,7 @@ The final Overview interaction flow passes in `SystemOverview-phone-reviewed.xcr
 
 Thirty PNG captures under `previews/system-overview/` cover iPhone dark, iPad light and maximum Dynamic Type. The largest-text alert was visually inspected and its explanation/action geometry is asserted by the UI test. Maximum-text history charts use sparse axis labels; the Water action remains inset while its content scrolls. Strict SwiftLint, whitespace checks and the native presentation guard pass.
 
-Publication: pending GitHub CI and merge to owner main.
+Publication: [PR #10](https://github.com/lucaandrea/sleepypod-ios/pull/10) merged at `d55bfbbc59c024901e8311ccd255f05c1a2da05d` after all four checks passed in CI run `40262370022` (build, unit/transport regressions, contract tests, lint and aggregate gate).
 ## Evidence limits
 
 All captured interactions are explicit demo data. The scheduler demo is a dated DST fixture; measured temperature history is separately simulated. No real Pod prime, internet-access change, pump dismissal, recovery, cleanup or vibration command was used for validation. Physical controller integration remains a separate requirement. Version/build stays 0.2.0 (7); no TestFlight upload is part of this milestone.

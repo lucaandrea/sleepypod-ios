@@ -11,72 +11,75 @@ struct ThermalBedCard: View {
     @Environment(SensorStreamService.self) private var sensor
     @Environment(SettingsManager.self) private var settingsManager
 
+    @Environment(\.dynamicTypeSize) private var typeSize
+    @Environment(\.horizontalSizeClass) private var sizeClass
+    var stored: SensorBedReading?
+    @State private var resetCamera = 0
+
     /// Readings older than this paint grey, matching sleepypod-core's THERMAL_STALE_SECONDS.
     static let staleSeconds: TimeInterval = 90
 
     var body: some View {
-        TimelineView(.periodic(from: .now, by: 5)) { context in
-            let updatedAt = sensor.bedTempUpdatedAt
-            let stale = updatedAt.map { context.date.timeIntervalSince($0) >= Self.staleSeconds } ?? true
-            let left = ThermalZones.fahrenheit(sensor.leftTemps)
-            let right = ThermalZones.fahrenheit(sensor.rightTemps)
+        TimelineView(.periodic(from: .now, by: 5)) { _ in
+            let useStored = stored?.date.map { $0 <= .now && $0 > (sensor.bedTempUpdatedAt ?? .distantPast) } ?? false
+            let updatedAt = useStored ? stored?.date : sensor.bedTempUpdatedAt
+            let stale = !SensorObservation.fresh(updatedAt, age: Self.staleSeconds, now: .now)
+            let leftSide = useStored ? stored?.side(.left) : sensor.leftTemps
+            let rightSide = useStored ? stored?.side(.right) : sensor.rightTemps
+            let left = ThermalZones.fahrenheit(leftSide)
+            let right = ThermalZones.fahrenheit(rightSide)
 
             VStack(alignment: .leading, spacing: 10) {
-                header(updatedAt: updatedAt, stale: stale, hasData: sensor.leftTemps != nil || sensor.rightTemps != nil)
+                header(updatedAt: updatedAt, stale: stale, hasData: leftSide != nil || rightSide != nil)
+                if useStored { Text("Stored sensor observation").font(.caption).foregroundStyle(Theme.text2) }
 
                 ThermalBedSceneView(
                     left: stale ? ThermalZones.none : left,
                     right: stale ? ThermalZones.none : right,
-                    interactive: true
+                    interactive: true, resetCamera: resetCamera
                 )
                 .frame(height: 210)
                 .accessibilityLabel("Thermal bed")
+                Button("Reset bed view") { resetCamera += 1 }.font(.subheadline).accessibilityIdentifier("sensors.resetBed")
 
                 cells(left: left, right: right, stale: stale)
                 legend
+                let mcu = useStored ? stored?.mcuTemp : sensor.mcuTemperature.map(Double.init)
+                let ambient = leftSide?.amb ?? rightSide?.amb
+                let humidity = leftSide?.hu ?? rightSide?.hu
+                SensorDiagnosticValue(title: "Ambient", value: temperature(ambient.map(Double.init)))
+                SensorDiagnosticValue(title: "MCU", value: temperature(mcu))
+                SensorDiagnosticValue(title: "Humidity", value: humidity.flatMap { $0.isFinite && (0...100).contains($0) ? String(format: "%.0f%%", $0) : nil } ?? "—")
+                Text("Six measured regions across the mattress; gray means missing or stale. Head-to-foot detail is not measured.").font(.caption).foregroundStyle(Theme.text2)
             }
         }
         .cardStyle()
     }
 
+    private func temperature(_ celsius: Double?) -> String {
+        guard let value = SensorObservation.finite(celsius), value > -100 else { return "—" }
+        let useCelsius = settingsManager.temperatureFormat == .celsius
+        return String(format: "%.1f°%@", useCelsius ? value : value * 9 / 5 + 32, useCelsius ? "C" : "F")
+    }
+
     private func header(updatedAt: Date?, stale: Bool, hasData: Bool) -> some View {
-        HStack(spacing: 6) {
-            Image(systemName: "bed.double.fill")
-                .font(.system(size: 10))
-                .foregroundColor(Theme.amber)
-            Text("THERMAL BED")
-                .font(.caption.weight(.semibold))
-                .foregroundColor(Theme.textSecondary)
-                .tracking(1)
-            if hasData && stale {
-                Text("Stale")
-                    .font(.system(size: 9, weight: .semibold))
-                    .foregroundColor(Theme.textMuted)
-                    .padding(.horizontal, 6)
-                    .padding(.vertical, 2)
-                    .background(Theme.textMuted.opacity(0.15))
-                    .clipShape(Capsule())
-            }
-            Spacer()
-            if let updatedAt {
-                Text(TempScreen.relativeTime(from: updatedAt))
-                    .font(.system(size: 9))
-                    .foregroundColor(Theme.textMuted)
-            }
+        VStack(alignment: .leading, spacing: 6) {
+            Label("THERMAL BED", systemImage: "bed.double.fill").font(.caption.weight(.semibold)).foregroundStyle(Theme.text2)
+            if hasData && stale { Text("Stale readings").font(.caption).foregroundStyle(Theme.amber) }
+            if let updatedAt { Text(TempScreen.relativeTime(from: updatedAt)).font(.caption).foregroundStyle(Theme.text2) }
         }
     }
 
-    /// Six cells across the bed as seen: left outer → left inner, right inner → right outer.
     private func cells(left: [Double?], right: [Double?], stale: Bool) -> some View {
         let values = left + right.reversed()
         let labels = ["L out", "L ctr", "L in", "R in", "R ctr", "R out"]
-        return HStack(spacing: 4) {
+        return LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: typeSize.isAccessibilitySize ? 2 : sizeClass == .regular ? 6 : 3), spacing: 8) {
             ForEach(0..<6, id: \.self) { i in
                 let f = values[i]
                 VStack(spacing: 3) {
-                    Text(f.map { TemperatureConversion.displayTemp(Int($0.rounded()), format: settingsManager.temperatureFormat.degreeUnit) } ?? "--")
-                        .font(.system(size: 11, weight: .medium).monospaced())
-                        .foregroundColor(f == nil ? Theme.textMuted : .white)
+                    Text(f.map { temperature(($0 - 32) * 5 / 9) } ?? "—")
+                        .font(.caption.monospacedDigit().weight(.medium))
+                        .foregroundColor(f == nil ? Theme.textMuted : Theme.text1)
                         .lineLimit(1)
                         .minimumScaleFactor(0.7)
                         .frame(maxWidth: .infinity)
@@ -84,7 +87,7 @@ struct ThermalBedCard: View {
                         .background(TempRamp.color(stale ? nil : f).opacity(f == nil ? 0.25 : 0.55))
                         .clipShape(RoundedRectangle(cornerRadius: 5))
                     Text(labels[i])
-                        .font(.system(size: 8))
+                        .font(.caption2)
                         .foregroundColor(Theme.textMuted)
                 }
             }
@@ -101,7 +104,7 @@ struct ThermalBedCard: View {
                 .clipShape(Capsule())
             Text(TemperatureConversion.displayTemp(Int(TempRamp.maxF), format: format))
         }
-        .font(.system(size: 9).monospaced())
+        .font(.caption2.monospaced())
         .foregroundColor(Theme.textMuted)
     }
 }
