@@ -109,6 +109,8 @@ struct PodSettings: Codable, Sendable {
         let active = configured.filter { $0 == .left ? !left.awayMode : !right.awayMode }
         return active.count == 1 ? active : Side.allCases
     }
+    /// Sleep context follows the one active sleeper without retargeting either thermal zone.
+    func contextSide(selected: Side) -> Side { shownSides.count == 1 ? shownSides[0] : selected }
     var defaultScheduleEndAction: ScheduleEndAction?
     var id: String
     var timeZone: String

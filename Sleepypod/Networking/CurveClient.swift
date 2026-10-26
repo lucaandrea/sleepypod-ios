@@ -87,7 +87,17 @@ actor DemoCurveClient: CurveClient {
     ]
     private var sessions: [Side: RunOnceSession] = [:]
     private var nextID = 100
-    func library() async throws -> CurveLibrarySnapshot { CurveLibrarySnapshot(curves: curves, supportsAssignments: true) }
+    private let scenario: String
+    init(scenario: String = DebugRoute.curveScenario) {
+        self.scenario = scenario
+        if scenario == "legacy" {
+            for index in curves.indices { curves[index].days = nil; curves[index].active = nil }
+        }
+    }
+    func library() async throws -> CurveLibrarySnapshot {
+        if scenario == "offline" { throw URLError(.notConnectedToInternet) }
+        return CurveLibrarySnapshot(curves: curves, supportsAssignments: scenario != "legacy")
+    }
     func put(_ input: CurvePut, assignments: Bool) async throws -> CurveChange {
         guard !curves.contains(where: { $0.name == input.name && $0.id != input.id }) else { throw APIError.serverError(message: "Another curve already has that name.") }
         var draft = CurveDraft(); draft.original = curves.first { $0.id == input.id }; draft.days = input.days; draft.active = input.active
@@ -97,7 +107,7 @@ actor DemoCurveClient: CurveClient {
             if curves[index].days?.isEmpty == true { curves[index].active = false }
         }
         let curve = PodCurve(id: input.id ?? nextID, name: input.name, bedtime: input.bedtime, wake: input.wake, points: input.points,
-                             notes: input.notes, endAction: input.endAction, days: input.days, active: input.active && !input.days.isEmpty)
+                             notes: input.notes, endAction: input.endAction, days: assignments ? input.days : nil, active: assignments ? input.active && !input.days.isEmpty : nil)
         if input.id == nil { nextID += 1 }
         curves.removeAll { $0.id == curve.id }; curves.append(curve)
         return CurveChange(curve: curve, moved: moved)
@@ -110,6 +120,7 @@ actor DemoCurveClient: CurveClient {
         let now = Int(Date().timeIntervalSince1970); let expiry = now + 8 * 3600
         sessions[side] = RunOnceSession(id: nextID, side: side.rawValue, setPoints: points, wakeTime: wake, startedAt: now, expiresAt: expiry, status: "active")
         nextID += 1
+        if scenario == "uncertain-start" { throw URLError(.timedOut) }
         return RunOnceStartResponse(sessionId: nextID - 1, expiresAt: expiry)
     }
     func cancel(_ side: Side) async throws { sessions.removeValue(forKey: side) }

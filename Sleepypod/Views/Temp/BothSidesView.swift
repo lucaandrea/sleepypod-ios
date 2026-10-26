@@ -16,7 +16,7 @@ struct BothSidesView: View {
             TemperatureOwnershipView()
             if let next { nextCard(next) }
             if APIBackend.current != .freeSleep {
-                ForEach(Side.allCases) { side in
+                ForEach(settings.settings?.shownSides ?? Side.allCases) { side in
                     GroupedSection(settings.sideName(for: side).uppercased()) { NextAlarmCard(side: side) }
                     TemperatureContextCards(side: side)
                 }
@@ -39,7 +39,8 @@ struct BothSidesView: View {
     /// The next schedule event: bedtime before the night starts, wake while it runs.
     private var next: (String, String)? {
         guard let curve else { return nil }
-        let now = Calendar.current.component(.hour, from: Date()) * 60 + Calendar.current.component(.minute, from: Date())
+        var calendar = Calendar(identifier: .gregorian); calendar.timeZone = TimeZone(identifier: settings.timeZone) ?? .current
+        let now = calendar.component(.hour, from: Date()) * 60 + calendar.component(.minute, from: Date())
         let start = DisplayTime.minutes(curve.bedtime), end = DisplayTime.minutes(curve.wakeTime)
         let inNight = start <= end ? (now >= start && now < end) : (now >= start || now < end)
         return inNight ? ("Wake and warm-up", curve.wakeTime) : ("Bedtime curve starts", curve.bedtime)

@@ -84,8 +84,32 @@ final class CurveParityTests: XCTestCase {
         await model.refresh(); await client.fail()
         var draft = CurveDraft(curve: curve()); draft.notes = "Unsaved note"
         let saved = await model.save(draft, reviewed: []); XCTAssertFalse(saved)
-        XCTAssertTrue(model.loaded); XCTAssertEqual(model.curves.first?.notes, "Keep fractional readings")
+        XCTAssertFalse(model.loaded); XCTAssertEqual(model.curves.first?.notes, "Keep fractional readings")
         XCTAssertEqual(draft.notes, "Unsaved note"); XCTAssertNotNil(model.error)
+    }
+    func testRunOnceUnknownStartAndCancelRequireSuccessfulReadBeforeRetry() async throws {
+        let client = CurveRecoveryClient(); let model = CurveWorkspace(api: client)
+        await model.refresh()
+        let draft = RunOnceDraft(curve: curve(), side: .left, timeZone: .gmt)
+        let started = await model.start(draft, timeZone: .gmt)
+        XCTAssertFalse(started); XCTAssertFalse(model.loaded)
+        let repeated = await model.start(draft, timeZone: .gmt); XCTAssertFalse(repeated)
+        var starts = await client.starts; XCTAssertEqual(starts, 1)
+        await client.failReads(true); await model.refresh(); XCTAssertFalse(model.loaded)
+        await client.failReads(false); await model.refresh(); XCTAssertTrue(model.loaded)
+        XCTAssertNotNil(model.sessions[.left], "A fresh read discovers the accepted start without replay")
+        starts = await client.starts; XCTAssertEqual(starts, 1)
+        await model.cancel(.left); XCTAssertFalse(model.loaded)
+        await model.cancel(.left)
+        let cancels = await client.cancels; XCTAssertEqual(cancels, 1)
+        await model.refresh(); XCTAssertTrue(model.loaded); XCTAssertNil(model.sessions[.left])
+    }
+    func testFailedSecondSessionReadDoesNotPublishPartialCurveSnapshot() async throws {
+        let client = CurveRecoveryClient(); let model = CurveWorkspace(api: client)
+        await model.refresh(); let original = model.curves
+        await client.failRightAfterChangingLibrary(); await model.refresh()
+        XCTAssertFalse(model.loaded); XCTAssertEqual(model.curves, original)
+        XCTAssertTrue(model.sessions.isEmpty, "A left-side result must not mix with a failed right-side read")
     }
     func testRunOnceRebasesPreviewAndRejectsMoreThanFourteenHours() throws {
         let now = try XCTUnwrap(ISO8601DateFormatter().date(from: "2026-10-25T12:00:00Z"))
@@ -162,4 +186,34 @@ private final class CurveRequestProtocol: URLProtocol, @unchecked Sendable {
         client?.urlProtocol(self, didLoad: Data(response.utf8)); client?.urlProtocolDidFinishLoading(self)
     }
     override func stopLoading() {}
+}
+
+
+private actor CurveRecoveryClient: CurveClient {
+    var starts = 0
+    var cancels = 0
+    private var readingFails = false
+    private var rightFails = false
+    private var session: RunOnceSession?
+    func failReads(_ value: Bool) { readingFails = value }
+    func failRightAfterChangingLibrary() { rightFails = true }
+    func library() async throws -> CurveLibrarySnapshot {
+        if readingFails { throw URLError(.notConnectedToInternet) }
+        let curve = PodCurve(id: 1, name: rightFails ? "Changed" : "Original", bedtime: "22:00", wake: "07:00", points: ["22:00": 72], notes: "")
+        return CurveLibrarySnapshot(curves: [curve], supportsAssignments: true)
+    }
+    func put(_ input: CurvePut, assignments: Bool) async throws -> CurveChange { throw URLError(.unsupportedURL) }
+    func delete(_ curve: PodCurve) async throws {}
+    func active(_ side: Side) async throws -> RunOnceSession? {
+        if readingFails || (rightFails && side == .right) { throw URLError(.notConnectedToInternet) }
+        if rightFails { return RunOnceSession(id: 9, side: "left", setPoints: [], wakeTime: "07:00", startedAt: 1, expiresAt: 2, status: "active") }
+        return side == .left ? session : nil
+    }
+    func start(side: Side, points: [RunOnceSetPoint], wake: String) async throws -> RunOnceStartResponse {
+        starts += 1
+        let now = Int(Date().timeIntervalSince1970)
+        session = RunOnceSession(id: 10, side: side.rawValue, setPoints: points, wakeTime: wake, startedAt: now, expiresAt: now + 3600, status: "active")
+        throw URLError(.timedOut)
+    }
+    func cancel(_ side: Side) async throws { cancels += 1; session = nil; throw URLError(.timedOut) }
 }

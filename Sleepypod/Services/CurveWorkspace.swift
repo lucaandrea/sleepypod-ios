@@ -28,12 +28,14 @@ final class CurveWorkspace {
         do {
             let snapshot = try await client.library()
             guard revision == operation else { return }
-            curves = snapshot.curves; supportsAssignments = snapshot.supportsAssignments; loaded = true; error = nil
+            var refreshedSessions: [Side: RunOnceSession] = [:]
             for side in Side.allCases {
                 let session = try await client.active(side)
-                guard revision == operation else { return }; sessions[side] = session
+                guard revision == operation else { return }; refreshedSessions[side] = session
             }
-        } catch { if revision == operation { self.error = error.localizedDescription } }
+            curves = snapshot.curves; supportsAssignments = snapshot.supportsAssignments
+            sessions = refreshedSessions; loaded = true; error = nil
+        } catch { if revision == operation { loaded = false; self.error = APIError.message(for: error) } }
     }
     func moves(_ draft: CurveDraft) -> [CurveMove] { CurveMove.preview(draft, among: curves) }
     func save(_ draft: CurveDraft, reviewed: [CurveMove]) async -> Bool {
@@ -77,11 +79,11 @@ final class CurveWorkspace {
                 curves = snapshot.curves; supportsAssignments = snapshot.supportsAssignments
             } catch { if revision == operation { loaded = false; self.error = "Saved, but the curve library could not be refreshed. Reload before another change." } }
             return true
-        } catch { if revision == operation { self.error = error.localizedDescription }; return false }
+        } catch { if revision == operation { loaded = false; self.error = APIError.message(for: error) }; return false }
     }
     func start(_ draft: RunOnceDraft, now: Date = .now, timeZone: TimeZone) async -> Bool {
         if let validation = draft.validation(now: now, timeZone: timeZone) { error = validation; return false }
-        guard !saving else { return false }
+        guard loaded, !saving else { return false }
         saving = true; revision += 1; let operation = revision; let client = api; error = nil
         defer { if revision == operation { saving = false } }
         do {
@@ -89,19 +91,19 @@ final class CurveWorkspace {
             guard revision == operation else { return false }
             notice = "Run-once start accepted."
             do { let session = try await client.active(draft.side); if revision == operation { sessions[draft.side] = session } }
-            catch { if revision == operation { self.error = "Start accepted, but its status could not be refreshed. Reload before trying again." } }
+            catch { if revision == operation { loaded = false; self.error = "Start accepted, but its status could not be refreshed. Reload before trying again." } }
             return true
-        } catch { if revision == operation { self.error = error.localizedDescription }; return false }
+        } catch { if revision == operation { loaded = false; self.error = "Run-once start could not be confirmed. Reload its status before trying again." }; return false }
     }
     func cancel(_ side: Side) async {
-        guard !saving else { return }
+        guard loaded, !saving else { return }
         saving = true; revision += 1; let operation = revision; let client = api; error = nil
         defer { if revision == operation { saving = false } }
         do {
             try await client.cancel(side)
             guard revision == operation else { return }
             sessions.removeValue(forKey: side); notice = "Run once cancelled. The recurring schedule resumes."
-        } catch { if revision == operation { self.error = error.localizedDescription } }
+        } catch { if revision == operation { loaded = false; self.error = "Cancellation could not be confirmed. Reload its status before trying again." } }
     }
 }
 

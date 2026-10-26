@@ -54,7 +54,7 @@ struct CurveSetPointList: View {
             }
 
             // Rows
-            let sorted = points.sorted { overnightSort($0.time, $1.time) }
+            let sorted = orderedPoints
             ForEach(sorted) { point in
                 VStack(spacing: 0) {
                     setPointRow(point: point)
@@ -70,7 +70,7 @@ struct CurveSetPointList: View {
             }
             .onDelete { offsets in
                 guard points.count > 3 else { return }
-                var sorted = points.sorted { overnightSort($0.time, $1.time) }
+                var sorted = orderedPoints
                 sorted.remove(atOffsets: offsets)
                 points = sorted
                 onChanged?()
@@ -187,6 +187,7 @@ struct CurveSetPointList: View {
             displayedComponents: .hourAndMinute
         )
         .datePickerStyle(.wheel)
+        .environment(\.timeZone, .gmt)
         .labelsHidden()
         .frame(height: 120)
         .clipped()
@@ -206,11 +207,11 @@ struct CurveSetPointList: View {
 
     private func updateTime(id: UUID, date: Date) {
         if let index = points.firstIndex(where: { $0.id == id }) {
-            let fmt = DateFormatter()
-            fmt.dateFormat = "HH:mm"
-            points[index].time = fmt.string(from: date)
+            let formatter = DateFormatter(); formatter.locale = Locale(identifier: "en_US_POSIX")
+            formatter.timeZone = .gmt; formatter.dateFormat = "HH:mm"
+            points[index].time = formatter.string(from: date)
             // Auto-sort after time change
-            points.sort { overnightSort($0.time, $1.time) }
+            points = orderedPoints
             onChanged?()
         }
     }
@@ -222,7 +223,7 @@ struct CurveSetPointList: View {
     }
 
     private func addPoint() {
-        let sorted = points.sorted { overnightSort($0.time, $1.time) }
+        let sorted = orderedPoints
         let midIndex = sorted.count / 2
         let refTime = sorted.indices.contains(midIndex) ? sorted[midIndex].time : "02:00"
         let refTemp = sorted.indices.contains(midIndex) ? sorted[midIndex].tempF : 74
@@ -230,7 +231,7 @@ struct CurveSetPointList: View {
         let newTime = nudgeTime(refTime, by: 15)
         let newPoint = SetPoint(time: newTime, tempF: refTemp, phase: "Maintain")
         points.append(newPoint)
-        points.sort { overnightSort($0.time, $1.time) }
+        points = orderedPoints
         onChanged?()
     }
 
@@ -246,24 +247,21 @@ struct CurveSetPointList: View {
     private func dateFromTimeString(_ time: String) -> Date? {
         let parts = time.split(separator: ":").compactMap { Int($0) }
         guard parts.count == 2 else { return nil }
-        var components = Calendar.current.dateComponents([.year, .month, .day], from: Date())
-        components.hour = parts[0]
-        components.minute = parts[1]
-        return Calendar.current.date(from: components)
+        // A recurring clock is not today's date; UTC avoids losing times in a DST gap.
+        var calendar = Calendar(identifier: .gregorian); calendar.timeZone = .gmt
+        return calendar.date(from: DateComponents(year: 2026, month: 1, day: 15, hour: parts[0], minute: parts[1]))
     }
 
-    /// Overnight-aware time sort: times >= 12:00 (evening) come before times < 12:00 (morning).
-    /// This ensures "22:00", "23:30", "01:00", "05:00" sort in overnight order.
-    private func overnightSort(_ a: String, _ b: String) -> Bool {
-        let aIsEvening = a >= "12:00"
-        let bIsEvening = b >= "12:00"
-        if aIsEvening == bIsEvening { return a < b }
-        return aIsEvening // evenings first
+    /// Use the same overnight gap rule as the saved-curve payload and chart.
+    private var orderedPoints: [SetPoint] {
+        let converted = points.map { CurvePoint(id: $0.id, time: $0.time, temperature: Double($0.tempF)) }
+        let byID = Dictionary(uniqueKeysWithValues: points.map { ($0.id, $0) })
+        return CurvePoint.ordered(converted).compactMap { byID[$0.id] }
     }
 
     private func phaseColor(_ phase: String) -> Color {
         let lower = phase.lowercased()
-        if lower.contains("warm") && lower.contains("up") { return Theme.warming }
+        if lower.contains("warm") { return Theme.warming }
         if lower.contains("cool") { return Theme.cooling }
         if lower.contains("deep") { return Color(hex: "2563eb") }
         if lower.contains("maintain") { return Theme.textSecondary }

@@ -8,6 +8,47 @@ final class AlarmParityTests: XCTestCase {
         CoreAlarmRow(id: id, side: .left, dayOfWeek: day, time: "07:00", vibrationIntensity: 40, vibrationPattern: .double,
                      duration: 20, alarmTemperature: 84, enabled: enabled, wakeWindow: window, snoozeDuration: 540, snoozeTaper: 30)
     }
+    func testTemperatureContextUsesOnlyActiveSleeperWithoutChangingThermalSides() async throws {
+        var settings = try await MockClient().getSettings()
+        XCTAssertEqual(settings.contextSide(selected: .left), .left)
+        XCTAssertEqual(settings.contextSide(selected: .right), .right)
+        settings.left.awayMode = true
+        XCTAssertEqual(settings.contextSide(selected: .left), .right)
+        settings.right.awayMode = true
+        XCTAssertEqual(settings.contextSide(selected: .left), .left, "No active sleeper falls back to the selected side")
+        settings.left.awayMode = false; settings.right.awayMode = false; settings.bedMode = "solo-right"
+        XCTAssertEqual(settings.contextSide(selected: .left), .right)
+        settings.right.awayMode = true
+        XCTAssertEqual(settings.contextSide(selected: .left), .left)
+        XCTAssertEqual(Side.allCases.count, 2, "Thermal zone selection is independent of context visibility")
+    }
+    func testStaleAlarmsStopNextOccurrenceAndMutationsUntilFreshRead() async throws {
+        let client = AlarmRecordingClient(rows: [row()]); let model = AlarmWorkspace(api: client)
+        await model.refresh(); let group = try XCTUnwrap(model.groups(.left).first)
+        await client.fail(true); await model.refresh()
+        XCTAssertFalse(model.loaded); XCTAssertEqual(model.rows, [row()])
+        XCTAssertEqual(model.error, "The controller connection is offline. Check your network and reload.")
+        XCTAssertNil(model.nextGroup(.left, now: .now, timeZone: .gmt))
+        await model.toggle(group, enabled: false); await model.test(AlarmDraft(group: group))
+        let writes = await client.writes; let tests = await client.tests
+        XCTAssertTrue(writes.isEmpty); XCTAssertTrue(tests.isEmpty)
+        await client.fail(false); await model.refresh()
+        XCTAssertTrue(model.loaded); XCTAssertNil(model.error)
+        await model.toggle(group, enabled: false)
+        XCTAssertEqual(model.rows.first?.enabled, false)
+    }
+    func testUnknownAlarmWriteNeedsReadBeforeManualResubmission() async throws {
+        let client = AlarmRecordingClient(rows: [row()]); let model = AlarmWorkspace(api: client)
+        await model.refresh(); let group = try XCTUnwrap(model.groups(.left).first)
+        await client.loseNextResponse(); await model.toggle(group, enabled: false)
+        XCTAssertFalse(model.loaded); XCTAssertTrue(model.error?.contains("could not be confirmed") == true)
+        await model.toggle(group, enabled: false)
+        var writes = await client.writes; XCTAssertEqual(writes.count, 1)
+        await client.fail(true); await model.refresh(); XCTAssertFalse(model.loaded)
+        await client.fail(false); await model.refresh(); XCTAssertTrue(model.loaded)
+        XCTAssertEqual(model.rows.first?.enabled, false)
+        writes = await client.writes; XCTAssertEqual(writes.count, 1, "Readback must not repeat the mutation")
+    }
     func testGroupsPreservePausedDifferentWindowsSidesAndSnoozeSettings() {
         var alternate = row(5, day: .friday); alternate.snoozeTaper = 60
         var right = row(6); right.side = .right
@@ -127,6 +168,7 @@ final class AlarmParityTests: XCTestCase {
         var saved = await model.save(draft); XCTAssertFalse(saved)
         XCTAssertTrue(model.error?.contains("another device") == true)
         let writes = await client.writes; XCTAssertTrue(writes.isEmpty)
+        await model.refresh()
         draft = AlarmDraft(group: model.groups(.left)[0]); draft.duration = 60
         await client.fail(true)
         saved = await model.save(draft); XCTAssertFalse(saved)
@@ -173,6 +215,8 @@ private actor AlarmRecordingClient: AlarmClient {
     var tests: [AlarmJob] = []
     var stops: [Side] = []
     private var failure = false
+    private var loseResponse = false
+    func loseNextResponse() { loseResponse = true }
     private var hold = false
     private var started: CheckedContinuation<Void, Never>?
     private var release: CheckedContinuation<Void, Never>?
@@ -185,6 +229,7 @@ private actor AlarmRecordingClient: AlarmClient {
         writes.append(batch); rows.removeAll { batch.deletes.contains($0.id) }
         for update in batch.updates { if let index = rows.firstIndex(where: { $0.id == update.id }) { rows[index].enabled = update.enabled } }
         for create in batch.creates { rows.append(create.row(id: (rows.map(\.id).max() ?? 0) + 1)) }
+        if loseResponse { loseResponse = false; throw URLError(.timedOut) }
     }
     func holdTest() { hold = true }
     func waitForTest() async { if tests.isEmpty { await withCheckedContinuation { started = $0 } } }

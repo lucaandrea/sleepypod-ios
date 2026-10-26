@@ -23,4 +23,4 @@ Evidence:
 - `/tmp/SleepypodNextAlarmLargeFinal.xcresult`: next-alarm pause/edit passed at the maximum accessibility text size. Its final capture is `previews/alarms/largest-text-next-paused-final.png`.
 - `/tmp/SleepypodCurveParity2.xcresult`: all 11 alarm unit tests and both schedule end-action tests passed after schema discovery was added.
 
-Still open: all four Temperature layouts, away/solo behavior, explicit offline/missing-data native captures and cross-feature regression. Hardware delivery, vibration and scheduled wake execution remain unverified.
+The remaining layout, active-sleeper/away, empty/offline and unknown-write cases are now covered by `ALARM_CURVE_RECOVERY_AUDIT.md` on phone, iPad and maximum text. Final cross-feature release regression remains open. Hardware delivery, vibration and scheduled wake execution remain unverified.

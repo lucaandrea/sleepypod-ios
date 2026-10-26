@@ -80,4 +80,66 @@ final class AlarmParityUITests: XCTestCase {
         XCTAssertEqual(app.switches["Alarm enabled"].value as? String, "0")
         app.navigationBars.buttons["Cancel"].tap()
     }
+    private func launchTemperature(control: String = "dial", layout: String = "cards", scenario: String = "normal") -> XCUIApplication {
+        continueAfterFailure = false
+        let app = XCUIApplication()
+        app.launchArguments = ["-apiBackend", "demo", "--demo", "-onboardingComplete", "YES", "-appearance", "Dark",
+                               "-healthSyncEnabled", "NO", "-uiRoute", "", "-tempControl", control, "-temperatureLayout", layout,
+                               "-uiAlarmScenario", scenario, "-userDefaultSide", "left"]
+        app.launch()
+        XCTAssertTrue(app.buttons["Temp"].firstMatch.waitForExistence(timeout: 15))
+        return app
+    }
+    private func showContext(_ element: XCUIElement, app: XCUIApplication) {
+        let inset: CGFloat = app.frame.width > 600 ? 100 : 190
+        let viewport = app.frame.insetBy(dx: 0, dy: inset)
+        for _ in 0..<24 {
+            if element.exists, element.isHittable, viewport.contains(CGPoint(x: element.frame.midX, y: element.frame.midY)) { return }
+            let surface = app.scrollViews.firstMatch
+            let upward = !element.exists || element.frame.midY > viewport.midY
+            surface.coordinate(withNormalizedOffset: .init(dx: 0.02, dy: upward ? 0.78 : 0.30)).press(forDuration: 0.05, thenDragTo: surface.coordinate(withNormalizedOffset: .init(dx: 0.02, dy: upward ? 0.30 : 0.78)))
+        }
+        XCTFail("Could not show alarm context")
+    }
+    func testNextAlarmAcrossEveryTemperatureLayout() {
+        for (control, layout) in [("dial", "cards"), ("slider", "cards"), ("stepper", "cards"), ("sides", "cards"), ("dial", "stage")] {
+            let app = launchTemperature(control: control, layout: layout)
+            let edit = app.buttons["Edit next alarm at 07:00"].firstMatch
+            showContext(edit, app: app)
+            capture(app, "Alarm-layout-\(control)-\(layout)")
+            edit.tap(); XCTAssertTrue(app.navigationBars["Edit alarm"].waitForExistence(timeout: 3))
+            app.navigationBars.buttons["Cancel"].tap()
+            app.terminate()
+        }
+    }
+    func testSoloAwayContextAndBothAwayFallback() {
+        for scenario in ["solo-right", "left-away", "both-away"] {
+            let app = launchTemperature(scenario: scenario)
+            let right = scenario != "both-away"
+            let edit = app.buttons[right ? "Edit next alarm at 06:30" : "Edit next alarm at 07:00"]
+            showContext(edit, app: app)
+            XCTAssertTrue(app.staticTexts[right ? "NEXT ALARM · RIGHT" : "NEXT ALARM · LEFT"].exists)
+            capture(app, "Alarm-context-\(scenario)")
+            edit.tap(); XCTAssertTrue(app.navigationBars["Edit alarm"].waitForExistence(timeout: 3))
+            app.navigationBars.buttons["Cancel"].tap()
+            app.terminate()
+        }
+    }
+    func testEmptyAndOfflineAlarmStatesStayDistinct() {
+        let empty = launchTemperature(scenario: "empty")
+        showContext(empty.buttons["Add alarm"], app: empty)
+        capture(empty, "Alarm-empty")
+        empty.buttons["Add alarm"].tap()
+        XCTAssertTrue(empty.navigationBars["New alarm"].waitForExistence(timeout: 3))
+        empty.navigationBars.buttons["Cancel"].tap(); empty.terminate()
+        let offline = launchTemperature(scenario: "offline")
+        showContext(offline.buttons["Reload alarms"], app: offline)
+        XCTAssertTrue(offline.staticTexts["Alarm status unavailable"].exists)
+        XCTAssertFalse(offline.buttons["Add alarm"].exists)
+        XCTAssertFalse(offline.switches["Next alarm enabled"].exists)
+        capture(offline, "Alarm-offline")
+        offline.buttons["Reload alarms"].tap()
+        XCTAssertTrue(offline.staticTexts["Alarm status unavailable"].waitForExistence(timeout: 3))
+    }
+
 }

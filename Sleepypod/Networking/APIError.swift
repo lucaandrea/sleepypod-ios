@@ -30,4 +30,19 @@ enum APIError: LocalizedError, Sendable {
             "Not supported: \(feature)"
         }
     }
+    /// Keep recoverable connection failures readable without exposing URL-loading error codes.
+    static func message(for error: Error) -> String {
+        if case APIError.networkError(let underlying) = error { return message(for: underlying) }
+        guard let network = error as? URLError else { return error.localizedDescription }
+        switch network.code {
+        case .notConnectedToInternet, .networkConnectionLost:
+            return "The controller connection is offline. Check your network and reload."
+        case .cannotFindHost, .cannotConnectToHost, .dnsLookupFailed:
+            return "The controller could not be reached. Check its address and reload."
+        case .timedOut:
+            return "The controller did not respond in time. Reload to check its current state."
+        default: return error.localizedDescription
+        }
+    }
+
 }
