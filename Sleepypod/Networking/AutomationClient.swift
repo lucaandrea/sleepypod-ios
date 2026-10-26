@@ -66,6 +66,9 @@ struct CoreAutomationClient: AutomationClient {
 }
 
 actor DemoAutomationClient: AutomationClient {
+    private let scenario: String
+    private var loseCreateResponse = true
+    init(scenario: String = "normal") { self.scenario = scenario; enabled = scenario == "diagnostics" }
     private var enabled = false
     private var nextID = 3
     private var values: [AutomationRule] = {
@@ -87,7 +90,9 @@ actor DemoAutomationClient: AutomationClient {
     func create(_ definition: AutomationDefinition) throws -> AutomationRule {
         if let validation = definition.validation { throw APIError.serverError(message: validation) }
         let now = Date.now.ISO8601Format(); let rule = AutomationRule(id: nextID, definition: definition, createdAt: now, updatedAt: now)
-        nextID += 1; values.append(rule); return rule
+        nextID += 1; values.append(rule)
+        if scenario == "lost-create", loseCreateResponse { loseCreateResponse = false; throw URLError(.networkConnectionLost) }
+        return rule
     }
     func update(id: Int, definition: AutomationDefinition) throws -> AutomationRule {
         if let validation = definition.validation { throw APIError.serverError(message: validation) }
@@ -119,6 +124,7 @@ actor DemoAutomationClient: AutomationClient {
         return .init(ok: true, night: .init(label: "Synthetic night", date: "2026-10-24"), frames: frames)
     }
     func diagnostics() -> AutomationDiagnostics {
+        if scenario == "diagnostics", let example = AutomationDiagnosticsExample.snapshot(rules: rules(), enabled: enabled) { return example }
         let now = Date.now
         return .init(now: now.ISO8601Format(), since: now.addingTimeInterval(-10800).ISO8601Format(), startOfDay: Calendar.current.startOfDay(for: now).ISO8601Format(), globalEnabled: enabled,
             rules: rules().map { rule in

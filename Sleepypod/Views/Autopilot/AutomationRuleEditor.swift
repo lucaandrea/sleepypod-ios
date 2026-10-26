@@ -15,14 +15,64 @@ struct AutomationRuleEditor: View {
     @State private var confirmActive = false
     @State private var initial: AutomationDefinition
     @State private var confirmReload = false
+    @FocusState private var nameFocused: Bool
     init(session: AutomationEditSession, workspace: AutomationWorkspace) {
         self.workspace = workspace; _original = State(initialValue: session.original); _initial = State(initialValue: session.definition)
         _draft = State(initialValue: session.definition)
     }
     var body: some View {
+        ScrollViewReader { proxy in
+            form.onChange(of: workspace.error) {
+                if workspace.error != nil { withAnimation { proxy.scrollTo("automation.saveStatus", anchor: .top) } }
+            }
+            .onChange(of: workspace.recoveredCreation?.id) {
+                if original == nil, let saved = workspace.recoveredCreation {
+                    original = saved; initial = saved.definition
+                    withAnimation { proxy.scrollTo("automation.nameField", anchor: .top) }
+                }
+            }
+        }
+        .disabled(workspace.saving)
+        .navigationTitle(original == nil ? "New automation" : "Edit automation")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .cancellationAction) { Button("Cancel") { if draft != initial { confirmDiscard = true } else { dismiss() } } }
+            ToolbarItem(placement: .confirmationAction) {
+                Button("Save") { if draft.mode == .active { confirmActive = true } else { save() } }
+                    .disabled(draft.validation != nil || workspace.saving || workspace.loading || !workspace.ready || (original == nil && !workspace.canCreate)).accessibilityIdentifier("automation.save")
+            }
+        }
+        .interactiveDismissDisabled(draft != initial || workspace.saving)
+        .confirmationDialog("Discard this draft?", isPresented: $confirmDiscard, titleVisibility: .visible) { Button("Discard", role: .destructive) { dismiss() } }
+        .confirmationDialog("Discard your draft and reload this rule?", isPresented: $confirmReload, titleVisibility: .visible) {
+            Button("Discard and reload", role: .destructive) {
+                Task {
+                    await workspace.load()
+                    if let current = workspace.rules.first(where: { $0.id == original?.id }), workspace.ready {
+                        original = current; draft = current.definition; initial = current.definition
+                    } else if workspace.ready { workspace.error = "This rule no longer exists. Your draft is still available." }
+                }
+            }
+        }
+        .confirmationDialog("Save an active automation?", isPresented: $confirmActive, titleVisibility: .visible) {
+            Button("Save active automation") { save() }
+        } message: { Text("\(draft.name) can send its actions to \(draft.side?.rawValue ?? "both sides") while Autopilot is enabled.") }
+    }
+    private var form: some View {
         Form {
+            if let error = workspace.error {
+                Section("Save status") {
+                    Text(error).foregroundStyle(Theme.amber).accessibilityIdentifier("automation.saveError")
+                    if workspace.requiresReload || original == nil {
+                        Button("Check saved automations") { Task { await workspace.load() } }.accessibilityIdentifier("automation.readback")
+                    }
+                    if original != nil { Button("Reload current rule") { confirmReload = true } }
+                }.id("automation.saveStatus")
+            }
+            if let notice = workspace.notice { Section { Text(notice).font(.footnote).foregroundStyle(Theme.text2) } }
             Section("Automation") {
-                TextField("Name", text: $draft.name).accessibilityIdentifier("automation.name")
+                TextField("Name", text: $draft.name).focused($nameFocused).accessibilityIdentifier("automation.name")
+                    .id("automation.nameField")
                 Picker("Side", selection: $draft.side) {
                     Text("Both").tag(Side?.none); Text("Left").tag(Side?.some(.left)); Text("Right").tag(Side?.some(.right))
                 }
@@ -59,37 +109,8 @@ struct AutomationRuleEditor: View {
                 NavigationLink { AutomationRangeScreen(definition: draft, client: workspace.client) } label: { Label("Replay recent nights", systemImage: "calendar") }
                     .disabled(draft.validation != nil).accessibilityIdentifier("automation.range")
                 if let validation = draft.validation { Text(validation).foregroundStyle(Theme.amber) }
-                if let error = workspace.error {
-                    Text(error).foregroundStyle(Theme.amber).accessibilityIdentifier("automation.saveError")
-                    if original != nil { Button("Reload current rule") { confirmReload = true } }
-                }
             }
-        }
-        .disabled(workspace.saving)
-        .navigationTitle(original == nil ? "New automation" : "Edit automation")
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            ToolbarItem(placement: .cancellationAction) { Button("Cancel") { if draft != initial { confirmDiscard = true } else { dismiss() } } }
-            ToolbarItem(placement: .confirmationAction) {
-                Button("Save") { if draft.mode == .active { confirmActive = true } else { save() } }
-                    .disabled(draft.validation != nil || workspace.saving || !workspace.ready).accessibilityIdentifier("automation.save")
-            }
-        }
-        .interactiveDismissDisabled(draft != initial || workspace.saving)
-        .confirmationDialog("Discard this draft?", isPresented: $confirmDiscard, titleVisibility: .visible) { Button("Discard", role: .destructive) { dismiss() } }
-        .confirmationDialog("Discard your draft and reload this rule?", isPresented: $confirmReload, titleVisibility: .visible) {
-            Button("Discard and reload", role: .destructive) {
-                Task {
-                    await workspace.load()
-                    if let current = workspace.rules.first(where: { $0.id == original?.id }), workspace.ready {
-                        original = current; draft = current.definition; initial = current.definition
-                    } else if workspace.ready { workspace.error = "This rule no longer exists. Your draft is still available." }
-                }
-            }
-        }
-        .confirmationDialog("Save an active automation?", isPresented: $confirmActive, titleVisibility: .visible) {
-            Button("Save active automation") { save() }
-        } message: { Text("\(draft.name) can send its actions to \(draft.side?.rawValue ?? "both sides") while Autopilot is enabled.") }
+        }.accessibilityIdentifier("automation.editor")
     }
     private var trigger: some View {
         Section("When") {
@@ -117,5 +138,8 @@ struct AutomationRuleEditor: View {
             }
         }
     }
-    private func save() { Task { if await workspace.save(draft, original: original) { dismiss() } } }
+    private func save() {
+        nameFocused = false
+        Task { if await workspace.save(draft, original: original) { dismiss() } }
+    }
 }
