@@ -56,6 +56,12 @@ jobs:
             -only-testing:SleepypodTests -only-testing:FreeSleepKitTests \
             CODE_SIGNING_ALLOWED=NO
 
+      # First boot/data migration on a fresh runner can take several minutes.
+      # Wait for readiness before starting the regression execution budget.
+      - name: Boot simulator
+        timeout-minutes: 15
+        run: xcrun simctl bootstatus "$IOS_SIM_ID" -b
+
       - name: Unit and transport regression tests
         timeout-minutes: 10
         run: |
