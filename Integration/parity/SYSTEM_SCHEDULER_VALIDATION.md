@@ -1,6 +1,6 @@
 # Native System scheduler
 
-Implemented and locally validated on 2026-10-25; owner CI/merge remain pending. This is one System capability, not completion of the full parity program or a new TestFlight release.
+Implemented and locally validated on 2026-10-25; owner PR #5 merged after all four CI checks passed. This is one System capability, not completion of the full parity program or a new TestFlight release.
 
 ## Coverage
 
@@ -26,4 +26,4 @@ Results are retained under ignored `build/parity-validation/` using Xcode 27.1 a
 - Strict SwiftLint, compiled-source presentation guard and `git diff --check` passed. No retired Free Sleep presentation is compiled.
 - Tests use synthetic records and simulated transport. No live controller requests or physical job execution are claimed.
 
-Owner PR/CI merge: pending publication. Remaining System/settings parity and final TestFlight delivery continue separately.
+Owner PR #5 merged at `ff87da8e146189f441a9175dbcf089df39d7a552`; CI run `40253530527` passed build, unit/transport regressions, lint, contract tests and the final gate. Remaining System/settings parity and final TestFlight delivery continue separately.

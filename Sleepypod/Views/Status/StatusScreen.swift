@@ -22,6 +22,10 @@ struct StatusScreen: View {
 
                 if APIBackend.current != .freeSleep {
                     GroupedCard {
+                        NavigationLink { SystemLogsScreen() } label: {
+                            SettingsRow("Logs", subtitle: "Filter, follow and export service activity", icon: "doc.text", iconColor: Theme.text2, chevron: true)
+                        }.accessibilityIdentifier("system.logs")
+                        Divider()
                         NavigationLink { SystemSchedulerScreen() } label: {
                             SettingsRow("Scheduler", subtitle: "Seven nights and loaded jobs", icon: "calendar.badge.clock", iconColor: Theme.green, chevron: true)
                         }.accessibilityIdentifier("system.scheduler")
