@@ -77,7 +77,12 @@ struct CalibrationCapBaseline: Sendable {
         guard values.count >= 6, values.prefix(6).allSatisfy({ $0.isFinite && $0 != -1 }) else { return nil }
         let referenceDelta = values.count >= 8 && values[6...7].allSatisfy({ $0.isFinite && $0 != -1 })
             ? (values[6] + values[7]) / 2 - reference : 0
-        return (0..<3).map { index in (values[index * 2] + values[index * 2 + 1]) / 2 - referenceDelta - means[index] }
+        return (0..<3).map { index -> Double in
+            let firstChannel = values[index * 2]
+            let secondChannel = values[index * 2 + 1]
+            let pairedMean = (firstChannel + secondChannel) / 2.0
+            return pairedMean - referenceDelta - means[index]
+        }
     }
     func channelsInBaseline(_ values: [Double]) -> Int? {
         deviation(values).map { values in values.enumerated().filter { abs($0.element) <= 3 * deviations[$0.offset] }.count }
