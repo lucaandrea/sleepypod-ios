@@ -24,7 +24,7 @@ struct AutomationDiagnosticCard: View {
                     .font(.caption).foregroundStyle(Theme.text2)
                 Text(item.rule.definition.conditions.summary).font(.footnote)
                 ForEach(Array(item.rule.definition.actions.enumerated()), id: \.offset) { _, action in Text(action.summary).font(.footnote).foregroundStyle(Theme.text2) }
-                Picker("Mode for \(item.rule.definition.name)", selection: Binding(get: { item.rule.definition.mode }, set: setMode)) {
+                Picker("Mode for \(item.rule.definition.name)", selection: Binding(get: { item.rule.definition.mode }, set: { mode in setMode(mode) })) {
                     ForEach(AutomationMode.allCases) { Text($0.rawValue).tag($0) }
                 }.pickerStyle(.menu).disabled(!canEdit)
                 statistics

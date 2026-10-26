@@ -37,3 +37,5 @@ Core still has no atomic rule revision precondition or create idempotency token.
 - `Diagnostics-phone-v8.xcresult`: both complete interaction flows passed with the final recovery anchor and responsive minute controls. Twelve retained iPhone captures were reviewed; there are 36 retained captures across iPhone, iPad and maximum text. The phone is restored to Large text size.
 
 Result bundles are local under `build/parity-validation/`. Retained PNGs are under `previews/automation-diagnostics/`. All examples are synthetic; ordinary Demo does not acquire a controller evaluation history.
+
+CI run `40323561845` passed lint and contract checks, but Xcode 26.6 crashed during IR generation while adapting the actor-isolated mode callback directly into a SwiftUI binding. The binding now invokes the callback through an explicit closure; behavior and isolation are unchanged. The corrected CI run must pass before merge.
