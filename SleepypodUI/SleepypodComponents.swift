@@ -353,16 +353,18 @@ enum DisplayTime {
     static func clock(_ value: String) -> String {
         clock(minutes: minutes(value))
     }
-    static func clock(minutes m: Int) -> String {
-        let m = (m % 1440 + 1440) % 1440
-        return "\((m / 60 + 11) % 12 + 1):\(String(format: "%02d", m % 60)) \(m < 720 ? "AM" : "PM")"
+    static func clock(minutes value: Int, format: String = UserDefaults.standard.string(forKey: "podTimeFormat") ?? "12h") -> String {
+        let minutes = (value % 1440 + 1440) % 1440
+        if format == "24h" { return String(format: "%02d:%02d", minutes / 60, minutes % 60) }
+        return "\((minutes / 60 + 11) % 12 + 1):\(String(format: "%02d", minutes % 60)) \(minutes < 720 ? "AM" : "PM")"
     }
     /// Axis tick: drops ":00" on the hour ("2 AM", "10:30 PM").
-    static func tick(minutes m: Int) -> String {
-        let m = (m % 1440 + 1440) % 1440
-        let hour = (m / 60 + 11) % 12 + 1
-        let period = m < 720 ? "AM" : "PM"
-        return m % 60 == 0 ? "\(hour) \(period)" : "\(hour):\(String(format: "%02d", m % 60)) \(period)"
+    static func tick(minutes value: Int, format: String = UserDefaults.standard.string(forKey: "podTimeFormat") ?? "12h") -> String {
+        let minutes = (value % 1440 + 1440) % 1440
+        if format == "24h" { return clock(minutes: minutes, format: format) }
+        let hour = (minutes / 60 + 11) % 12 + 1
+        let period = minutes < 720 ? "AM" : "PM"
+        return minutes % 60 == 0 ? "\(hour) \(period)" : "\(hour):\(String(format: "%02d", minutes % 60)) \(period)"
     }
     static func duration(_ seconds: Int) -> String {
         let minutes = max(0, seconds) / 60

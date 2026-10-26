@@ -1,6 +1,6 @@
 # Backup settings parity
 
-Status: native implementation, nine focused logic/transport checks, and complete iPhone/iPad/maximum-text interaction flows pass. The final maximum-text capture is being refreshed after shortening the Save label. This does not establish live archive delivery or completion of the wider release.
+Status: native implementation, nine focused logic/transport checks, and complete iPhone/iPad/maximum-text interaction flows pass. The final maximum-text flow and refreshed captures pass with the shorter Save label (`Settings-backup-device-accessibility-final.xcresult`). This does not establish live archive delivery or completion of the wider release.
 
 On 2026-10-25, compared Core `SettingsScreen.tsx`, `ArchivePushSettingsForm.tsx`, `routers/archivePush.ts`, and the existing native `CoreSystemDatabaseClient`.
 
@@ -30,3 +30,5 @@ The existing database-download screen is linked separately. No private key leave
 - `ArchivePush-phone.xcresult`: eight workspace/conversion checks, one exact-route transport check and the original phone UI flow passed.
 - Maximum-text testing caught test cursor placement and a tap hidden beneath the navigation bar. Inputs now expose a usable Clear action, scrolling dismisses the keyboard, and the UI driver respects the visible navigation boundary. `Settings-device-units-backup-accessibility.xcresult` passed the complete corrected Backup flow plus twelve independent Device unit/transport checks.
 - `Settings-backup-device-phone.xcresult` and `Settings-backup-device-ipad.xcresult` pass the complete final Backup flow (alongside the first Device flow). Reviewed phone/dark, iPad/light and maximum-text captures are in `previews/settings-backup/`. Earlier failed or superseded captures are not acceptance evidence. Strict SwiftLint, diff checks and the presentation guard pass. Version remains 0.2.0 (7).
+
+PR #13 is merged into owner main at `5019f68a1a6fe5b5ececebc561e64a9e8e7a2722` after build, lint, contract-test and done passed in CI run `40268947292`.
