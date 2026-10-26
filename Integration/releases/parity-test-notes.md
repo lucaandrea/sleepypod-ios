@@ -1,6 +1,6 @@
 # Native parity release notes
 
-Prepared for the next internal TestFlight release. Not yet uploaded; version and build must be confirmed in Safari before archiving.
+Prepared for the next internal TestFlight release. A signed local candidate is available; its provisional build number must be confirmed in Safari before upload.
 
 ## What to test
 
@@ -18,4 +18,4 @@ Please include the screen, selected side and exact action when reporting a probl
 
 ## Release record
 
-The final version/build, archive, App Store Connect processing result, internal group and tester assignment will be recorded here after verification. The existing app identity is retained so saved connections and user data continue to belong to the same application.
+The verified local archive and IPA are recorded in `parity-candidate.md`. Final App Store Connect processing, internal group and tester assignment remain pending. The existing app identity is retained so saved connections and user data continue to belong to the same application.
