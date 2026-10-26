@@ -148,6 +148,13 @@ private actor ExperimentTestClient: BiometricDatasetsServing {
     func hasHeldPage() -> Bool { held != nil }
     func resumePage() { held?.resume(); held = nil }
     func duplicateNextPage() { duplicate = true }
+    func evaluationOverview(side: Side) async throws -> BiometricProfileOverview { try await demo.evaluationOverview(side: side) }
+    func evaluationProfiles(side: Side, cursor: BiometricProfilePage.Cursor?) async throws -> BiometricProfilePage { try await demo.evaluationProfiles(side: side, cursor: cursor) }
+    func evaluationProfile(id: String) async throws -> BiometricProfileRevision { try await demo.evaluationProfile(id: id) }
+    func jobs(side: Side, cursor: BiometricBacktestPage.Cursor?) async throws -> BiometricBacktestPage { try await demo.jobs(side: side, cursor: cursor) }
+    func job(id: String) async throws -> BiometricBacktestJob { try await demo.job(id: id) }
+    func submit(_ request: BiometricBacktestSubmission) async throws -> BiometricBacktestJob { try await demo.submit(request) }
+    func cancelJob(id: String) async throws -> BiometricBacktestJob { try await demo.cancelJob(id: id) }
     func experiments(side: Side, cursor: BiometricExperimentPage.Cursor?) async throws -> BiometricExperimentPage {
         let page = try await demo.experiments(side: side, cursor: cursor)
         if hold { hold = false; await withCheckedContinuation { held = $0 } }

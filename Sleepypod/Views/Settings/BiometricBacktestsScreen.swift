@@ -4,7 +4,8 @@ struct BiometricBacktestsScreen: View {
     let side: Side
     @State private var model: BiometricDatasetWorkspace?
     @State private var error: String?
-    @State private var demo = DemoBiometricDatasetsClient()
+    @State private var demo: DemoBiometricDatasetsClient
+    init(side: Side, demo: DemoBiometricDatasetsClient = .init()) { self.side = side; _demo = State(initialValue: demo) }
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
@@ -16,6 +17,7 @@ struct BiometricBacktestsScreen: View {
                     GroupedCard {
                         NavigationLink { BiometricDatasetBuilderScreen(model: model) } label: { SettingsRow("Freeze evaluation inputs", icon: "snowflake", tile: true, chevron: true) }.accessibilityIdentifier("backtests.createDataset")
                         NavigationLink { BiometricDatasetLibraryScreen(model: model) } label: { SettingsRow("Retained datasets", icon: "archivebox", tile: true, chevron: true) }.accessibilityIdentifier("backtests.datasets")
+                        NavigationLink { BiometricBacktestJobsScreen(model: model) } label: { SettingsRow("Evaluation jobs", icon: "list.bullet.rectangle", tile: true, chevron: true) }.accessibilityIdentifier("backtests.jobs")
                         NavigationLink { BiometricExperimentLibraryScreen(model: model) } label: { SettingsRow("Saved experiments", icon: "flask", tile: true, chevron: true) }.accessibilityIdentifier("backtests.experiments")
                     }
                 } else if let error {
@@ -46,6 +48,16 @@ struct BiometricBacktestPendingCard: View {
                 if let pending = model.pending {
                     Text("Retained request").font(.headline)
                     switch pending {
+                    case .submitJob(let review):
+                        Text("Queue the reviewed evaluation")
+                        BiometricProfileIdentity(title: "Retry identity", value: review.request.idempotencyKey)
+                        Text("Retry keeps the original candidate, partition and baseline generation. It does not prepare a new request against changed settings.").font(.footnote).foregroundStyle(Theme.text2)
+                        DisclosureGroup("Retained evaluation selection") { BiometricBacktestReviewContent(review: review) }
+                    case .cancelJob(let identity):
+                        Text("Cancel this evaluation job")
+                        BiometricProfileIdentity(title: "Job", value: identity.id)
+                        BiometricProfileIdentity(title: "Dataset hash", value: identity.datasetHash)
+                        Button("Check cancellation status") { Task { await model.inspectCancellation() } }.disabled(model.busy)
                     case .experiment(let parent, let request):
                         Text("Save the reviewed evaluation protocol")
                         BiometricProfileIdentity(title: "Dataset", value: parent.id)

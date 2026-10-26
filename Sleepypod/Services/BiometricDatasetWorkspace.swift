@@ -43,6 +43,9 @@ import Observation
     private(set) var notice: String?
     private(set) var receipt: BiometricDataset?
     private(set) var savedDataset: BiometricDataset?
+    private(set) var savedJob: BiometricBacktestJob?
+    private(set) var savedJobRequest: BiometricBacktestSubmission?
+    private(set) var jobReceipt: BiometricBacktestJob?
     private(set) var savedExperiment: BiometricExperiment?
     private(set) var savedExperimentRequest: BiometricExperimentRequest?
     private(set) var savedWaveformRequest: WaveformDatasetRequest?
@@ -74,6 +77,47 @@ import Observation
     func retainWaveforms(_ request: WaveformDatasetRequest, side: Side) async {
         guard canMutate else { return }
         await performNew(.waveform(side: side, request: request))
+    }
+    func submitJob(_ review: BiometricBacktestReview) async {
+        guard canMutate, savedJobRequest != review.request else { return }
+        busy = true; error = nil; notice = nil
+        defer { busy = false }
+        do {
+            _ = try review.request.validated()
+            guard review.side == side, review.request.split != .holdout || review.holdoutAcknowledged else { throw BiometricBacktestInput.error("Acknowledge this exact holdout selection before queueing.") }
+            let experiment = try await client.experiment(id: review.request.experimentId)
+            let inputs = try await client.dataset(id: review.datasetId)
+            let candidate = try await client.evaluationProfile(id: review.request.candidateRevisionId)
+            let overview = try await client.evaluationOverview(side: side)
+            guard experiment.validIdentity, experiment.id == review.request.experimentId, experiment.side == side,
+                  experiment.datasetId == inputs.id, experiment.protocolHash == review.protocolHash, experiment.protocol.backtestScope == review.scope,
+                  inputs.validIdentity, inputs.id == review.datasetId, inputs.side == side, inputs.available, inputs.manifest.supported, inputs.contentHash == review.datasetHash,
+                  inputs.manifest.splitProtocol.assignments.contains(where: { $0.split == review.request.split.rawValue }),
+                  candidate.id == review.request.candidateRevisionId, candidate.side == side, candidate.resolvedHash == review.candidateHash,
+                  overview.desired.binding.side == side, overview.desired.binding.generation == review.request.expectedBindingGeneration else {
+                throw BiometricBacktestInput.error("The reviewed inputs, candidate or baseline changed. Return to preparation and review a new request.")
+            }
+            let retained = BiometricBacktestPending.submitJob(review)
+            try store.write(retained, scope: client.scope, side: side); pending = retained
+            try await send(retained)
+        } catch { self.error = error.localizedDescription }
+    }
+    func cancelJob(_ job: BiometricBacktestJob) async {
+        guard canMutate, job.validIdentity, job.state.cancellable else { return }
+        await performNew(.cancelJob(.init(side: side, job: job)))
+    }
+    func inspectCancellation() async {
+        guard !busy, case .cancelJob(let identity) = pending else { return }
+        busy = true; error = nil
+        defer { busy = false }
+        do {
+            let retained = BiometricBacktestPending.cancelJob(identity)
+            try requireCurrent(retained)
+            let current = try await client.job(id: identity.id)
+            guard identity.matches(current) else { throw BiometricBacktestInput.error("The cancellation receipt belongs to different job inputs.") }
+            if current.state.terminal || current.state == .cancellationRequested { try finishCancellation(retained, current) }
+            else { notice = "Cancellation is not confirmed. You can retry this exact job request." }
+        } catch { self.error = error.localizedDescription }
     }
     func createExperiment(_ request: BiometricExperimentRequest, parent: BiometricDataset) async {
         guard canMutate, savedExperimentRequest != request else { return }
@@ -144,6 +188,23 @@ import Observation
     private func send(_ retained: BiometricBacktestPending) async throws {
         try requireCurrent(retained)
         switch retained {
+        case .submitJob(let review):
+            let result = try await client.submit(review.request)
+            guard review.matches(result) else { throw BiometricBacktestInput.error("The queued job does not match the reviewed inputs and candidate. Keep the request for recovery.") }
+            try store.remove(retained, scope: client.scope, side: side); pending = nil
+            savedJob = result; savedJobRequest = review.request; jobReceipt = result
+            notice = "Evaluation request saved. Current state: \(result.state.title). A saved request does not establish execution or improvement."
+        case .cancelJob(let identity):
+            let current = try await client.job(id: identity.id)
+            guard identity.matches(current) else { throw BiometricBacktestInput.error("The selected job inputs changed. Review the job before cancelling.") }
+            if current.state.terminal || current.state == .cancellationRequested { try finishCancellation(retained, current); return }
+            try requireCurrent(retained)
+            let experiment = try await client.experiment(id: identity.experimentId)
+            guard experiment.side == side, experiment.id == identity.experimentId, experiment.datasetId == identity.datasetId else { throw BiometricBacktestInput.error("This job belongs to another bed side.") }
+            try requireCurrent(retained)
+            let result = try await client.cancelJob(id: identity.id)
+            guard identity.matches(result), result.state.terminal || result.state == .cancellationRequested else { throw BiometricBacktestInput.error("Cancellation has not been confirmed. Keep the request for recovery.") }
+            try finishCancellation(retained, result)
         case .experiment(let parent, let request):
             guard parent.side == side, parent.id == request.datasetId else { throw BiometricBacktestInput.error("The retained experiment does not match its reviewed inputs.") }
             let result = try await client.create(request)
@@ -174,6 +235,14 @@ import Observation
             let result = try await client.release(id: identity.id)
             guard identity.matches(result), !result.available, result.releasedAtMs != nil else { throw BiometricBacktestInput.error("The release has not been confirmed. Keep the retained request for recovery.") }
             try finish(retained, result)
+        }
+    }
+    private func finishCancellation(_ retained: BiometricBacktestPending, _ result: BiometricBacktestJob) throws {
+        try store.remove(retained, scope: client.scope, side: side); pending = nil; jobReceipt = result
+        switch result.state {
+        case .cancelled: notice = "Evaluation cancelled. Its history and any holdout exposure remain."
+        case .cancellationRequested: notice = "Cancellation requested. The worker has not yet confirmed that it stopped."
+        default: notice = "The job has already finished with state: \(result.state.title). Cancellation did not change that result."
         }
     }
     private func finish(_ retained: BiometricBacktestPending, _ result: BiometricDataset) throws {
