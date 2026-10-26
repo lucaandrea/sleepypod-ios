@@ -8,6 +8,7 @@ struct CoreAPIDocument: Decodable, Sendable {
             var content: [String: Media]?
         }
         var requestBody: Body?
+        var responses: [String: Body]?
     }
     struct Schema: Decodable, Sendable {
         var properties: [String: Schema]?
@@ -23,6 +24,10 @@ struct CoreAPIDocument: Decodable, Sendable {
     }
     func accepts(_ field: String, path: String, method: String) -> Bool {
         guard let schema = operation(path, method: method)?.requestBody?.content?["application/json"]?.schema else { return false }
+        return contains(field, schema: schema, depth: 0)
+    }
+    func returns(_ field: String, path: String, method: String) -> Bool {
+        guard let schema = operation(path, method: method)?.responses?["200"]?.content?["application/json"]?.schema else { return false }
         return contains(field, schema: schema, depth: 0)
     }
     private func contains(_ field: String, schema: Schema, depth: Int) -> Bool {
