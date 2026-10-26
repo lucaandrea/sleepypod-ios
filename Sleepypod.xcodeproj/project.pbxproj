@@ -52,6 +52,7 @@
 		1405A13DD35E4B57E8B7EBDF /* AutomationRangeWorkspace.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3B1006B14F1956441C44A1F /* AutomationRangeWorkspace.swift */; };
 		140E6F22DF11FC97B25D3BAA /* SyncHealthIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2916209CCCE8BC3C51FB93A /* SyncHealthIntent.swift */; };
 		14213FE824632EF617773E36 /* IBMPlexMono-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 5C8D4D424A4CEC3378E85D58 /* IBMPlexMono-Medium.ttf */; };
+		14367BAC426006B461F57FF3 /* SettingsLifecycleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17DC13ABA2CD80ADCAF91695 /* SettingsLifecycleTests.swift */; };
 		148DFAE07760ED2F88A712F5 /* MotionRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25144B52B22AB54483983387 /* MotionRecorder.swift */; };
 		14DBA9B1D7498621219DB1BD /* TemperatureControlStatus.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16A85E23677372478F0575B6 /* TemperatureControlStatus.swift */; };
 		1558A064C84FC3F65897D129 /* TemperatureConversion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30D386CF79858C76A30F9B9E /* TemperatureConversion.swift */; };
@@ -110,6 +111,7 @@
 		2D0FD71A74263CC265A723DF /* AutomationCombinedReplayChart.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11B224C83A53F764B5292D34 /* AutomationCombinedReplayChart.swift */; };
 		2D211849929D856169991F7B /* WeekNavigatorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76EDADBFA471AB6D43021528 /* WeekNavigatorView.swift */; };
 		2D387CC02890B21C9F90D203 /* SystemLogsUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF1B0291CEE8BB769D2BCC13 /* SystemLogsUITests.swift */; };
+		2D52EA7492728B85140BCDA8 /* AppearanceSettingsUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7165D04C8C0FAA086A945A7A /* AppearanceSettingsUITests.swift */; };
 		2DDA2F5155A22461DABBB043 /* SensorDiagnosticsUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DAE624B1AA77BA11B82512C4 /* SensorDiagnosticsUITests.swift */; };
 		2DE0DD25EAC19F7C48FCE81C /* SettingsChoiceMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DFA75082831F9DAD120C051 /* SettingsChoiceMenu.swift */; };
 		2E6E1D635A1B986005680E3A /* BasePreset.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A08F6C5E20C3A3AC36D4FA9 /* BasePreset.swift */; };
@@ -164,6 +166,7 @@
 		4494D9DB45F29AB134BA2F3C /* HealthSyncSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2E1A31F91B3AC8868FFD9E7 /* HealthSyncSettings.swift */; };
 		44D0705662FAA79974A38D49 /* SystemThermalClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46587598193459D74DD30D57 /* SystemThermalClient.swift */; };
 		4537E75A1A5822042DB9C8A2 /* Log.swift in Sources */ = {isa = PBXBuildFile; fileRef = 060906F2618180E4E45E29F3 /* Log.swift */; };
+		455FD2F8FD7BF5D3AF36972A /* SettingsChangesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2679471B96942E26C548F75 /* SettingsChangesTests.swift */; };
 		462A060718CDA83ED33851B9 /* SystemSchedulerUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3069899A2B6D8E553B344BCE /* SystemSchedulerUITests.swift */; };
 		47254DC4322FC4F3DE0DA3EC /* BetaModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7398AC2DDAE6E48A52F7C413 /* BetaModels.swift */; };
 		4739EE483A79A22F9C9FE64B /* TemperatureContextClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E1D7C2F62890F73C9127F35 /* TemperatureContextClient.swift */; };
@@ -207,6 +210,7 @@
 		5C3DD83F9E27810788A9C7A1 /* TemperatureCurve.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0F14C7A4B6C837B173C5EFA /* TemperatureCurve.swift */; };
 		5CBF3A672BEDF9D89FC418AB /* SleeperPreferencesScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1064563111F4FAC6338E69F /* SleeperPreferencesScreen.swift */; };
 		5D6566441668D7E70CE84F29 /* FreeSleepClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 970CD9734D4BC3ACBE225328 /* FreeSleepClient.swift */; };
+		5D9C35E1655AE9D6F5FB7430 /* SettingsChanges.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB842783228874D9C0870344 /* SettingsChanges.swift */; };
 		5DEE855C6473D37AB69948F0 /* LegacyBaseScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = F674C877D90BBF81018C4614 /* LegacyBaseScreen.swift */; };
 		5E2CD6FE8904F22C64EA476B /* BiometricsPlot.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB5AD97552297AC5991582BE /* BiometricsPlot.swift */; };
 		5E6F9A7A17A3BB284F2D7DF7 /* PodStageNightTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FCBB11D05102A3351EC14EB /* PodStageNightTests.swift */; };
@@ -295,6 +299,7 @@
 		7F32D0BDAB85ACF16E762373 /* RemoteStageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C8FBD63DEB8260C40E916B77 /* RemoteStageModel.swift */; };
 		8030C166E58528EDCFD2868C /* FirmwareLogConsoleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 948F9BAA88B81D25AA9E0B6F /* FirmwareLogConsoleView.swift */; };
 		80473DBF0C206E692C09E07B /* StatusManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F4EAF0885B4206D02501DC8 /* StatusManager.swift */; };
+		804ED3834EAA9F4131C24680 /* SettingsMutationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F98C636604F38B0B5F4C2DDD /* SettingsMutationTests.swift */; };
 		8088DB95E81ABB5F340C4044 /* AlarmPlan.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B37E1F3172BF5FA69DF2F8F /* AlarmPlan.swift */; };
 		813959E271A9D07C13EF0F8B /* coverage-cases.json in Resources */ = {isa = PBXBuildFile; fileRef = 237225EEA89B4994F2423ED9 /* coverage-cases.json */; };
 		8140F85331225690E9EAC76D /* BiometricsScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 453C195267A4A753C5A55087 /* BiometricsScreen.swift */; };
@@ -374,6 +379,7 @@
 		A33F962F71171D4900AEB84F /* SleepRecordEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 160A79B052A3DA4E5D22A4D6 /* SleepRecordEditor.swift */; };
 		A38B9156B33EFCC21D7F6C58 /* Haptics.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5A1999947F6DB7202489B6C /* Haptics.swift */; };
 		A3BC5A89B6475BD1E789D8B3 /* AdaptiveSimulator.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1C013D953D18958F2C4B435 /* AdaptiveSimulator.swift */; };
+		A423BCDAE9580F31DBE00300 /* SettingsMutationFeedback.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6857B3C4AEEA04557D3B518A /* SettingsMutationFeedback.swift */; };
 		A4364519046FF3AA8EB25A46 /* SystemSchedulerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C73110ACA14C9550095B99E2 /* SystemSchedulerTests.swift */; };
 		A48E167BFBA752B997DFDDF8 /* SensorDiagnosticsWorkspace.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF0E237026027FF6BF0DC5A8 /* SensorDiagnosticsWorkspace.swift */; };
 		A58005D4A053A4021C7782D8 /* CurveGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 85BD38479920F462D6470067 /* CurveGenerator.swift */; };
@@ -694,6 +700,7 @@
 		1613233FCE312194E8397BA8 /* HomeConnectionCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeConnectionCard.swift; sourceTree = "<group>"; };
 		1680E783C6BA23F08E39895C /* StageChallengerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StageChallengerTests.swift; sourceTree = "<group>"; };
 		16A85E23677372478F0575B6 /* TemperatureControlStatus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemperatureControlStatus.swift; sourceTree = "<group>"; };
+		17DC13ABA2CD80ADCAF91695 /* SettingsLifecycleTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsLifecycleTests.swift; sourceTree = "<group>"; };
 		18955C84857254C0B05ACDF6 /* WatchMotionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchMotionTests.swift; sourceTree = "<group>"; };
 		18BFEB413A253C93B08987EC /* HardwareVibrationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HardwareVibrationTests.swift; sourceTree = "<group>"; };
 		195A3541970A619BE6FFF204 /* IntelligenceWorkspace.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IntelligenceWorkspace.swift; sourceTree = "<group>"; };
@@ -876,6 +883,7 @@
 		6609B20274A647020E72383E /* TokenStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokenStore.swift; sourceTree = "<group>"; };
 		6609FBA3B881355B05CD01F8 /* PersonalReportPrompt.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersonalReportPrompt.swift; sourceTree = "<group>"; };
 		677BD56179BBE15ACC5E97C1 /* DeviceSettingsCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceSettingsCardView.swift; sourceTree = "<group>"; };
+		6857B3C4AEEA04557D3B518A /* SettingsMutationFeedback.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsMutationFeedback.swift; sourceTree = "<group>"; };
 		68BEE347AC8D43152FFBEE7B /* SettingsManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsManager.swift; sourceTree = "<group>"; };
 		68F265D3397172ABAA6747BA /* SystemLiveStreamView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemLiveStreamView.swift; sourceTree = "<group>"; };
 		693431B0606C83EB85702FC8 /* PodHealthExportSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PodHealthExportSource.swift; sourceTree = "<group>"; };
@@ -890,6 +898,7 @@
 		705D0117440B2AE8A280EC93 /* HealthExportSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthExportSource.swift; sourceTree = "<group>"; };
 		7094DD650A9409ECB1257A47 /* PodPreferences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PodPreferences.swift; sourceTree = "<group>"; };
 		70DB2A21E4087C231003AA44 /* HomeKitBridgeWorkspace.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeKitBridgeWorkspace.swift; sourceTree = "<group>"; };
+		7165D04C8C0FAA086A945A7A /* AppearanceSettingsUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppearanceSettingsUITests.swift; sourceTree = "<group>"; };
 		71694048A938334069E730E7 /* DemoCoachUsage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoCoachUsage.swift; sourceTree = "<group>"; };
 		7192DC5CB7788E7EB5AC7A1E /* SystemHealthView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemHealthView.swift; sourceTree = "<group>"; };
 		71D9F9BB5117870F21D58DE2 /* HapticsTestView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HapticsTestView.swift; sourceTree = "<group>"; };
@@ -1056,6 +1065,7 @@
 		BACCA7BD3D78B0D77B37A536 /* BothSidesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BothSidesView.swift; sourceTree = "<group>"; };
 		BAEDD2E2A49BD4B1839FD485 /* PrimePodIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrimePodIntent.swift; sourceTree = "<group>"; };
 		BB7E57BC5EB8C8CFB1AA9930 /* AutomationTonightTimeline.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutomationTonightTimeline.swift; sourceTree = "<group>"; };
+		BB842783228874D9C0870344 /* SettingsChanges.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsChanges.swift; sourceTree = "<group>"; };
 		BB8C1FEABE30B1AF313394C3 /* PumpAlertWorkspace.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PumpAlertWorkspace.swift; sourceTree = "<group>"; };
 		BC0525A8BB725B4900501FCE /* MQTTSettingsWorkspace.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MQTTSettingsWorkspace.swift; sourceTree = "<group>"; };
 		BC4BEF0D1623F0C4618442E3 /* SystemHealth.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemHealth.swift; sourceTree = "<group>"; };
@@ -1173,6 +1183,7 @@
 		F198279673351E4379A032E7 /* HomeBridgeStatus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeBridgeStatus.swift; sourceTree = "<group>"; };
 		F221EA82AAF5D5A6D3D8B424 /* AppearanceSettingsScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppearanceSettingsScreen.swift; sourceTree = "<group>"; };
 		F24B74EFC9E71625AE263687 /* TemperatureDisplay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemperatureDisplay.swift; sourceTree = "<group>"; };
+		F2679471B96942E26C548F75 /* SettingsChangesTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsChangesTests.swift; sourceTree = "<group>"; };
 		F3313CC2AC5F797597D9D9D4 /* StageChallenger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StageChallenger.swift; sourceTree = "<group>"; };
 		F418D2BE367F88295BC5F76A /* HealthKitSampleStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthKitSampleStore.swift; sourceTree = "<group>"; };
 		F421C31EACE9E9BA3B71C3C4 /* SleepFact.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SleepFact.swift; sourceTree = "<group>"; };
@@ -1188,6 +1199,7 @@
 		F85D95DEAB442A7234685056 /* SensorWaveformReplayTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SensorWaveformReplayTests.swift; sourceTree = "<group>"; };
 		F965541BD844BA3256A76CC1 /* SensorDiagnosticsTransportTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SensorDiagnosticsTransportTests.swift; sourceTree = "<group>"; };
 		F977C2CF6D814C8FEF915497 /* AutomationHistory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutomationHistory.swift; sourceTree = "<group>"; };
+		F98C636604F38B0B5F4C2DDD /* SettingsMutationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsMutationTests.swift; sourceTree = "<group>"; };
 		F9EC58AFC994E2BF0036D0D8 /* ServerStatus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServerStatus.swift; sourceTree = "<group>"; };
 		FB15777D66DAF4DC889F469C /* NightPhasesStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NightPhasesStore.swift; sourceTree = "<group>"; };
 		FB4B310A846FF93B3D766CC5 /* SleepDataParityTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SleepDataParityTests.swift; sourceTree = "<group>"; };
@@ -1647,6 +1659,7 @@
 				F9EC58AFC994E2BF0036D0D8 /* ServerStatus.swift */,
 				2D8F3BFDBBA72B77A16C8606 /* Services.swift */,
 				537D551820017038203719E1 /* Settings.swift */,
+				BB842783228874D9C0870344 /* SettingsChanges.swift */,
 				CB85BC15DC6D3030C728B6FC /* Side.swift */,
 				5EB30F6B5F7F58639454A71E /* SleepCurve.swift */,
 				1C157762409BD4C084794A92 /* SleepData.swift */,
@@ -1713,6 +1726,9 @@
 				8508C3AEACC0714C30E1DCC6 /* SensorDiagnosticsTests.swift */,
 				F965541BD844BA3256A76CC1 /* SensorDiagnosticsTransportTests.swift */,
 				F85D95DEAB442A7234685056 /* SensorWaveformReplayTests.swift */,
+				F2679471B96942E26C548F75 /* SettingsChangesTests.swift */,
+				17DC13ABA2CD80ADCAF91695 /* SettingsLifecycleTests.swift */,
+				F98C636604F38B0B5F4C2DDD /* SettingsMutationTests.swift */,
 				DE5C25057170EC9CC2049440 /* SleepAnalyzerTests.swift */,
 				FB4B310A846FF93B3D766CC5 /* SleepDataParityTests.swift */,
 				78A499E89A1C5FC4D19D1DED /* SleeperGestureTransportTests.swift */,
@@ -1925,6 +1941,7 @@
 				D5BEBA4D8B906BD76FD5C97A /* RemoteStageModelsScreen.swift */,
 				1A487C13A4596013A4071509 /* RemoteStageRulesScreen.swift */,
 				2DFA75082831F9DAD120C051 /* SettingsChoiceMenu.swift */,
+				6857B3C4AEEA04557D3B518A /* SettingsMutationFeedback.swift */,
 				CFB77E8BC025FA94E17FEF34 /* SettingsSheet.swift */,
 				E1064563111F4FAC6338E69F /* SleeperPreferencesScreen.swift */,
 				B9A4C83F31E096F7C52FDED6 /* SnoreCaptureView.swift */,
@@ -1990,6 +2007,7 @@
 			isa = PBXGroup;
 			children = (
 				A6F101B6B3CD939C8FB9CCF4 /* AlarmParityUITests.swift */,
+				7165D04C8C0FAA086A945A7A /* AppearanceSettingsUITests.swift */,
 				D9F06373125CE29415D4CE27 /* ArchivePushUITests.swift */,
 				2AF031A5504D486CA3433E43 /* AutomationUITests.swift */,
 				583F030E95AB125AB346A7AD /* BaseParityUITests.swift */,
@@ -2384,6 +2402,9 @@
 				9148D856876626AA4C137DC5 /* SensorDiagnosticsTests.swift in Sources */,
 				E3050FFC36E3897A23AE19D1 /* SensorDiagnosticsTransportTests.swift in Sources */,
 				C1743266723D1C85DDB531C7 /* SensorWaveformReplayTests.swift in Sources */,
+				455FD2F8FD7BF5D3AF36972A /* SettingsChangesTests.swift in Sources */,
+				14367BAC426006B461F57FF3 /* SettingsLifecycleTests.swift in Sources */,
+				804ED3834EAA9F4131C24680 /* SettingsMutationTests.swift in Sources */,
 				CD014B9CEE2C262CDD2637B5 /* SleepAnalyzerTests.swift in Sources */,
 				7167FB3BC8F62DC1A5C31209 /* SleepDataParityTests.swift in Sources */,
 				60C0174AC00EBE32BFBC90DF /* SleepPeriodParityTests.swift in Sources */,
@@ -2420,6 +2441,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				6D4CD73D912488AC1FAE841A /* AlarmParityUITests.swift in Sources */,
+				2D52EA7492728B85140BCDA8 /* AppearanceSettingsUITests.swift in Sources */,
 				AAF6CFFAC4D9B9F610647634 /* ArchivePushUITests.swift in Sources */,
 				136E5A6AC091EAE8B5AA2CE7 /* AutomationUITests.swift in Sources */,
 				88DAEAA4C2FC225A90C87D83 /* BaseParityUITests.swift in Sources */,
@@ -2764,8 +2786,10 @@
 				041D6F2AA0D299253FFA1B27 /* Services.swift in Sources */,
 				415E9841EFC783DCF6A4588A /* SetPointEditor.swift in Sources */,
 				3D73A737D4F03B61D50F5185 /* Settings.swift in Sources */,
+				5D9C35E1655AE9D6F5FB7430 /* SettingsChanges.swift in Sources */,
 				2DE0DD25EAC19F7C48FCE81C /* SettingsChoiceMenu.swift in Sources */,
 				650EC4F1527BA82FBF187755 /* SettingsManager.swift in Sources */,
+				A423BCDAE9580F31DBE00300 /* SettingsMutationFeedback.swift in Sources */,
 				045E97110258DF6B3BA9904A /* SettingsSheet.swift in Sources */,
 				8FE251F5B081255681839A64 /* ShareSheet.swift in Sources */,
 				BA94451123ED98F30EAC7AF8 /* Side.swift in Sources */,

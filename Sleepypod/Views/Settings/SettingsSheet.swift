@@ -43,9 +43,10 @@ struct SettingsSheet: View {
                         quick("Link sides", icon: "link", active: device.isLinked) { device.toggleLink() }
                         quick("Away", icon: "airplane", active: away) {
                             Task { await settings.toggleAwayMode(device.selectedSide.primarySide) }
-                        }
+                        }.disabled(settings.settings == nil || settings.isSaving || settings.mustReloadSettings)
                         quick("Prime", icon: "drop", active: device.deviceStatus?.isPriming == true) { confirmPrime = true }
                     }
+                    SettingsMutationFeedback()
                     GroupedCard(glass: true) {
                         Button { showBase = true } label: {
                             SettingsRow("Bed position", icon: "bed.double", iconColor: Theme.text1, chevron: true)
@@ -80,7 +81,7 @@ struct SettingsSheet: View {
                         }
                         NavigationLink { AppearanceSettingsScreen() } label: {
                             SettingsRow("Appearance", icon: "circle.lefthalf.filled", iconColor: Theme.text1, chevron: true)
-                        }
+                        }.accessibilityIdentifier("settings.appearance")
                         TempControlMenu(selection: $profile.tempControl, iconColor: Theme.text1, tile: false)
                         if APIBackend.current.isDemo {
                             Button {
@@ -226,16 +227,16 @@ struct AllSettingsScreen: View {
                             } else { GestureBindingsScreen() }
                         } label: { SettingsRow("Tap gestures", icon: "hand.tap", tile: true, chevron: true) }.accessibilityIdentifier("settings.gestures")
                         Menu {
-                            Picker("Units", selection: Binding(get: { settings.temperatureFormat }, set: { format in
-                                Task { await settings.updateTemperatureFormat(format) }
-                            })) {
-                                Text("Fahrenheit (°F)").tag(TemperatureFormat.fahrenheit)
-                                Text("Celsius (°C)").tag(TemperatureFormat.celsius)
-                            }
+                            SettingsChoiceOptions(selection: Binding(get: { settings.temperatureFormat.rawValue }, set: { value in
+                                if let format = TemperatureFormat(rawValue: value) { Task { await settings.updateTemperatureFormat(format) } }
+                            }), options: [(TemperatureFormat.fahrenheit.rawValue, "Fahrenheit (°F)"), (TemperatureFormat.celsius.rawValue, "Celsius (°C)")], identifier: "settings.units")
                         } label: {
                             SettingsRow("Units", icon: "thermometer.medium", tile: true) { menuValue(unitLabel) }
-                        }
+                        }.disabled(settings.settings == nil || settings.isSaving || settings.mustReloadSettings)
+                            .accessibilityLabel("Units").accessibilityValue(settings.temperatureFormat == .celsius ? "Celsius (°C)" : "Fahrenheit (°F)")
+                            .accessibilityIdentifier("settings.units")
                     }
+                    SettingsMutationFeedback().padding(.horizontal, 16)
                 }
 
                 GroupedSection("HEALTH") {
@@ -336,7 +337,7 @@ struct AllSettingsScreen: View {
                     GroupedCard {
                         NavigationLink { AppearanceSettingsScreen() } label: {
                             SettingsRow("Display & temperature", icon: "slider.horizontal.3", tile: true, chevron: true)
-                        }
+                        }.accessibilityIdentifier("settings.allAppearance")
                         TempControlMenu(selection: $profile.tempControl, iconColor: Theme.icon, tile: true)
                         Menu {
                             Picker("Appearance", selection: $profile.appearance) {
@@ -382,7 +383,8 @@ struct AllSettingsScreen: View {
         .tint(Theme.green)
         .background(Theme.background)
         .navigationTitle("Settings")
-        .task { await status.fetchAll() }
+        .preferredColorScheme(profile.appearance.colorScheme)
+        .task { await settings.fetchSettings(); await status.fetchAll() }
         .sheet(isPresented: $showWater) { WaterLevelSheet(currentLevel: device.deviceStatus?.waterLevel ?? "Unknown") }
     }
 
@@ -439,7 +441,8 @@ struct SidesSettingsView: View {
                     .font(.subheadline).foregroundStyle(Theme.text2)
                 BedSidesEditor(defaultSide: $profile.defaultSide, leftName: $leftName, rightName: $rightName) { side, name in
                     Task { await settings.updateSideName(side, name: name) }
-                }
+                }.disabled(settings.isSaving || settings.mustReloadSettings)
+                SettingsMutationFeedback()
             }
             .padding(.horizontal, 16).padding(.top, 8)
         }
@@ -448,6 +451,12 @@ struct SidesSettingsView: View {
         .onAppear {
             leftName = settings.settings?.left.name ?? ""
             rightName = settings.settings?.right.name ?? ""
+        }
+        .onChange(of: settings.mustReloadSettings) { _, needsReload in
+            if !needsReload {
+                leftName = settings.leftName
+                rightName = settings.rightName
+            }
         }
     }
 }

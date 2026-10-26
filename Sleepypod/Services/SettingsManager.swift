@@ -6,6 +6,9 @@ import Observation
 final class SettingsManager {
     var settings: PodSettings?
     var isLoading = false
+    private(set) var isSaving = false
+    private(set) var mustReloadSettings = false
+    private var settingsRevision = 0
     var error: String?
 
     private var api: SleepypodProtocol
@@ -14,7 +17,9 @@ final class SettingsManager {
         self.api = api
     }
 
-    func switchBackend(_ client: SleepypodProtocol) { api = client }
+    func switchBackend(_ client: SleepypodProtocol) {
+        settingsRevision += 1; api = client; settings = nil; isLoading = false; isSaving = false; mustReloadSettings = false; error = nil
+    }
 
     // MARK: - Side Names (single source of truth)
 
@@ -54,7 +59,8 @@ final class SettingsManager {
     // MARK: - Computed
 
     var temperatureFormat: TemperatureFormat {
-        // Comfort display is independent; migrate the old relative setting through UserProfile.
+        // Units are Pod-wide; a reported setting takes precedence over the offline display fallback.
+        if let settings { return settings.temperatureFormat.degreeUnit }
         if let local = UserDefaults.standard.string(forKey: "temperatureFormat"),
            let format = TemperatureFormat(rawValue: local) {
             return format.degreeUnit
@@ -85,15 +91,18 @@ final class SettingsManager {
     // MARK: - Fetch
 
     func fetchSettings() async {
+        guard !isSaving else { return }
+        settingsRevision += 1
+        let revision = settingsRevision
         isLoading = true
-        error = nil
+        defer { if revision == settingsRevision { isLoading = false } }
         do {
-            settings = try await api.getSettings()
-            UserDefaults.standard.set(settings?.timeFormat == "24h" ? "24h" : "12h", forKey: "podTimeFormat")
+            let value = try await api.getSettings()
+            guard revision == settingsRevision, !Task.isCancelled else { return }
+            accept(value); error = nil; mustReloadSettings = false
         } catch {
-            self.error = error.localizedDescription
+            if revision == settingsRevision, !Task.isCancelled { self.error = error.localizedDescription }
         }
-        isLoading = false
     }
 
     var supportsScheduleEndAction: Bool {
@@ -103,7 +112,6 @@ final class SettingsManager {
     func updateDefaultScheduleEndAction(_ action: ScheduleEndAction) async {
         guard var settings, supportsScheduleEndAction else { return }
         settings.defaultScheduleEndAction = action
-        self.settings = settings
         await saveSettings(settings)
     }
 
@@ -112,41 +120,31 @@ final class SettingsManager {
     func updateTimeZone(_ tz: String) async {
         guard var settings else { return }
         settings.timeZone = tz
-        self.settings = settings
         await saveSettings(settings)
     }
 
     func updateTemperatureFormat(_ format: TemperatureFormat) async {
-        // Always store locally (for relative mode)
-        UserDefaults.standard.set(format.rawValue, forKey: "temperatureFormat")
-
-        // Only sync F/C to the server — relative is local-only
-        if format != .relative {
-            guard var settings else { return }
-            settings.temperatureFormat = format
-            self.settings = settings
-            await saveSettings(settings)
-        }
+        if format == .relative { UserDefaults.standard.set(format.rawValue, forKey: "temperatureFormat"); return }
+        guard var settings else { error = "Reload settings before changing the Pod’s units."; return }
+        settings.temperatureFormat = format
+        await saveSettings(settings)
     }
 
     func toggleRebootDaily() async {
         guard var settings else { return }
         settings.rebootDaily.toggle()
-        self.settings = settings
         await saveSettings(settings)
     }
 
     func updateRebootTime(_ time: String) async {
         guard var settings else { return }
         settings.rebootTime = time
-        self.settings = settings
         await saveSettings(settings)
     }
 
     func togglePrimePodDaily() async {
         guard var settings else { return }
         settings.primePodDaily.enabled.toggle()
-        self.settings = settings
         await saveSettings(settings)
     }
 
@@ -161,7 +159,6 @@ final class SettingsManager {
         case .left: settings.left.name = name
         case .right: settings.right.name = name
         }
-        self.settings = settings
         await saveSettings(settings)
     }
 
@@ -173,9 +170,7 @@ final class SettingsManager {
         guard settings.left.name != left || settings.right.name != right else { return true }
         settings.left.name = left
         settings.right.name = right
-        self.settings = settings
-        await saveSettings(settings)
-        return error == nil
+        return await saveSettings(settings)
     }
 
     func toggleAwayMode(_ side: Side) async {
@@ -184,7 +179,6 @@ final class SettingsManager {
         case .left: settings.left.awayMode.toggle()
         case .right: settings.right.awayMode.toggle()
         }
-        self.settings = settings
         await saveSettings(settings)
     }
 
@@ -198,13 +192,26 @@ final class SettingsManager {
 
     // MARK: - Private
 
-    private func saveSettings(_ settings: PodSettings) async {
+    @discardableResult
+    private func saveSettings(_ desired: PodSettings) async -> Bool {
+        guard !isSaving else { return false }
+        guard !mustReloadSettings, let original = settings else { if error == nil { error = "Reload settings before saving another change." }; return false }
+        isSaving = true; isLoading = false; settingsRevision += 1
+        let revision = settingsRevision
+        defer { if revision == settingsRevision { isSaving = false } }
         do {
-            self.settings = try await api.updateSettings(settings)
-            self.error = nil
+            let value = try await api.updateSettings(desired, original: original)
+            guard revision == settingsRevision else { return false }
+            accept(value); error = nil; return true
         } catch {
-            self.error = error.localizedDescription
-            await fetchSettings()
+            guard revision == settingsRevision else { return false }
+            self.error = error.localizedDescription; mustReloadSettings = true
+            return false
         }
+    }
+    private func accept(_ value: PodSettings) {
+        settings = value
+        UserDefaults.standard.set(value.timeFormat == "24h" ? "24h" : "12h", forKey: "podTimeFormat")
+        UserDefaults.standard.set(value.temperatureFormat.degreeUnit.rawValue, forKey: "temperatureFormat")
     }
 }
