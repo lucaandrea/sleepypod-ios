@@ -282,6 +282,9 @@ struct AllSettingsScreen: View {
                         }
                         PodFeatureLink(.home, icon: "house", tile: true)
                         if APIBackend.current != .freeSleep {
+                            NavigationLink { HomeRoomScreen() } label: {
+                                SettingsRow("Room sensors", icon: "house", tile: true, chevron: true)
+                            }.accessibilityIdentifier("settings.room")
                             NavigationLink { HomeKitBridgeScreen() } label: {
                                 SettingsRow("HomeKit bridge", icon: "house", tile: true, chevron: true)
                             }.accessibilityIdentifier("settings.homekitBridge")

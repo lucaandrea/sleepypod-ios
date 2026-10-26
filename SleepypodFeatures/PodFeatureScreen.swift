@@ -31,6 +31,7 @@ public enum PodFeature: String, Sendable, CaseIterable {
 public struct PodFeatureScreen: View {
     private let feature: PodFeature
     private let side: String
+    private let homeContent: AnyView?
     @State private var model = AppModel()
     @State private var health = HealthSyncService.shared
     @State private var availability: String?
@@ -39,9 +40,10 @@ public struct PodFeatureScreen: View {
     @AppStorage("podURL") private var address = ""
     @AppStorage("podNativeAPIPrefix") private var prefix = ""
 
-    public init(_ feature: PodFeature, side: String = "left") {
+    public init(_ feature: PodFeature, side: String = "left", homeContent: AnyView? = nil) {
         self.feature = feature
         self.side = side
+        self.homeContent = homeContent
     }
 
     public var body: some View {
@@ -79,7 +81,7 @@ public struct PodFeatureScreen: View {
         case .models: ModelConnectionScreen()
         case .healthHistory: ImportedHealthScreen()
         case .healthSync: FeaturePage(title: feature.title) { HealthConnectionCard() }
-        case .home: HomeShortcutsScreen()
+        case .home: HomeShortcutsScreen(homeContent: homeContent)
         case .routines: RoutinesView()
         case .alarms: FeaturePage(title: feature.title) { SidePicker(); AlarmCard(side: model.side).id(model.side) }
         case .coach: CoachView()
@@ -155,8 +157,10 @@ struct RecordedEpisodesScreen: View {
 }
 
 struct HomeShortcutsScreen: View {
+    let homeContent: AnyView?
     var body: some View {
         FeaturePage(title: "Home & Shortcuts") {
+            if let homeContent { homeContent }
             HomeConnectionCard()
             GroupedSection("SHORTCUTS") {
                 GroupedCard {

@@ -11,7 +11,8 @@ struct PodFeatureLink: View {
     }
     var body: some View {
         NavigationLink {
-            PodFeatureScreen(feature, side: device.selectedSide.primarySide.rawValue)
+            PodFeatureScreen(feature, side: device.selectedSide.primarySide.rawValue,
+                             homeContent: feature == .home && APIBackend.current != .freeSleep ? AnyView(HomeRoomSummaryCard(compact: true)) : nil)
                 .toolbar(.visible, for: .navigationBar)
         } label: {
             SettingsRow(feature.title, icon: icon, tile: tile, chevron: true)

@@ -18,3 +18,5 @@ The ordinary Demo inbox is empty/unavailable. A separately opened synthetic exam
 - `alert-inbox-core.json` is generated from the recorded Core commit’s pure schema/foreground functions with synthetic rows. Expected high-water IDs are 3, 5, 5, 5, 6; announcements are none, 5, none, none, 6. No database or personal alert content is used.
 
 GitHub checks remain pending for this feature. App version/build remain 0.2.0 (7); full parity, physical qualification and TestFlight delivery remain separate unfinished work.
+
+A later scalability pass uses a lazy stack for up to 1,000 retained alerts. The full phone selection/acknowledgment/history flow passes again in `Room-phone-v4.xcresult` (25.429 seconds). The test taps the visible switch control explicitly; the first lazy-list run tapped its label without changing selection and failed before acknowledgment. No product acknowledgment was sent in that failed attempt.

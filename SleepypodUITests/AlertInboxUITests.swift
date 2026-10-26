@@ -14,7 +14,9 @@ import XCTest
         let count = app.staticTexts["alerts.count"]
         XCTAssertTrue(count.waitForExistence(timeout: 5)); XCTAssertEqual(count.label, "2 unread · live inbox")
         let select = app.switches["alerts.select.3"]
-        reveal(select, app); capture(app, "Alerts-example-message"); select.tap()
+        reveal(select, app); capture(app, "Alerts-example-message")
+        select.coordinate(withNormalizedOffset: CGVector(dx: 0.95, dy: 0.5)).tap()
+        XCTAssertEqual(select.value as? String, "1")
         tap(app.buttons["alerts.acknowledge"], app, up: false)
         let confirm = app.buttons["alerts.confirm"].firstMatch
         XCTAssertTrue(confirm.waitForExistence(timeout: 4)); confirm.tap()

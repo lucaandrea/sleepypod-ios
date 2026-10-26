@@ -6,7 +6,7 @@ struct AlertInboxScreen: View {
     var example = false
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 18) {
+            LazyVStack(alignment: .leading, spacing: 18) {
                 Text("Automation alerts").font(.title3.bold())
                 if example {
                     Text("SYNTHETIC EXAMPLE · these alerts are not from a controller. Changes stay in memory.").font(.footnote).foregroundStyle(Theme.amber)
