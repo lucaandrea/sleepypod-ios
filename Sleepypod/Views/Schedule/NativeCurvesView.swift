@@ -10,6 +10,7 @@ struct NativeCurveLibraryScreen: View {
     @State private var toggling: CurveDraft?
     @State private var applying: PodCurve?
     @State private var showAI = false
+    @State private var showImport = false
     private var timeZone: TimeZone { TimeZone(identifier: settings.timeZone) ?? .current }
 
     var body: some View {
@@ -18,13 +19,14 @@ struct NativeCurveLibraryScreen: View {
                 if !model.loaded && model.loading { ProgressView("Loading curves…") }
                 CurveFeedback()
                 ForEach(Side.allCases) { side in
-                    if let session = model.sessions[side] {
+                    if model.loaded, let session = model.sessions[side] {
                         VStack(alignment: .leading, spacing: 12) {
                             Text(settings.sideName(for: side)).font(.headline)
                             RunOnceActiveBanner(session: session, onCancel: { Task { await model.cancel(side) } })
-                        }
+                        }.disabled(model.saving)
                     }
                 }
+                if !model.loaded && !model.curves.isEmpty { Text("Saved curves · reload to confirm current settings and run-once status").font(.footnote).foregroundStyle(Theme.amber) }
                 if model.curves.isEmpty && model.loaded {
                     ContentUnavailableView("Your curves", systemImage: "waveform.path", description: Text("Create a temperature curve, then choose when it runs."))
                 }
@@ -36,12 +38,13 @@ struct NativeCurveLibraryScreen: View {
                         .font(.footnote).foregroundStyle(Theme.text3).fixedSize(horizontal: false, vertical: true)
                 }
             }.frame(maxWidth: 720).padding(16).frame(maxWidth: .infinity)
-        }.background(Theme.background).navigationTitle("Curves").navigationBarTitleDisplayMode(.inline)
+        }.accessibilityIdentifier("curve.library.scroll").background(Theme.background).navigationTitle("Curves").navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Menu {
                     Button("New curve", systemImage: "plus") { editing = CurveDraft() }
                     Button("AI curve designer", systemImage: "wand.and.stars") { showAI = true }
+                    Button("Import curve", systemImage: "square.and.arrow.down") { showImport = true }
                     Button("Refresh", systemImage: "arrow.clockwise") { Task { await model.refresh() } }
                 } label: { Image(systemName: "ellipsis") }.accessibilityLabel("Curve options")
             }
@@ -50,19 +53,24 @@ struct NativeCurveLibraryScreen: View {
         .sheet(item: $editing) { NativeCurveEditor(initial: $0) }
         .sheet(item: $running) { RunOnceReview(initial: $0) }
         .sheet(isPresented: $showAI) { AICurvePromptView() }
+        .sheet(isPresented: $showImport) { AICurvePromptView(startPage: 2) }
         .confirmationDialog("Delete curve?", isPresented: Binding(get: { deleting != nil }, set: { if !$0 { deleting = nil } }), presenting: deleting) { curve in
             Button("Delete \(curve.name)", role: .destructive) { Task { _ = await model.delete(curve); await schedule.fetchSchedules() } }
         } message: { curve in Text(curve.active == true ? "Its assigned days will stop running. Alarms stay as scheduled." : "This removes the saved curve. Alarms stay as scheduled.") }
         .confirmationDialog("Move shared days?", isPresented: Binding(get: { toggling != nil }, set: { if !$0 { toggling = nil } }), presenting: toggling) { draft in
             Button("Move days and turn on") { saveToggle(draft) }
         } message: { draft in Text(CurveMoveText.describe(model.moves(draft), settings: settings)) }
-        .confirmationDialog("Apply saved curve?", isPresented: Binding(get: { applying != nil }, set: { if !$0 { applying = nil } }), presenting: applying) { curve in
-            Button("Apply curve") { Task {
-                let template = CurveTemplate(name: curve.name, points: curve.points.mapValues { Int($0.rounded()) }, bedtime: curve.bedtime, wake: curve.wake, reasoning: curve.notes)
-                if await schedule.applyTemplate(template) { model.notice = "Curve applied." } else { model.error = schedule.error }
-            } }
-        } message: { _ in Text("Replace temperature and power schedules for \(schedule.selectedSide.sides.map { settings.sideName(for: $0) }.joined(separator: " and ")) on \(CurveDays.label(Array(schedule.selectedDays))). Alarms keep their current settings.") }
+        .sheet(item: $applying) { curve in
+            LegacyCurveApplyReview(curve: curve, sides: schedule.selectedSide.sides.map { settings.sideName(for: $0) }, days: CurveDays.label(Array(schedule.selectedDays))) {
+                applying = nil
+                Task {
+                    let template = CurveTemplate(name: curve.name, points: curve.points.mapValues { Int($0.rounded()) }, bedtime: curve.bedtime, wake: curve.wake, reasoning: curve.notes)
+                    if await schedule.applyTemplate(template) { model.notice = "Curve applied." } else { model.error = schedule.error }
+                }
+            }
+        }
     }
+
     private func saveToggle(_ draft: CurveDraft) {
         let moves = model.moves(draft)
         Task { _ = await model.save(draft, reviewed: moves); await schedule.fetchSchedules() }
@@ -76,7 +84,7 @@ struct NativeCurveLibraryScreen: View {
                         Text("\(DisplayTime.clock(curve.bedtime)) → \(DisplayTime.clock(curve.wake))")
                             .font(.mono(13, relativeTo: .footnote)).foregroundStyle(Theme.text2)
                     }.frame(maxWidth: .infinity, alignment: .leading).contentShape(Rectangle())
-                }.buttonStyle(.plain).accessibilityIdentifier("curve.edit.\(curve.id)")
+                }.buttonStyle(.plain).disabled(!model.loaded || model.saving).accessibilityIdentifier("curve.edit.\(curve.id)")
                 if model.supportsAssignments {
                     Toggle("Run \(curve.name)", isOn: Binding(get: { curve.active == true }, set: { enabled in
                         var draft = CurveDraft(curve: curve); draft.active = enabled
@@ -354,7 +362,7 @@ struct RunOnceReview: View {
                     if let validation = draft.validation(now: .now, timeZone: timeZone) { Text(validation).foregroundStyle(Theme.amber) }
                     CurveFeedback()
                     Button("Start run once", systemImage: "play.fill") { Task { if await model.start(draft, timeZone: timeZone) { dismiss() } } }
-                        .buttonStyle(.borderedProminent).foregroundStyle(Theme.background).disabled(model.saving || draft.validation(now: .now, timeZone: timeZone) != nil)
+                        .buttonStyle(.borderedProminent).foregroundStyle(Theme.background).disabled(!model.loaded || model.saving || draft.validation(now: .now, timeZone: timeZone) != nil)
                     DisclosureGroup("Set points") {
                         ForEach(draft.points) { point in
                             Text("\(point.id == draft.points.first?.id ? "Immediately" : DisplayTime.clock(point.time)) · \(TemperatureDisplay.degrees.text(Int(point.temperature.rounded()), unit: settings.temperatureFormat.degreeUnit, includeUnit: true))")
@@ -362,9 +370,38 @@ struct RunOnceReview: View {
                         }
                     }
                 }.frame(maxWidth: 720).padding(16).frame(maxWidth: .infinity)
-            }.background(Theme.background).environment(\.timeZone, timeZone).navigationTitle("Run once").navigationBarTitleDisplayMode(.inline)
+            }.accessibilityIdentifier("curve.run.scroll").background(Theme.background).environment(\.timeZone, timeZone).navigationTitle("Run once").navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() }.disabled(model.saving) } }
             .interactiveDismissDisabled(model.saving)
+            .task { if !model.loaded { await model.refresh() } }
         }
+    }
+}
+
+/// Keep the legacy selected-day replacement review readable at every text size.
+private struct LegacyCurveApplyReview: View {
+    let curve: PodCurve
+    let sides: [String]
+    let days: String
+    let apply: () -> Void
+    @Environment(\.dismiss) private var dismiss
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 18) {
+                    Text(curve.name).font(.title2.bold())
+                    GroupedCard {
+                        VStack(alignment: .leading, spacing: 12) {
+                            ComfortValueRow("Sides", value: sides.joined(separator: " and "))
+                            ComfortValueRow("Days", value: days)
+                            Text("Replace temperature and power schedules on these days. Alarms keep their current settings.")
+                                .foregroundStyle(Theme.text2)
+                        }.padding(16)
+                    }
+                    Button("Apply curve", action: apply).buttonStyle(.borderedProminent).foregroundStyle(Theme.background)
+                }.frame(maxWidth: 720, alignment: .leading).padding(16).frame(maxWidth: .infinity)
+            }.background(Theme.background).navigationTitle("Apply saved curve").navigationBarTitleDisplayMode(.inline)
+                .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } } }
+        }.tint(Theme.text1)
     }
 }

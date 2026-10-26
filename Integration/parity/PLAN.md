@@ -25,9 +25,9 @@ Each item needs source/API coverage, accessible native UI, loading/error/offline
 - [x] Stage schedule timeline with scrub preview and Back to live; preview never writes to the Pod. Saved calendar targets, current Run Once and recorded power/presence are distinct from Autopilot observations; see `TEMPERATURE_HISTORY_PHASES_AUDIT.md`.
 - [x] Degrees, whole-Fahrenheit Offset from 80°F, Eight Sleep −10…+10 (82.5°F neutral) independent of °F/°C units; matching increments and accessibility adjustments.
 - [x] Manual hold durations 15/30/60/120 minutes; ownership labels, expiry and Resume.
-- [ ] Power, All off and side linking with current web-source semantics and clear failure reporting. The current SideProvider links future changes without an initial hardware copy; this differs from the temperature documentation, so do not introduce surprise actuation.
+- [x] Power, All off and side linking follow current web-source semantics and clear failure reporting. Linking affects future changes without an initial hardware copy. Final interaction evidence is in `NATIVE_CONTROLS_RECONCILIATION.md`.
 - [x] Night/Dawn schedules: matching-day edits, shape-preserving shifts, missing-night setup, no-Dawn single point, side handling and error recovery.
-- [ ] Room humidity/light/air, last-night summary, next alarm toggle/editor, tonight's next setpoint and schedule/sleep history.
+- [x] Room humidity/light/air, last-night summary, next alarm toggle/editor, tonight's next setpoint and schedule/sleep history. Active-sleeper context and all layouts are reconciled in `ALARM_CURVE_RECOVERY_AUDIT.md`.
 - [x] Pump-stall restore/dismiss, priming completion, active alarm stop/snooze/cancel banners.
 
 ### Adjustable base
@@ -38,9 +38,9 @@ Each item needs source/API coverage, accessible native UI, loading/error/offline
 
 ### Schedule
 
-- [ ] Compare existing native schedule/curve editor against web: day grouping, copy, presets/templates, point CRUD, power windows, overnight/day offsets and timezone.
-- [ ] Alarm CRUD: vibration, temperature, smart wake window, snooze/cancel and next-alarm controls.
-- [ ] Run-once create/review/cancel and saved curve templates; preserve existing AI curve tools and routine conflict checks.
+- [x] Native schedule/curve editor reconciled against web: day grouping, copy, presets/templates, point CRUD, power windows, overnight/day offsets and timezone. See the temperature/phases and controls audits.
+- [x] Alarm CRUD: vibration, temperature, smart wake window, snooze/cancel and next-alarm controls. One-occurrence personal overrides remain a separate Core integration.
+- [x] Run-once create/review/cancel, saved curve templates and AI curve tools; reviewed native bedtime routines preserve conflict checks. See `ALARM_CURVE_RECOVERY_AUDIT.md` and `BEDTIME_ROUTINES_AUDIT.md`.
 
 ### Sleep and biometrics
 
@@ -58,7 +58,7 @@ Each item needs source/API coverage, accessible native UI, loading/error/offline
 - [ ] Readable rule preview, live evaluation/eligibility, missing-signal handling, backtest night selection/trace and activity filters/pagination.
 - [ ] Diagnostics/configuration, signal health/capacitance zones and halt/recovery operations.
 - [x] Persistent native alert inbox, foreground delivery and explicit acknowledgment using the coordinated Core notification contract (PR #28, main 7fa390a75ce3358e39d59ac016b66c0d38144ac3). Background push is unavailable; keep historical/expired and stale reads distinct.
-- [ ] Preserve and wire personal comfort features supplied by the coordinated Core fork, including bed-entry Preview and reviewed nightly reports.
+- [x] Preserve and wire personal comfort features supplied by the coordinated Core fork, including bed-entry Preview and reviewed nightly reports. PR #30 is merged; atomic mode-only Shortcuts and the full journal remain under personal API reconciliation.
 - [x] Native room-sensor mapping, source-time freshness, history and Home presentation from Core PR #29 (`cbb0e5bd45c723888e44e8506ef91fdf9b380630`, `docs/ROOM_CONTEXT.md`); setup never implicitly enables an automation.
 
 ### System
@@ -153,3 +153,5 @@ Temperature history and Night/Dawn PR #28 passed all four GitHub checks and merg
 The remaining control interactions passed all four CI checks and merged in PR #29 at `7ca0cc74a59d7f8828d00a049b148fb977afcc69` (`NATIVE_CONTROLS_RECONCILIATION.md`); its feature branch is removed. The first device-CI compiler timeout was corrected by splitting the curve handle view; the local generic-iOS build and the graph drag/save/cancel regression pass. Personal comfort now has direct Core Preview settings, sensor/entry guards, check-ins and exact overnight report review (`PERSONAL_COMFORT_AUDIT.md`), with twelve focused checks and both flows on phone/iPad/maximum text. Its mode-only Shortcut mapping remains in the final integration work.
 
 Complete native bedtime routines now use versioned Core routes and reviewed atomic whole-night saves (`BEDTIME_ROUTINES_AUDIT.md`). Alarm/temperature context for solo and away states, stale-read handling, curve AI/legacy UI, personal API mapping and final release checks remain in progress.
+
+Personal comfort and bedtime routines PR #30 passed all four GitHub checks (run `40313931325`) and merged into owner main at `ff11184a52b7303555210be67bccc4d96e133258` on October 26. The reviewed native routes and Core contracts are documented in `PERSONAL_COMFORT_AUDIT.md` and `BEDTIME_ROUTINES_AUDIT.md`. Alarm-context/curve recovery is tracked in `ALARM_CURVE_RECOVERY_AUDIT.md`; imported history, Autopilot diagnostics, personal API/Shortcuts and final release validation remain open.

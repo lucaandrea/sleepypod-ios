@@ -239,7 +239,7 @@ struct TempScreen: View {
                 }
                 TemperatureOwnershipView().padding(.top, 24)
                 environmentLine.padding(.top, 20)
-                if APIBackend.current != .freeSleep { NextAlarmCard(side: deviceManager.selectedSide.primarySide).padding(.top, 20) }
+                if APIBackend.current != .freeSleep { NextAlarmCard(side: settingsManager.contextSide(selected: deviceManager.selectedSide.primarySide)).padding(.top, 20) }
                 VStack(spacing: 12) {
                     if let curveError {
                         Text(curveError).font(.footnote).foregroundStyle(Theme.amber)
@@ -255,7 +255,7 @@ struct TempScreen: View {
                 }
                 .padding(.top, 24)
                 if APIBackend.current != .freeSleep {
-                    TemperatureContextCards(side: deviceManager.selectedSide.primarySide).padding(.top, 20)
+                    TemperatureContextCards(side: settingsManager.contextSide(selected: deviceManager.selectedSide.primarySide)).padding(.top, 20)
                 }
             }
             .padding(.horizontal, profile.tempControl == .stepper ? 16 : 20)

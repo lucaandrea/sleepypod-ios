@@ -56,6 +56,8 @@ final class SettingsManager {
         return id
     }
 
+    func contextSide(selected: Side) -> Side { settings?.contextSide(selected: selected) ?? selected }
+
     // MARK: - Computed
 
     var temperatureFormat: TemperatureFormat {

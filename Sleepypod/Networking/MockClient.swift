@@ -46,6 +46,15 @@ final class MockClient: SleepypodProtocol, @unchecked Sendable {
             rebootTime: "03:00"
         )
 
+        #if DEBUG
+        switch DebugRoute.alarmScenario {
+        case "solo-right": settings.bedMode = "solo-right"
+        case "left-away": settings.left.awayMode = true
+        case "both-away": settings.left.awayMode = true; settings.right.awayMode = true
+        default: break
+        }
+        #endif
+
         let defaultDaily = DailySchedule(
             temperatures: ["22:00": 70, "23:30": 68, "02:00": 66, "05:00": 70],
             alarm: AlarmSchedule(vibrationIntensity: 60, vibrationPattern: .rise, duration: 300, time: "07:00", enabled: true, alarmTemperature: 78),

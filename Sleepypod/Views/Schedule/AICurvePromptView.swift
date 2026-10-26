@@ -1,5 +1,4 @@
 import SwiftUI
-import Charts
 
 /// Horizontal paged AI curve builder.
 /// 4 steps: Describe -> Review -> Import -> Apply.
@@ -7,6 +6,7 @@ struct AICurvePromptView: View {
     @Environment(ScheduleManager.self) private var scheduleManager
     @Environment(SettingsManager.self) private var settingsManager
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.dynamicTypeSize) private var typeSize
 
     var startPage: Int = 0
 
@@ -72,6 +72,7 @@ struct AICurvePromptView: View {
             .background(Theme.background)
             .navigationTitle("Design Your Curve")
             .navigationBarTitleDisplayMode(.inline)
+            .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Done") { dismiss() } } }
             .onAppear {
                 savedTemplates = CurveTemplate.loadAll()
                 if startPage > 0 {
@@ -323,6 +324,7 @@ struct AICurvePromptView: View {
                                 RoundedRectangle(cornerRadius: 12)
                                     .stroke(Theme.cardBorder, lineWidth: 1)
                             )
+                            .accessibilityIdentifier("curve.import.json")
                             .focused($isJSONFocused)
                             .onChange(of: pastedJSON) { _, newValue in
                                 parseError = nil
@@ -432,11 +434,10 @@ struct AICurvePromptView: View {
 
                         // Temperature curve chart
                         curveChart
-                            .frame(height: 200)
-                            .clipShape(RoundedRectangle(cornerRadius: 8))
+                        Text("Set points show scheduled temperatures, not predicted sleep stages.")
+                            .font(.caption).foregroundStyle(Theme.text2)
 
-                        // Phase legend
-                        phaseLegend
+                        if typeSize.isAccessibilitySize { previewActions }
 
                         // Editable set points
                         CurveSetPointList(
@@ -474,28 +475,29 @@ struct AICurvePromptView: View {
                     Spacer(minLength: 120)
                 }
                 .padding(16)
-            }
+            }.accessibilityIdentifier("curve.import.preview.scroll")
 
-            floatingBar {
-                floatingButton(title: "Save", icon: "bookmark") {
-                    templateName = parsedResult?.profileName ?? ""
-                    showSaveDialog = true
-                }
+            if !typeSize.isAccessibilitySize { floatingBar { previewActionButtons } }
+        }
+    }
 
-                Divider().frame(height: 20).background(Theme.text1.opacity(0.2))
-
-                floatingButton(title: isApplied ? "Applied!" : APIBackend.current == .freeSleep ? "Apply" : "Review", icon: isApplied ? "checkmark" : "calendar.badge.plus") {
-                    applyToSchedule()
-                }
-
-                if APIBackend.current == .sleepypodCore {
-                    Divider().frame(height: 20).background(Theme.text1.opacity(0.2))
-
-                    floatingButton(title: isRunOnce ? "Started!" : "Use Now", icon: isRunOnce ? "checkmark" : "play.fill") {
-                        useNow()
-                    }
-                }
-            }
+    private var previewActions: some View {
+        VStack(alignment: .leading, spacing: 18) { previewActionButtons }
+            .padding(16).frame(maxWidth: .infinity, alignment: .leading)
+            .background(Theme.card, in: RoundedRectangle(cornerRadius: 16))
+    }
+    @ViewBuilder private var previewActionButtons: some View {
+        floatingButton(title: "Save", icon: "bookmark") {
+            templateName = parsedResult?.profileName ?? ""
+            showSaveDialog = true
+        }
+        if !typeSize.isAccessibilitySize { Divider().frame(height: 20).background(Theme.text1.opacity(0.2)) }
+        floatingButton(title: isApplied ? "Applied!" : APIBackend.current == .freeSleep ? "Apply" : "Review", icon: isApplied ? "checkmark" : "calendar.badge.plus") {
+            applyToSchedule()
+        }.accessibilityIdentifier("curve.import.review")
+        if APIBackend.current != .freeSleep {
+            if !typeSize.isAccessibilitySize { Divider().frame(height: 20).background(Theme.text1.opacity(0.2)) }
+            floatingButton(title: isRunOnce ? "Started!" : "Use Now", icon: isRunOnce ? "checkmark" : "play.fill") { useNow() }
         }
     }
 
@@ -554,117 +556,15 @@ struct AICurvePromptView: View {
 
     // MARK: - Curve Chart
 
-    private var curveChart: some View {
-        let sorted = editablePoints.sorted { $0.time < $1.time }
-        let temps = sorted.map(\.tempF)
-        let minTemp = temps.min() ?? 70
-        let maxTemp = temps.max() ?? 90
-        let offsets = sorted.map { $0.tempF - 80 }
-        let lo = (offsets.min() ?? -10) - 3
-        let hi = (offsets.max() ?? 10) + 3
-
-        return Chart {
-            // Zero line (base temp ~80F)
-            RuleMark(y: .value("Base", 0))
-                .foregroundStyle(Theme.textMuted.opacity(0.3))
-                .lineStyle(StrokeStyle(lineWidth: 1, dash: [4, 4]))
-
-            // Min dashed rule
-            RuleMark(y: .value("Min", minTemp - 80))
-                .foregroundStyle(Theme.cooling.opacity(0.4))
-                .lineStyle(StrokeStyle(lineWidth: 0.8, dash: [3, 3]))
-
-            // Max dashed rule
-            RuleMark(y: .value("Max", maxTemp - 80))
-                .foregroundStyle(Theme.warming.opacity(0.4))
-                .lineStyle(StrokeStyle(lineWidth: 0.8, dash: [3, 3]))
-
-            ForEach(sorted) { point in
-                let offset = point.tempF - 80
-
-                LineMark(
-                    x: .value("Time", point.time),
-                    y: .value("Offset", offset)
-                )
-                .foregroundStyle(Theme.accent)
-                .interpolationMethod(.catmullRom)
-                .lineStyle(StrokeStyle(lineWidth: 2.5))
-
-                AreaMark(
-                    x: .value("Time", point.time),
-                    y: .value("Offset", offset)
-                )
-                .foregroundStyle(
-                    Theme.cool.opacity(0.12)
-                )
-                .interpolationMethod(.catmullRom)
-
-                PointMark(
-                    x: .value("Time", point.time),
-                    y: .value("Offset", offset)
-                )
-                .foregroundStyle(phaseColor(point.phase))
-                .symbolSize(20)
-            }
-        }
-        .chartYScale(domain: lo...hi)
-        .chartYAxis {
-            AxisMarks(position: .leading, values: .automatic(desiredCount: 5)) { value in
-                AxisGridLine(stroke: StrokeStyle(lineWidth: 0.3))
-                    .foregroundStyle(Theme.cardBorder)
-                AxisValueLabel {
-                    if let v = value.as(Int.self) {
-                        let format = settingsManager.temperatureFormat
-                        if format == .relative {
-                            Text(v > 0 ? "+\(v)" : "\(v)")
-                                .font(.mono(9))
-                                .foregroundStyle(Theme.textMuted)
-                        } else {
-                            Text(TemperatureConversion.displayTemp(80 + v, format: format))
-                                .font(.mono(9))
-                                .foregroundStyle(Theme.textMuted)
-                        }
-                    }
-                }
-            }
-        }
-        .chartXAxis {
-            AxisMarks(values: .automatic(desiredCount: 6)) { value in
-                AxisValueLabel {
-                    if let time = value.as(String.self) {
-                        Text(time)
-                            .font(.mono(8))
-                            .foregroundStyle(Theme.textMuted)
-                            .rotationEffect(.degrees(-45))
-                            .fixedSize()
-                    }
-                }
-            }
-        }
+    private var orderedPreview: [CurvePoint] {
+        CurvePoint.ordered(editablePoints.map { CurvePoint(id: $0.id, time: $0.time, temperature: Double($0.tempF)) })
     }
-
-    // MARK: - Phase Legend
-
-    private var phaseLegend: some View {
-        let phases: [(name: String, color: Color)] = [
-            ("Warm-up", Theme.warming),
-            ("Cool-down", Theme.cooling),
-            ("Deep Sleep", Color(hex: "2563eb")),
-            ("Maintain", Theme.textSecondary),
-            ("Pre-Wake", Theme.amber)
-        ]
-        return HStack(spacing: 10) {
-            Spacer()
-            ForEach(phases, id: \.name) { phase in
-                HStack(spacing: 4) {
-                    Circle().fill(phase.color).frame(width: 6, height: 6)
-                    Text(phase.name)
-                        .font(.system(size: 9))
-                        .foregroundColor(Theme.textSecondary)
-                }
-            }
-            Spacer()
-        }
+    private var curveChart: some View {
+        TemperatureCurve(points: orderedPreview.map { RunOnceSetPoint(time: $0.time, temperature: $0.temperature) },
+                         bedtime: orderedPreview.first?.time ?? "22:00", wake: orderedPreview.last?.time ?? "07:00")
+            .padding(.vertical, 12)
+            .accessibilityIdentifier("curve.import.graph")
+            .accessibilityValue(orderedPreview.map { "\($0.time) · \(Int($0.temperature))°F" }.joined(separator: ", "))
     }
 
     // MARK: - Floating Bar
@@ -713,60 +613,30 @@ struct AICurvePromptView: View {
         }
     }
 
-    private func phaseColor(_ phase: String) -> Color {
-        let lower = phase.lowercased()
-        if lower.contains("warm") && lower.contains("up") { return Theme.warming }
-        if lower.contains("cool") { return Theme.cooling }
-        if lower.contains("deep") { return Color(hex: "2563eb") }
-        if lower.contains("maintain") { return Theme.textSecondary }
-        if lower.contains("pre") && lower.contains("wake") { return Theme.amber }
-        if lower.contains("wake") { return Theme.textMuted }
-        return Theme.textSecondary
-    }
-
-    private func classifyPhase(time: String, bedtime: String, wake: String, tempF: Int, allPoints: [(String, Int)]) -> String {
-        let sorted = allPoints.sorted { $0.0 < $1.0 }
-        guard let minTemp = sorted.map(\.1).min(),
-              let maxTemp = sorted.map(\.1).max() else { return "Maintain" }
-
-        let midpoint = (minTemp + maxTemp) / 2
-
-        if time < bedtime { return "Warm-up" }
-        if time >= wake { return "Wake" }
-
-        let allTimes = sorted.filter { $0.0 >= bedtime && $0.0 < wake }.map(\.0)
-        let totalPoints = allTimes.count
-        if let idx = allTimes.firstIndex(of: time) {
-            let position = Double(idx) / max(Double(totalPoints - 1), 1.0)
-            if position < 0.25 { return "Cool-down" }
-            if position < 0.55 { return "Deep Sleep" }
-            if position < 0.8 { return "Maintain" }
-            return "Pre-Wake"
-        }
-
-        if tempF <= midpoint { return "Deep Sleep" }
-        return "Maintain"
-    }
-
+    /// The labels describe scheduled temperature changes, never inferred sleep stages.
     private func applyParsedResult(_ result: CurveGenerator.GeneratedCurve) {
         parsedResult = result
-        let allPoints = result.points.map { ($0.key, $0.value) }
-        editablePoints = result.points.map { time, temp in
-            let phase = classifyPhase(
-                time: time,
-                bedtime: result.bedtime,
-                wake: result.wake,
-                tempF: temp,
-                allPoints: allPoints
-            )
-            return SetPoint(time: time, tempF: temp, phase: phase)
-        }.sorted { $0.time < $1.time }
-
+        let ordered = CurvePoint.ordered(result.points.map { CurvePoint(time: $0.key, temperature: Double($0.value)) })
+        editablePoints = ordered.enumerated().map { index, point in
+            SetPoint(time: point.time, tempF: Int(point.temperature), phase: pointLabel(at: index, in: ordered))
+        }
         generator.error = nil
+    }
+
+    private func pointLabel(at index: Int, in points: [CurvePoint]) -> String {
+        guard index > 0 else { return "Start" }
+        if points[index].temperature < points[index - 1].temperature { return "Cooling" }
+        if points[index].temperature > points[index - 1].temperature { return "Warming" }
+        return "Hold"
     }
 
     private func syncResultFromEdits() {
         guard let old = parsedResult else { return }
+        let ordered = orderedPreview
+        for (index, point) in ordered.enumerated() {
+            guard let local = editablePoints.firstIndex(where: { $0.id == point.id }) else { continue }
+            editablePoints[local].phase = pointLabel(at: index, in: ordered)
+        }
         var newPoints: [String: Int] = [:]
         for p in editablePoints {
             newPoints[p.time] = p.tempF

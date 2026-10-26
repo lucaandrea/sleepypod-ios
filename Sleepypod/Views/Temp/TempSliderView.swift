@@ -30,8 +30,8 @@ struct TempSliderView: View {
                 .frame(height: pillHeight)
                 TemperatureOwnershipView()
                 tiles
-                if APIBackend.current != .freeSleep { NextAlarmCard(side: device.selectedSide.primarySide) }
-                if APIBackend.current != .freeSleep { TemperatureContextCards(side: device.selectedSide.primarySide) }
+                if APIBackend.current != .freeSleep { NextAlarmCard(side: settings.contextSide(selected: device.selectedSide.primarySide)) }
+                if APIBackend.current != .freeSleep { TemperatureContextCards(side: settings.contextSide(selected: device.selectedSide.primarySide)) }
             }
             .padding(.horizontal, 16)
             .frame(maxHeight: .infinity, alignment: .top)

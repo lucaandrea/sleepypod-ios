@@ -35,11 +35,20 @@ struct CoreAlarmClient: AlarmClient {
 actor DemoAlarmClient: AlarmClient {
     private var rows: [CoreAlarmRow]
     private var nextID = 100
-    init() {
+    private let scenario: String
+    init(scenario: String = DebugRoute.alarmScenario) {
+        self.scenario = scenario
         var draft = AlarmDraft(sides: [.left, .right]); draft.days = Set(DayOfWeek.allCases); draft.temperature = 78
         rows = draft.creates.enumerated().map { $0.element.row(id: $0.offset + 1) }
+        if scenario == "empty" { rows = [] }
+        if ["solo-right", "left-away", "both-away"].contains(scenario) {
+            for index in rows.indices where rows[index].side == .right { rows[index].time = "06:30" }
+        }
     }
-    func all() -> [CoreAlarmRow] { rows }
+    func all() throws -> [CoreAlarmRow] {
+        if scenario == "offline" { throw URLError(.notConnectedToInternet) }
+        return rows
+    }
     func apply(_ batch: AlarmBatch) {
         rows.removeAll { batch.deletes.contains($0.id) }
         for update in batch.updates {

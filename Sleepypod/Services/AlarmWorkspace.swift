@@ -33,6 +33,7 @@ final class AlarmWorkspace {
     func groups(_ side: Side) -> [AlarmGroup] { AlarmGroup.group(rows, side: side) }
     func nextGroup(_ side: Side, now: Date, timeZone: TimeZone) -> AlarmGroup? {
         let groups = groups(side)
+        guard loaded else { return nil }
         return groups.compactMap { group in group.nextDate(after: now, timeZone: timeZone).map { (group, $0) } }
             .min { $0.1 < $1.1 }?.0 ?? groups.first
     }
@@ -46,7 +47,7 @@ final class AlarmWorkspace {
             if !supportsSnooze { supportsSnooze = await client.supportsSnooze() }
             guard revision == operation else { return }
             rows = current; schemaSnooze = supportsSnooze; loaded = true; error = nil
-        } catch { if revision == operation { self.error = error.localizedDescription } }
+        } catch { if revision == operation { loaded = false; self.error = APIError.message(for: error) } }
         if revision == operation { loading = false }
     }
     func save(_ draft: AlarmDraft) async -> Bool {
@@ -70,6 +71,7 @@ final class AlarmWorkspace {
         guard loaded, !saving else { return false }
         saving = true; error = nil; revision += 1; let operation = revision; let client = api
         defer { if revision == operation { saving = false; loading = false } }
+        var attempted = false
         do {
             let latest = try await client.all()
             guard revision == operation else { return false }
@@ -77,6 +79,7 @@ final class AlarmWorkspace {
                 rows = latest
                 throw APIError.serverError(message: "This alarm changed on another device. Cancel and reopen it to review the latest settings.")
             }
+            attempted = true
             try await client.apply(batch)
             guard revision == operation else { return false }
             do {
@@ -86,16 +89,22 @@ final class AlarmWorkspace {
             }
             catch { if revision == operation { loaded = false; self.error = "Saved, but the alarm list could not be refreshed. Reload before making another change." } }
             return true
-        } catch { if revision == operation { self.error = error.localizedDescription }; return false }
+        } catch {
+            if revision == operation {
+                loaded = false
+                self.error = attempted ? "The alarm change could not be confirmed. Reload before making another change." : APIError.message(for: error)
+            }
+            return false
+        }
     }
     func test(_ draft: AlarmDraft) async {
-        guard !testing, !stopping, !draft.sides.isEmpty, (1...100).contains(draft.intensity), (0...180).contains(draft.duration) else { return }
+        guard loaded, !testing, !stopping, !draft.sides.isEmpty, (1...100).contains(draft.intensity), (0...180).contains(draft.duration) else { return }
         testing = true; commandError = nil; commandRevision += 1; let operation = commandRevision; let client = api
         for side in Side.allCases where draft.sides.contains(side) {
             guard operation == commandRevision else { break }
             testingSides.insert(side)
             do { try await client.test(AlarmJob(side: side, vibrationIntensity: draft.intensity, vibrationPattern: draft.pattern, duration: draft.duration)) }
-            catch { if operation == commandRevision { commandError = error.localizedDescription }; break }
+            catch { if operation == commandRevision { commandError = APIError.message(for: error) }; break }
         }
         if operation == commandRevision {
             testing = false
@@ -108,7 +117,7 @@ final class AlarmWorkspace {
         stopping = true; testing = false; commandError = nil
         for side in Side.allCases where targets.contains(side) {
             do { try await client.stop(side); if operation == commandRevision { testingSides.remove(side) } }
-            catch { if operation == commandRevision { commandError = error.localizedDescription } }
+            catch { if operation == commandRevision { commandError = APIError.message(for: error) } }
         }
         if operation == commandRevision { stopping = false; if commandError == nil { notice = "Vibration test stopped." } }
     }

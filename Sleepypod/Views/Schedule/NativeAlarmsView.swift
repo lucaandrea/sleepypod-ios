@@ -22,20 +22,21 @@ struct NativeAlarmsSection: View {
                 GroupedSection(sides == .both ? "\(settings.sideName(for: side).uppercased()) · ALARMS" : "ALARMS") {
                     VStack(spacing: 12) {
                         if model.loading && !model.loaded { ProgressView("Loading alarms…") }
+                        if !model.loaded && !model.rows.isEmpty { Text("Saved alarm details · reload to confirm current settings").font(.footnote).foregroundStyle(Theme.amber) }
                         if model.loaded && model.groups(side).isEmpty { Text("No alarms set").font(.callout).foregroundStyle(Theme.text2) }
                         ForEach(model.groups(side)) { group in
                             HStack(alignment: .top, spacing: 12) {
                                 Image(systemName: "alarm").foregroundStyle(group.alarm.enabled ? Theme.amber : Theme.text3).padding(.top, 4)
                                 Button { editing = AlarmDraft(group: group) } label: {
                                     AlarmSummary(group: group).frame(maxWidth: .infinity, alignment: .leading).contentShape(Rectangle())
-                                }.buttonStyle(.plain).accessibilityIdentifier("alarm.edit.\(group.id)")
+                                }.buttonStyle(.plain).disabled(!model.loaded || model.saving).accessibilityIdentifier("alarm.edit.\(group.id)")
                                 Toggle("Alarm at \(group.alarm.time) enabled", isOn: Binding(get: { group.alarm.enabled }, set: { enabled in
                                     Task { await model.toggle(group, enabled: enabled); await schedule.fetchSchedules() }
                                 })).labelsHidden().tint(Theme.green).disabled(model.saving || !model.loaded)
                             }
                             HStack {
                                 Button("Test", systemImage: "play") { Task { await model.test(AlarmDraft(group: group)) } }
-                                    .disabled(model.testing || model.stopping).accessibilityLabel("Test alarm at \(group.alarm.time)")
+                                    .disabled(!model.loaded || model.testing || model.stopping).accessibilityLabel("Test alarm at \(group.alarm.time)")
                                 Spacer()
                                 Button("Delete", systemImage: "trash", role: .destructive) { deleting = group }
                                     .disabled(model.saving || !model.loaded).accessibilityLabel("Delete alarm at \(group.alarm.time)")
@@ -182,7 +183,7 @@ struct NativeAlarmEditor: View {
                             }
                             Text("Pod 5 covers ignore pattern and intensity; duration changes the vibration you feel.").font(.footnote).foregroundStyle(Theme.text3)
                             Button("Test vibration", systemImage: "play") { Task { await model.test(draft) } }
-                                .frame(minHeight: 44).disabled(model.testing || model.stopping)
+                                .frame(minHeight: 44).disabled(!model.loaded || model.testing || model.stopping)
                         }.cardStyle()
                     }
                     GroupedSection("TEMPERATURE AT WAKE") {
@@ -243,10 +244,9 @@ struct NextAlarmCard: View {
     @State private var pinnedIDs: Set<Int> = []
     var body: some View {
         TimelineView(.periodic(from: .now, by: 60)) { context in
-            let group = model.groups(side).first { !pinnedIDs.isDisjoint(with: Set($0.rows.map(\.id))) }
-                ?? model.nextGroup(side, now: context.date, timeZone: TimeZone(identifier: settings.timeZone) ?? .current)
+            let group = nextGroup(at: context.date)
             VStack(alignment: .leading, spacing: 12) {
-                Eyebrow("NEXT ALARM")
+                Eyebrow("NEXT ALARM · \(settings.sideName(for: side).uppercased())")
                 if let group {
                     HStack(alignment: .top) {
                         Button { editing = AlarmDraft(group: group) } label: { AlarmSummary(group: group).frame(maxWidth: .infinity, alignment: .leading).contentShape(Rectangle()) }
@@ -258,10 +258,17 @@ struct NextAlarmCard: View {
                     }
                 } else if model.loading { ProgressView("Loading alarms…") }
                 else if model.loaded { Button("Add alarm", systemImage: "plus") { editing = AlarmDraft(sides: [side]) }.frame(minHeight: 44) }
+                if !model.loaded && !model.loading { Text("Alarm status unavailable").font(.callout).foregroundStyle(Theme.text2) }
                 AlarmFeedback()
             }.cardStyle()
         }
         .task(id: side) { pinnedIDs = []; await model.refresh() }
         .sheet(item: $editing) { NativeAlarmEditor(initial: $0) }
     }
+    private func nextGroup(at date: Date) -> AlarmGroup? {
+        guard model.loaded else { return nil }
+        if let pinned = model.groups(side).first(where: { !pinnedIDs.isDisjoint(with: Set($0.rows.map(\.id))) }) { return pinned }
+        return model.nextGroup(side, now: date, timeZone: TimeZone(identifier: settings.timeZone) ?? .current)
+    }
+
 }
