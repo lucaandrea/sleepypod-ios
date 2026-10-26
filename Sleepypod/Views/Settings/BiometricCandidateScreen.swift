@@ -29,7 +29,7 @@ struct BiometricCandidateScreen: View {
                                 ForEach(resolution.overrides) { item in BiometricProfileIdentity(title: item.path, value: item.value.formattedJSON) }
                             }
                             Button("Save candidate without applying") { Task { await model.save() } }
-                                .buttonStyle(.borderedProminent).disabled(!model.editable).accessibilityIdentifier("candidate.save")
+                                .buttonStyle(.borderedProminent).tint(Theme.text1).foregroundStyle(Theme.background).disabled(!model.editable).accessibilityIdentifier("candidate.save")
                         }.cardStyle()
                     }
                     if let saved = model.saved {

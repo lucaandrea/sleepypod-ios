@@ -32,7 +32,7 @@ struct BiometricProfileReviewScreen: View {
                         Text("Next session waits for a known empty-bed boundary. Immediate application still waits for a safe processing boundary.").font(.footnote).foregroundStyle(Theme.text2)
                         BridgeToggleRow(title: acknowledgement, value: $acknowledged, identifier: "profiles.acknowledge").disabled(!model.canApplyReview)
                         Button(action.title) { Task { await model.applyReviewed(boundary: boundary) } }
-                            .buttonStyle(.borderedProminent).disabled(!acknowledged || !model.canApplyReview).accessibilityIdentifier("profiles.apply")
+                            .buttonStyle(.borderedProminent).tint(Theme.text1).foregroundStyle(Theme.background).disabled(!acknowledged || !model.canApplyReview).accessibilityIdentifier("profiles.apply")
                     }.cardStyle()
                 }
                 if let event = model.event {
