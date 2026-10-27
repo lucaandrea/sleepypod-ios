@@ -6,6 +6,7 @@ struct PersonalComfortConfig: Codable, Equatable, Sendable {
     var maximumF: Int
     var sensorAware: Bool?
     var followBedtime: Bool?
+    var roomAware: Bool?
     var editable: Self { var value = self; if value.mode != "preview" { value.mode = "off" }; return value }
     func validate() throws {
         guard ["off", "preview"].contains(mode), (55...110).contains(minimumF), (55...110).contains(maximumF), minimumF <= maximumF,
@@ -34,7 +35,7 @@ struct PersonalComfortStatus: Codable, Sendable {
         let pauseRequired: Bool
     }
     struct Activation: Codable, Sendable { let available: Bool; let reason: String; var current: Bool? }
-    struct Features: Codable, Sendable { let sensorAware: Bool; let followBedtime: Bool; let nightReports: Bool?; var modeOnly: Bool?; var ownerActivation: Bool? }
+    struct Features: Codable, Sendable { let sensorAware: Bool; let followBedtime: Bool; let nightReports: Bool?; var modeOnly: Bool?; var ownerActivation: Bool?; var roomAware: Bool? }
     let apiVersion: Int
     let generatedAt: Double
     let side: Side
@@ -50,6 +51,7 @@ struct PersonalComfortStatus: Codable, Sendable {
     let features: Features
     let signals: PersonalComfortSignals?
     let timing: PersonalComfortTiming?
+    var bedroom: BedroomGuidance?
 
     var ownerActive: Bool { state?.config.mode == "active" && activation.current == true }
     var modeTitle: String {

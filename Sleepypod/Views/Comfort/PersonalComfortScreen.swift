@@ -56,6 +56,7 @@ struct PersonalComfortScreen: View {
                             }.padding(16).frame(maxWidth: .infinity, alignment: .leading)
                         }.disabled(model.saving || model.loading || model.requiresReload)
                         if state.config.sensorAware == true { PersonalComfortSignalsCard(signals: status.signals) }
+                        if state.config.roomAware == true { BedroomDevicesCard(compact: true) }
                         if state.config.followBedtime == true { timingCard(status) }
                     }
                     checkIn(status)

@@ -27,16 +27,18 @@ enum ComfortQualificationKind: String, Codable, CaseIterable, Identifiable, Send
 }
 
 struct ComfortOwnerIdentity: Codable, Equatable, Sendable {
-    struct Policy: Codable, Equatable, Sendable { let minimumF: Int; let maximumF: Int; let sensorAware: Bool; let followBedtime: Bool }
+    struct Policy: Codable, Equatable, Sendable { let minimumF: Int; let maximumF: Int; let sensorAware: Bool; let followBedtime: Bool; var roomAware: Bool? }
     let hardware: String
     let calibration: String
     let schedule: String
     let build: String
     let policy: Policy
+    var bedroomConfiguration: String?
     var valid: Bool {
         [hardware, calibration, schedule].allSatisfy(ComfortReviewInput.validDigest)
             && (7...40).contains(build.count) && build.allSatisfy { "0123456789abcdef".contains($0) }
             && (55...110).contains(policy.minimumF) && (policy.minimumF...110).contains(policy.maximumF)
+            && (bedroomConfiguration.map(ComfortReviewInput.validDigest) ?? (policy.roomAware != true))
     }
 }
 

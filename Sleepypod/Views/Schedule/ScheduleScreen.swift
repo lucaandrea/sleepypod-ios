@@ -4,6 +4,7 @@ import FreeSleepKit
 struct ScheduleScreen: View {
     @Environment(ScheduleManager.self) private var schedule
     @Environment(SettingsManager.self) private var settings
+    @Environment(BedroomSession.self) private var bedroom
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @State private var editingPhase: SchedulePhase?
     @State private var alarmEditor = false
@@ -24,6 +25,7 @@ struct ScheduleScreen: View {
             ScrollView {
                 VStack(spacing: 16) {
                     DaySelectorView().padding(.horizontal, 4)
+                    if bedroom.workspace?.status?.config.sources.isEmpty == false { BedroomDevicesCard(compact: true) }
                     if APIBackend.current != .freeSleep {
                         CalendarScheduleControls()
                         NavigationLink { NativeCurveLibraryScreen() } label: {
