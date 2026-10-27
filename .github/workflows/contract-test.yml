@@ -63,7 +63,9 @@ jobs:
         run: xcrun simctl bootstatus "$IOS_SIM_ID" -b
 
       - name: Unit and transport regression tests
-        timeout-minutes: 10
+        # The full suite can exceed ten minutes on hosted Intel simulators.
+        # Keep a bounded budget without cancelling a healthy run near its end.
+        timeout-minutes: 20
         run: |
           xcodebuild test-without-building -project Sleepypod.xcodeproj -scheme Sleepypod \
             -destination "platform=iOS Simulator,id=$IOS_SIM_ID" \

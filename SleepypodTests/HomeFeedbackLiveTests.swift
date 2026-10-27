@@ -50,6 +50,24 @@ import XCTest
         XCTAssertTrue(temperatures.allSatisfy { $0.isFinite && (-10...70).contains($0) })
         _ = try await sensors.freezer(); _ = try await sensors.water()
     }
+
+    func testLiveRoomSourcesDeliverActualReports() async throws {
+        let (_, transport, session) = try connection(); defer { session.invalidateAndCancel() }
+        let model = BedroomWorkspace(client: CoreBedroomClient(transport: transport))
+        model.isActive = true
+        await model.refresh()
+        let status = try XCTUnwrap(model.status, "The native client must decode the room sensor response")
+        XCTAssertNil(model.error)
+        let enabled = status.observations.filter { $0.source.enabled }
+        XCTAssertFalse(enabled.isEmpty, "At least one room source must be configured")
+        let delivered = enabled.filter { item in
+            guard item.status == .fresh || item.status == .cached,
+                  let expires = item.expiresAt, let time = model.serverTime(at: .now), Double(expires) > time else { return false }
+            return model.value(item, at: .now) != nil || model.lastReportedValue(item) != nil
+        }
+        XCTAssertEqual(delivered.count, enabled.count, "Every enabled room source must supply a recent report; placeholders and withdrawn historical reports do not count")
+        print("Live room report coverage: \(delivered.count)/\(enabled.count); current: \(enabled.filter { model.value($0, at: .now) != nil }.count)")
+    }
 }
 
 private final class FeedbackRejectRedirects: NSObject, URLSessionTaskDelegate {

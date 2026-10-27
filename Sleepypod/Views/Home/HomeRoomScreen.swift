@@ -50,27 +50,34 @@ struct HomeRoomSummaryCard: View {
 
 struct HomeRoomScreen: View {
     @Environment(HomeRoomSession.self) private var session
+    @Environment(BedroomSession.self) private var bedroom
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
                 NavigationLink { BedroomDevicesScreen() } label: {
                     Label("Bedroom devices", systemImage: "house").frame(maxWidth: .infinity, alignment: .leading).cardStyle()
                 }.buttonStyle(.plain).accessibilityIdentifier("room.bedroom")
-                if APIBackend.current.isDemo && session.workspace?.isSyntheticExample != true { Text("DEMO · room input is unavailable. You can inspect a mapping draft without saving it.").font(.footnote).foregroundStyle(Theme.amber) }
-                HomeRoomSummaryCard()
-                if let model = session.workspace {
-                    Button("Refresh room sensors") { Task { await model.refresh() } }.disabled(model.reading || model.saving).accessibilityIdentifier("room.refresh")
-                    if model.base != nil {
-                        NavigationLink { HomeRoomMappingScreen() } label: { Label("Sensor mapping and setup", systemImage: "slider.horizontal.3").frame(maxWidth: .infinity, alignment: .leading).cardStyle() }
-                            .accessibilityIdentifier("room.mapping")
-                    }
-                    publisher(model)
-                    NavigationLink { HomeRoomHistoryScreen() } label: { Label("Room observation history", systemImage: "clock.arrow.circlepath").frame(maxWidth: .infinity, alignment: .leading).cardStyle() }
-                        .accessibilityIdentifier("room.history")
-                }
-                NavigationLink { MQTTSettingsScreen() } label: { Label("MQTT connection", systemImage: "antenna.radiowaves.left.and.right") }
+                if bedroom.workspace?.status?.config.sources.isEmpty == false {
+                    BedroomDevicesCard()
+                    DisclosureGroup("Additional Home Assistant sensors") { legacyContent }
+                } else { legacyContent }
             }.frame(maxWidth: 780, alignment: .leading).padding(16).frame(maxWidth: .infinity)
         }.accessibilityIdentifier("room.screen").background(Theme.background).navigationTitle("Room sensors").navigationBarTitleDisplayMode(.inline)
+    }
+    @ViewBuilder private var legacyContent: some View {
+        if APIBackend.current.isDemo && session.workspace?.isSyntheticExample != true { Text("DEMO · room input is unavailable. You can inspect a mapping draft without saving it.").font(.footnote).foregroundStyle(Theme.amber) }
+        HomeRoomSummaryCard()
+        if let model = session.workspace {
+            Button("Refresh room sensors") { Task { await model.refresh() } }.disabled(model.reading || model.saving).accessibilityIdentifier("room.refresh")
+            if model.base != nil {
+                NavigationLink { HomeRoomMappingScreen() } label: { Label("Sensor mapping and setup", systemImage: "slider.horizontal.3").frame(maxWidth: .infinity, alignment: .leading).cardStyle() }
+                    .accessibilityIdentifier("room.mapping")
+            }
+            publisher(model)
+            NavigationLink { HomeRoomHistoryScreen() } label: { Label("Room observation history", systemImage: "clock.arrow.circlepath").frame(maxWidth: .infinity, alignment: .leading).cardStyle() }
+                .accessibilityIdentifier("room.history")
+        }
+        NavigationLink { MQTTSettingsScreen() } label: { Label("MQTT connection", systemImage: "antenna.radiowaves.left.and.right") }
     }
     private func publisher(_ model: HomeRoomWorkspace) -> some View {
         TimelineView(.periodic(from: .now, by: 1)) { context in
