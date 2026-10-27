@@ -50,12 +50,12 @@ private struct RoomContextCard: View {
     var body: some View {
         let fresh = RoomSnapshot.isFresh(room.value?.date, now: now)
         VStack(alignment: .leading, spacing: 16) {
-            HStack { Eyebrow("ROOM").accessibilityIdentifier("temperature.room.title"); Spacer(); lightReading }
+            HStack { Eyebrow("POD SENSORS").accessibilityIdentifier("temperature.room.title"); Spacer(); lightReading }
             if let error = room.error { feedback("Room unavailable: \(error)") }
             else {
                 let layout = typeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: 16)) : AnyLayout(HStackLayout(alignment: .top, spacing: 12))
                 layout {
-                    reading("Inside", value: fresh ? temperature(room.value?.ambientTemp) : "—")
+                    reading("Ambient", value: fresh ? temperature(room.value?.ambientTemp) : "—")
                     reading("Humidity", value: fresh ? humidity(room.value?.humidity) : "—")
                     reading("Bed air", value: fresh ? temperature(room.value?.bedAir(side: side)) : "—")
                 }
@@ -63,7 +63,7 @@ private struct RoomContextCard: View {
                     Text("\(fresh ? "Measured" : "No fresh readings · last measured") \(age(date))")
                         .font(.caption2).foregroundStyle(fresh ? Theme.text3 : Theme.amber)
                         .fixedSize(horizontal: false, vertical: true)
-                } else { Text("No room readings yet").font(.footnote).foregroundStyle(Theme.text2) }
+                } else { Text("No Pod environment readings yet").font(.footnote).foregroundStyle(Theme.text2) }
             }
             if let error = light.error { feedback("Light unavailable: \(error)") }
         }.frame(maxWidth: .infinity, alignment: .leading).cardStyle()

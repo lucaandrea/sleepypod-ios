@@ -57,6 +57,7 @@
 		0E0845460ECEE54D843E5689 /* HealthAccessView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6594CE3CD551E70CDB9A70A6 /* HealthAccessView.swift */; };
 		0E1506A4B359098E2D415AF2 /* DemoAlarms.swift in Sources */ = {isa = PBXBuildFile; fileRef = B45353D7BA399F49514A54A6 /* DemoAlarms.swift */; };
 		0E1D5B93D3953CAFF96C82E2 /* ThermalBedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BE7EB6DCF180386BD8174D1 /* ThermalBedView.swift */; };
+		0EA0832C325DE4A7D32255E4 /* BedroomDeviceReadings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 973A33546BC60C27585A13C8 /* BedroomDeviceReadings.swift */; };
 		0EBB26874754A2710F738F9D /* IntelligenceProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = D92C6171CB5EA8047A1F2C89 /* IntelligenceProvider.swift */; };
 		0F0829CDB512D9D87D1CBBAF /* ImportedHistoryScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB274E59A66CD6B509C632AE /* ImportedHistoryScreen.swift */; };
 		0F902A5B2F1CACECB35E426F /* BiometricCandidateScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15CD0A19E0156EBA3C6AC6E1 /* BiometricCandidateScreen.swift */; };
@@ -1453,6 +1454,7 @@
 		970CD9734D4BC3ACBE225328 /* FreeSleepClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FreeSleepClient.swift; sourceTree = "<group>"; };
 		9724CE75394092E19A35170C /* BaseWorkspace.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BaseWorkspace.swift; sourceTree = "<group>"; };
 		972DB46185F40A20B850ECA4 /* SystemThermalTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemThermalTests.swift; sourceTree = "<group>"; };
+		973A33546BC60C27585A13C8 /* BedroomDeviceReadings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BedroomDeviceReadings.swift; sourceTree = "<group>"; };
 		97B5E8C17FB07F1DB62AEEA5 /* BaseSchedulesScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BaseSchedulesScreen.swift; sourceTree = "<group>"; };
 		97C4FF2FF166CD9D12DEEBD0 /* WatchComparisonTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchComparisonTests.swift; sourceTree = "<group>"; };
 		982DF7898B5B080238D636F4 /* AlarmCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmCard.swift; sourceTree = "<group>"; };
@@ -2268,6 +2270,7 @@
 		AB16BEB75DE1DA7B21B9E012 /* Home */ = {
 			isa = PBXGroup;
 			children = (
+				973A33546BC60C27585A13C8 /* BedroomDeviceReadings.swift */,
 				6D496E4D387164F4EF428AFC /* BedroomDevicesCard.swift */,
 				50DCAF38A4B0C9652823A3C4 /* BedroomDevicesScreen.swift */,
 				7A6E91B24CD1EAB3FD000834 /* HomeRoomHistoryScreen.swift */,
@@ -3738,6 +3741,7 @@
 				E363543EA0CEBD34EB1AE4CE /* BedroomClient.swift in Sources */,
 				1E933DAB701870E0220C573C /* BedroomContext.swift in Sources */,
 				EFB42B36AADCAC832D9C0609 /* BedroomDemoFixture.swift in Sources */,
+				0EA0832C325DE4A7D32255E4 /* BedroomDeviceReadings.swift in Sources */,
 				DC0F62E6A5F879135CDE88D7 /* BedroomDevicesCard.swift in Sources */,
 				3C1F4972FFA0C714791245FB /* BedroomDevicesScreen.swift in Sources */,
 				9DCCBB3C23AE14A6CB2F340C /* BedroomWorkspace.swift in Sources */,
@@ -4254,7 +4258,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 10;
+				CURRENT_PROJECT_VERSION = 11;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -4271,7 +4275,7 @@
 				INFOPLIST_KEY_CFBundleDisplayName = sleepypod;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
-				MARKETING_VERSION = 0.4.0;
+				MARKETING_VERSION = 0.4.1;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -4467,7 +4471,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 10;
+				CURRENT_PROJECT_VERSION = 11;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
@@ -4490,7 +4494,7 @@
 				INFOPLIST_KEY_CFBundleDisplayName = sleepypod;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
-				MARKETING_VERSION = 0.4.0;
+				MARKETING_VERSION = 0.4.1;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;

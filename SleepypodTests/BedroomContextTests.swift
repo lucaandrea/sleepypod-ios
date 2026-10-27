@@ -49,6 +49,85 @@ import XCTest
         XCTAssertNil(model.aggregate(.temperature, at: clock.date)); XCTAssertNil(model.guidance(at: clock.date))
         XCTAssertNotNil(model.serverTime(at: clock.date))
     }
+    func testCachedValueIsVisibleAsAReportWithoutBecomingCurrentOrEligibleForControl() async throws {
+        let clock = BedroomClock(); let model = workspace(BedroomMemoryClient(try fixture()), clock: clock)
+        await model.refresh()
+        let item = try XCTUnwrap(model.status?.observations.first { $0.id == "monitor-particles" })
+        XCTAssertNil(model.value(item, at: clock.date))
+        XCTAssertEqual(model.lastReportedValue(item), 1)
+        XCTAssertEqual(model.readingStatus(item, at: clock.date), "Cached report · freshness unknown")
+        XCTAssertFalse(item.controlEligible)
+        clock.date.addTimeInterval(15)
+        XCTAssertNil(model.value(item, at: clock.date))
+        XCTAssertEqual(model.lastReportedValue(item), 1)
+        XCTAssertEqual(model.readingStatus(item, at: clock.date), "Last reported · reconnect to refresh")
+        model.isActive = false
+        XCTAssertNil(model.lastReportedValue(item))
+    }
+    func testExpiredMeasurementRemainsOnlyAnExplicitHistoricalReport() async throws {
+        let status = try changing(fixture()) { payload in
+            let generated = payload["generatedAt"] as! Int64
+            var rows = payload["observations"] as! [[String: Any]]
+            rows[0]["expiresAt"] = generated + 1_000
+            payload["observations"] = rows
+            payload["aggregates"] = []
+            payload["guidance"] = ["state": "unavailable", "offsetF": 0, "reason": "Fixture", "sourceIds": []]
+        }
+        let clock = BedroomClock(); let model = workspace(BedroomMemoryClient(status), clock: clock)
+        await model.refresh()
+        let item = try XCTUnwrap(model.status?.observations.first)
+        clock.date.addTimeInterval(2)
+        XCTAssertNil(model.value(item, at: clock.date))
+        XCTAssertEqual(model.lastReportedValue(item), 76)
+        XCTAssertEqual(model.readingStatus(item, at: clock.date), "Last reported · expired")
+        XCTAssertNil(model.guidance(at: clock.date))
+    }
+    func testWaitingHomePodDoesNotInventValuesAndExplainsItsMissingExport() async throws {
+        let status = try changing(fixture()) { payload in
+            var rows = payload["observations"] as! [[String: Any]]
+            for index in rows.indices {
+                rows[index]["status"] = "waiting"
+                rows[index]["controlEligible"] = false
+                for key in ["value", "lastValue", "observedAt", "measuredAt", "receivedAt", "expiresAt", "timeBasis"] { rows[index][key] = NSNull() }
+            }
+            payload["observations"] = rows
+            payload["aggregates"] = []
+            payload["guidance"] = ["state": "unavailable", "offsetF": 0, "reason": "Fixture", "sourceIds": []]
+        }
+        let clock = BedroomClock(); let model = workspace(BedroomMemoryClient(status), clock: clock)
+        await model.refresh()
+        let item = try XCTUnwrap(model.status?.observations.first)
+        XCTAssertNil(model.value(item, at: clock.date))
+        XCTAssertNil(model.lastReportedValue(item))
+        XCTAssertEqual(model.readingStatus(item, at: clock.date), "Apple Home sensor export not connected")
+    }
+    func testDisplayOnlyZeroAndTemperatureUnitsRemainVisible() async throws {
+        let clock = BedroomClock(); let model = workspace(BedroomMemoryClient(try fixture()), clock: clock)
+        await model.refresh()
+        let item = try XCTUnwrap(model.status?.observations.first { $0.id == "diffuser-power" })
+        XCTAssertEqual(model.value(item, at: clock.date), 0)
+        XCTAssertEqual(model.readingStatus(item, at: clock.date), "Current · display only")
+        XCTAssertEqual(BedroomDeviceReadings.formatted(0, metric: .power, celsius: false), "Off")
+        XCTAssertEqual(BedroomDeviceReadings.formatted(68, metric: .temperature, celsius: true), "20 °C")
+        XCTAssertEqual(BedroomDeviceReadings.formatted(nil, metric: .temperature, celsius: true), "—")
+    }
+    func testRestartKeepsHistoricalReportSeparateFromWaitingSource() async throws {
+        let status = try changing(fixture()) { payload in
+            var rows = payload["observations"] as! [[String: Any]]
+            for index in rows.indices {
+                rows[index]["status"] = "waiting"; rows[index]["value"] = NSNull(); rows[index]["controlEligible"] = false
+            }
+            payload["observations"] = rows; payload["aggregates"] = []
+            payload["guidance"] = ["state": "unavailable", "offsetF": 0, "reason": "Fixture", "sourceIds": []]
+        }
+        let clock = BedroomClock(); let model = workspace(BedroomMemoryClient(status), clock: clock)
+        await model.refresh()
+        let item = try XCTUnwrap(model.status?.observations.first)
+        XCTAssertNil(model.value(item, at: clock.date))
+        XCTAssertEqual(model.lastReportedValue(item), 76)
+        XCTAssertEqual(model.readingStatus(item, at: clock.date), "Last reported · waiting for a new update")
+        XCTAssertNil(model.guidance(at: clock.date))
+    }
     func testFailureWithdrawsValuesWhileKeepingDeviceInventory() async throws {
         let clock = BedroomClock(); let client = BedroomMemoryClient(try fixture()); let model = workspace(client, clock: clock)
         await model.refresh(); await client.fail(); await model.refresh()

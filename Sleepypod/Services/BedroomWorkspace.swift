@@ -26,6 +26,32 @@ import Observation
               item.status == .fresh, let expires = item.expiresAt, let time = serverTime(at: date), time < Double(expires) else { return nil }
         return item.value
     }
+    /// Historical reports are displayed separately; they never become current readings or control inputs.
+    func lastReportedValue(_ item: BedroomObservation) -> Double? {
+        guard isActive, let status, status.config.enabled, item.source.enabled,
+              status.observations.contains(item), item.status != .disabled,
+              item.observedAt != nil, let value = item.lastValue, item.source.metric.accepts(value) else { return nil }
+        return value
+    }
+    func readingStatus(_ item: BedroomObservation, at date: Date) -> String {
+        if status?.config.enabled != true || !item.source.enabled { return "Disabled" }
+        if value(item, at: date) != nil { return item.controlEligible ? "Current · selected for room comfort" : "Current · display only" }
+        if lastReportedValue(item) != nil {
+            if serverTime(at: date) == nil { return "Last reported · reconnect to refresh" }
+            if item.timeBasis == .cached { return "Cached report · freshness unknown" }
+            if item.status == .waiting { return "Last reported · waiting for a new update" }
+            return item.status == .unavailable ? "Last reported · sensor unavailable" : "Last reported · expired"
+        }
+        if item.status == .waiting {
+            switch item.source.provider {
+            case .appleHome: return "Apple Home sensor export not connected"
+            case .homebridge: return "Waiting for the Homebridge publisher"
+            case .homeAssistant: return "Waiting for the Home Assistant publisher"
+            }
+        }
+        if item.status == .fresh { return "Waiting for a fresh update" }
+        return item.status.title
+    }
     func aggregate(_ metric: BedroomMetric, at date: Date) -> Double? {
         guard let status, status.config.enabled, let aggregate = status.aggregates.first(where: { $0.metric == metric }),
               aggregate.status == "ready", let expires = aggregate.expiresAt, let time = serverTime(at: date), time < Double(expires) else { return nil }
