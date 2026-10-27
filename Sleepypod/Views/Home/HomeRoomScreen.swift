@@ -53,6 +53,9 @@ struct HomeRoomScreen: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
+                NavigationLink { BedroomDevicesScreen() } label: {
+                    Label("Bedroom devices", systemImage: "house").frame(maxWidth: .infinity, alignment: .leading).cardStyle()
+                }.buttonStyle(.plain).accessibilityIdentifier("room.bedroom")
                 if APIBackend.current.isDemo && session.workspace?.isSyntheticExample != true { Text("DEMO · room input is unavailable. You can inspect a mapping draft without saving it.").font(.footnote).foregroundStyle(Theme.amber) }
                 HomeRoomSummaryCard()
                 if let model = session.workspace {

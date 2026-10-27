@@ -32,6 +32,11 @@ struct PersonalComfortEditor: View {
                         Toggle("Follow bed entry", isOn: Binding(get: { draft.followBedtime == true }, set: { draft.followBedtime = $0 }))
                             .disabled(!features.followBedtime || draft.sensorAware != true).accessibilityIdentifier("comfort.followBedtime")
                         Text("Requires the sensor guard and ten minutes of fresh observed presence. Intermediate temperature phases can shift by at most 30 minutes. Power and alarm times remain fixed.").font(.footnote).foregroundStyle(Theme.text2)
+                        Divider()
+                        Toggle("Include bedroom climate", isOn: Binding(get: { draft.roomAware == true }, set: { draft.roomAware = $0 }))
+                            .disabled(features.roomAware != true).accessibilityIdentifier("comfort.roomAware")
+                        Text("Uses fresh, selected room temperature and humidity. A missing or conflicting reading holds the proposal. Adjustments share the existing step and offset limits.").font(.footnote).foregroundStyle(Theme.text2)
+                        NavigationLink("Bedroom devices and readings") { BedroomDevicesScreen() }
                     }.padding(16)
                 }
                 if let error = model.error { Text(error).font(.footnote).foregroundStyle(Theme.amber) }

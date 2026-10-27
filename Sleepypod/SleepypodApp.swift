@@ -21,6 +21,7 @@ struct SleepypodApp: App {
     @State private var notificationRelay = NotificationRelay()
     @State private var alertInbox = AlertInboxSession()
     @State private var homeRoom = HomeRoomSession()
+    @State private var bedroom = BedroomSession()
     @State private var nativeActions: NativeActionSession
     @State private var healthSync: HealthSyncService
     @State private var stageModels: StageModelStore
@@ -77,6 +78,7 @@ struct SleepypodApp: App {
                 .environment(notificationRelay)
                 .environment(alertInbox)
                 .environment(homeRoom)
+                .environment(bedroom)
                 .environment(healthSync)
                 .environment(nativeActions)
                 .environment(stageModels)
@@ -117,6 +119,7 @@ struct ContentView: View {
     @Environment(CurveWorkspace.self) private var curves
     @Environment(AlertInboxSession.self) private var alertInbox
     @Environment(HomeRoomSession.self) private var homeRoom
+    @Environment(BedroomSession.self) private var bedroom
     @Environment(MetricsManager.self) private var metricsManager
     @Environment(StatusManager.self) private var statusManager
     @Environment(HealthSyncService.self) private var healthSync
@@ -201,6 +204,16 @@ struct ContentView: View {
         .task(id: "room-\(inboxScope)-\(scenePhase)") {
             homeRoom.configure(scope: inboxScope)
             guard let model = homeRoom.workspace else { return }
+            model.isActive = scenePhase == .active
+            guard model.isActive else { return }
+            while !Task.isCancelled {
+                await model.refresh()
+                do { try await Task.sleep(for: .seconds(5)) } catch { return }
+            }
+        }
+        .task(id: "bedroom-\(inboxScope)-\(scenePhase)") {
+            bedroom.configure(scope: inboxScope)
+            guard let model = bedroom.workspace else { return }
             model.isActive = scenePhase == .active
             guard model.isActive else { return }
             while !Task.isCancelled {

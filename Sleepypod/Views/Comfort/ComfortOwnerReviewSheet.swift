@@ -60,6 +60,7 @@ struct ComfortOwnerReviewSheet: View {
             VStack(alignment: .leading, spacing: 12) {
                 Text("Bounded thermal adjustments").font(.headline)
                 let policy = review.snapshot.identity.policy
+                if policy.roomAware == true { Text("Bedroom-aware comfort is included. This review is tied to the selected room sensors and their configuration.").font(.footnote) }
                 Text("\(policy.minimumF)–\(policy.maximumF)°F · at most 1°F per 30 minutes · six-hour manual pause. The controller never powers your side on. Missing or unsafe inputs withdraw adjustments.").font(.footnote)
                 ComfortOwnerNightsView(nights: review.snapshot.nights)
                 Text("This evidence qualifies bounded operation; it does not demonstrate improved sleep or clinical accuracy. A build, routine, calibration, policy or qualification change requires a new review.").font(.footnote).foregroundStyle(Theme.text2)

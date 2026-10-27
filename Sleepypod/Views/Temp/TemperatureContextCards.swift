@@ -4,6 +4,7 @@ import SwiftUI
 struct TemperatureContextCards: View {
     let side: Side
     @Environment(HomeRoomSession.self) private var homeRoom
+    @Environment(BedroomSession.self) private var bedroom
     @Environment(SettingsManager.self) private var settings
     @Environment(\.scenePhase) private var scenePhase
     @State private var workspace = TemperatureContextWorkspace()
@@ -11,7 +12,8 @@ struct TemperatureContextCards: View {
 
     var body: some View {
         VStack(spacing: 16) {
-            if homeRoom.workspace?.status?.config.mappings.isEmpty == false { HomeRoomSummaryCard(compact: true) }
+            if bedroom.workspace?.status?.config.sources.isEmpty == false { BedroomDevicesCard(compact: true) }
+            else if homeRoom.workspace?.status?.config.mappings.isEmpty == false { HomeRoomSummaryCard(compact: true) }
             TemperatureHistoryLink()
             if workspace.side != side || (workspace.loading && workspace.result == nil) {
                 ProgressView("Loading room and sleep…").frame(maxWidth: .infinity).cardStyle()
