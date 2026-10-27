@@ -20,7 +20,7 @@ Focused settings/status/connection and overnight-curve regressions pass. Archive
 
 The final local iPad run on iOS 27 passes **958 checks, zero failures and five explicit physical-startup skips** (963 total). It combines 954 unit/transport/live-read checks with four UI checks. The separate final iPhone UI run passes all four checks. Both sizes cover the analysis overview, maximum accessibility text, connection prefill, sleep recipes and the system Shortcuts handoff. The UI harness centers large accessibility rows and closes the iPad system Shortcuts sidebar before asserting action visibility; it still requires the next-alarm action to be hittable.
 
-Strict SwiftLint reports zero violations across 464 files. Reproducible feature-import reconstruction and the compiled-presentation guard pass. Local result bundles are `build/parity-validation/home-feedback/final-ipad-v4.xcresult` and `final-phone-ui-v2.xcresult`. Earlier failed UI attempts are retained separately and are not counted as successful suites. [PR #40](https://github.com/lucaandrea/sleepypod-ios/pull/40) tracks remote validation and integration.
+Strict SwiftLint reports zero violations across 464 files. Reproducible feature-import reconstruction and the compiled-presentation guard pass. Local result bundles are `build/parity-validation/home-feedback/final-ipad-scaled-charts.xcresult` and `scaled-charts-phone.xcresult`. Earlier failed UI attempts are retained separately and are not counted as successful suites. [PR #40](https://github.com/lucaandrea/sleepypod-ios/pull/40) is merged into main at `f87a75db46240e83ba5eddba3409f6082fd2b921`; its branch is deleted. The merged production files match the tested and archived source manifest.
 
 Live GET checks do not establish physical vibration, scheduled wake delivery, base movement, Health writes, Home pairing, spoken Siri execution or overnight comfort qualification. Attended Pod controls remain coordinated with the backend chat. The ESP still needs its protected controller configuration over USB; its last accepted firmware already has Wi-Fi configured and Preview disabled.
 
@@ -33,14 +33,22 @@ flowchart LR
   Checks --> Release[0.3.0 build 9]
 ```
 
-## Initial signed candidate and accessibility follow-up
+## Final signed release candidate
 
-Xcode successfully archived and exported **0.3.0 (9)** from production source `2fcbd78a29112b80336349364541f8da9c3c8bea`. Visual review subsequently found crowded chart axes at the largest accessibility text size. The follow-up scales chart height with text and reduces axis ticks. The package below is preserved as the initial candidate and will be superseded by a rebuilt build 9 before upload.
+Xcode successfully archived and exported **0.3.0 (9)** from source `83e03fd68323fe399b4e112ddf647832f8533fa7`, including the accessibility chart follow-up. Both the local iPad suite and phone UI checks pass on that production source. The original archive was superseded before any upload and is retained separately as evidence.
 
-- Organizer archive: `~/Library/Developer/Xcode/Archives/2026-10-26/Sleepypod-0.3.0-9-candidate.xcarchive`.
-- Export: `build/parity-validation/Export-0.3.0-9-candidate/Sleepypod.ipa`, 30,166,469 bytes.
-- IPA SHA-256: `e0d7a8f44aebaae3a53b522209af88ecd99fa8d7ba37ada125256369942e66b4`.
+- Organizer archive: `~/Library/Developer/Xcode/Archives/2026-10-26/Sleepypod-0.3.0-9-final.xcarchive`.
+- Export: `build/parity-validation/Export-0.3.0-9-final/Sleepypod.ipa`, 30,170,717 bytes.
+- IPA SHA-256: `764edc201852b11668fa461ba781cdb6ed0e840aa45123ca3a8dadf1d3fcb418`.
 - App and Watch pass strict signature verification, have matching build/version identities and distribution profiles, and disable development debugging. The app retains HealthKit and HomeKit entitlements.
 - App, Watch, framework and SDK privacy manifests and license notices are bundled. App Intents metadata contains 16 actions and 10 featured Shortcuts. Compiled release sources exclude the retired Free Sleep presentation.
 
-Organizer currently requires its Apple account to be signed in again before upload. Safari remains signed into App Store Connect, where build 8 is the latest visible upload. Build 9 has not been delivered to TestFlight. The accessibility follow-up must pass its UI rerun and a fresh signed archive/export before upload. The owner has been asked to complete the Xcode sign-in dialog; group/tester assignment follows successful upload and processing.
+Organizer requires its Apple account to be signed in again before upload. Safari remains signed into App Store Connect, where build 8 is the latest verified upload. Build 9 has not been delivered to TestFlight. The owner has been asked to complete the Xcode sign-in dialog; group/tester assignment follows successful upload and processing.
+
+The backend chat independently verified that the deployed Core web app and existing physical iPhone app receive live data, and that the weekday routine is saved. That does not establish installation or physical behavior of this new build. Actual vibration, scheduled wake delivery and presence qualification remain open; Autopilot remains off pending qualification. The ESP still requires USB provisioning of the protected Core connection.
+
+## Remote verification and merge
+
+[CI run 40429394056](https://github.com/lucaandrea/sleepypod-ios/actions/runs/40429394056) completed successfully on source `83e03fd68323fe399b4e112ddf647832f8533fa7`. All four jobs—build, lint, contract-test and done—passed. Its downloaded iOS 26.2 x86_64 result reports **951 passed, zero failed and eight explicit skips**, 959 total. Five skips are physical startup checks; three are the opt-in private-Pod read checks that ran successfully in the local suite. The separate API contract job also passed.
+
+The final evidence update changes this release record only. The production files match the signed archive and the passing local and remote source. TestFlight delivery and hardware acceptance are still pending the owner actions described above.
