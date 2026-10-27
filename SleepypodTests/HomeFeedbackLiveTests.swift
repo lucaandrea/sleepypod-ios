@@ -60,8 +60,12 @@ import XCTest
         XCTAssertNil(model.error)
         let enabled = status.observations.filter { $0.source.enabled }
         XCTAssertFalse(enabled.isEmpty, "At least one room source must be configured")
-        let delivered = enabled.filter { model.value($0, at: .now) != nil || model.lastReportedValue($0) != nil }
-        XCTAssertEqual(delivered.count, enabled.count, "Every enabled room source must supply a real report; configured placeholders do not count")
+        let delivered = enabled.filter { item in
+            guard item.status == .fresh || item.status == .cached,
+                  let expires = item.expiresAt, let time = model.serverTime(at: .now), Double(expires) > time else { return false }
+            return model.value(item, at: .now) != nil || model.lastReportedValue(item) != nil
+        }
+        XCTAssertEqual(delivered.count, enabled.count, "Every enabled room source must supply a recent report; placeholders and withdrawn historical reports do not count")
         print("Live room report coverage: \(delivered.count)/\(enabled.count); current: \(enabled.filter { model.value($0, at: .now) != nil }.count)")
     }
 }
