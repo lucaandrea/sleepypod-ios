@@ -6,6 +6,7 @@ struct AnalysisMeasurementsCard: View {
     let sideName: String
     let timeZone: String
     @State private var metric = Metric.heartRate
+    @ScaledMetric(relativeTo: .caption) private var chartHeight: CGFloat = 150
     private enum Metric: String, CaseIterable {
         case heartRate = "Heart rate", hrv = "HRV", breathing = "Breathing"
         var unit: String {
@@ -47,7 +48,9 @@ struct AnalysisMeasurementsCard: View {
                     Chart(daily) { day in
                         LineMark(x: .value("Day", day.id), y: .value(metric.unit, day.mean)).foregroundStyle(Theme.cool)
                         PointMark(x: .value("Day", day.id), y: .value(metric.unit, day.mean)).foregroundStyle(Theme.cool)
-                    }.frame(height: 150).chartYAxisLabel(metric.unit)
+                    }.frame(height: chartHeight).chartYAxisLabel(metric.unit)
+                        .chartXAxis { AxisMarks(values: .automatic(desiredCount: 3)) }
+                        .chartYAxis { AxisMarks(values: .automatic(desiredCount: 3)) }
                         .accessibilityLabel("Imported \(metric.rawValue.lowercased()) daily averages")
                     if let first = daily.first?.id, let last = daily.last?.id {
                         Text("\(first.formatted(date: .abbreviated, time: .omitted)) – \(last.formatted(date: .abbreviated, time: .omitted)) · daily averages")

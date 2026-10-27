@@ -56,6 +56,9 @@ import UIKit
         XCTAssertTrue(app.staticTexts["history records"].exists)
         XCTAssertTrue(app.otherElements["Bed record coverage by month"].exists)
         capture(app, largeText ? "Analysis-accessibility-history" : "Analysis-history")
+        let measurements = app.otherElements["Imported heart rate daily averages"]
+        XCTAssertTrue(measurements.exists); reveal(measurements, app)
+        capture(app, largeText ? "Analysis-accessibility-measurements" : "Analysis-measurements")
         let health = app.buttons["analysis.health"]
         reveal(health, app); capture(app, largeText ? "Analysis-accessibility-health" : "Analysis-health")
         health.tap()

@@ -9,6 +9,7 @@ This update addresses the failures reported after testing build 8 at home. It re
 - Connection settings display the saved or discovered origin, explain the retained Keychain key, and allow local controllers that do not require a key.
 - Overnight curves place preparation before bedtime, retain distinct settling points when the wake time changes, and keep deleted settling phases savable.
 - Analysis reads complete paginated imported presence, vital and movement history, counts those sources separately, and charts original vital measurements. Historical vital samples are not relabeled as sleep sessions or model-training labels. The overview loads up to 250,000 records per archive kind; larger sources remain available through the date-filtered archive browser.
+- Analysis charts scale with accessibility text and use fewer axis ticks to keep measurement labels readable.
 - Apple Health sleep history is read across the available date range after existing read consent. Failed or unavailable reads remain visible. Personal model training, sleep-stage inference and Pod temperature automation are explained separately.
 - Late model responses cannot replace a newer side's result. Unsupported controllers receive a readable explanation; the source badge correctly identifies a Pod model.
 - The app registers its Shortcuts on launch, features next-alarm read/change/skip actions, links to its system Shortcuts library, and provides six sleep-focused workflow recipes. All 16 underlying actions remain available. Recipes do not silently create automations.
@@ -32,9 +33,9 @@ flowchart LR
   Checks --> Release[0.3.0 build 9]
 ```
 
-## Signed release candidate
+## Initial signed candidate and accessibility follow-up
 
-Xcode successfully archived and exported **0.3.0 (9)** from production source `2fcbd78a29112b80336349364541f8da9c3c8bea`. Subsequent changes are UI-test handling and this evidence record; the production archive is unchanged.
+Xcode successfully archived and exported **0.3.0 (9)** from production source `2fcbd78a29112b80336349364541f8da9c3c8bea`. Visual review subsequently found crowded chart axes at the largest accessibility text size. The follow-up scales chart height with text and reduces axis ticks. The package below is preserved as the initial candidate and will be superseded by a rebuilt build 9 before upload.
 
 - Organizer archive: `~/Library/Developer/Xcode/Archives/2026-10-26/Sleepypod-0.3.0-9-candidate.xcarchive`.
 - Export: `build/parity-validation/Export-0.3.0-9-candidate/Sleepypod.ipa`, 30,166,469 bytes.
@@ -42,4 +43,4 @@ Xcode successfully archived and exported **0.3.0 (9)** from production source `2
 - App and Watch pass strict signature verification, have matching build/version identities and distribution profiles, and disable development debugging. The app retains HealthKit and HomeKit entitlements.
 - App, Watch, framework and SDK privacy manifests and license notices are bundled. App Intents metadata contains 16 actions and 10 featured Shortcuts. Compiled release sources exclude the retired Free Sleep presentation.
 
-Organizer currently requires its Apple account to be signed in again before upload. Safari remains signed into App Store Connect, where build 8 is the latest visible upload. Build 9 is a verified local candidate, not yet a delivered TestFlight build. The owner has been asked to complete the Xcode sign-in dialog; group/tester assignment follows successful upload and processing.
+Organizer currently requires its Apple account to be signed in again before upload. Safari remains signed into App Store Connect, where build 8 is the latest visible upload. Build 9 has not been delivered to TestFlight. The accessibility follow-up must pass its UI rerun and a fresh signed archive/export before upload. The owner has been asked to complete the Xcode sign-in dialog; group/tester assignment follows successful upload and processing.

@@ -12,6 +12,7 @@ struct AnalysisHistoryCard: View {
     @State private var healthNights: Int?
     @State private var healthMessage: String?
     @State private var refreshID = UUID()
+    @ScaledMetric(relativeTo: .caption) private var chartHeight: CGFloat = 130
     private var scope: String { "\(OwnerConnection.revision)|\(profile.defaultSide)|\(health.enabled)|\(health.preferences.readSleep)|\(phase)" }
     private var ownRecords: [AnalysisHistoryRecord] { history.records.filter { $0.side == profile.defaultSide } }
     private var latest: SleepRecord? { history.currentRecords.filter { $0.side == profile.defaultSide.rawValue && !$0.isOngoing }.max { $0.enteredBedDate < $1.enteredBedDate } }
@@ -81,7 +82,9 @@ struct AnalysisHistoryCard: View {
         return Chart(months, id: \.self) { month in
             BarMark(x: .value("Month", month, unit: .month), y: .value("Bed records", grouped[month]?.count ?? 0))
                 .foregroundStyle(Theme.cool)
-        }.chartYAxisLabel("Records").frame(height: 130)
+        }.chartYAxisLabel("Records").frame(height: chartHeight)
+            .chartXAxis { AxisMarks(values: .automatic(desiredCount: 3)) }
+            .chartYAxis { AxisMarks(values: .automatic(desiredCount: 3)) }
             .accessibilityLabel("Bed record coverage by month")
     }
 
