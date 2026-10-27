@@ -12,6 +12,22 @@ import HealthKit
         service.preferences.hrv = false; service.preferences.respiration = false
         return (service, defaults)
     }
+    func testAnalysisHistoryRequiresReadConsentAndPreservesReadFailures() async throws {
+        let store = NativeHealthTestStore(), (service, _) = make(store)
+        let start = Date(timeIntervalSince1970: 1_700_000_000), end = start.addingTimeInterval(86400)
+        service.preferences.readSleep = false
+        do { _ = try await service.analysisSleepSamples(start: start, end: end); XCTFail("Read consent is required") } catch {}
+        XCTAssertTrue(store.sleepRanges.isEmpty)
+        service.preferences.readSleep = true; service.enabled = false
+        do { _ = try await service.analysisSleepSamples(start: start, end: end); XCTFail("Health is disabled") } catch {}
+        XCTAssertTrue(store.sleepRanges.isEmpty)
+        service.enabled = true; store.sleepFailure = URLError(.cannotLoadFromNetwork)
+        do { _ = try await service.analysisSleepSamples(start: start, end: end); XCTFail("A failed read must not become empty history") }
+        catch { XCTAssertEqual((error as? URLError)?.code, .cannotLoadFromNetwork) }
+        store.sleepFailure = nil
+        let values = try await service.analysisSleepSamples(start: start, end: end)
+        XCTAssertTrue(values.isEmpty); XCTAssertEqual(store.sleepRanges, [start...end, start...end])
+    }
     func testLinkedSideUsesTheSameMigrationAndPrecedenceAsTheNativeProfile() {
         let defaults = UserDefaults(suiteName: "health-side-\(UUID().uuidString)")!
         XCTAssertEqual(HealthSyncService.linkedSide(defaults: defaults), .left)
@@ -177,6 +193,8 @@ private final class NativeHealthTestClient: MockAPIClient, @unchecked Sendable {
     var saved: [[HKSample]] = [], deleted: [String] = []
     var deletedTypes: [Set<HKSampleType>] = []
     var afterSave: (() -> Void)?
+    var sleepRanges: [ClosedRange<Date>] = []
+    var sleepFailure: Error?
     func authorizationStatus(for type: HKObjectType) -> HKAuthorizationStatus { allowed ? .sharingAuthorized : .sharingDenied }
     func authorize(write: Set<HKSampleType>, read: Set<HKObjectType>) async throws {}
     func save(_ samples: [HKSample]) async throws {
@@ -186,6 +204,10 @@ private final class NativeHealthTestClient: MockAPIClient, @unchecked Sendable {
     }
     func delete(types: Set<HKSampleType>, deviceID: String, start: Date, end: Date, olderThan version: Int?) async throws { deleted.append(deviceID); deletedTypes.append(types) }
     func deleteAll(types: Set<HKSampleType>, deviceID: String, olderThan version: Int) async throws { sweeps += 1 }
-    func sleepSamples(start: Date, end: Date) async throws -> [HKCategorySample] { [] }
+    func sleepSamples(start: Date, end: Date) async throws -> [HKCategorySample] {
+        sleepRanges.append(start...end)
+        if let sleepFailure { throw sleepFailure }
+        return []
+    }
     func quantitySamples(_ type: HKQuantityTypeIdentifier, start: Date, end: Date) async throws -> [HKQuantitySample] { [] }
 }

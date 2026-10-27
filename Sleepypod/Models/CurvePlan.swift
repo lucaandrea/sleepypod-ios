@@ -1,5 +1,22 @@
 import Foundation
 
+/// Place preparation and settling points next to the requested sleep window, across midnight.
+struct CurveTimeWindow: Sendable {
+    let start: Int
+    let duration: Int
+    init(bedtime: String, wake: String) {
+        start = AlarmDraft.clockMinutes(bedtime) ?? 0
+        let span = ((AlarmDraft.clockMinutes(wake) ?? 0) - start + 1440) % 1440
+        duration = span == 0 ? 1440 : span
+    }
+    func offset(_ time: String) -> Int {
+        let forward = ((AlarmDraft.clockMinutes(time) ?? 0) - start + 1440) % 1440
+        // Outside the sleep window, choose the nearer edge instead of assuming the next day.
+        if forward > duration, 1440 - forward < forward - duration { return forward - 1440 }
+        return forward
+    }
+}
+
 struct CurveDays: Codable, Equatable, Sendable {
     var left: [DayOfWeek] = []
     var right: [DayOfWeek] = []
@@ -50,14 +67,17 @@ struct CurvePoint: Identifiable, Equatable, Sendable {
     }
     /// Rebase wall-clock points without using the phone's timezone or crossing a DST boundary.
     static func rebase(_ points: [Self], from start: String, until end: String, to newStart: String, until newEnd: String) -> [Self] {
-        let oldStart = AlarmDraft.clockMinutes(start) ?? 0
-        let oldSpan = ((AlarmDraft.clockMinutes(end) ?? 0) - oldStart + 1440) % 1440
+        let window = CurveTimeWindow(bedtime: start, wake: end)
+        let oldSpan = window.duration
         let nextStart = AlarmDraft.clockMinutes(newStart) ?? 0
         let nextSpan = ((AlarmDraft.clockMinutes(newEnd) ?? 0) - nextStart + 1440) % 1440
         return points.map { point in
             var result = point
-            let offset = (point.minutes - oldStart + 1440) % 1440
-            let moved = oldSpan == 0 ? offset : Int((Double(min(offset, oldSpan)) / Double(oldSpan) * Double(nextSpan)).rounded())
+            let offset = window.offset(point.time)
+            let moved: Int
+            if offset < 0 { moved = offset }
+            else if offset > oldSpan { moved = nextSpan + offset - oldSpan }
+            else { moved = Int((Double(offset) / Double(oldSpan) * Double(nextSpan)).rounded()) }
             result.time = clock(nextStart + moved)
             return result
         }

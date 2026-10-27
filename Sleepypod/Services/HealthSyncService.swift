@@ -642,6 +642,14 @@ final class HealthSyncService {
         return await read("sleep") { try await store.sleepSamples(start: start, end: end) }
     }
 
+    /// History reads preserve failures instead of presenting an unreadable Health store as zero nights.
+    func analysisSleepSamples(start: Date, end: Date) async throws -> [HKCategorySample] {
+        guard enabled, preferences.readSleep else {
+            throw APIError.notSupported("Enable Apple Health sleep history before reading it.")
+        }
+        return try await store.sleepSamples(start: start, end: end)
+    }
+
     /// Runs one Health read, logging what came back and keeping the first failure for the UI.
     private func read<S: HKSample>(_ label: String, _ query: () async throws -> [S]) async -> [S] {
         do {

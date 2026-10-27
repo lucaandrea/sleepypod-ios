@@ -90,7 +90,7 @@ struct DeviceSettingsCardView: View {
             }
 
             // Reboot time picker (visible when reboot is enabled)
-            if settingsManager.settings?.rebootDaily == true {
+            if settingsManager.settings?.rebootDaily == true, settingsManager.settings?.rebootTime != nil {
                 DatePicker("Reboot Time", selection: $rebootTime, displayedComponents: .hourAndMinute)
                     .datePickerStyle(.compact)
                     .font(.subheadline)

@@ -21,6 +21,16 @@ struct StatusScreen: View {
                 // Health circle
                 HealthCircleView()
 
+                if !statusManager.servicesNeedingAttention.isEmpty {
+                    GroupedSection("NEEDS ATTENTION") {
+                        VStack(spacing: 12) {
+                            ForEach(statusManager.servicesNeedingAttention) { service in
+                                ServiceRowView(service: service)
+                            }
+                        }.cardStyle()
+                    }.accessibilityIdentifier("status.attention")
+                }
+
                 if APIBackend.current != .freeSleep {
                     GroupedCard {
                         NavigationLink { SystemDashboardScreen() } label: {

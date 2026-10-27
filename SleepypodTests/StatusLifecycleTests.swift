@@ -2,6 +2,20 @@ import XCTest
 @testable import Sleepypod
 
 @MainActor final class StatusLifecycleTests: XCTestCase {
+    func testEveryCountedServiceIsInspectableAndFailuresAreNamed() async throws {
+        var status = try await MockClient().getServerStatus()
+        status.analyzeSleepLeft = .init(name: "Left sleep analysis", status: .failed, description: "Analysis worker", message: "Worker stopped")
+        status.biometricsCalibrationRight = .init(name: "Right calibration", status: .notStarted, description: "Calibration", message: "No baseline")
+        let manager = StatusManager(api: MockAPIClient()); manager.serverStatus = status
+        let visible = manager.categories().flatMap(\.services)
+        XCTAssertEqual(visible.count, manager.totalCount)
+        XCTAssertEqual(Set(visible.map(\.name)), Set(status.allStatuses.map(\.name)))
+        XCTAssertEqual(visible.filter(\.status.isHealthy).count, manager.healthyCount)
+        XCTAssertTrue(manager.servicesNeedingAttention.contains { $0.name == "Left sleep analysis" && $0.message == "Worker stopped" })
+        XCTAssertTrue(manager.servicesNeedingAttention.contains { $0.name == "Right calibration" && $0.status == .notStarted })
+        XCTAssertFalse(manager.servicesNeedingAttention.contains { $0.status.isHealthy })
+    }
+
     func testFailedRefreshRetainsLastSuccessfulReceiptAndMarksStatusStale() async throws {
         let client = LifecycleStatusClient(status: try await MockClient().getServerStatus())
         let model = StatusManager(api: client)

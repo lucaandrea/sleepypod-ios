@@ -166,19 +166,9 @@ struct HomeShortcutsScreen: View {
     let homeContent: AnyView?
     var body: some View {
         FeaturePage(title: "Home & Shortcuts") {
+            SleepShortcutsCard()
             if let homeContent { homeContent }
             HomeConnectionCard()
-            GroupedSection("SHORTCUTS") {
-                GroupedCard {
-                    if let url = URL(string: "shortcuts://") {
-                        Link(destination: url) {
-                            SettingsRow("Open Shortcuts", subtitle: "Temperature, power, base, alarms and Health", icon: "square.stack.3d.up", chevron: true)
-                        }
-                    }
-                }
-                Text("Add a sleepypod action in Shortcuts to control your Pod or combine it with an existing Home scene.")
-                    .font(.footnote).foregroundStyle(Theme.text2).padding(.horizontal, 16)
-            }
         }
     }
 }

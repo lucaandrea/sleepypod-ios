@@ -9,13 +9,15 @@ struct TemperatureCurve: View {
     var bedTemperature: Int = TemperatureConversion.baseTempF
     var compact = false
 
-    private var start: Int { DisplayTime.minutes(bedtime) }
-    private func offset(_ time: String) -> Int { (DisplayTime.minutes(time) - start + 1440) % 1440 }
+    private var window: CurveTimeWindow { CurveTimeWindow(bedtime: bedtime, wake: wake) }
+    private var firstOffset: Int { min(0, points.map { window.offset($0.time) }.min() ?? 0) }
+    private var start: Int { window.start + firstOffset }
+    private func offset(_ time: String) -> Int { window.offset(time) - firstOffset }
     private var sorted: [(minute: Int, temp: Double)] {
         points.map { (offset($0.time), $0.temperature) }.sorted { $0.minute < $1.minute }
     }
     private var duration: Int {
-        max(1, (DisplayTime.minutes(wake) - start + 1440) % 1440, sorted.last?.minute ?? 0)
+        max(1, window.duration - firstOffset, sorted.last?.minute ?? 0)
     }
 
     private var domain: ClosedRange<Double> {

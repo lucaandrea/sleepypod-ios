@@ -265,7 +265,7 @@ struct AllSettingsScreen: View {
                         PodFeatureLink(.healthSync, icon: "arrow.triangle.2.circlepath", tile: true)
                         NavigationLink { AnalysisInventoryView() } label: {
                             SettingsRow("On-device analysis", icon: "cpu", tile: true, chevron: true)
-                        }
+                        }.accessibilityIdentifier("settings.analysis")
                         if APIBackend.current != .freeSleep {
                             NavigationLink { RemoteStageRulesScreen(side: device.selectedSide.primarySide) } label: {
                                 SettingsRow("Pod sleep stages", icon: "moon.zzz", tile: true, chevron: true)
@@ -491,6 +491,7 @@ struct AnalysisInventoryView: View {
         @Bindable var stageModels = stageModels
         ScrollView {
             VStack(alignment: .leading, spacing: 22) {
+                AnalysisHistoryCard()
                 GroupedSection("SLEEP STAGES FROM") {
                     GroupedCard {
                         Menu {
@@ -510,7 +511,7 @@ struct AnalysisInventoryView: View {
                             SettingsRow("Stage source", icon: stageModels.source.symbol,
                                         iconColor: stageModels.source.kind == nil ? Theme.icon : Theme.cool, tile: true) {
                                 HStack(spacing: 6) {
-                                    StageSourceBadge(stageModels.source.kind == nil ? .rules : .model(stageModels.source.title))
+                                    StageSourceBadge(stageModels.source == .rules ? .rules : .model(stageModels.source.title))
                                     Image(systemName: "chevron.up.chevron.down").font(.system(size: 9, weight: .semibold)).foregroundStyle(Theme.text3)
                                 }
                             }
@@ -530,7 +531,7 @@ struct AnalysisInventoryView: View {
                         }
                     }
                 }
-                Text("A personal model can stage your sleep once it beats the rules and the challenger on your own nights, leave-one-night-out. Train it from Sleep → Night → Compare stage models. Switching the source rewrites synced nights in Health.")
+                Text("Training compares a personal model against the built-in estimates on nights it has not seen. Keep the app open while training from Compare and train models. Health exports use your selected source and existing sync permissions.")
                     .font(.footnote).foregroundStyle(Theme.text2).padding(.horizontal, 16).fixedSize(horizontal: false, vertical: true)
                 GroupedSection("ON THIS iPHONE") {
                     GroupedCard {
@@ -546,8 +547,10 @@ struct AnalysisInventoryView: View {
                 Text("Sleep stages are estimated on this iPhone from the pod's vitals and movement. The challenger model only appears on the stage comparison page; it never changes the stages written to Health.")
                     .font(.footnote).foregroundStyle(Theme.text2).padding(.horizontal, 16)
                 GroupedSection("ACKNOWLEDGEMENTS") {
-                    VStack(alignment: .leading, spacing: 10) {
-                        ForEach(StageChallenger.acknowledgements, id: \.self) { Text($0) }
+                    DisclosureGroup("Model research and sources") {
+                        VStack(alignment: .leading, spacing: 10) {
+                            ForEach(StageChallenger.acknowledgements, id: \.self) { Text($0) }
+                        }.padding(.top, 10)
                     }
                     .font(.footnote).foregroundStyle(Theme.text2)
                     .fixedSize(horizontal: false, vertical: true)

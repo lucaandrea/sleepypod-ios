@@ -145,7 +145,7 @@ final class SettingsManager {
     }
 
     func updateRebootTime(_ time: String) async {
-        guard var settings else { return }
+        guard var settings, settings.rebootTime != nil else { return }
         settings.rebootTime = time
         await saveSettings(settings)
     }

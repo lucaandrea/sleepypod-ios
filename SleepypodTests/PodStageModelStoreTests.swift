@@ -38,6 +38,25 @@ struct PodStageModelStoreTests {
         #expect(try staging.classifier.predict(["hrZ": -1, "hrStdZ": 0, "motionZ": 0, "nightFraction": 0.5]).stage == .deep)
     }
 
+    @Test func aLateModelReadCannotReplaceTheLatestSidesResult() async throws {
+        let store = try store(), probe = HeldPodModelRead()
+        let older = Task { await store.refreshPodModel(api: HeldPodModelClient(probe: probe, model: try model()), side: .left) }
+        await probe.waitHeld()
+        let newer = MockAPIClient()
+        newer.stageModelResponse = .success(.init(model: nil, uploadedAt: nil))
+        await store.refreshPodModel(api: newer, side: .right)
+        await probe.release(); try await older.value
+        #expect(store.podModel == nil); #expect(store.podActive == false)
+    }
+
+    @Test func unsupportedControllersShowAnActionableExplanation() async throws {
+        let store = try store(), api = MockAPIClient()
+        api.stageModelResponse = .failure(URLError(.unsupportedURL))
+        await store.refreshPodModel(api: api, side: .left)
+        #expect(store.podError?.contains("Local analysis remains available") == true)
+        #expect(store.podModel == nil)
+    }
+
     @Test func aMissingOrBrokenPodModelFallsBackToRules() async throws {
         let store = try store()
         let api = MockAPIClient()
@@ -127,5 +146,21 @@ struct PodStageModelStoreTests {
         store.source = .pod
         await store.refreshPodModel(api: api, side: .left)
         #expect(store.source == .pod, "a programmatic choice on an older pod is left as is")
+    }
+}
+
+private actor HeldPodModelRead {
+    private var continuation: CheckedContinuation<Void, Never>?
+    func hold() async { await withCheckedContinuation { continuation = $0 } }
+    func waitHeld() async { while continuation == nil { await Task.yield() } }
+    func release() { continuation?.resume(); continuation = nil }
+}
+private final class HeldPodModelClient: MockAPIClient, @unchecked Sendable {
+    let probe: HeldPodModelRead
+    let model: PortableStageModel
+    init(probe: HeldPodModelRead, model: PortableStageModel) { self.probe = probe; self.model = model; super.init() }
+    override func getStageModel(side: Side) async throws -> PodStageModelResponse {
+        await probe.hold()
+        return .init(model: model, uploadedAt: 1, active: true)
     }
 }

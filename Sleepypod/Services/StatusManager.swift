@@ -60,7 +60,7 @@ final class StatusManager {
                 description: "Server, database, wifi, and scheduler",
                 iconName: "server.rack",
                 iconColorHex: "4a90d9",
-                services: [status.express, status.database, status.logger, status.jobs]
+                services: [status.express, status.database, status.logger, status.jobs, status.systemDate]
             ),
             ServiceCategory(
                 name: "Hardware",
@@ -77,10 +77,21 @@ final class StatusManager {
                 iconColorHex: "d4a84a",
                 services: [status.temperatureSchedule, status.alarmSchedule, status.powerSchedule,
                            status.primeSchedule, status.rebootSchedule]
+            ),
+            ServiceCategory(
+                name: "Pod biometrics",
+                description: "Recorded analysis, stream and calibration services",
+                iconName: "waveform.path.ecg",
+                iconColorHex: "40b59c",
+                services: [status.analyzeSleepLeft, status.analyzeSleepRight, status.biometricsInstallation,
+                           status.biometricsStream, status.biometricsCalibrationLeft, status.biometricsCalibrationRight].compactMap { $0 }
             )
-            // Biometrics and Calibration are shown as individual cards
-            // with real data from their own endpoints — not from ServerStatus
         ].filter { !$0.services.isEmpty }
+    }
+
+    /// Every service counted in the summary remains visible, including unavailable services.
+    var servicesNeedingAttention: [StatusInfo] {
+        serverStatus?.allStatuses.filter { !$0.status.isHealthy } ?? []
     }
 
     // MARK: - Subtitle Helpers

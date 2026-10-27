@@ -118,7 +118,8 @@ struct RunOnceDraft: Identifiable, Sendable {
         var calendar = Calendar(identifier: .gregorian); calendar.timeZone = timeZone
         let start = CurvePoint.clock(calendar.component(.hour, from: now) * 60 + calendar.component(.minute, from: now))
         wake = CurvePoint.clock((AlarmDraft.clockMinutes(start) ?? 0) + 8 * 60)
-        points = CurvePoint.rebase(curve.ordered, from: curve.bedtime, until: curve.wake, to: start, until: wake)
+        points = CurvePoint.rebase(curve.ordered, from: curve.ordered.first?.time ?? curve.bedtime,
+                                  until: curve.ordered.last?.time ?? curve.wake, to: start, until: wake)
     }
     mutating func setWake(_ value: String) {
         points = CurvePoint.rebase(points, from: points.first?.time ?? "22:00", until: wake, to: points.first?.time ?? "22:00", until: value)

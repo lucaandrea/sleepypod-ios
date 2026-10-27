@@ -4,6 +4,33 @@ import XCTest
 
 @MainActor
 final class CurveParityTests: XCTestCase {
+    func testChangingGeneratedWakeKeepsPreparationBeforeBedAndPointsDistinct() {
+        var draft = CurveDraft(); draft.name = "Weeknight"; draft.bedtime = "22:00"; draft.wake = "06:00"
+        draft.generate(.balanced)
+        let count = draft.points.count
+        draft.rebase(bedtime: "22:00", wake: "07:00")
+        XCTAssertNil(draft.validation)
+        XCTAssertEqual(draft.points.count, count)
+        XCTAssertEqual(draft.ordered.first?.time, "21:15")
+        XCTAssertEqual(draft.ordered.last?.time, "07:30")
+        XCTAssertEqual(Set(draft.points.map(\.time)).count, count)
+        draft.points.removeAll { ["07:10", "07:20", "07:30"].contains($0.time) }
+        XCTAssertNil(draft.validation, "Removing settling points must leave a savable curve")
+        XCTAssertEqual(draft.payload.wake, "07:00")
+    }
+
+    func testPreBedPointsAppearBeforeTheNightInsteadOfTheFollowingEvening() async throws {
+        let window = CurveTimeWindow(bedtime: "22:00", wake: "06:00")
+        XCTAssertEqual(window.duration, 480)
+        XCTAssertEqual(window.offset("21:15"), -45)
+        XCTAssertEqual(window.offset("00:00"), 120)
+        XCTAssertEqual(window.offset("06:30"), 510)
+        let manager = ScheduleManager(api: MockClient()); await manager.fetchSchedules()
+        manager.schedules?.left.monday.power.on = "22:00"; manager.schedules?.left.monday.power.off = "06:00"
+        manager.schedules?.left.monday.temperatures = ["21:15": 80, "22:00": 82, "02:00": 68, "06:00": 84, "06:30": 80]
+        XCTAssertEqual(manager.phases.map(\.time), ["21:15", "22:00", "02:00", "06:00", "06:30"])
+    }
+
     private func curve(_ id: Int = 1, name: String = "Weeknight") -> PodCurve {
         PodCurve(id: id, name: name, bedtime: "22:00", wake: "07:00", points: ["22:00": 76, "02:00": 68, "07:00": 80], notes: "Keep fractional readings", endAction: .maintain, days: CurveDays(left: [.monday, .tuesday], right: [.friday]), active: true)
     }

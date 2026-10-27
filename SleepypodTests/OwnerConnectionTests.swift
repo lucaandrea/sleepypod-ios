@@ -8,7 +8,7 @@ final class OwnerConnectionTests: XCTestCase {
     private let testOrigin = "https://owner-connection.invalid"
     private let testKey = "synthetic-key-for-isolated-transport-tests-only"
     private var savedDefaults: [String: Any] = [:]
-    private let keys = ["podURL", "podNativeAPIPrefix", "podStreamURL", "apiBackend", "lastLiveBackend"]
+    private let keys = ["podURL", "podIPAddress", "podNativeAPIPrefix", "podStreamURL", "apiBackend", "lastLiveBackend"]
 
     override func setUp() async throws {
         for key in keys { savedDefaults[key] = UserDefaults.standard.object(forKey: key); UserDefaults.standard.removeObject(forKey: key) }
@@ -24,6 +24,19 @@ final class OwnerConnectionTests: XCTestCase {
             let request = OwnerConnection.authorize(URLRequest(url: URL(string: origin + "/api/device/status")!), token: testKey)
             XCTAssertNil(request.value(forHTTPHeaderField: "Authorization"))
         }
+    }
+    func testConnectionFormUsesTheActualDiscoveredAddressWithoutGrantingCredentialAuthority() {
+        UserDefaults.standard.removeObject(forKey: "podURL")
+        UserDefaults.standard.set("192.168.1.25", forKey: "podIPAddress")
+        XCTAssertEqual(OwnerConnection.displayAddress, "http://192.168.1.25:3000")
+        XCTAssertNil(OwnerConnection.endpoint)
+        let request = OwnerConnection.authorize(URLRequest(url: URL(string: OwnerConnection.displayAddress)!), token: testKey)
+        XCTAssertNil(request.value(forHTTPHeaderField: "Authorization"))
+        UserDefaults.standard.set(testOrigin + ":8443", forKey: "podURL")
+        XCTAssertEqual(OwnerConnection.displayAddress, testOrigin + ":8443")
+        UserDefaults.standard.removeObject(forKey: "podURL")
+        UserDefaults.standard.removeObject(forKey: "podIPAddress")
+        XCTAssertEqual(OwnerConnection.displayAddress, "")
     }
     func testHTTPSStreamMustBeExplicitAndSameHost() {
         XCTAssertNil(OwnerConnection.streamURL)

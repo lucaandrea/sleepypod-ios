@@ -2,6 +2,23 @@ import XCTest
 @testable import Sleepypod
 
 @MainActor final class SettingsLifecycleTests: XCTestCase {
+    func testLegacySettingsWithoutRebootClockDecodeAndRoundTrip() async throws {
+        let fixture = try await MockClient().getSettings()
+        var wire = try XCTUnwrap(JSONSerialization.jsonObject(with: JSONEncoder().encode(fixture)) as? [String: Any])
+        wire.removeValue(forKey: "rebootTime")
+        let data = try JSONSerialization.data(withJSONObject: wire)
+        let settings = try JSONDecoder().decode(PodSettings.self, from: data)
+        XCTAssertNil(settings.rebootTime)
+        XCTAssertEqual(settings.timeZone, fixture.timeZone)
+        XCTAssertEqual(settings.left.name, fixture.left.name)
+        guard case .alarm(let behavior, let duration, _) = settings.right.taps.quadTap else { return XCTFail("Alarm gesture lost") }
+        XCTAssertEqual(behavior, .snooze); XCTAssertEqual(duration, 300)
+        let encoded = try XCTUnwrap(JSONSerialization.jsonObject(with: JSONEncoder().encode(settings)) as? [String: Any])
+        XCTAssertNil(encoded["rebootTime"], "Legacy saves must not add a field rejected by the server's strict schema")
+        wire.removeValue(forKey: "timeZone")
+        XCTAssertThrowsError(try JSONDecoder().decode(PodSettings.self, from: JSONSerialization.data(withJSONObject: wire)))
+    }
+
     func testBackendSwitchDiscardsAnOldRead() async throws {
         let restore = preserveDisplayDefaults(); defer { restore() }
         var oldValue = try await MockClient().getSettings(); oldValue.left.name = "Previous Pod"

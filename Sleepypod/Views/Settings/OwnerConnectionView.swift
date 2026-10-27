@@ -8,12 +8,14 @@ struct OwnerConnectionView: View {
     @Environment(ScheduleManager.self) private var schedules
     @Environment(MetricsManager.self) private var metrics
     @Environment(StatusManager.self) private var status
-    @State private var address = UserDefaults.standard.string(forKey: "podURL") ?? ""
+    @State private var address = OwnerConnection.displayAddress
     @State private var token = ""
     @State private var message: String?
     @State private var saving = false
     @State private var backend = APIBackend.current == .freeSleep ? APIBackend.freeSleep : .sleepypodCore
     @State private var streamAddress = UserDefaults.standard.string(forKey: "podStreamURL") ?? ""
+
+    private var hasSavedKey: Bool { !UnifiedRuntime.savedKey(for: address.trimmingCharacters(in: CharacterSet(charactersIn: "/"))).isEmpty }
 
     var body: some View {
         ScrollView {
@@ -32,10 +34,13 @@ struct OwnerConnectionView: View {
                                 .textInputAutocapitalization(.never).autocorrectionDisabled().keyboardType(.URL)
                                 .accessibilityLabel("Pod controller address")
                         }.padding(16)
-                        SecureField("Connection key", text: $token)
+                        SecureField(hasSavedKey ? "Saved key · leave blank to keep" : "Connection key (if required)", text: $token)
                             .textInputAutocapitalization(.never).autocorrectionDisabled().privacySensitive().padding(16)
+                            .accessibilityIdentifier("connection.key")
                     }
-                    Text("The connection key stays in this iPhone’s Keychain. Use your private HTTPS address for remote access.")
+                    Text(hasSavedKey
+                         ? "A connection key is saved in this iPhone’s Keychain. It will be reused unless you enter a replacement."
+                         : "Local controllers may connect without a key. If your controller requires one, it stays in this iPhone’s Keychain. Use your private HTTPS address for remote access.")
                         .font(.footnote).foregroundStyle(Theme.text2).padding(.horizontal, 16)
                 }
                 GroupedSection("SENSOR STREAM") {
@@ -43,7 +48,7 @@ struct OwnerConnectionView: View {
                         TextField("Optional wss:// sensor stream address", text: $streamAddress)
                             .textInputAutocapitalization(.never).autocorrectionDisabled().keyboardType(.URL).padding(16)
                     }
-                    Text("Leave blank to use the controller’s local stream.").font(.footnote)
+                    Text("Leave blank to use the controller’s local stream on port 3001.").font(.footnote)
                         .foregroundStyle(Theme.text2).padding(.horizontal, 16)
                 }
                 Button(saving ? "Connecting…" : "Save and connect") { Task { await save() } }
@@ -52,6 +57,7 @@ struct OwnerConnectionView: View {
             }.padding(.horizontal, 16).padding(.top, 8).padding(.bottom, 32)
         }.background(Theme.background).navigationTitle("Pod connection")
             .navigationBarTitleDisplayMode(.inline).toolbar(.visible, for: .navigationBar)
+            .onChange(of: address) { _, _ in token = "" }
     }
 
     private func save() async {
@@ -60,7 +66,7 @@ struct OwnerConnectionView: View {
         do {
             let candidate = address.trimmingCharacters(in: .whitespacesAndNewlines).trimmingCharacters(in: CharacterSet(charactersIn: "/"))
             let key = token.isEmpty ? UnifiedRuntime.savedKey(for: candidate) : token
-            guard key.count >= 32 else { message = "Enter the controller’s connection key (at least 32 characters)."; return }
+            guard key.isEmpty || key.count >= 32 else { message = "Enter the complete connection key (at least 32 characters), or leave blank for a local controller without a key."; return }
             if !streamAddress.isEmpty {
                 guard let endpoint = URL(string: candidate), let streamURL = URL(string: streamAddress),
                       streamURL.host == endpoint.host, streamURL.user == nil, streamURL.password == nil,

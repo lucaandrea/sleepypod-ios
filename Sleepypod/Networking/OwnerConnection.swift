@@ -12,6 +12,15 @@ enum OwnerConnection {
         return URL(string: saved)
     }
 
+    /// Discovery stores the host separately; show the same address used by the active clients.
+    static var displayAddress: String {
+        if let endpoint { return endpoint.absoluteString }
+        guard let host = UserDefaults.standard.string(forKey: "podIPAddress"), !host.isEmpty else { return "" }
+        var components = URLComponents()
+        components.scheme = "http"; components.host = host; components.port = 3000
+        return components.url?.absoluteString ?? ""
+    }
+
     /// Match the exact saved origin; discovery probes must never receive another Pod's key.
     static func authorize(_ request: URLRequest, token suppliedToken: String? = nil) -> URLRequest {
         guard let endpoint, let url = request.url,

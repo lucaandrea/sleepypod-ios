@@ -623,3 +623,29 @@ index 203e7ed..b93e462 100644
              let failure = try? JSONDecoder().decode(APIError.self, from: data)
              throw PodError.message(failure?.error.message ?? "The Pod returned an error (\(response.statusCode)).")
          }
+diff --git a/FreeSleepKit/Intents/FreeSleepShortcuts.swift b/FreeSleepKit/Intents/FreeSleepShortcuts.swift
+index f3dd754..f8910c0 100644
+--- a/FreeSleepKit/Intents/FreeSleepShortcuts.swift
++++ b/FreeSleepKit/Intents/FreeSleepShortcuts.swift
+@@ -12,15 +12,15 @@ struct FreeSleepShortcuts: AppShortcutsProvider {
+             shortTitle: "Stop bed", systemImageName: "stop.circle")
+         AppShortcut(intent: SleepSummaryIntent(), phrases: ["My sleep routine in \(.applicationName)"],
+             shortTitle: "Sleep routine", systemImageName: "chart.bar")
+-        AppShortcut(intent: SetBaseAnglesIntent(), phrases: ["Set my bed angles with \(.applicationName)"],
+-            shortTitle: "Head and feet angles", systemImageName: "angle")
++        AppShortcut(intent: GetNextAlarmIntent(), phrases: ["When is my next bed alarm in \(.applicationName)"],
++            shortTitle: "Next bed alarm", systemImageName: "alarm")
+         AppShortcut(intent: SyncHealthIntent(), phrases: ["Sync Health with \(.applicationName)"],
+             shortTitle: "Sync Apple Health", systemImageName: "heart")
+         AppShortcut(intent: SetComfortIntent(), phrases: ["Set adaptive comfort with \(.applicationName)"],
+             shortTitle: "Adaptive comfort", systemImageName: "thermometer.variable")
+-        AppShortcut(intent: SetAwayModeIntent(), phrases: ["Set Away mode with \(.applicationName)"],
+-            shortTitle: "Away mode", systemImageName: "suitcase")
+-        AppShortcut(intent: PrimePodIntent(), phrases: ["Prime my Pod with \(.applicationName)"],
+-            shortTitle: "Prime Pod", systemImageName: "drop")
++        AppShortcut(intent: ChangeNextAlarmIntent(), phrases: ["Change my next bed alarm with \(.applicationName)"],
++            shortTitle: "Change next alarm", systemImageName: "alarm.waves.left.and.right")
++        AppShortcut(intent: SkipNextAlarmIntent(), phrases: ["Skip my next bed alarm with \(.applicationName)"],
++            shortTitle: "Skip next alarm", systemImageName: "alarm.slash")
+     }
+ }
