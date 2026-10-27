@@ -30,6 +30,10 @@ import UIKit
            let appRow = shortcuts.staticTexts.matching(identifier: "sleepypod").allElementsBoundByIndex.first(where: \.isHittable) {
             appRow.tap()
         }
+        if !shortcuts.staticTexts["Next bed alarm"].isHittable,
+           let sidebar = shortcuts.buttons.matching(identifier: "Hide Sidebar").allElementsBoundByIndex.first(where: \.isHittable) {
+            sidebar.tap()
+        }
         XCTAssertTrue(shortcuts.staticTexts["Next bed alarm"].isHittable)
         capture(shortcuts, "Sleep-shortcuts-system-handoff")
     }
