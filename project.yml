@@ -15,7 +15,7 @@ settings:
     INFOPLIST_KEY_UILaunchScreen_Generation: true
     INFOPLIST_KEY_CFBundleDisplayName: sleepypod
     MARKETING_VERSION: "0.3.0"
-    CURRENT_PROJECT_VERSION: 8
+    CURRENT_PROJECT_VERSION: 9
     SWIFT_STRICT_CONCURRENCY: complete
     # Apply to our targets, without overriding third-party package warning policies.
     SWIFT_TREAT_WARNINGS_AS_ERRORS: YES

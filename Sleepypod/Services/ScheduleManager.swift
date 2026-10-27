@@ -36,9 +36,8 @@ final class ScheduleManager {
 
     var phases: [SchedulePhase] {
         guard let daily = currentDailySchedule else { return [] }
-        let sorted = daily.temperatures.sorted { time1, time2 in
-            (DisplayTime.minutes(time1.key) - DisplayTime.minutes(daily.power.on) + 1440) % 1440 < (DisplayTime.minutes(time2.key) - DisplayTime.minutes(daily.power.on) + 1440) % 1440
-        }
+        let window = CurveTimeWindow(bedtime: daily.power.on, wake: daily.power.off)
+        let sorted = daily.temperatures.sorted { window.offset($0.key) < window.offset($1.key) }
 
         return sorted.enumerated().map { index, entry in
             let (name, icon) = Self.phaseLabel(index: index, count: sorted.count)
@@ -313,10 +312,8 @@ final class ScheduleManager {
             var sideSchedule = updated.schedule(for: side)
             for day in selectedDays {
                 var daily = sideSchedule[day]
-                let bedtime = DisplayTime.minutes(daily.power.on)
-                let times = daily.temperatures.keys.sorted {
-                    (DisplayTime.minutes($0) - bedtime + 1440) % 1440 < (DisplayTime.minutes($1) - bedtime + 1440) % 1440
-                }
+                let window = CurveTimeWindow(bedtime: daily.power.on, wake: daily.power.off)
+                let times = daily.temperatures.keys.sorted { window.offset($0) < window.offset($1) }
                 let temperatures = profile.temperatures(for: times.count)
                 for (index, time) in times.enumerated() { daily.temperatures[time] = temperatures[index] }
                 sideSchedule[day] = daily

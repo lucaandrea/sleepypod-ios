@@ -64,6 +64,7 @@ final class StageModelStore {
     private(set) var podFetchedAt: Date?
     /// Whether the pod stages the side's nights with its stored model.
     private(set) var podActive = false
+    private var podRequestID = UUID()
     private(set) var isTraining = false
     private(set) var trainingKind: StageModelKind?
     private(set) var trainingProgress: Double = 0 {
@@ -126,15 +127,21 @@ final class StageModelStore {
     /// Reads the side's model from the pod. A document that fails validation is refused and reported, and the
     /// source falls back to the rules if it was the pod.
     func refreshPodModel(api: SleepypodProtocol, side: Side) async {
+        let request = UUID(), owner = OwnerConnection.revision
+        podRequestID = request
         let response: PodStageModelResponse
         do {
             response = try await api.getStageModel(side: side)
         } catch {
+            guard request == podRequestID, owner == OwnerConnection.revision, !Task.isCancelled else { return }
             // Away from the pod's network: keep the last valid model and the user's choice; just say why.
-            podError = error.localizedDescription
+            podError = (error as? URLError)?.code == .unsupportedURL
+                ? "This controller does not offer a stored sleep-stage model. Local analysis remains available."
+                : APIError.message(for: error)
             Log.general.error("Pod stage model not reachable: \(error.localizedDescription, privacy: .public)")
             return
         }
+        guard request == podRequestID, owner == OwnerConnection.revision, !Task.isCancelled else { return }
         podFetchedAt = Date()
         podActive = response.active ?? false
         guard let model = response.model else {

@@ -119,5 +119,6 @@ struct PodSettings: Codable, Sendable {
     var primePodDaily: PrimePodDaily
     var temperatureFormat: TemperatureFormat
     var rebootDaily: Bool
-    var rebootTime: String  // "HH:mm"
+    // Legacy controllers expose only rebootDaily; an absent clock is not a decode failure.
+    var rebootTime: String?  // "HH:mm" when the controller supports a configurable time
 }

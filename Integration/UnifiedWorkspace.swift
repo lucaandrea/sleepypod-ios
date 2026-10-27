@@ -5,6 +5,7 @@ import BackgroundTasks
 public enum UnifiedRuntime {
     @MainActor public static func initialize() {
         NativeModelClient.configureSDK()
+        FreeSleepShortcuts.updateAppShortcutParameters()
         if AppMode.isCore { BGTaskScheduler.shared.cancel(taskRequestWithIdentifier: HealthBackgroundScheduler.identifier) }
     }
     @MainActor public static func refreshHealth() async {
