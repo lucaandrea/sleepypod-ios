@@ -1,8 +1,25 @@
 import XCTest
 import HealthKit
+import FreeSleepKit
 @testable import Sleepypod
 
 @MainActor final class NativeHealthSyncTests: XCTestCase {
+    func testPersonalPreparationBlocksHealthReadsAndWritesBeforeStoreAccess() async throws {
+        let store = NativeHealthTestStore(), (service, _) = make(store), probe = NativeHealthTestProbe()
+        service.preferences.readSleep = true; service.preferences.readVitals = true
+        await PersonalWorkspaceBoundary.$suppliedActive.withValue(true) {
+            XCTAssertNil(HealthSyncService.linkedSource())
+            await service.syncInBackground()
+            await service.syncRecent(api: NativeHealthTestClient(probe), podID: "pod", side: .right, demo: false)
+            let rebuilt = await service.rebuild(api: NativeHealthTestClient(probe), podID: "pod", side: .right, demo: false)
+            XCTAssertFalse(rebuilt)
+            do { _ = try await service.analysisSleepSamples(start: .distantPast, end: .now); XCTFail("Personal Health reads are gated") } catch {}
+            do { _ = try await service.watchReferenceSnapshot(side: .right, days: 7); XCTFail("Personal Watch imports are gated") } catch {}
+            let samples = await service.sleepSamples(start: .distantPast, end: .now); XCTAssertTrue(samples.isEmpty)
+        }
+        XCTAssertTrue(store.sleepRanges.isEmpty); XCTAssertTrue(store.saved.isEmpty); XCTAssertTrue(store.deleted.isEmpty)
+        XCTAssertEqual(store.sweeps, 0); XCTAssertTrue(probe.ranges.isEmpty)
+    }
     private func make(_ store: NativeHealthTestStore, owner: NativeHealthTestOwner = .init()) -> (HealthSyncService, UserDefaults) {
         let defaults = UserDefaults(suiteName: "native-health-\(UUID().uuidString)")!
         defaults.set("right", forKey: "userDefaultSide")

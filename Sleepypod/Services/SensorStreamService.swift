@@ -1,3 +1,4 @@
+import FreeSleepKit
 import Foundation
 import Observation
 import SwiftUI
@@ -181,6 +182,7 @@ final class SensorStreamService {
     }
 
     func connect() {
+        guard !PersonalWorkspaceBoundary.isActive else { disconnect(); return }
         // Demo mode — generate fake sensor data instead of connecting WS
         if APIBackend.current.isDemo {
             guard demoTask == nil else { return }

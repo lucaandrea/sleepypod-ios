@@ -86,6 +86,7 @@ final class IntelligenceWorkspace {
         } catch { message = error is CancellationError ? "Test cancelled." : error.localizedDescription }
     }
     func importHistory(authorize: Bool = true) async {
+        guard !PersonalWorkspaceBoundary.isActive else { return }
         guard !busy, !AppMode.isDemo else { return }
         busy = true; message = "Reading accessible Health history…"; lastRefreshAttempt = .now
         defer { busy = false }
@@ -93,6 +94,7 @@ final class IntelligenceWorkspace {
             let reader = HealthHistoryReader(store: HKHealthStore())
             if authorize { try await reader.authorize(); defaults.set(true, forKey: "intelligence.healthRequested") }
             let history = try await reader.read()
+            try PersonalWorkspaceBoundary.requireLegacyAccess()
             try Task.checkCancellation()
             var updated = archive; updated.history = history
             try store.write(updated); archive = updated
@@ -102,6 +104,7 @@ final class IntelligenceWorkspace {
         } catch { message = error is CancellationError ? "History refresh cancelled. The previous import is unchanged." : error.localizedDescription }
     }
     func refreshOnActivation() async {
+        guard !PersonalWorkspaceBoundary.isActive else { return }
         restore()
         guard refreshHistory, defaults.bool(forKey: "intelligence.healthRequested"), !busy,
               Date.now.timeIntervalSince(archive.history.importedAt) >= 6 * 3600,

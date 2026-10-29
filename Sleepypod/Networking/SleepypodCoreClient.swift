@@ -1,3 +1,4 @@
+import FreeSleepKit
 import Foundation
 
 /// tRPC client for sleepypod-core (Next.js backend).
@@ -611,10 +612,12 @@ final class SleepypodCoreClient: SleepypodProtocol, @unchecked Sendable {
     }
 
     private func performRequest(_ request: URLRequest) async throws -> (Data, URLResponse) {
+        try PersonalWorkspaceBoundary.requireLegacyAccess()
         let request = OwnerConnection.authorize(request)
         do {
             return try await session.data(for: request)
         } catch let error as URLError where request.httpMethod == "GET" && Self.isTransient(error) {
+            try PersonalWorkspaceBoundary.requireLegacyAccess()
             // A pooled keep-alive connection the pod already closed fails once; queries are safe to resend.
             Log.network.info("Retrying \(request.url?.path ?? "?") after \(error.code.rawValue)")
             do {

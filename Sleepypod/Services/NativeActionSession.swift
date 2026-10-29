@@ -137,6 +137,7 @@ import Observation
         guard let side = Side(rawValue: value) else { throw NativeControlFailure.invalid }; return side
     }
     private func check(_ scope: [String]) throws {
+        try PersonalWorkspaceBoundary.requireLegacyAccess()
         try Task.checkCancellation()
         guard live() else { throw APIError.serverError(message: "Connect to your real sleepypod controller before using this action.") }
         guard owner() == scope else { throw NativeControlFailure.changedOwner }

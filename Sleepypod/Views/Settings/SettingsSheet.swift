@@ -63,6 +63,9 @@ struct SettingsSheet: View {
                         Button { showComfort = true } label: {
                             SettingsRow("Personal comfort", icon: "sparkles", iconColor: Theme.text1, chevron: true)
                         }
+                        NavigationLink { HouseholdPreparationEntry() } label: {
+                            SettingsRow("Personal account", subtitle: "Preferences and routine drafts", icon: "person.crop.circle", iconColor: Theme.text1, chevron: true)
+                        }.accessibilityIdentifier("settings.personalAccount")
                         NavigationLink { OwnerConnectionView() } label: {
                             SettingsRow("Pod connection", icon: "network", iconColor: Theme.text1, chevron: true)
                         }
@@ -292,6 +295,9 @@ struct AllSettingsScreen: View {
                 }
                 GroupedSection("CONNECTIONS") {
                     GroupedCard {
+                        NavigationLink { HouseholdPreparationEntry() } label: {
+                            SettingsRow("Personal account", subtitle: "Preferences and routine drafts", icon: "person.crop.circle", iconColor: Theme.text1, chevron: true)
+                        }.accessibilityIdentifier("settings.personalAccount")
                         NavigationLink { OwnerConnectionView() } label: {
                             SettingsRow("Pod connection", icon: "network", tile: true, chevron: true)
                         }

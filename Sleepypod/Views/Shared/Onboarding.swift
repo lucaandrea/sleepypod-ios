@@ -120,6 +120,7 @@ struct BedSidesEditor: View {
 }
 
 struct WelcomeScreen: View {
+    @Environment(HouseholdWorkspace.self) private var household
     let onConnect: () -> Void
     let onDemo: () -> Void
     @Environment(PodDiscovery.self) private var discovery
@@ -237,6 +238,8 @@ struct WelcomeScreen: View {
                 }
                     .buttonStyle(PrimaryButtonStyle())
                     .disabled(connecting || (manualIP.isEmpty && discovery.discoveredPods.isEmpty))
+                Button("Join a personal account") { discovery.stopBrowsing(); household.enter() }
+                    .buttonStyle(GlassButtonStyle())
                 Button("Explore demo") {
                     discovery.stopBrowsing()
                     onDemo()

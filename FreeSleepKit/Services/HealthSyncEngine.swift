@@ -9,6 +9,7 @@ final class HealthSyncEngine {
 
     // Fetch a complete export before changing Health. Save replacements before reconciling obsolete, owned samples.
     func synchronize(source: any HealthExportSource, settings: HealthSyncSettings, range: DateInterval, now: Date = .now) async throws -> Int {
+        try PersonalWorkspaceBoundary.requireLegacyAccess()
         guard !running else { throw PodError.message("A Health sync is already running.") }
         running = true; defer { running = false }
         guard store.canWrite(heartRate: settings.exportHeartRate) else {
@@ -23,6 +24,7 @@ final class HealthSyncEngine {
         try validate(records: records, vitals: vitals)
         guard try await source.identity() == settings.podID else { throw PodError.message("The Pod changed during export. Nothing was written to Health.") }
         try Task.checkCancellation()
+        try PersonalWorkspaceBoundary.requireLegacyAccess()
         let old = try await store.existing(pod: settings.podID, side: settings.side, range: range, heartRate: settings.exportHeartRate)
         let previousVersion = old.compactMap { ($0.metadata?[HKMetadataKeySyncVersion] as? NSNumber)?.intValue }.max() ?? 0
         guard previousVersion < Int.max else { throw PodError.message("A Health sample has an invalid sync version.") }
@@ -39,6 +41,7 @@ final class HealthSyncEngine {
             written += try await save(HealthSampleBuilder.heart(batch, pod: settings.podID, side: settings.side, version: version), identifiers: &identifiers)
         }
         try Task.checkCancellation()
+        try PersonalWorkspaceBoundary.requireLegacyAccess()
         let obsolete = old.filter { sample in
             guard sample.metadata?["FreeSleepPod"] as? String == settings.podID,
                   sample.metadata?["FreeSleepSide"] as? String == settings.side.rawValue,
@@ -49,6 +52,7 @@ final class HealthSyncEngine {
         }
         for offset in stride(from: 0, to: obsolete.count, by: 400) {
             try Task.checkCancellation()
+            try PersonalWorkspaceBoundary.requireLegacyAccess()
             try await store.delete(Array(obsolete[offset..<min(offset + 400, obsolete.count)]))
         }
         return written
@@ -57,6 +61,7 @@ final class HealthSyncEngine {
     private func save(_ samples: [HKSample], identifiers: inout Set<String>) async throws -> Int {
         for offset in stride(from: 0, to: samples.count, by: 400) {
             try Task.checkCancellation()
+            try PersonalWorkspaceBoundary.requireLegacyAccess()
             let batch = Array(samples[offset..<min(offset + 400, samples.count)])
             try await store.save(batch)
             identifiers.formUnion(batch.compactMap { $0.metadata?[HKMetadataKeySyncIdentifier] as? String })

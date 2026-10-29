@@ -1,3 +1,4 @@
+import FreeSleepKit
 import Foundation
 import Observation
 import WatchConnectivity
@@ -62,12 +63,13 @@ final class WatchMotionReceiver: NSObject {
     }
 
     func activate() {
-        guard WCSession.isSupported() else { return }
+        guard !PersonalWorkspaceBoundary.isActive, WCSession.isSupported() else { return }
         WCSession.default.delegate = self
         WCSession.default.activate()
     }
 
     func received(_ result: Result<WatchMotionInbox.Recording, Error>) {
+        guard !PersonalWorkspaceBoundary.isActive else { recordings = []; return }
         switch result {
         case .success: recordings = inbox.recordings(); lastError = nil
         case .failure(let error): lastError = "A Watch recording could not be read: \(error.localizedDescription)"
@@ -82,6 +84,7 @@ extension WatchMotionReceiver: WCSessionDelegate {
 
     /// The transferred file is deleted when this returns, so it is copied before hopping to the main actor.
     nonisolated func session(_ session: WCSession, didReceive file: WCSessionFile) {
+        guard !PersonalWorkspaceBoundary.isActive else { return }
         let result = Result { try inbox.store(contentsOf: file.fileURL) }
         Task { @MainActor in self.received(result) }
     }
