@@ -13,12 +13,15 @@ final class CoreHardwareStatusTests: XCTestCase {
         XCTAssertTrue(status.database.status.isHealthy)
         XCTAssertNil(status.coreWiFi)
         XCTAssertNil(status.coreFirewall)
+        XCTAssertEqual(status.systemDate.status, .notStarted)
+        XCTAssertTrue(status.systemDate.message.contains("Process status unavailable"))
     }
     func testMalformedAndUnrecognizedHardwareReadingsRemainUnknown() async throws {
         let status = try await read("malformed")
         XCTAssertFalse(status.podSocket.status.isHealthy)
         XCTAssertFalse(status.podSocketMonitor.status.isHealthy)
         XCTAssertFalse(status.logger.status.isHealthy)
+        XCTAssertEqual(status.systemDate.status, .notStarted)
     }
     func testSupportedMonitorStatesAndMissingMeasurements() async throws {
         for state in ["running", "polling", "connected"] {
@@ -31,6 +34,8 @@ final class CoreHardwareStatusTests: XCTestCase {
             XCTAssertEqual(status.coreWiFi?.connected, true)
             XCTAssertNil(status.coreWiFi?.signal)
             XCTAssertEqual(status.coreFirewall?.ok, true)
+            XCTAssertEqual(status.systemDate.status, .started)
+            XCTAssertTrue(status.systemDate.message.contains("Check Health for data freshness"))
         }
     }
     func testRealHardwareFailureAndDisconnectedWifiRemainVisible() async throws {
@@ -43,6 +48,17 @@ final class CoreHardwareStatusTests: XCTestCase {
         XCTAssertEqual(status.coreFirewall?.ok, false)
         XCTAssertEqual(status.coreFirewall?.missing, ["OUTPUT"])
         XCTAssertEqual(status.coreWiFi?.connected, false)
+        XCTAssertEqual(status.systemDate.status, .notStarted)
+        XCTAssertTrue(status.systemDate.message.contains("Sleep detector"))
+        XCTAssertTrue(status.systemDate.message.contains("Not reported running"))
+    }
+    func testMissingOrConflictingProcessReportsRemainUnavailable() async throws {
+        for variant in ["missing-process", "duplicate-process"] {
+            let status = try await read(variant)
+            XCTAssertEqual(status.systemDate.status, .notStarted)
+            XCTAssertTrue(status.systemDate.message.contains("Status unavailable: Sleep detector"))
+            XCTAssertTrue(status.database.status.isHealthy)
+        }
     }
     private func read(_ variant: String) async throws -> ServerStatus {
         let configuration = URLSessionConfiguration.ephemeral
@@ -59,7 +75,7 @@ private final class CoreHardwareStatusProtocol: URLProtocol, @unchecked Sendable
         guard let url = request.url else { return }
         let variant = url.host?.components(separatedBy: ".").first ?? "missing"
         XCTAssertEqual(request.httpMethod, "GET")
-        XCTAssertEqual(url.path, "/api/trpc/health.system,health.scheduler,health.hardware,health.dacMonitor,system.wifiStatus")
+        XCTAssertEqual(url.path, "/api/trpc/health.system,health.scheduler,health.hardware,health.dacMonitor,system.wifiStatus,system.getLogSources")
         var healthySystem: [String: Any] = ["status": "ok", "database": ["status": "ok", "latencyMs": 2], "scheduler": ["enabled": true, "jobCount": 3]]
         if variant != "missing" { healthySystem["iptables"] = ["ok": variant != "failed", "missing": variant == "failed" ? ["OUTPUT"] : []] }
         let scheduler: [String: Any] = ["enabled": true, "healthy": true, "jobCounts": ["total": 3, "temperature": 1, "powerOn": 1, "powerOff": 1, "alarm": 0, "prime": 0, "reboot": 0]]
@@ -71,8 +87,20 @@ private final class CoreHardwareStatusProtocol: URLProtocol, @unchecked Sendable
         case "failed": optional = [wrap(["status": "error", "error": "Socket unavailable"]), wrap(["status": "disconnected"]), wrap(["connected": false])]
         default: optional = [wrap(["status": "ok"]), wrap(["status": variant]), wrap(["connected": true])]
         }
+        var sources: [[String: Any]] = [
+            ["unit": "sleepypod-piezo-processor.service", "name": "Piezo", "active": true],
+            ["unit": "sleepypod-sleep-detector.service", "name": "Sleep", "active": variant != "failed"],
+            ["unit": "sleepypod-environment-monitor.service", "name": "Environment", "active": true],
+            ["unit": "unrelated.service", "name": "Unrelated", "active": false]
+        ]
+        if variant == "missing-process" { sources.remove(at: 1) }
+        if variant == "duplicate-process" { sources.append(sources[1]) }
+        let processes: [String: Any]
+        if variant == "missing" { processes = ["error": ["json": ["message": "Unavailable"]]] }
+        else if variant == "malformed" { processes = wrap(["sources": [["unit": "sleepypod-piezo-processor.service", "active": "invalid"]]]) }
+        else { processes = wrap(["sources": sources]) }
         do {
-            let data = try JSONSerialization.data(withJSONObject: [wrap(healthySystem), wrap(scheduler)] + optional)
+            let data = try JSONSerialization.data(withJSONObject: [wrap(healthySystem), wrap(scheduler)] + optional + [processes])
             client?.urlProtocol(self, didReceive: HTTPURLResponse(url: url, statusCode: 200, httpVersion: nil, headerFields: ["Content-Type": "application/json"])!, cacheStoragePolicy: .notAllowed)
             client?.urlProtocol(self, didLoad: data); client?.urlProtocolDidFinishLoading(self)
         } catch { client?.urlProtocol(self, didFailWithError: error) }

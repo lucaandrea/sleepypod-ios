@@ -248,6 +248,7 @@
 		415E9841EFC783DCF6A4588A /* SetPointEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 987F4C796A69FBEA5B834DEF /* SetPointEditor.swift */; };
 		41ABC8E47CC260C579F94617 /* HealthWatchImportWorkspace.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1B20256BE057E20C7C18517 /* HealthWatchImportWorkspace.swift */; };
 		4267B7BCD3FFD3076D3DD217 /* next-alarm-example.json in Resources */ = {isa = PBXBuildFile; fileRef = F6369BF88219F295E9D58265 /* next-alarm-example.json */; };
+		436AD2DCD07E3B8DE0915143 /* CoreProcessStatus.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91C6128256D4A43903D6F314 /* CoreProcessStatus.swift */; };
 		4404A87E81694EB9F0B32156 /* BiometricValidatedTransportTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3E9CB215C9FBDDE4110ABDE /* BiometricValidatedTransportTests.swift */; };
 		445A29A567E3F62B1E979CEA /* EpisodeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99C4810DA1E86D88448F08CF /* EpisodeTests.swift */; };
 		44664352D73C4A1AD9CC123A /* ModernizationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F548261B6FA017552631862C /* ModernizationTests.swift */; };
@@ -1451,6 +1452,7 @@
 		8FC4FF66F1F45BA06C95D4CB /* PumpAlertTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PumpAlertTests.swift; sourceTree = "<group>"; };
 		9097514F83891A8F652F13D4 /* BiometricExperimentBuilderScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiometricExperimentBuilderScreen.swift; sourceTree = "<group>"; };
 		918E893F2F4265D35AE8B546 /* BiometricValidatedActivationUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiometricValidatedActivationUITests.swift; sourceTree = "<group>"; };
+		91C6128256D4A43903D6F314 /* CoreProcessStatus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreProcessStatus.swift; sourceTree = "<group>"; };
 		926C00E590B52F56707119E3 /* DebugRoute.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugRoute.swift; sourceTree = "<group>"; };
 		9343E09C9D766400B80E8F3D /* SystemDashboardUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemDashboardUITests.swift; sourceTree = "<group>"; };
 		9378B2674D43AEBA2ED5F106 /* CurveChartProjectionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CurveChartProjectionTests.swift; sourceTree = "<group>"; };
@@ -2144,6 +2146,7 @@
 				56F8C64470BD6CB2BFF9E9A0 /* ComfortOwnerExampleClient.swift */,
 				1553242EC4167F9EED30F328 /* ControllerUpdateClient.swift */,
 				538065B54804B71133EB5E9A /* CoreBiometricWaveformsClient.swift */,
+				91C6128256D4A43903D6F314 /* CoreProcessStatus.swift */,
 				F067643DA7CC39F9D2A2BAAE /* CoreRESTClient.swift */,
 				5F720D99D33597DB0A53CADD /* CoreSchedulePatch.swift */,
 				EB8766AB913AD6B3C64904FA /* CurveClient.swift */,
@@ -3890,6 +3893,7 @@
 				E433E46CEA1D3A711498F0C0 /* ControllerUpdateWorkspace.swift in Sources */,
 				EB0480964B669DFC8C3CFF66 /* ControllerUpdatesScreen.swift in Sources */,
 				598F8218383423156403B37E /* CoreBiometricWaveformsClient.swift in Sources */,
+				436AD2DCD07E3B8DE0915143 /* CoreProcessStatus.swift in Sources */,
 				A21CC34BE4168C82984E89DB /* CoreRESTClient.swift in Sources */,
 				8C3C942B3D14EE4DAAA784FD /* CoreSchedulePatch.swift in Sources */,
 				3A12FF52E23E11340ACD63FA /* CoreScheduleRows.swift in Sources */,
@@ -4314,7 +4318,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 14;
+				CURRENT_PROJECT_VERSION = 15;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -4527,7 +4531,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 14;
+				CURRENT_PROJECT_VERSION = 15;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
