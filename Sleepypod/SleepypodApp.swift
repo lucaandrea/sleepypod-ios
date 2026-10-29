@@ -171,7 +171,13 @@ struct ContentView: View {
             }
             .id(inboxScope)
             .tabBarMinimizeBehavior(.onScrollDown)
-            .onChange(of: inboxScope) { alarms.configure(); curves.configure() }
+            .onChange(of: inboxScope) {
+                alarms.configure(); curves.configure()
+                if !isDemo, scenePhase == .active {
+                    deviceManager.resumeConnection()
+                    sensorStream.reconnect()
+                }
+            }
             .onChange(of: selectedTab) {
                 Haptics.tap()
             }
@@ -269,6 +275,15 @@ struct ContentView: View {
             await UnifiedRuntime.refreshHealth()
         }
         .onChange(of: scenePhase) {
+            if !isDemo {
+                if scenePhase == .active {
+                    deviceManager.resumeConnection()
+                    sensorStream.reconnect()
+                } else if scenePhase == .background {
+                    deviceManager.suspendConnection()
+                    sensorStream.disconnect()
+                }
+            }
             if scenePhase == .background && healthSync.enabled && !isDemo {
                 HealthSyncService.scheduleBackgroundSync()
             }

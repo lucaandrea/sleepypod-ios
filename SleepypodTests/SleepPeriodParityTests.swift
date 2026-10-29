@@ -6,10 +6,13 @@ import XCTest
     private func date(_ day: Int, _ hour: Int, _ minute: Int = 0) -> Date {
         calendar.date(from: DateComponents(year: 2026, month: 10, day: day, hour: hour, minute: minute))!
     }
-    func testNightRolloverMatchesWebAndKeepsMorningNapsOnTheirOwnDay() {
+    func testNightRolloverKeepsMorningFragmentsWithThePreviousEvening() {
         XCTAssertEqual(SleepCalendar.nightDate(for: date(25, 5, 59), calendar: calendar), date(24, 0))
-        XCTAssertEqual(SleepCalendar.nightDate(for: date(25, 6), calendar: calendar), date(25, 0))
-        XCTAssertEqual(SleepCalendar.nightDate(for: date(25, 10), calendar: calendar), date(25, 0))
+        XCTAssertEqual(SleepCalendar.nightDate(for: date(25, 6), calendar: calendar), date(24, 0))
+        XCTAssertEqual(SleepCalendar.nightDate(for: date(25, 11, 59), calendar: calendar), date(24, 0))
+    }
+    func testNoonStartsANewNight() {
+        XCTAssertEqual(SleepCalendar.nightDate(for: date(25, 12), calendar: calendar), date(25, 0))
     }
     func testNightTotalsIncludeNapsButVitalsUseMainRecordAndChosenSide() {
         let records = [SleepRecord(id: 1, side: "left", enteredBed: date(24, 22), leftBed: date(25, 6)),

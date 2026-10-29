@@ -10,9 +10,11 @@ import XCTest
         XCTAssertTrue(monday.waitForExistence(timeout: 15)); capture(app, "Routines-empty")
         monday.tap(); let active = app.switches["routine.enabled"]
         XCTAssertTrue(active.waitForExistence(timeout: 5)); reveal(active, app); active.tap(); capture(app, "Routines-power-draft")
+        let phases = app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", "Custom temperature phases")).firstMatch; reveal(phases, app); phases.tap()
         let add = app.buttons["routine.phase.add"]; reveal(add, app); add.tap()
         let phaseDone = app.buttons["routine.phase.done"]; XCTAssertTrue(phaseDone.waitForExistence(timeout: 5)); capture(app, "Routines-phase-draft"); phaseDone.tap()
         let include = app.switches["routine.alarm.include"]; reveal(include, app); include.tap()
+        let advanced = app.buttons["Pattern, intensity and snooze"]; reveal(advanced, app); advanced.tap()
         let snooze = app.steppers["routine.alarm.snooze"].buttons["routine.alarm.snooze-Increment"]
         reveal(snooze, app); snooze.tap(); XCTAssertTrue(app.staticTexts["360 sec"].exists); capture(app, "Routines-alarm-draft")
         let tuesday = app.switches["routine.copy.tuesday"]; reveal(tuesday, app); tuesday.tap(); capture(app, "Routines-copy-draft")
@@ -24,7 +26,7 @@ import XCTest
         reveal(monday, app); monday.tap()
         XCTAssertTrue(active.waitForExistence(timeout: 5)); reveal(active, app); active.tap(); app.navigationBars["Edit routine"].buttons["Cancel"].tap()
         XCTAssertTrue(monday.waitForExistence(timeout: 5)); monday.tap()
-        XCTAssertTrue(active.waitForExistence(timeout: 5)); XCTAssertEqual(active.value as? String, "1"); XCTAssertTrue(app.staticTexts["360 sec"].exists)
+        XCTAssertTrue(active.waitForExistence(timeout: 5)); XCTAssertEqual(active.value as? String, "1"); reveal(advanced, app); advanced.tap(); XCTAssertTrue(app.staticTexts["360 sec"].exists)
         app.navigationBars["Edit routine"].buttons["Cancel"].tap()
         let side = app.segmentedControls["routines.side"]; reveal(side, app); side.buttons["Right"].tap()
         XCTAssertTrue(monday.waitForExistence(timeout: 5)); XCTAssertFalse(app.buttons["routines.delete.monday"].exists); capture(app, "Routines-right-empty")

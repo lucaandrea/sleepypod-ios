@@ -36,8 +36,8 @@ struct BedtimeRoutineEditor: View {
                 if reviewing { review }
                 else {
                     power
-                    phases
                     alarm
+                    DisclosureGroup("Custom temperature phases (\(draft.temperatures.count))") { phases }
                     notes
                     nights
                 }
@@ -70,7 +70,14 @@ struct BedtimeRoutineEditor: View {
                 Toggle("Routine active", isOn: $draft.power.enabled).tint(Theme.green).accessibilityIdentifier("routine.enabled")
                 RoutineClockField("Bedtime", value: $draft.power.onTime)
                 RoutineClockField("End time", value: $draft.power.offTime)
-                RoutineTemperatureField("Starting temperature", value: $draft.power.onTemperature)
+                RoutineTemperatureField("Overnight temperature", value: $draft.power.onTemperature)
+                if draft.temperatures.contains(where: \.enabled) {
+                    Text("This routine has later temperature changes. Changing the starting target does not remove them.").font(.footnote).foregroundStyle(Theme.amber)
+                    Button("Hold this temperature all night") { draft.temperatures = [] }
+                        .accessibilityIdentifier("routine.holdOvernight")
+                } else {
+                    Text("Holds this target until wake warming starts. Autopilot, if enabled, is governed by its separate comfort limits.").font(.footnote).foregroundStyle(Theme.text2)
+                }
                 VStack(alignment: .leading, spacing: 8) {
                     Text("At the end").font(.headline)
                     Picker("At the end", selection: $draft.power.endAction) {
@@ -131,10 +138,13 @@ struct BedtimeRoutineEditor: View {
         GroupedSection("SAVE TO NIGHTS") {
             VStack(alignment: .leading, spacing: 12) {
                 Text("Copy this complete routine to additional nights. Existing routines on selected nights are replaced after review.").font(.footnote).foregroundStyle(Theme.text2)
+                Button("Wake Monday–Friday") { days = [.sunday, .monday, .tuesday, .wednesday, .thursday] }
+                    .accessibilityIdentifier("routine.weekdayWake")
+                Text("Weekday mornings mean bedtime on Sunday–Thursday nights.").font(.footnote).foregroundStyle(Theme.text2)
                 ForEach(DayOfWeek.weekdays) { day in
                     Toggle(day.displayName, isOn: Binding(get: { days.contains(day) }, set: { selected in
                         if selected { days.insert(day) } else { days.remove(day) }
-                    })).tint(Theme.green).disabled(day == session.day).accessibilityIdentifier("routine.copy.\(day.rawValue)")
+                    })).tint(Theme.green).accessibilityIdentifier("routine.copy.\(day.rawValue)")
                 }
             }.cardStyle()
         }

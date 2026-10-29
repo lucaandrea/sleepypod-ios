@@ -6,6 +6,7 @@ struct SleepSummaryCardView: View {
     let record: SleepRecord
     let score: Int?
     var sleepSeconds: Int?
+    var recording: NightRecordingSummary?
     var body: some View {
         let layout = dynamicTypeSize.isAccessibilitySize
             ? AnyLayout(VStackLayout(alignment: .leading, spacing: 18))
@@ -22,9 +23,10 @@ struct SleepSummaryCardView: View {
             .accessibilityElement(children: .ignore)
             .accessibilityLabel("Sleep quality \(score.map(String.init) ?? "unavailable")")
             VStack(alignment: .leading, spacing: 5) {
-                Text(DisplayTime.duration(sleepSeconds ?? record.sleepPeriodSeconds)).font(.mono(28, weight: .light, relativeTo: .title))
+                Text(DisplayTime.duration(recording?.recordedSeconds ?? sleepSeconds ?? record.sleepPeriodSeconds)).font(.mono(28, weight: .light, relativeTo: .title))
                     .minimumScaleFactor(0.7).lineLimit(1)
-                Text("\(time(record.enteredBedDate)) → \(record.completedAt.map(time) ?? "Still in bed")")
+                if recording != nil { Text("Recorded bed time").font(.caption).foregroundStyle(Theme.text2) }
+                Text("\(time(recording?.start ?? record.enteredBedDate)) → \((recording?.end ?? record.completedAt).map(time) ?? "Still in bed")")
                     .font(.mono(12, relativeTo: .caption)).foregroundStyle(Theme.text2)
             }
             Spacer(minLength: 0)

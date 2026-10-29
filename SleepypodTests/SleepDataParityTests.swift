@@ -29,11 +29,11 @@ import HealthKit
             try XCTUnwrap(calendar.date(from: DateComponents(year: 2026, month: 11, day: day, hour: hour)))
         }
         let nights = SleepCalendar.nightWindow(from: try date(1, 0), until: try date(2, 0), calendar: calendar)
-        XCTAssertEqual(nights.start, try date(1, 6)); XCTAssertEqual(nights.end, try date(2, 6))
+        XCTAssertEqual(nights.start, try date(1, 12)); XCTAssertEqual(nights.end, try date(2, 12))
         let nap = SleepRecord(id: 1, side: "left", enteredBed: try date(1, 10), leftBed: try date(1, 11))
         let night = SleepRecord(id: 2, side: "left", enteredBed: try date(1, 23), leftBed: try date(2, 9))
         let exported = SleepCalendar.exportWindow(nights: nights, records: [nap, night])
-        XCTAssertEqual(exported.start, try date(1, 6)); XCTAssertEqual(exported.end, try date(2, 9))
+        XCTAssertEqual(exported.start, try date(1, 12)); XCTAssertEqual(exported.end, try date(2, 12))
         let previousDay = try XCTUnwrap(calendar.date(byAdding: .day, value: -1, to: try date(1, 0)))
         let transition = SleepCalendar.nightWindow(from: previousDay, until: try date(1, 0), calendar: calendar)
         XCTAssertEqual(transition.duration, 25 * 3600)

@@ -47,15 +47,17 @@ struct SleepScreen: View {
     private var displayedStageSource: String { usesPodStages ? podStages.result?.sourceLabel ?? "Pod" : "This iPhone" }
 
     private var calendar: Calendar { SleepCalendar.calendar(timeZone: settings.timeZone) }
-    // A day can hold several records (naps, getting up and back in); the longest sleep is the night.
-    private var record: SleepRecord? {
+    private var nightRecords: [SleepRecord] {
         metrics.sleepRecords.filter {
             $0.side == metrics.selectedSide.rawValue
                 && calendar.isDate(
                     SleepCalendar.nightDate(for: $0.enteredBedDate, calendar: calendar), inSameDayAs: selectedDate)
         }
-        .max { $0.sleepPeriodSeconds < $1.sleepPeriodSeconds }
+        .sorted { $0.enteredBedDate < $1.enteredBedDate }
     }
+    // Keep per-record classification and editing separate from the complete night's duration.
+    private var record: SleepRecord? { nightRecords.max { $0.sleepPeriodSeconds < $1.sleepPeriodSeconds } }
+    private var recording: NightRecordingSummary { NightRecordingSummary(records: nightRecords) }
     private var vitals: [VitalsRecord] {
         guard let record else { return [] }
         return metrics.vitalsRecords.filter {
@@ -318,8 +320,28 @@ struct SleepScreen: View {
     @ViewBuilder private var nightContent: some View {
         if let record {
             SleepSummaryCardView(
-                record: record, score: usesPodStages ? podStages.result?.score : analyzer.qualityScore,
-                sleepSeconds: usesPodStages ? podStages.result?.sleepSeconds : nil)
+                record: record, score: nightRecords.count > 1 ? nil : usesPodStages ? podStages.result?.score : analyzer.qualityScore,
+                recording: recording)
+            Text("Recorded bed time includes awake periods. It is not a measurement of time asleep.")
+                .font(.footnote).foregroundStyle(Theme.text2)
+            if nightRecords.count > 1 {
+                Text("\(nightRecords.count) recording segments · \(DisplayTime.duration(recording.gapSeconds)) between segments, not counted. Stages, vitals and comparisons below describe the longest segment only.")
+                    .font(.footnote).foregroundStyle(Theme.text2).accessibilityIdentifier("sleep.fragmentCoverage")
+                DisclosureGroup("All recording segments") {
+                    ForEach(nightRecords) { segment in
+                        Button { editingRecord = segment } label: {
+                            HStack {
+                                Text(segment.enteredBedDate, style: .time)
+                                Text("→")
+                                if let end = segment.completedAt { Text(end, style: .time) }
+                                else { Text("Open") }
+                                Spacer()
+                                Text(DisplayTime.duration(segment.sleepPeriodSeconds))
+                            }.padding(.vertical, 8)
+                        }.disabled(APIBackend.current == .freeSleep)
+                    }
+                }.cardStyle()
+            }
             if APIBackend.current != .freeSleep {
                 Button("Edit times", systemImage: "pencil") {
                     metrics.mutationError = nil

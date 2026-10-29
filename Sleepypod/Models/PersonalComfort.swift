@@ -52,6 +52,7 @@ struct PersonalComfortStatus: Codable, Sendable {
     let signals: PersonalComfortSignals?
     let timing: PersonalComfortTiming?
     var bedroom: BedroomGuidance?
+    var learning: ThermalLearning?
 
     var ownerActive: Bool { state?.config.mode == "active" && activation.current == true }
     var modeTitle: String {

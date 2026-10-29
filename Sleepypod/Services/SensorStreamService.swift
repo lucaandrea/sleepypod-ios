@@ -107,6 +107,7 @@ final class SensorStreamService {
 
     private var webSocketTask: URLSessionWebSocketTask?
     private var streamURL: URL?
+    private var streamOwnerRevision: [String] = []
     private var receiveTask: Task<Void, Never>?
     private var pingTask: Task<Void, Never>?
     private var reconnectTask: Task<Void, Never>?
@@ -170,7 +171,13 @@ final class SensorStreamService {
 
     var isCurrentPod: Bool {
         if APIBackend.current.isDemo { return demoTask != nil }
-        return podURL != nil && streamURL == podURL
+        return podURL != nil && streamURL == podURL && streamOwnerRevision == OwnerConnection.revision
+    }
+
+    /// Rebuild a suspended socket when the app returns to the foreground.
+    func reconnect() {
+        disconnect()
+        connect()
     }
 
     func connect() {
@@ -193,6 +200,7 @@ final class SensorStreamService {
         let ws = session.webSocketTask(with: request)
         self.webSocketTask = ws
         streamURL = url
+        streamOwnerRevision = OwnerConnection.revision
         ws.resume()
         error = nil
         startOccupancy()
@@ -203,10 +211,18 @@ final class SensorStreamService {
             await self.receiveLoop(ws)
         }
 
-        pingTask = Task {
+        pingTask = Task { [weak self, weak ws] in
             while !Task.isCancelled {
                 do { try await Task.sleep(for: .seconds(15)) } catch { return }
-                self.webSocketTask?.sendPing { _ in }
+                guard let ws else { return }
+                ws.sendPing { [weak self, weak ws] failure in
+                    guard failure != nil else { return }
+                    Task { @MainActor in
+                        guard let self, let ws, self.webSocketTask === ws else { return }
+                        self.disconnect()
+                        self.scheduleReconnect()
+                    }
+                }
             }
         }
 
@@ -270,6 +286,7 @@ final class SensorStreamService {
         webSocketTask?.cancel(with: .goingAway, reason: nil)
         webSocketTask = nil
         streamURL = nil
+        streamOwnerRevision = []
         isConnected = false
         latestDeviceStatus = nil
         presenceUpdatedAt = nil; lastCapUpdate = .distantPast
