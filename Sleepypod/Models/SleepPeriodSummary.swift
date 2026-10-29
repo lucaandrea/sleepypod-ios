@@ -7,7 +7,7 @@ struct SleepNightSummary: Identifiable, Sendable {
     let metricSources: [BiometricMetric: String]
     var id: Date { day }
     var main: SleepRecord? { records.max { $0.sleepPeriodSeconds < $1.sleepPeriodSeconds } }
-    var seconds: Int { records.reduce(0) { $0 + max(0, $1.sleepPeriodSeconds) } }
+    var seconds: Int { NightRecordingSummary(records: records).recordedSeconds }
     var exits: Int { records.reduce(0) { $0 + max(0, $1.timesExitedBed) } }
 }
 

@@ -27,11 +27,13 @@ final class DeviceManager {
     }
 
     var hasPodIP: Bool {
+        if OwnerConnection.endpoint != nil { return true }
         guard let ip = UserDefaults.standard.string(forKey: "podIPAddress") else { return false }
         return !ip.isEmpty
     }
 
     private var api: SleepypodProtocol
+    private let now: @MainActor () -> Date
     private var debounceTask: Task<Void, Never>?
     private var pollingTask: Task<Void, Never>?
     private var pendingUpdate: DeviceStatusUpdate?
@@ -42,8 +44,9 @@ final class DeviceManager {
     private var powerOverrides: [Side: (value: Bool, until: Date)] = [:]
     private var statusRequestID = UUID()
 
-    init(api: SleepypodProtocol) {
+    init(api: SleepypodProtocol, now: @escaping @MainActor () -> Date = { Date() }) {
         self.api = api
+        self.now = now
         // Cold-launch hydration: show last-known status immediately so the UI
         // doesn't sit on a "Disconnected" screen for the ~300ms of the first
         // fetch. isConnected stays false until a live fetch confirms the pod
@@ -66,7 +69,7 @@ final class DeviceManager {
     }
 
     private static var endpointIdentity: String {
-        "\(APIBackend.current.rawValue)|\(UserDefaults.standard.string(forKey: "podIPAddress") ?? "")"
+        OwnerConnection.revision.joined(separator: "|")
     }
 
     private static func loadCachedStatus() -> DeviceStatus? {
@@ -167,16 +170,16 @@ final class DeviceManager {
         isConnecting = false
         retryCount = 0
         error = nil
-        lastUpdated = Date()
+        lastUpdated = now()
     }
 
     // MARK: - Polling
 
-    func startPolling() {
+    func startPolling(immediate: Bool = false) {
         pollingTask?.cancel()
         // If we already have a status snapshot (startConnection just fetched), skip
         // the first immediate poll to avoid a redundant round trip on cold start.
-        var skipFirst = hasLiveFetched
+        var skipFirst = hasLiveFetched && !immediate
         pollingTask = Task {
             while !Task.isCancelled {
                 if skipFirst {
@@ -206,7 +209,7 @@ final class DeviceManager {
         }
         let requestID = UUID()
         statusRequestID = requestID
-        let address = UserDefaults.standard.string(forKey: "podIPAddress")
+        let endpoint = Self.endpointIdentity
         defer {
             if statusRequestID == requestID { isConnecting = false }
         }
@@ -216,23 +219,32 @@ final class DeviceManager {
         do {
             let status = try await api.getDeviceStatus()
             guard !Task.isCancelled, statusRequestID == requestID,
-                  UserDefaults.standard.string(forKey: "podIPAddress") == address else { return }
+                  Self.endpointIdentity == endpoint else { return }
             acceptStatus(status)
         } catch {
             guard !Task.isCancelled, statusRequestID == requestID,
-                  UserDefaults.standard.string(forKey: "podIPAddress") == address else { return }
-            // Until we've had a live fetch this session, treat failure as
-            // disconnected — stale cache shouldn't mask a real outage. After
-            // a confirmed live fetch, keep showing last-known on transient
-            // failures (network blip during polling).
-            if !hasLiveFetched {
-                isConnected = false
-            }
+                  Self.endpointIdentity == endpoint else { return }
+            // A brief network handover can retain a recent snapshot, but a stale
+            // connection must never remain green indefinitely after one success.
+            let age = lastUpdated.map { now().timeIntervalSince($0) }
+            isConnected = hasLiveFetched && age.map { $0 >= 0 && $0 <= 30 } == true
             isConnecting = false
             retryCount += 1
             self.error = "\(error)"
             Log.device.error("fetchStatus failed (attempt \(self.retryCount)): \(error)")
         }
+    }
+
+    /// iOS suspends sockets in the background. Resume with an immediate read.
+    func resumeConnection() {
+        startPolling(immediate: true)
+    }
+
+    func suspendConnection() {
+        stopPolling()
+        statusRequestID = UUID()
+        isConnecting = false
+        isReceivingWebSocket = false
     }
 
     func retryConnection() {

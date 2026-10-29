@@ -41,6 +41,7 @@ struct PersonalComfortScreen: View {
                 if let notice = model.notice { Text(notice).foregroundStyle(Theme.text2).font(.footnote).accessibilityIdentifier("comfort.notice") }
                 if let status = model.status {
                     statusCard(status)
+                    if let learning = status.learning { ThermalLearningCard(learning: learning) }
                     if let state = status.state {
                         GroupedCard {
                             VStack(alignment: .leading, spacing: 12) {

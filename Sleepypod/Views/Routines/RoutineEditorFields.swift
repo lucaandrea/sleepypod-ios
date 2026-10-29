@@ -64,9 +64,11 @@ struct RoutineAlarmFields: View {
             Toggle("Alarm active", isOn: $alarm.enabled).tint(Theme.green)
             RoutineClockField("Wake time", value: $alarm.time)
             RoutineTemperatureField("Wake temperature", value: $alarm.alarmTemperature)
+            RoutineNumberField("Vibration duration", value: $alarm.duration, range: 10...180, suffix: " sec")
+            Text("Warming starts 30 minutes before the wake time. The target is a water temperature, not a guaranteed cover temperature.").font(.footnote).foregroundStyle(Theme.text2)
+            DisclosureGroup("Pattern, intensity and snooze") {
             Picker("Pattern", selection: $alarm.vibrationPattern) { Text("Rise").tag(VibrationPattern.rise); Text("Double").tag(VibrationPattern.double) }.pickerStyle(.segmented)
             RoutineNumberField("Intensity", value: $alarm.vibrationIntensity, range: 1...100, suffix: "%")
-            RoutineNumberField("Vibration duration", value: $alarm.duration, range: 10...180, suffix: " sec")
             VStack(alignment: .leading, spacing: 8) {
                 Text("Wake window").font(.headline)
                 Picker("Wake window", selection: $alarm.wakeWindow) {
@@ -80,6 +82,7 @@ struct RoutineAlarmFields: View {
                 Picker("Snooze duration reduction", selection: Binding(get: { alarm.snoozeTaper ?? 0 }, set: { alarm.snoozeTaper = $0 })) {
                     Text("None").tag(0); ForEach([30, 40, 50, 60], id: \.self) { Text("\($0)%").tag($0) }
                 }.pickerStyle(.menu).labelsHidden()
+            }
             }
             Text("An alarm at the end time keeps thermal power on through the vibration and for fifteen minutes afterward. Pod 5 covers ignore pattern and intensity.").font(.footnote).foregroundStyle(Theme.text2)
         }

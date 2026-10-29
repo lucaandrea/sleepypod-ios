@@ -2,7 +2,7 @@ import Foundation
 
 /// Calendar boundaries follow the Pod, including 23- and 25-hour days.
 enum SleepCalendar {
-    static let nightRolloverHour = 6
+    static let nightRolloverHour = 12
     static func calendar(timeZone: String) -> Calendar {
         var calendar = Calendar(identifier: .gregorian)
         calendar.timeZone = TimeZone(identifier: timeZone) ?? .current
@@ -22,7 +22,7 @@ enum SleepCalendar {
         let end = calendar.date(bySettingHour: nightRolloverHour, minute: 0, second: 0, of: nextDay) ?? nextDay
         return DateInterval(start: start, end: max(start, end))
     }
-    /// Keep every selected sleep record's morning readings, even when it ends after the next night's 6 am boundary.
+    /// Keep every selected record's readings, even when it ends after the next night's noon boundary.
     static func exportWindow(nights: DateInterval, records: [SleepRecord], now: Date = .now) -> DateInterval {
         let lastWake = records.map { $0.completedAt ?? now }.max() ?? nights.end
         return DateInterval(start: nights.start, end: max(nights.end, lastWake))
