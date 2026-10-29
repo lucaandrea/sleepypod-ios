@@ -361,7 +361,7 @@ import Observation
             guard operation == generation else { return }
             if error as? HouseholdFailure == .authentication { clearVisible(); try? forget(record.id) }
             else if error as? HouseholdFailure == .changedIdentity { clearVisible() }
-            self.error = (error as? LocalizedError)?.errorDescription ?? HouseholdFailure.uncertain.localizedDescription
+            self.error = PersonalControlFailure.message(for: error)
         }
     }
     func canReviewControlRecovery(_ item: PersonalControlTombstone) -> Bool {

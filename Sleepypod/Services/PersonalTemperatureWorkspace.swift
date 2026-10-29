@@ -176,6 +176,6 @@ import Observation
             if failure == .authentication { revoked() }
         } else if !preserveBed { bed = nil; readingsCurrent = false; draftTarget = nil }
         if failure as? HouseholdFailure == .storage { storageReady = false }
-        error = (failure as? LocalizedError)?.errorDescription ?? HouseholdFailure.uncertain.localizedDescription
+        error = PersonalControlFailure.message(for: failure)
     }
 }

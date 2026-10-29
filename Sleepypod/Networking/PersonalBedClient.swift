@@ -15,12 +15,17 @@ protocol PersonalBedTransport: Sendable {
 }
 
 enum PersonalControlFailure: Error, LocalizedError {
-    case missingReceipt, recoveryCapacity
+    case missingReceipt, recoveryCapacity, connectionUncertain
     var errorDescription: String? {
         switch self {
         case .missingReceipt: "No receipt is available. The saved command has not been resent; its outcome remains uncertain."
+        case .connectionUncertain: "The connection ended before a result could be confirmed. Check any pending receipt and the bed before another adjustment. Saved commands will not be resent."
         case .recoveryCapacity: "Command recovery storage is full. Review earlier commands in your paired accounts or erase local personal data before another command. No new command was sent."
         }
+    }
+    static func message(for error: Error) -> String {
+        if error as? HouseholdFailure == .uncertain { return Self.connectionUncertain.localizedDescription }
+        return (error as? LocalizedError)?.errorDescription ?? Self.connectionUncertain.localizedDescription
     }
 }
 
