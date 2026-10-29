@@ -1,3 +1,4 @@
+import FreeSleepKit
 import BackgroundTasks
 import Foundation
 import HealthKit
@@ -154,6 +155,7 @@ final class HealthSyncService {
     }
 
     func requestAuthorization() async -> Bool {
+        guard !PersonalWorkspaceBoundary.isActive else { return false }
         guard store.available else {
             authorizationError = "Apple Health is unavailable on this device."
             Log.health.info("HealthKit is unavailable on this device")
@@ -194,7 +196,7 @@ final class HealthSyncService {
     }
 
     func receipt(podID: String, record: SleepRecord) -> Receipt? {
-        guard enabled, !writeTypes.isEmpty,
+        guard !PersonalWorkspaceBoundary.isActive, enabled, !writeTypes.isEmpty,
               writeTypes.allSatisfy({ store.authorizationStatus(for: $0) == .sharingAuthorized }),
               let receipt = receipts[Self.recordKey(podID: podID, record: record)],
               receipt.signature == receiptSignature(preferences), receipt.closedAt == record.leftBedDate, receipt.enteredAt == record.enteredBedDate else { return nil }
@@ -220,7 +222,7 @@ final class HealthSyncService {
     /// no UI is running. Skips while the phone is locked: Health data is encrypted then and
     /// writes fail, so the next wake-up retries instead of recording a failure.
     func syncInBackground() async {
-        guard enabled, UIApplication.shared.isProtectedDataAvailable else { return }
+        guard !PersonalWorkspaceBoundary.isActive, enabled, UIApplication.shared.isProtectedDataAvailable else { return }
         guard let source = Self.linkedSource() else { return }
         await syncRecent(api: source.api, podID: source.podID, side: source.side, demo: false)
         Log.health.info("Background Health sync finished")
@@ -228,6 +230,7 @@ final class HealthSyncService {
 
     /// Freeze the endpoint and linked side before fetching any records. Preserve existing identity aliases.
     static func linkedSource() -> (api: any SleepypodProtocol, podID: String, side: Side)? {
+        guard !PersonalWorkspaceBoundary.isActive else { return nil }
         let backend = APIBackend.current, address = SettingsManager.healthAddress
         guard !backend.isDemo, !address.isEmpty else { return nil }
         let side = linkedSide()
@@ -257,7 +260,7 @@ final class HealthSyncService {
     static let rebuildDays = 90
 
     func syncRecent(api: SleepypodProtocol, podID: String, side: Side, demo: Bool) async {
-        guard enabled, !demo, !isSyncing, !podID.isEmpty, store.available, !writeTypes.isEmpty else { return }
+        guard !PersonalWorkspaceBoundary.isActive, enabled, !demo, !isSyncing, !podID.isEmpty, store.available, !writeTypes.isEmpty else { return }
         isSyncing = true
         defer { isSyncing = false }
         _ = await sync(api: api, podID: podID, side: side, days: Self.recentDays)
@@ -287,7 +290,7 @@ final class HealthSyncService {
     /// Rewrites this Pod/side before removing its older samples. Incomplete analysis or writes
     /// keep the old data; other Pods and sides are outside the cleanup scope.
     func rebuild(api: SleepypodProtocol, podID: String, side: Side, demo: Bool) async -> Bool {
-        guard enabled, !demo, !isSyncing, !podID.isEmpty, store.available, !writeTypes.isEmpty else { return false }
+        guard !PersonalWorkspaceBoundary.isActive, enabled, !demo, !isSyncing, !podID.isEmpty, store.available, !writeTypes.isEmpty else { return false }
         isSyncing = true
         rebuildProgress = (0, 0)
         defer { isSyncing = false; rebuildProgress = nil; rebuiltKeys.removeAll() }
@@ -346,6 +349,7 @@ final class HealthSyncService {
 
     /// Returns false if the sync stopped early or any night failed to write, so a rebuild knows not to sweep.
     private func sync(api: SleepypodProtocol, podID: String, side: Side, days: Int, forceRewrite: Bool = false) async -> Bool {
+        guard !PersonalWorkspaceBoundary.isActive else { return false }
         let requestedPreferences = preferences, context = syncContext()
         lastSyncSampleCount = 0; authorizationError = nil
         let end = Date()
@@ -468,7 +472,7 @@ final class HealthSyncService {
     private func syncContext() -> SyncContext {
         .init(owner: ownerRevision(), side: Self.linkedSide(defaults: persistence).rawValue, preferences: preferences, model: stageModels?.activeVersion)
     }
-    private func isCurrent(_ context: SyncContext) -> Bool { !Task.isCancelled && enabled && syncContext() == context }
+    private func isCurrent(_ context: SyncContext) -> Bool { !PersonalWorkspaceBoundary.isActive && !Task.isCancelled && enabled && syncContext() == context }
 
     /// HealthKit replacement versions must increase even within one millisecond or after a clock correction.
     private func nextWriteVersion() -> Int {
@@ -587,7 +591,7 @@ final class HealthSyncService {
     /// Agreement for the whole week plus one value per night, from a single Health read.
     func weekAgreement(nights: [[SleepAnalyzer.SleepEpoch]]) async -> (overall: Double?, nightly: [Double?]) {
         let all = nights.flatMap { $0 }
-        guard enabled, preferences.readSleep, let start = all.map(\.start).min(),
+        guard !PersonalWorkspaceBoundary.isActive, enabled, preferences.readSleep, let start = all.map(\.start).min(),
               let end = all.map({ $0.start.addingTimeInterval($0.duration) }).max() else { return (nil, nights.map { _ in nil }) }
         let watch = Self.watchStages(await read("sleep") { try await store.sleepSamples(start: start, end: end) })
         return (WatchComparison.stageAgreement(epochs: all, watch: watch).percent,
@@ -598,7 +602,7 @@ final class HealthSyncService {
     static let watchSearchMargin: TimeInterval = 12 * 3600
 
     func watchComparison(record: SleepRecord, epochs: [SleepAnalyzer.SleepEpoch], vitals: [VitalsRecord], window: DateInterval? = nil) async -> WatchComparison? {
-        guard enabled, preferences.readSleep || preferences.readVitals, store.available,
+        guard !PersonalWorkspaceBoundary.isActive, enabled, preferences.readSleep || preferences.readVitals, store.available,
               record.leftBedDate > record.enteredBedDate else { return nil }
         readError = nil
         Log.health.notice("Watch comparison for night \(record.id) \(record.enteredBedDate.formatted(.iso8601), privacy: .private) to \(record.leftBedDate.formatted(.iso8601), privacy: .private)")
@@ -638,16 +642,19 @@ final class HealthSyncService {
     }
 
     func sleepSamples(start: Date, end: Date) async -> [HKCategorySample] {
-        guard enabled, preferences.readSleep else { return [] }
+        guard !PersonalWorkspaceBoundary.isActive, enabled, preferences.readSleep else { return [] }
         return await read("sleep") { try await store.sleepSamples(start: start, end: end) }
     }
 
     /// History reads preserve failures instead of presenting an unreadable Health store as zero nights.
     func analysisSleepSamples(start: Date, end: Date) async throws -> [HKCategorySample] {
-        guard enabled, preferences.readSleep else {
+        guard !PersonalWorkspaceBoundary.isActive, enabled, preferences.readSleep else {
             throw APIError.notSupported("Enable Apple Health sleep history before reading it.")
         }
-        return try await store.sleepSamples(start: start, end: end)
+        let context = ownerRevision()
+        let samples = try await store.sleepSamples(start: start, end: end)
+        guard !PersonalWorkspaceBoundary.isActive, context == ownerRevision() else { throw CancellationError() }
+        return samples
     }
 
     var watchReferenceContext: [String] {
@@ -657,7 +664,7 @@ final class HealthSyncService {
 
     /// Read only the requested Watch metrics, in weekly pages, without exporting the rest of Health.
     func watchReferenceSnapshot(side: Side, days: Int, now: Date = .now) async throws -> HealthWatchSnapshot {
-        guard enabled, store.available, preferences.readSleep || preferences.readVitals,
+        guard !PersonalWorkspaceBoundary.isActive, enabled, store.available, preferences.readSleep || preferences.readVitals,
               side == Self.linkedSide(defaults: persistence), (1...90).contains(days) else {
             throw APIError.notSupported("Enable Health reading for your own bed side before importing Watch data.")
         }
@@ -684,8 +691,10 @@ final class HealthSyncService {
 
     /// Runs one Health read, logging what came back and keeping the first failure for the UI.
     private func read<S: HKSample>(_ label: String, _ query: () async throws -> [S]) async -> [S] {
+        guard !PersonalWorkspaceBoundary.isActive else { return [] }
         do {
             let samples = try await query()
+            guard !PersonalWorkspaceBoundary.isActive else { return [] }
             let watch = samples.filter(Self.isWatch)
             let span = watch.isEmpty ? "none" : "\(watch.map(\.startDate).min()!.formatted(.iso8601)) to \(watch.map(\.endDate).max()!.formatted(.iso8601))"
             Log.health.notice("Health read \(label, privacy: .public): \(samples.count) samples, \(watch.count) from Watch spanning \(span, privacy: .private); sources: \(Self.describeSources(samples), privacy: .private)")
@@ -721,7 +730,7 @@ final class HealthSyncService {
     }
 
     func inferredSchedule() async -> (bed: Date, wake: Date)? {
-        guard enabled, preferences.readSleep else { return nil }
+        guard !PersonalWorkspaceBoundary.isActive, enabled, preferences.readSleep else { return nil }
         let samples = await read("sleep") { try await store.sleepSamples(start: Date().addingTimeInterval(-7 * 86400), end: Date()) }
         return Self.scheduleTimes(from: samples)
     }

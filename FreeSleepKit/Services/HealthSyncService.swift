@@ -28,7 +28,7 @@ final class HealthSyncService {
         }
     }
     func authorize() async {
-        guard available, !busy, !AppMode.isDemo else { return }
+        guard !PersonalWorkspaceBoundary.isActive, available, !busy, !AppMode.isDemo else { return }
         busy = true; defer { busy = false }
         do {
             try await store.requestAuthorization(toShare: [sleepType, heartType],
@@ -54,12 +54,12 @@ final class HealthSyncService {
         } catch { message = error.localizedDescription }
     }
     func refreshComparison() async throws {
-        guard available, !AppMode.isDemo, defaults.bool(forKey: "healthAuthorizationRequested") else { return }
+        guard !PersonalWorkspaceBoundary.isActive, available, !AppMode.isDemo, defaults.bool(forKey: "healthAuthorizationRequested") else { return }
         comparison = try await HealthComparisonReader(store: store).read()
         comparisonRefreshedAt = .now
     }
     func refreshOnActivation() async {
-        guard !AppMode.isDemo else { return }
+        guard !PersonalWorkspaceBoundary.isActive, !AppMode.isDemo else { return }
         if settings?.automatic == true { _ = try? await synchronize(trigger: .foreground) }
         if !busy && Date().timeIntervalSince(comparisonRefreshedAt) > 60 {
             do { try await refreshComparison() } catch { message = error.localizedDescription }

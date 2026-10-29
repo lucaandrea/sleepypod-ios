@@ -1,3 +1,4 @@
+import FreeSleepKit
 import Foundation
 
 final class FreeSleepClient: SleepypodProtocol, @unchecked Sendable {
@@ -208,6 +209,7 @@ final class FreeSleepClient: SleepypodProtocol, @unchecked Sendable {
     }
 
     private func performRequest(_ request: URLRequest) async throws -> (Data, URLResponse) {
+        try PersonalWorkspaceBoundary.requireLegacyAccess()
         let request = OwnerConnection.authorize(request)
         do {
             return try await session.data(for: request)

@@ -1,3 +1,4 @@
+import FreeSleepKit
 import Foundation
 
 struct CoreRESTClient: Sendable {
@@ -38,6 +39,7 @@ struct CoreRESTClient: Sendable {
 
     /// Build query items separately so values containing spaces, '&' or timestamps stay data.
     func request(_ path: String, method: String, query: [String: String] = [:], body: Data? = nil) throws -> URLRequest {
+        try PersonalWorkspaceBoundary.requireLegacyAccess()
         guard var components = URLComponents(url: endpoint.appending(path: "api").appending(path: path), resolvingAgainstBaseURL: false) else {
             throw APIError.noBaseURL
         }

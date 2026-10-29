@@ -4,7 +4,7 @@ import FreeSleepKit
 enum OwnerConnection {
     /// Includes key revisions without reading or retaining the key itself.
     static var revision: [String] {
-        ["apiBackend", "podURL", "podIPAddress", "ownerConnectionRevision"].map { UserDefaults.standard.string(forKey: $0) ?? "" }
+        ["apiBackend", "podURL", "podIPAddress", "ownerConnectionRevision", "household.boundaryRevision"].map { UserDefaults.standard.string(forKey: $0) ?? "" }
     }
 
     static var endpoint: URL? {
@@ -23,7 +23,7 @@ enum OwnerConnection {
 
     /// Match the exact saved origin; discovery probes must never receive another Pod's key.
     static func authorize(_ request: URLRequest, token suppliedToken: String? = nil) -> URLRequest {
-        guard let endpoint, let url = request.url,
+        guard !PersonalWorkspaceBoundary.isActive, let endpoint, let url = request.url,
               endpoint.host == url.host,
               endpoint.port == url.port,
               endpoint.scheme == url.scheme else { return request }
@@ -36,7 +36,7 @@ enum OwnerConnection {
     static let session = URLSession(configuration: .ephemeral, delegate: OwnerRedirectPolicy(), delegateQueue: nil)
 
     static var streamURL: URL? {
-        guard let endpoint else { return nil }
+        guard !PersonalWorkspaceBoundary.isActive, let endpoint else { return nil }
         if let saved = UserDefaults.standard.string(forKey: "podStreamURL"), !saved.isEmpty,
            let stream = URL(string: saved), stream.host == endpoint.host,
            stream.scheme == (endpoint.scheme == "https" ? "wss" : "ws") { return stream }
@@ -48,7 +48,7 @@ enum OwnerConnection {
 
     static func streamRequest(for url: URL, token suppliedToken: String? = nil) -> URLRequest {
         var request = URLRequest(url: url)
-        if let endpoint, url == streamURL {
+        if !PersonalWorkspaceBoundary.isActive, let endpoint, url == streamURL {
             let token = suppliedToken ?? UnifiedRuntime.savedKey(for: endpoint.absoluteString)
             if !token.isEmpty { request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization") }
         }

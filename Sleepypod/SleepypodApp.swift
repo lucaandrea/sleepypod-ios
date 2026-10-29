@@ -13,6 +13,7 @@ struct SleepypodApp: App {
     @State private var metricsManager: MetricsManager
     @State private var statusManager: StatusManager
     @State private var settingsManager: SettingsManager
+    @State private var household: HouseholdWorkspace
     @State private var alarms = AlarmWorkspace()
     @State private var curves = CurveWorkspace()
     @State private var podDiscovery = PodDiscovery()
@@ -29,6 +30,12 @@ struct SleepypodApp: App {
     @State private var snoreCapture = SnoreCaptureService()
 
     init() {
+        #if DEBUG
+        let household = HouseholdPreview.make() ?? HouseholdWorkspace()
+        #else
+        let household = HouseholdWorkspace()
+        #endif
+        _household = State(initialValue: household)
         UnifiedRuntime.initialize()
         #if DEBUG
         if APIBackend.current.isDemo && ProcessInfo.processInfo.arguments.contains("--reset-base-preferences") {
@@ -64,7 +71,11 @@ struct SleepypodApp: App {
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            Group {
+                if household.active { HouseholdScreen() }
+                else { ContentView() }
+            }
+                .environment(household)
                 .environment(deviceManager)
                 .environment(scheduleManager)
                 .environment(alarms)
@@ -89,11 +100,17 @@ struct SleepypodApp: App {
                 .tint(Theme.text1)
                 .task {
                     sensorStream.notificationRelay = notificationRelay
-                    watchMotion.activate()
+                    if !household.active { watchMotion.activate() }
+                }
+                .onChange(of: household.active) {
+                    if household.active {
+                        deviceManager.suspendConnection(); sensorStream.disconnect(); podDiscovery.stopBrowsing()
+                        snoreCapture.stop(reason: "personal account opened")
+                    } else { watchMotion.activate() }
                 }
                 .task(id: deviceManager.isConnected) {
                     // Keep first-install setup focused on local network access.
-                    if deviceManager.isConnected && !APIBackend.current.isDemo && !DebugRoute.marketingCapture {
+                    if !household.active && deviceManager.isConnected && !APIBackend.current.isDemo && !DebugRoute.marketingCapture {
                         await notificationRelay.requestPermission()
                     }
                 }

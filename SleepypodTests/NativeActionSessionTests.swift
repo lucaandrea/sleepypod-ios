@@ -3,6 +3,15 @@ import FreeSleepKit
 @testable import Sleepypod
 
 @MainActor final class NativeActionSessionTests: XCTestCase {
+    func testPersonalPreparationBlocksShortcutsBeforeOwnerReadsOrControls() async {
+        let client = ActionSessionTestClient(), actions = session(client)
+        await PersonalWorkspaceBoundary.$suppliedActive.withValue(true) {
+            for action: NativePodAction in [.readTemperature(side: "left", current: true), .prime, .temperature(side: "left", value: 70)] {
+                do { _ = try await actions.perform(action); XCTFail("Personal workspace cannot use owner actions") } catch {}
+            }
+        }
+        let calls = await client.calls(); XCTAssertTrue(calls.isEmpty)
+    }
     private func session(_ client: ActionSessionTestClient, owner: ActionSessionTestOwner = .init()) -> NativeActionSession {
         .init(controls: .failure(NativeControlFailure.unavailable), personal: { client }, alarms: { client }, comfort: { client }, owner: { owner.scope }, live: { owner.live })
     }

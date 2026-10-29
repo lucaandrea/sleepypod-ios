@@ -21,6 +21,7 @@ enum AppMode {
         #endif
     }
     static func requireLiveConnection() throws {
+        try PersonalWorkspaceBoundary.requireLegacyAccess()
         guard !isDemo else { throw PodError.message("System actions are unavailable in the demo. Open the app with your real Pod connection first.") }
     }
 }
