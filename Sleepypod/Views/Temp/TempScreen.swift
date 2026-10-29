@@ -1,16 +1,5 @@
 import SwiftUI
 
-/// Unified active curve — either from a run-once session or today's recurring schedule.
-struct ActiveCurve: Identifiable {
-    enum Source { case runOnce, schedule }
-    let id: String
-    let source: Source
-    let session: RunOnceSession? // non-nil for run-once
-    let setPoints: [RunOnceSetPoint]
-    let wakeTime: String
-    let bedtime: String
-}
-
 struct TempScreen: View {
     @Environment(DeviceManager.self) private var deviceManager
     @Environment(SettingsManager.self) private var settingsManager
@@ -27,6 +16,7 @@ struct TempScreen: View {
     private var nightScope: String { "\(profile.tempControl)|\(scenePhase)|\(backend)|\(podURL)|\(podIP)|\(ownerRevision)|\(settingsManager.timeZone)|\(settingsManager.settings?.defaultScheduleEndAction?.rawValue ?? "turn_off")" }
     @State private var curveError: String?
     @State private var activeCurve: ActiveCurve?
+    @State private var curveGeneration = UUID()
     @State private var nightPhases = NightPhasesStore()
     @State private var stepperTab: StepperTab = .now
 
@@ -56,9 +46,13 @@ struct TempScreen: View {
 
     private func fetchActiveCurve() async {
         let side = deviceManager.selectedSide.primarySide
+        let generation = UUID()
+        curveGeneration = generation
 
         // 1. Check for run-once session (overrides recurring)
-        if let session = try? await APIBackend.current.createClient().getActiveRunOnce(side: side) {
+        let session = try? await APIBackend.current.createClient().getActiveRunOnce(side: side)
+        guard !Task.isCancelled, curveGeneration == generation else { return }
+        if let session {
             activeCurve = ActiveCurve(
                 id: "runonce-\(session.id)",
                 source: .runOnce,
@@ -70,57 +64,9 @@ struct TempScreen: View {
             return
         }
 
-        // 2. Fall back to today's recurring schedule
-        if let schedules = scheduleManager.schedules {
-            let today = currentDayOfWeek()
-            let sideSchedule = schedules.schedule(for: side)
-            let daily = sideSchedule[today]
-
-            if !daily.temperatures.isEmpty {
-                // Sort by offset-from-bedtime so an overnight curve renders left-to-right
-                // as evening → morning. String-sorting ("03:00" < "22:00") would put the
-                // wake-side points first and push bedtime points ~20h into the chart.
-                let bedtime = daily.power.enabled ? daily.power.on : "22:00"
-                let bedMin = clockMinutesOfDay(bedtime)
-                let points = daily.temperatures
-                    .sorted { lhs, rhs in
-                        offsetFromBedtime(lhs.key, bedtime: bedMin)
-                            < offsetFromBedtime(rhs.key, bedtime: bedMin)
-                    }
-                    .map { RunOnceSetPoint(time: $0.key, temperature: Double($0.value)) }
-                let wake = daily.power.enabled ? daily.power.off : "07:00"
-                activeCurve = ActiveCurve(
-                    id: "schedule-\(side.rawValue)-\(today.rawValue)",
-                    source: .schedule,
-                    session: nil,
-                    setPoints: points,
-                    wakeTime: wake,
-                    bedtime: bedtime
-                )
-                return
-            }
+        activeCurve = scheduleManager.schedules.flatMap {
+            ActiveCurve.recurring(schedules: $0, side: side, timezone: settingsManager.timeZone)
         }
-
-        activeCurve = nil
-    }
-
-    private func currentDayOfWeek() -> DayOfWeek {
-        var calendar = Calendar(identifier: .gregorian)
-        calendar.timeZone = TimeZone(identifier: settingsManager.timeZone) ?? .current
-        let weekday = calendar.component(.weekday, from: Date())
-        // Calendar weekday: 1=Sunday, 2=Monday, ...
-        let days: [DayOfWeek] = [.sunday, .monday, .tuesday, .wednesday, .thursday, .friday, .saturday]
-        return days[weekday - 1]
-    }
-
-    private func clockMinutesOfDay(_ time: String) -> Int {
-        let parts = time.split(separator: ":")
-        guard parts.count == 2, let h = Int(parts[0]), let m = Int(parts[1]) else { return 0 }
-        return h * 60 + m
-    }
-
-    private func offsetFromBedtime(_ time: String, bedtime: Int) -> Int {
-        (clockMinutesOfDay(time) - bedtime + 1440) % 1440
     }
 
     /// Short "Just now" / "12s ago" / "2m ago" label for the last-updated indicator.
@@ -205,7 +151,10 @@ struct TempScreen: View {
             await fetchActiveCurve()
             if deviceManager.isConnected { sensor.connect() }
         }
-        .task(id: deviceManager.selectedSide) { await fetchActiveCurve() }
+        .task(id: "\(deviceManager.selectedSide)|\(scheduleManager.revision)|\(nightScope)") {
+            guard scenePhase == .active else { return }
+            await fetchActiveCurve()
+        }
         .onReceive(NotificationCenter.default.publisher(for: .switchToTempTab)) { _ in Task { await fetchActiveCurve() } }
     }
 
@@ -345,6 +294,8 @@ struct TempScreen: View {
                 }
             }
             TemperatureCurve(points: curve.setPoints, bedtime: curve.bedtime, wake: curve.wakeTime, compact: true)
+            Text("Base routine · wake-up warming and manual overrides take priority.")
+                .font(.caption).foregroundStyle(Theme.text2)
         }
         .cardStyle()
     }
@@ -356,6 +307,10 @@ struct TempScreen: View {
 
     private func profileName(_ points: [RunOnceSetPoint]) -> String {
         let values = points.map { Int($0.temperature) }.sorted()
+        if let temperature = values.first, values.allSatisfy({ $0 == temperature }) {
+            let format = settingsManager.temperatureFormat == .relative ? .fahrenheit : settingsManager.temperatureFormat
+            return "\(TemperatureConversion.displayTemp(temperature, format: format)) hold"
+        }
         return SleepProfile.allCases.first { $0.temperatures(for: values.count).sorted() == values }?.rawValue ?? "Custom"
     }
 }

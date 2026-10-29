@@ -462,7 +462,14 @@ struct SleepScreen: View {
                 Image(systemName: "checkmark").font(.system(size: 14, weight: .semibold)).foregroundStyle(Theme.green)
             } else {
                 Image(systemName: "heart").font(.system(size: 15)).foregroundStyle(Theme.amber)
-                Text(health.isSyncing ? "Saving to Apple Health…" : "Not saved").font(.subheadline)
+                VStack(alignment: .leading, spacing: 4) {
+                    let failure = health.failures[HealthSyncService.recordKey(podID: settings.podID, record: record)]
+                    Text(health.isSyncing ? "Saving to Apple Health…" : (failure == nil ? "Not saved" : "Sync incomplete"))
+                        .font(.subheadline)
+                    if let failure, !health.isSyncing {
+                        Text(failure).font(.caption).foregroundStyle(Theme.text2)
+                    }
+                }
                 Spacer(minLength: 8)
                 Button("Retry") {
                     Task {
