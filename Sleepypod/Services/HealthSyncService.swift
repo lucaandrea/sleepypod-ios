@@ -597,14 +597,14 @@ final class HealthSyncService {
     /// How far either side of the bed record the Watch's night may sit and still count as the same night.
     static let watchSearchMargin: TimeInterval = 12 * 3600
 
-    func watchComparison(record: SleepRecord, epochs: [SleepAnalyzer.SleepEpoch], vitals: [VitalsRecord]) async -> WatchComparison? {
+    func watchComparison(record: SleepRecord, epochs: [SleepAnalyzer.SleepEpoch], vitals: [VitalsRecord], window: DateInterval? = nil) async -> WatchComparison? {
         guard enabled, preferences.readSleep || preferences.readVitals, store.available,
               record.leftBedDate > record.enteredBedDate else { return nil }
         readError = nil
         Log.health.notice("Watch comparison for night \(record.id) \(record.enteredBedDate.formatted(.iso8601), privacy: .private) to \(record.leftBedDate.formatted(.iso8601), privacy: .private)")
         // The Watch's night is found on its own terms, then vitals are read over whichever span is wider.
         var stages: [WatchComparison.StageSample] = []
-        var start = record.enteredBedDate, end = record.leftBedDate
+        var start = window?.start ?? record.enteredBedDate, end = window?.end ?? record.leftBedDate
         if preferences.readSleep {
             let all = Self.watchStages(await read("sleep") {
                 try await store.sleepSamples(start: start.addingTimeInterval(-Self.watchSearchMargin), end: end.addingTimeInterval(Self.watchSearchMargin))
@@ -648,6 +648,38 @@ final class HealthSyncService {
             throw APIError.notSupported("Enable Apple Health sleep history before reading it.")
         }
         return try await store.sleepSamples(start: start, end: end)
+    }
+
+    var watchReferenceContext: [String] {
+        ownerRevision() + [Self.linkedSide(defaults: persistence).rawValue, String(enabled),
+            String(preferences.readSleep), String(preferences.readVitals)]
+    }
+
+    /// Read only the requested Watch metrics, in weekly pages, without exporting the rest of Health.
+    func watchReferenceSnapshot(side: Side, days: Int, now: Date = .now) async throws -> HealthWatchSnapshot {
+        guard enabled, store.available, preferences.readSleep || preferences.readVitals,
+              side == Self.linkedSide(defaults: persistence), (1...90).contains(days) else {
+            throw APIError.notSupported("Enable Health reading for your own bed side before importing Watch data.")
+        }
+        let context = watchReferenceContext
+        let window = DateInterval(start: now.addingTimeInterval(-Double(days) * 86400), end: now)
+        var samples: [HKSample] = [], start = window.start
+        while start < now {
+            try Task.checkCancellation()
+            guard context == watchReferenceContext else { throw APIError.serverError(message: "Health settings or the Pod connection changed during reading.") }
+            let end = min(start.addingTimeInterval(7 * 86400), now)
+            if preferences.readSleep { samples += try await store.sleepSamples(start: start, end: end) }
+            if preferences.readVitals {
+                for metric in [HKQuantityTypeIdentifier.heartRate, .respiratoryRate, .heartRateVariabilitySDNN] {
+                    try Task.checkCancellation()
+                    guard context == watchReferenceContext else { throw APIError.serverError(message: "Health settings or the Pod connection changed during reading.") }
+                    samples += try await store.quantitySamples(metric, start: start, end: end)
+                }
+            }
+            start = end
+        }
+        guard context == watchReferenceContext else { throw APIError.serverError(message: "Health settings or the Pod connection changed during reading.") }
+        return HealthWatchSnapshot.build(samples: samples, window: window)
     }
 
     /// Runs one Health read, logging what came back and keeping the first failure for the UI.

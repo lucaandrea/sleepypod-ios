@@ -128,6 +128,12 @@ import XCTest
         XCTAssertTrue(app.navigationBars["Import Apple Watch data"].waitForExistence(timeout: 4))
         capture(app, "Sleep-watch-import")
         XCTAssertFalse(app.buttons["Choose Health export"].isEnabled)
+        app.buttons["Import directly from this iPhone"].tap()
+        XCTAssertTrue(app.navigationBars["Import from Health"].waitForExistence(timeout: 4))
+        XCTAssertTrue(app.buttons["watch.readHealth"].exists)
+        XCTAssertFalse(app.buttons["watch.readHealth"].isEnabled)
+        capture(app, "Sleep-direct-health-import")
+        app.navigationBars.buttons.element(boundBy: 0).tap()
         app.navigationBars.buttons["Done"].tap()
         app.navigationBars.buttons["Sleep"].tap()
         let imported = app.buttons["sleep.importedWatch"]

@@ -14,6 +14,7 @@ struct WatchComparisonView: View {
     let vitals: [VitalsRecord]
     let stageSourceLabel: String?
     let stageGapTolerance: TimeInterval
+    let recordingWindow: DateInterval?
     @State private var comparison: WatchComparison?
     @State private var loaded = false
     @State private var source: ReferenceSource
@@ -27,9 +28,9 @@ struct WatchComparisonView: View {
     private let order: [SleepAnalyzer.SleepStage] = [.wake, .rem, .light, .deep]
     private static let watchColor = Theme.text2
 
-    init(record: SleepRecord, epochs: [SleepAnalyzer.SleepEpoch], vitals: [VitalsRecord], source: ReferenceSource = .health, stageSourceLabel: String? = nil, stageGapTolerance: TimeInterval = 300) {
+    init(record: SleepRecord, epochs: [SleepAnalyzer.SleepEpoch], vitals: [VitalsRecord], source: ReferenceSource = .health, stageSourceLabel: String? = nil, stageGapTolerance: TimeInterval = 300, recordingWindow: DateInterval? = nil) {
         self.record = record; self.epochs = epochs; self.vitals = vitals
-        self.stageSourceLabel = stageSourceLabel; self.stageGapTolerance = stageGapTolerance
+        self.stageSourceLabel = stageSourceLabel; self.stageGapTolerance = stageGapTolerance; self.recordingWindow = recordingWindow
         _source = State(initialValue: source)
         referenceClient = APIBackend.current.isDemo ? DemoWatchReferenceClient() : CoreWatchReferenceClient()
     }
@@ -75,18 +76,18 @@ struct WatchComparisonView: View {
         .navigationTitle("Apple Watch")
         .navigationBarTitleDisplayMode(.inline)
         .sheet(isPresented: $showImport) { WatchImportSheet(side: Side(rawValue: record.side) ?? .left) { reload += 1 } }
-        .task(id: "\(record.id)-\(source.rawValue)-\(reload)") {
+        .task(id: "\(record.id)-\(source.rawValue)-\(reload)-\(recordingWindow?.end.timeIntervalSince1970 ?? 0)-\(epochs.count)-\(vitals.count)") {
             loaded = false; comparison = nil; referenceError = nil
             if source == .controller {
                 do {
                     let reference = try await referenceClient.load(side: Side(rawValue: record.side) ?? .left,
-                        window: DateInterval(start: record.enteredBedDate, end: max(record.leftBedDate, record.enteredBedDate.addingTimeInterval(60))))
+                        window: recordingWindow ?? DateInterval(start: record.enteredBedDate, end: max(record.leftBedDate, record.enteredBedDate.addingTimeInterval(60))))
                     guard !Task.isCancelled else { return }
                     comparison = reference.comparison(epochs: epochs, vitals: vitals)
                 } catch { guard !Task.isCancelled else { return }; referenceError = error.localizedDescription }
             } else {
                 let result = APIBackend.current.isDemo ? WatchComparison.demo(record: record, epochs: epochs, vitals: vitals)
-                    : await health.watchComparison(record: record, epochs: epochs, vitals: vitals)
+                    : await health.watchComparison(record: record, epochs: epochs, vitals: vitals, window: recordingWindow)
                 guard !Task.isCancelled else { return }; comparison = result
             }
             loaded = true

@@ -20,7 +20,6 @@ struct SleepScreen: View {
             timeZone: UserDefaults.standard.string(forKey: "podTimeZone") ?? "America/Los_Angeles"))
     @State private var period: Period =
         ["week", "weektrend"].contains(DebugRoute.current) ? .week : DebugRoute.current == "month" ? .month : .night
-    @State private var analyzer = SleepAnalyzer()
     @State private var agreement: Double?
     @State private var nightlyAgreement: [Date: Double] = [:]
     @State private var showWatch = false
@@ -36,6 +35,7 @@ struct SleepScreen: View {
     @State private var refreshRevision = 0
     @State private var podStages = PodStageNightWorkspace()
     @State private var periodStages = SleepPeriodStageWorkspace()
+    @State private var localNightEpochs: [SleepAnalyzer.SleepEpoch] = []
     @State private var localWeekStages: [Int: SleepNightStageSummary] = [:]
     @State private var periodStageRevision = 0
     @State private var weekSummaries: [SleepNightSummary] = []
@@ -43,8 +43,8 @@ struct SleepScreen: View {
     @State private var weekSummaryStart: Date?
     @AppStorage("nightStageSource") private var nightStageSource = "pod"
     private var usesPodStages: Bool { APIBackend.current != .freeSleep && nightStageSource == "pod" }
-    private var displayedEpochs: [SleepAnalyzer.SleepEpoch] { usesPodStages ? podStages.epochs : analyzer.stages }
-    private var displayedStageSource: String { usesPodStages ? podStages.result?.sourceLabel ?? "Pod" : "This iPhone" }
+    private var displayedEpochs: [SleepAnalyzer.SleepEpoch] { usesPodStages ? podStages.epochs : localNightEpochs }
+    private var displayedStageSource: String { usesPodStages ? (podStages.sourceLabel.isEmpty ? "Pod" : podStages.sourceLabel) : "This iPhone" }
 
     private var calendar: Calendar { SleepCalendar.calendar(timeZone: settings.timeZone) }
     private var nightRecords: [SleepRecord] {
@@ -59,9 +59,10 @@ struct SleepScreen: View {
     private var record: SleepRecord? { nightRecords.max { $0.sleepPeriodSeconds < $1.sleepPeriodSeconds } }
     private var recording: NightRecordingSummary { NightRecordingSummary(records: nightRecords) }
     private var vitals: [VitalsRecord] {
-        guard let record else { return [] }
-        return metrics.vitalsRecords.filter {
-            $0.side == record.side && $0.date >= record.enteredBedDate && $0.date < record.leftBedDate
+        let intervals = recording.intervals
+        return metrics.vitalsRecords.filter { reading in
+            reading.side == metrics.selectedSide.rawValue
+                && intervals.contains { reading.date >= $0.start && reading.date < $0.end }
         }
     }
     private var weekDays: [Date] {
@@ -74,10 +75,16 @@ struct SleepScreen: View {
         return SleepPeriodSummary.nights(
             days: weekDays, records: [], vitals: [], side: metrics.selectedSide, calendar: calendar)
     }
-    private var weekStages: [Int: SleepNightStageSummary] { usesPodStages ? periodStages.summaries : localWeekStages }
+    private var weekStages: [Int: SleepNightStageSummary] {
+        SleepPeriodSummary.stages(nights: weekNights, summaries: usesPodStages ? periodStages.summaries : localWeekStages)
+    }
+    private var recordingWindow: DateInterval? {
+        guard let start = recording.start, let end = recording.end, end > start else { return nil }
+        return DateInterval(start: start, end: end)
+    }
     private var periodStageKey: String {
         "\(period.rawValue)-\(metrics.selectedSide.rawValue)-\(metrics.selectedWeekStart)-\(usesPodStages)-\(periodStageRevision)-"
-            + weekNights.compactMap(\.main).map { "\($0.id):\($0.sleepPeriodSeconds)" }.joined(separator: ",")
+            + weekNights.flatMap(\.records).map { "\($0.id):\($0.sleepPeriodSeconds)" }.joined(separator: ",")
     }
     private var monthStart: Date { calendar.dateInterval(of: .month, for: selectedDate)?.start ?? selectedDate }
     private var monthDays: [Date] {
@@ -112,7 +119,7 @@ struct SleepScreen: View {
                     if let record {
                         WatchComparisonView(
                             record: record, epochs: displayedEpochs, vitals: filteredVitals,
-                            stageSourceLabel: displayedStageSource, stageGapTolerance: usesPodStages ? 0 : 300)
+                            stageSourceLabel: displayedStageSource, stageGapTolerance: 0, recordingWindow: recordingWindow)
                     }
                 }
                 .navigationDestination(isPresented: $showStages) {
@@ -162,12 +169,12 @@ struct SleepScreen: View {
             ) {
                 guard usesPodStages else { return }
                 let client = APIBackend.current.createClient()
-                await podStages.load(recordID: record?.id, side: metrics.selectedSide, fetch: client.getSleepStages)
+                await podStages.load(records: nightRecords, side: metrics.selectedSide, fetch: client.getSleepStages)
             }
             .task(id: periodStageKey) {
                 guard period == .week, usesPodStages else { return }
                 await periodStages.load(
-                    records: weekNights.compactMap(\.main), side: metrics.selectedSide,
+                    records: weekNights.flatMap(\.records), side: metrics.selectedSide,
                     fetch: APIBackend.current.createClient().getSleepStages)
             }
             .refreshable { await reload() }
@@ -320,12 +327,12 @@ struct SleepScreen: View {
     @ViewBuilder private var nightContent: some View {
         if let record {
             SleepSummaryCardView(
-                record: record, score: nightRecords.count > 1 ? nil : usesPodStages ? podStages.result?.score : analyzer.qualityScore,
+                record: record, score: nightRecords.count > 1 ? nil : usesPodStages ? podStages.result?.score : localWeekStages[record.id]?.quality,
                 recording: recording)
             Text("Recorded bed time includes awake periods. It is not a measurement of time asleep.")
                 .font(.footnote).foregroundStyle(Theme.text2)
             if nightRecords.count > 1 {
-                Text("\(nightRecords.count) recording segments · \(DisplayTime.duration(recording.gapSeconds)) between segments, not counted. Stages, vitals and comparisons below describe the longest segment only.")
+                Text("\(nightRecords.count) recording segments · \(DisplayTime.duration(recording.gapSeconds)) between segments, not counted. Stages, vitals and Watch comparisons use all available segments; missing data stays blank.")
                     .font(.footnote).foregroundStyle(Theme.text2).accessibilityIdentifier("sleep.fragmentCoverage")
                 DisclosureGroup("All recording segments") {
                     ForEach(nightRecords) { segment in
@@ -374,8 +381,8 @@ struct SleepScreen: View {
                 ).font(.caption).foregroundStyle(Theme.text3)
             } else {
                 SleepStagesTimelineView(
-                    stages: analyzer.stages, qualityScore: analyzer.qualityScore,
-                    source: analyzer.source, modelName: stageModels.active?.title, sourceLabel: "This iPhone",
+                    stages: localNightEpochs, qualityScore: nightRecords.count == 1 ? localWeekStages[record.id]?.quality : nil,
+                    sourceLabel: "This iPhone · classifications across recorded segments", gapTolerance: 0,
                     showDurations: true)
             }
             vitalsLayout {
@@ -383,10 +390,18 @@ struct SleepScreen: View {
                 vital("HRV", unit: "ms", key: \.hrv, decimals: 0, icon: "waveform.path.ecg", color: Theme.cool)
                 vital("BREATH", unit: "br/min", key: \.breathingRate, decimals: 1, icon: "lungs", color: Theme.green)
             }
-            Text("Bed exits · \(record.timesExitedBed)").font(.footnote).foregroundStyle(Theme.text2).padding(
+            Text("Reported bed exits · \(nightRecords.reduce(0) { $0 + max(0, $1.timesExitedBed) })").font(.footnote).foregroundStyle(Theme.text2).padding(
                 .horizontal, 4)
             if health.hasWriteAuthorization && metrics.selectedSide == profile.defaultSide && !isDemo {
-                healthReceipt(record)
+                if nightRecords.count == 1 { healthReceipt(record) }
+                else {
+                    DisclosureGroup("Apple Health sync by recording") {
+                        ForEach(nightRecords) { segment in
+                            Text(segment.enteredBedDate, style: .time).font(.caption)
+                            healthReceipt(segment)
+                        }
+                    }
+                }
             }
             if canCompareWatch {
                 watchRow
@@ -396,7 +411,7 @@ struct SleepScreen: View {
                 NavigationLink {
                     WatchComparisonView(
                         record: record, epochs: displayedEpochs, vitals: vitals, source: .controller,
-                        stageSourceLabel: displayedStageSource, stageGapTolerance: usesPodStages ? 0 : 300)
+                        stageSourceLabel: displayedStageSource, stageGapTolerance: 0, recordingWindow: recordingWindow)
                 } label: {
                     Label("Imported Apple Watch", systemImage: "applewatch")
                 }.padding(.vertical, 8).accessibilityIdentifier("sleep.importedWatch")
@@ -511,7 +526,7 @@ struct SleepScreen: View {
             showStages = true
         } label: {
             SettingsRow(
-                "Compare stage models", subtitle: "Experimental", icon: "chart.bar.doc.horizontal", chevron: true,
+                "Compare stage models", subtitle: nightRecords.count > 1 ? "Experimental · longest segment" : "Experimental", icon: "chart.bar.doc.horizontal", chevron: true,
                 height: 52, titleFont: .subheadline
             )
             .cardSurface(radius: 18)
@@ -535,7 +550,7 @@ struct SleepScreen: View {
             if usesPodStages, periodStages.loading { ProgressView("Loading stages for this week…") }
             if usesPodStages, !periodStages.errors.isEmpty {
                 Text(
-                    "Stages could not be loaded for \(periodStages.errors.count) night(s). Recorded durations and vitals remain available."
+                    "Stages could not be loaded for \(periodStages.errors.count) recording segment(s). Recorded durations and vitals remain available."
                 ).font(.footnote).foregroundStyle(Theme.amber)
                 Button("Retry week stages") { periodStageRevision += 1 }
             }
@@ -551,7 +566,7 @@ struct SleepScreen: View {
                 if let summary = weekStages[record.id] {
                     SleepStagesTimelineView(
                         stages: summary.epochs, qualityScore: summary.quality, sourceLabel: summary.source,
-                        gapTolerance: usesPodStages ? 0 : 300, showDurations: true)
+                        gapTolerance: 0, showDurations: true)
                 }
                 NavigationLink("Movement and biometrics") {
                     BiometricsScreen(side: metrics.selectedSide, date: selectedDate, period: .week)
@@ -770,48 +785,48 @@ struct SleepScreen: View {
         }
         let calibration = try? await APIBackend.current.createClient().getCalibrationStatus(side: metrics.selectedSide)
         guard revision == refreshRevision else { return }
-        analyzer.analyze(
-            vitals: vitals, movement: metrics.movementRecords,
-            calibrationQuality: calibration?.piezo?.qualityScore ?? 0,
-            model: metrics.selectedSide == profile.defaultSide
-                ? record.flatMap { stageModels.staging(enteredBed: $0.enteredBedDate, leftBed: $0.leftBedDate) } : nil)
         let weekAnalyzer = SleepAnalyzer()
         var localSummaries: [Int: SleepNightStageSummary] = [:]
         var nights: [(record: SleepRecord, epochs: [SleepAnalyzer.SleepEpoch], vitals: [VitalsRecord])] = []
-        for night in metrics.sleepRecords where night.leftBedDate > night.enteredBedDate {
+        for night in metrics.sleepRecords where night.side == metrics.selectedSide.rawValue && night.leftBedDate > night.enteredBedDate {
             let records = metrics.vitalsRecords.filter {
-                $0.date >= night.enteredBedDate && $0.date < night.leftBedDate
+                $0.side == night.side && $0.date >= night.enteredBedDate && $0.date < night.leftBedDate
             }
             weekAnalyzer.analyze(
                 vitals: records, movement: metrics.movementRecords,
                 calibrationQuality: calibration?.piezo?.qualityScore ?? 0,
                 model: metrics.selectedSide == profile.defaultSide
                     ? stageModels.staging(enteredBed: night.enteredBedDate, leftBed: night.leftBedDate) : nil)
-            nights.append((night, weekAnalyzer.stages, weekAnalyzer.filterOutliers(vitals: records)))
+            let covered = NightStageCoverage.epochs(weekAnalyzer.stages, within: NightRecordingSummary(records: [night]).intervals)
+            nights.append((night, covered, weekAnalyzer.filterOutliers(vitals: records)))
             localSummaries[night.id] = .init(
-                epochs: weekAnalyzer.stages, quality: weekAnalyzer.stages.isEmpty ? nil : weekAnalyzer.qualityScore,
+                epochs: covered, quality: weekAnalyzer.stages.isEmpty ? nil : weekAnalyzer.qualityScore,
                 source: "This iPhone")
         }
         localWeekStages = localSummaries
+        localNightEpochs = NightStageCoverage.epochs(nightRecords.flatMap { localSummaries[$0.id]?.epochs ?? [] }, within: recording.intervals)
         var nightly: [Double?]
+        let grouped = Dictionary(grouping: nights) { SleepCalendar.nightDate(for: $0.record.enteredBedDate, calendar: calendar) }
+        let comparisonNights = grouped.keys.sorted().compactMap { day -> (Date, [SleepAnalyzer.SleepEpoch])? in
+            guard let entries = grouped[day] else { return nil }
+            let windows = NightRecordingSummary(records: entries.map(\.record)).intervals
+            return (day, NightStageCoverage.epochs(entries.flatMap(\.epochs), within: windows))
+        }
         if isDemo {
-            nightly = nights.map {
-                WatchComparison.demo(record: $0.record, epochs: $0.epochs, vitals: $0.vitals).stages.percent
+            nightly = comparisonNights.map { day, epochs in
+                guard let entry = grouped[day]?.first else { return nil }
+                return WatchComparison.demo(record: entry.record, epochs: epochs, vitals: grouped[day]?.flatMap(\.vitals) ?? []).stages.percent
             }
             agreement = WatchComparison.mean(nightly.compactMap { $0 })
         } else if canCompareWatch {
-            (agreement, nightly) = await health.weekAgreement(nights: nights.map(\.epochs))
+            (agreement, nightly) = await health.weekAgreement(nights: comparisonNights.map { $0.1 })
         } else {
             (agreement, nightly) = (nil, [])
         }
         guard revision == refreshRevision else { return }
-        // Keyed by day; the day's longest record is the night, matching what the Night view shows.
-        let byDay = Dictionary(grouping: zip(nights, nightly).map { ($0.record, $1) }) {
-            SleepCalendar.nightDate(for: $0.0.enteredBedDate, calendar: calendar)
-        }
-        nightlyAgreement = byDay.compactMapValues { entries in
-            entries.max { $0.0.sleepPeriodSeconds < $1.0.sleepPeriodSeconds }?.1
-        }
+        nightlyAgreement = Dictionary(uniqueKeysWithValues: zip(comparisonNights, nightly).compactMap { night, value in
+            value.map { (night.0, $0) }
+        })
         if DebugRoute.current == "watch", record != nil, !showWatch { showWatch = true }
         if DebugRoute.current == "stages", record != nil, !showStages { showStages = true }
     }
