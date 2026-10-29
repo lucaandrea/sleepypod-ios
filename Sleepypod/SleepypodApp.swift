@@ -31,7 +31,7 @@ struct SleepypodApp: App {
 
     init() {
         #if DEBUG
-        let household = HouseholdPreview.make() ?? HouseholdWorkspace()
+        let household = PersonalTemperaturePreview.make() ?? HouseholdPreview.make() ?? HouseholdWorkspace()
         #else
         let household = HouseholdWorkspace()
         #endif
@@ -72,29 +72,10 @@ struct SleepypodApp: App {
     var body: some Scene {
         WindowGroup {
             Group {
-                if household.active { HouseholdScreen() }
-                else { ContentView() }
+                if household.active { HouseholdRootView() }
+                else { ownerContent }
             }
                 .environment(household)
-                .environment(deviceManager)
-                .environment(scheduleManager)
-                .environment(alarms)
-                .environment(curves)
-                .environment(metricsManager)
-                .environment(statusManager)
-                .environment(settingsManager)
-                .environment(podDiscovery)
-                .environment(userProfile)
-                .environment(sensorStream)
-                .environment(notificationRelay)
-                .environment(alertInbox)
-                .environment(homeRoom)
-                .environment(bedroom)
-                .environment(healthSync)
-                .environment(nativeActions)
-                .environment(stageModels)
-                .environment(watchMotion)
-                .environment(snoreCapture)
                 .preferredColorScheme(userProfile.appearance.colorScheme)
                 .foregroundStyle(Theme.text1)
                 .tint(Theme.text1)
@@ -123,6 +104,14 @@ struct SleepypodApp: App {
             HealthSyncService.scheduleBackgroundSync()
             await healthSync.syncInBackground()
         }
+    }
+    private var ownerContent: some View {
+        ContentView()
+            .environment(deviceManager).environment(scheduleManager).environment(alarms).environment(curves)
+            .environment(metricsManager).environment(statusManager).environment(settingsManager).environment(podDiscovery)
+            .environment(userProfile).environment(sensorStream).environment(notificationRelay).environment(alertInbox)
+            .environment(homeRoom).environment(bedroom).environment(healthSync).environment(nativeActions)
+            .environment(stageModels).environment(watchMotion).environment(snoreCapture)
     }
 }
 
