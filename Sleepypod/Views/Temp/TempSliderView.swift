@@ -126,7 +126,7 @@ struct TempSliderView: View {
             .accessibilityLabel(device.isOn ? "Turn off" : "Turn on")
             VStack(alignment: .leading, spacing: 3) {
                 Text(curve == nil ? "No schedule" : profileName).font(.subheadline.weight(.semibold)).lineLimit(1)
-                Text(curve.map { "\(DisplayTime.clock($0.bedtime)) →" } ?? "Set one up in Schedule")
+                Text(curve.map { "Base · \(DisplayTime.clock($0.bedtime))" } ?? "Set one up in Schedule")
                     .font(.mono(11, relativeTo: .caption2)).foregroundStyle(Theme.text2).lineLimit(1)
             }
             .padding(.horizontal, 16)

@@ -345,6 +345,7 @@
 		61C1EEE74D3DD723325BE25C /* CoreHardwareStatusTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6BCF3D299580638A23204A46 /* CoreHardwareStatusTests.swift */; };
 		61D92F250D075F8E17ED8E7C /* AutomationTimeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B42631EA291E2A50BD9F129 /* AutomationTimeline.swift */; };
 		6238ECEFE99DC43517C45CAB /* TemperatureContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2798E8D99DE259A06E3EEDC9 /* TemperatureContext.swift */; };
+		6245736C9F33D8A4D309919E /* ActiveCurveTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 049B308446BCC23953A9E28A /* ActiveCurveTests.swift */; };
 		6271763B5DDA5268A710DF44 /* SystemDashboardScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = FDE65A971AE8963DE74E57C3 /* SystemDashboardScreen.swift */; };
 		6289B2577F78DD097A4E02B6 /* PodActions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 73F82A76BA3C23506E64838A /* PodActions.swift */; };
 		62967FA9ACEFE8467A65B1B9 /* SnoreCaptureView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9A4C83F31E096F7C52FDED6 /* SnoreCaptureView.swift */; };
@@ -471,6 +472,7 @@
 		85F3918D5154DE02AFA81D40 /* BiometricDatasetWorkspace.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF3B2D9B86F629DD3679A2A8 /* BiometricDatasetWorkspace.swift */; };
 		85F4E3A0AFBB297777DF5127 /* SleepShortcutsCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2EB89A759A0EEA94E33765FD /* SleepShortcutsCard.swift */; };
 		860115194D82EAA09B08D44E /* ImportedHistoryRESTTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 85DB7D67029B1216B85DA16D /* ImportedHistoryRESTTests.swift */; };
+		861544035DED30C61FEE73E1 /* ActiveCurve.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE04658EF507E97A933986A0 /* ActiveCurve.swift */; };
 		8708812FB44FC89A60A7B45A /* BiometricProfilesWorkspace.swift in Sources */ = {isa = PBXBuildFile; fileRef = B35D5D2F0B0545F76FC6EC4A /* BiometricProfilesWorkspace.swift */; };
 		872B22F73D01D2A9C56CB412 /* AnalysisHistoryCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = EBD0737C09DCC8297F11B1D6 /* AnalysisHistoryCard.swift */; };
 		874862C240D71E13B2FE3722 /* PiezoAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = A4464A41F150702F0C25D231 /* PiezoAnalyzer.swift */; };
@@ -976,6 +978,7 @@
 		040C438C33704892DA58CE35 /* SystemLogsScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemLogsScreen.swift; sourceTree = "<group>"; };
 		043D38F11D4ED41C206BF1FA /* RemoteStageModelAlignmentTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteStageModelAlignmentTests.swift; sourceTree = "<group>"; };
 		04710A8ABCD6BE865AA7E37E /* HealthMetricsGridView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthMetricsGridView.swift; sourceTree = "<group>"; };
+		049B308446BCC23953A9E28A /* ActiveCurveTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActiveCurveTests.swift; sourceTree = "<group>"; };
 		04A3D3C501F21B58CA2038A3 /* BedroomTransportTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BedroomTransportTests.swift; sourceTree = "<group>"; };
 		04AA0EA478872AED14D7C88B /* ComfortOwnerScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComfortOwnerScreen.swift; sourceTree = "<group>"; };
 		04E430E87600A5941431BF25 /* MorningJournalExample.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MorningJournalExample.swift; sourceTree = "<group>"; };
@@ -1762,6 +1765,7 @@
 		ECD9500E4E075CA14930F108 /* ConnectionRecoveryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionRecoveryTests.swift; sourceTree = "<group>"; };
 		ED53C388A9A1BE8B0FB0382E /* SideSelectorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SideSelectorView.swift; sourceTree = "<group>"; };
 		ED71C7684867299327307368 /* GestureBindingsScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GestureBindingsScreen.swift; sourceTree = "<group>"; };
+		EE04658EF507E97A933986A0 /* ActiveCurve.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActiveCurve.swift; sourceTree = "<group>"; };
 		EF0A3E249737A182E7FB1DC3 /* MorningJournalClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MorningJournalClient.swift; sourceTree = "<group>"; };
 		EF0B2422EAC341B690AB1E50 /* BiometricExperimentsUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiometricExperimentsUITests.swift; sourceTree = "<group>"; };
 		EF0E237026027FF6BF0DC5A8 /* SensorDiagnosticsWorkspace.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SensorDiagnosticsWorkspace.swift; sourceTree = "<group>"; };
@@ -2317,6 +2321,7 @@
 		B59E5A73B7775D671213BDBD /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				EE04658EF507E97A933986A0 /* ActiveCurve.swift */,
 				1B37E1F3172BF5FA69DF2F8F /* AlarmPlan.swift */,
 				37C947E6107DDF614FF2BE43 /* ArchivePushSettings.swift */,
 				EF52970D3FFEEA89CD082588 /* AutomationAlert.swift */,
@@ -2431,6 +2436,7 @@
 		CB1F0598BD16F0631EF16962 /* SleepypodTests */ = {
 			isa = PBXGroup;
 			children = (
+				049B308446BCC23953A9E28A /* ActiveCurveTests.swift */,
 				D6C912771F382B78E930512C /* AdaptiveSimulatorTests.swift */,
 				4C6EE17C03456B1613751DA8 /* AlarmParityTests.swift */,
 				4E6B4EE6592C014997E174B5 /* AlertInboxTests.swift */,
@@ -3356,6 +3362,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				6245736C9F33D8A4D309919E /* ActiveCurveTests.swift in Sources */,
 				76F2CAC09736F972160EA15B /* AdaptiveSimulatorTests.swift in Sources */,
 				4F65F823A6398B5FDD44EDC9 /* AlarmParityTests.swift in Sources */,
 				75C96A220A415D301865AD80 /* AlertInboxTests.swift in Sources */,
@@ -3707,6 +3714,7 @@
 				6C2843125C47D323DAB695BC /* APIBackend.swift in Sources */,
 				00F44793F97313509F4C9400 /* APIEndpoint.swift in Sources */,
 				8DDF8FDD9FE7688543CA8831 /* APIError.swift in Sources */,
+				861544035DED30C61FEE73E1 /* ActiveCurve.swift in Sources */,
 				A3BC5A89B6475BD1E789D8B3 /* AdaptiveSimulator.swift in Sources */,
 				FB5E288E157C31F330D714EE /* AlarmClient.swift in Sources */,
 				8088DB95E81ABB5F340C4044 /* AlarmPlan.swift in Sources */,
@@ -4278,7 +4286,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 12;
+				CURRENT_PROJECT_VERSION = 13;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -4491,7 +4499,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 12;
+				CURRENT_PROJECT_VERSION = 13;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
