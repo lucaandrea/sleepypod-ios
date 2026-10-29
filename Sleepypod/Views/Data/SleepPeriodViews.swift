@@ -42,8 +42,8 @@ struct SleepWeekOverview: View {
                     )
                     .accessibilityValue(
                         night.records.isEmpty
-                            ? "No sleep recorded"
-                            : "\(DisplayTime.duration(night.seconds)), \(summary?.quality.map { "quality \($0)" } ?? "quality unavailable")"
+                            ? "No bed time recorded"
+                            : "\(DisplayTime.duration(night.seconds)) recorded in bed, \(summary?.quality.map { "quality \($0)" } ?? "quality unavailable")"
                     )
                     .accessibilityAddTraits(calendar.isDate(night.day, inSameDayAs: selected) ? .isSelected : [])
                 }
@@ -67,7 +67,7 @@ struct SleepWeekOverview: View {
                 }
             }.font(.caption).foregroundStyle(Theme.text2)
             Text(
-                "Bar height is recorded sleep across all sessions. Colors show the main session’s classified stage proportions; plain bars have no stage result."
+                "Bar height is recorded bed time, including awake time. Colors show sleep-stage proportions across available segments, not measured sleep duration. Plain bars have no stage result."
             )
             .font(.caption).foregroundStyle(Theme.text3).fixedSize(horizontal: false, vertical: true)
             if recorded.isEmpty { Text("No sleep recorded this week").font(.footnote).foregroundStyle(Theme.text2) }
@@ -76,7 +76,7 @@ struct SleepWeekOverview: View {
             Eyebrow("WEEK AVERAGES")
             LazyVGrid(columns: columns, alignment: .leading, spacing: 18) {
                 value(
-                    "Asleep",
+                    "Recorded in bed",
                     text: SleepPeriodSummary.average(recorded.map { Double($0.seconds) }).map {
                         DisplayTime.duration(Int($0))
                     } ?? "—")
@@ -89,12 +89,12 @@ struct SleepWeekOverview: View {
                     "Bedtime",
                     text: clock(
                         SleepPeriodSummary.averageClock(
-                            recorded.compactMap { $0.main?.enteredBedDate }, calendar: calendar)))
+                            recorded.compactMap { $0.records.map(\.enteredBedDate).min() }, calendar: calendar)))
                 value(
                     "Wake",
                     text: clock(
                         SleepPeriodSummary.averageClock(
-                            recorded.compactMap { $0.main?.completedAt }, calendar: calendar)))
+                            recorded.compactMap { $0.records.compactMap(\.completedAt).max() }, calendar: calendar)))
             }
         }.cardStyle()
         VStack(alignment: .leading, spacing: 16) {

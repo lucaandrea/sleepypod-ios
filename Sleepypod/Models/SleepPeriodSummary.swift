@@ -23,13 +23,15 @@ struct SleepNightStageSummary: Sendable {
 }
 
 enum SleepPeriodSummary {
-    /// Keep naps in the night's total, but use its longest session for stage and vital summaries.
+    /// Summarize every recorded interval without treating gaps as sleep.
     static func nights(days: [Date], records: [SleepRecord], vitals: [VitalsRecord], side: Side, calendar: Calendar) -> [SleepNightSummary] {
         let groups = Dictionary(grouping: records.filter { $0.side == side.rawValue }) { SleepCalendar.nightDate(for: $0.enteredBedDate, calendar: calendar) }
         return days.map { day in
             let records = groups[calendar.startOfDay(for: day)] ?? []
-            let main = records.max { $0.sleepPeriodSeconds < $1.sleepPeriodSeconds }
-            let readings = main.map { record in vitals.filter { $0.side == side.rawValue && $0.date >= record.enteredBedDate && $0.date < record.leftBedDate } } ?? []
+            let intervals = NightRecordingSummary(records: records).intervals
+            let readings = vitals.filter { reading in
+                reading.side == side.rawValue && intervals.contains { reading.date >= $0.start && reading.date < $0.end }
+            }
             let metrics = Dictionary(uniqueKeysWithValues: BiometricMetric.allCases.compactMap { metric in
                 BiometricPlot(metric: metric, records: readings).stats.map { (metric, $0) }
             })
@@ -39,6 +41,17 @@ enum SleepPeriodSummary {
             })
             return SleepNightSummary(day: calendar.startOfDay(for: day), records: records, metrics: metrics, metricSources: sources)
         }
+    }
+    static func stages(nights: [SleepNightSummary], summaries: [Int: SleepNightStageSummary]) -> [Int: SleepNightStageSummary] {
+        Dictionary(uniqueKeysWithValues: nights.compactMap { night in
+            guard let main = night.main else { return nil }
+            let available = night.records.compactMap { summaries[$0.id] }
+            let source = Set(available.map(\.source)).sorted().joined(separator: " · ")
+            let coverage = available.count == night.records.count ? "" : " · \(available.count)/\(night.records.count) segments"
+            return (main.id, .init(epochs: NightStageCoverage.epochs(available.flatMap(\.epochs),
+                    within: NightRecordingSummary(records: night.records).intervals),
+                quality: night.records.count == 1 ? available.first?.quality : nil, source: source + coverage))
+        })
     }
     static func average(_ values: [Double]) -> Double? {
         let finite = values.filter(\.isFinite)

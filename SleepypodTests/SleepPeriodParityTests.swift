@@ -14,7 +14,7 @@ import XCTest
     func testNoonStartsANewNight() {
         XCTAssertEqual(SleepCalendar.nightDate(for: date(25, 12), calendar: calendar), date(25, 0))
     }
-    func testNightTotalsIncludeNapsButVitalsUseMainRecordAndChosenSide() {
+    func testNightTotalsAndVitalsIncludeEveryRecordOnChosenSide() {
         let records = [SleepRecord(id: 1, side: "left", enteredBed: date(24, 22), leftBed: date(25, 6)),
                        SleepRecord(id: 2, side: "left", enteredBed: date(24, 15), leftBed: date(24, 16)),
                        SleepRecord(id: 3, side: "right", enteredBed: date(24, 22), leftBed: date(25, 7))]
@@ -22,7 +22,7 @@ import XCTest
         let readings = [VitalsRecord(id: 1, heartRate: 60, date: date(24, 23)), wrong, VitalsRecord(id: 3, heartRate: 80, date: date(24, 15, 30))]
         let summary = SleepPeriodSummary.nights(days: [date(24, 0)], records: records, vitals: readings, side: .left, calendar: calendar)[0]
         XCTAssertEqual(summary.seconds, 9 * 3600); XCTAssertEqual(summary.main?.id, 1)
-        XCTAssertEqual(summary.metrics[.heartRate]?.average, 60)
+        XCTAssertEqual(summary.metrics[.heartRate]?.average, 70)
     }
     func testClockAverageCrossesMidnightAndDoesNotSubstituteMissingWake() {
         let average = SleepPeriodSummary.averageClock([date(24, 23), date(25, 1)], calendar: calendar)

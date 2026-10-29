@@ -3,6 +3,7 @@ import UniformTypeIdentifiers
 
 struct WatchImportSheet: View {
     @Environment(\.dismiss) private var dismiss
+    @Environment(UserProfile.self) private var profile
     @Environment(SettingsManager.self) private var settings
     @State private var model: WatchImportWorkspace
     @State private var chooseFile = false
@@ -23,7 +24,14 @@ struct WatchImportSheet: View {
                         Text("Use this sleeper’s Apple Health export. Imported Watch readings stay separate from the Pod’s measurements.")
                         Text("Destination: \(model.destination)").font(.footnote).foregroundStyle(Theme.text2).textSelection(.enabled)
                     }.cardStyle()
-                    DisclosureGroup("Get your Apple Health export") {
+                    if model.side == profile.defaultSide {
+                        NavigationLink {
+                            HealthWatchImportView(side: model.side, onImported: onImported)
+                        } label: {
+                            Label("Import directly from this iPhone", systemImage: "heart.text.clipboard")
+                        }.disabled(model.uploading || model.preparing).cardStyle()
+                    }
+                    DisclosureGroup("Or use an Apple Health export") {
                         Text("In Health, tap your profile picture, choose Export All Health Data, and save the ZIP to Files. You can also choose an extracted export.xml.")
                             .padding(.top, 10)
                     }.cardStyle()
