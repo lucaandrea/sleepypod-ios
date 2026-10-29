@@ -10,7 +10,7 @@ Opening personal preparation replaces the Temp/Schedule/Sleep tabs. It suspends 
 
 ## Supported preparation actions
 
-- Set up an owner personal account, explicitly choosing which existing side's routine to copy.
+- Set up an owner personal account, explicitly confirming which side currently provides the solo routine. Personal drafts start separately; the active routine is unchanged.
 - Join with a new-person or own-device invitation. A new person remains unassigned.
 - Save personal temperature units, preferred temperature, comfort and wake-time sharing preference. Cloud analysis stays off.
 - Save a complete weekly routine draft, including power, temperature phases, alarms, snooze and notes. Bedtime nights preserve the existing week/overnight validation. No live schedule endpoint is used.

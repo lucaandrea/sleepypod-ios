@@ -171,8 +171,8 @@ struct HouseholdConnectionForm: View {
                 TextField("Device name", text: $deviceName).accessibilityIdentifier("household.deviceName")
                 if kind == .join { SecureField("Invitation", text: $invitation).textInputAutocapitalization(.never).autocorrectionDisabled().accessibilityIdentifier("household.invitation") }
                 else {
-                    Picker("Copy initial routine from", selection: $sourceSide) { Text("Left").tag(Side.left); Text("Right").tag(Side.right) }
-                    Text("Creates your solo personal account using a copy of that side’s existing routine. Current bed operation stays unchanged.").font(.footnote)
+                    Picker("Current solo routine side", selection: $sourceSide) { Text("Left").tag(Side.left); Text("Right").tag(Side.right) }
+                    Text("Confirms the side currently providing your solo routine. Personal drafts start separately; your active routine and bed operation stay unchanged.").font(.footnote)
                 }
             }
             Section {
