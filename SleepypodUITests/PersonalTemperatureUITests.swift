@@ -9,13 +9,14 @@ import XCTest
         app.launch(); return app
     }
     private func scroll(_ app: XCUIApplication, upward: Bool) {
-        let start = app.coordinate(withNormalizedOffset: CGVector(dx: 0.97, dy: upward ? 0.78 : 0.3))
-        let end = app.coordinate(withNormalizedOffset: CGVector(dx: 0.97, dy: upward ? 0.3 : 0.78))
+        let start = app.coordinate(withNormalizedOffset: CGVector(dx: 0.90, dy: upward ? 0.78 : 0.3))
+        let end = app.coordinate(withNormalizedOffset: CGVector(dx: 0.90, dy: upward ? 0.3 : 0.78))
         start.press(forDuration: 0.05, thenDragTo: end)
     }
     private func reveal(_ element: XCUIElement, in app: XCUIApplication) {
         for _ in 0..<8 where !element.isHittable { scroll(app, upward: true) }
-        XCTAssertTrue(element.isHittable)
+        if !element.isHittable { capture(app, "Unreachable-\(element.identifier)") }
+        XCTAssertTrue(element.isHittable, "Could not scroll to \(element.identifier)")
     }
     private func capture(_ app: XCUIApplication, _ name: String) {
         let attachment = XCTAttachment(screenshot: app.screenshot()); attachment.name = name; attachment.lifetime = .keepAlways; add(attachment)
