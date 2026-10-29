@@ -8,7 +8,7 @@ final class TemperatureParityUITests: XCTestCase {
                                "-healthSyncEnabled", "NO", "-uiRoute", "", "-tempControl", "dial",
                                "-temperatureLayout", layout, "-temperatureDisplay", "eightSleep", "-stageZones", "always", "-stageAutoReturn", "NO"]
         app.launch()
-        XCTAssertTrue(app.tabBars.buttons["Temp"].waitForExistence(timeout: 15))
+        XCTAssertTrue(app.segmentedControls.buttons["Cards"].waitForExistence(timeout: 15))
         return app
     }
 
