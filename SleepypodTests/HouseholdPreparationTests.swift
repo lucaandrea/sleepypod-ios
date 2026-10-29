@@ -35,6 +35,14 @@ import FreeSleepKit
         XCTAssertNil(second.draftPreferences); XCTAssertNotEqual(model.draftPreferences.preferredTemperatureF, 70)
         XCTAssertEqual(vault.state.connections.first { $0.id == first.id }?.draftPreferences, draft)
     }
+    func testFutureScheduledRoutinesCannotBePresentedAsEditableDrafts() throws {
+        let fixture = try HouseholdTestServer.fixture()
+        let session = try JSONDecoder().decode(HouseholdSession.self, from: XCTUnwrap(fixture["memberSession"]))
+        let live = HouseholdRoutinesResponse(sleeperId: session.selfSleeperId, revision: 1, status: "scheduled", routines: [])
+        XCTAssertThrowsError(try live.validate(for: session)) { error in
+            XCTAssertEqual(error as? HouseholdFailure, .preparationOnly)
+        }
+    }
     func testFrozenMemberAndOwnerContractsKeepAssignmentAndCapabilitiesExplicit() throws {
         let fixture = try HouseholdTestServer.fixture()
         for name in ["memberSession", "ownerSession"] {

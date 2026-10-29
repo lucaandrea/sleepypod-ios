@@ -39,8 +39,8 @@ struct HouseholdRoutinesResponse: Codable, Equatable, Sendable {
     let status: String
     let routines: [HouseholdRoutine]
     func validate(for session: HouseholdSession) throws {
-        guard sleeperId == session.selfSleeperId, HouseholdValidation.revision(revision),
-              ["draft_only", "scheduled"].contains(status) else { throw HouseholdFailure.changedIdentity }
+        guard sleeperId == session.selfSleeperId, HouseholdValidation.revision(revision) else { throw HouseholdFailure.changedIdentity }
+        guard status == "draft_only" else { throw HouseholdFailure.preparationOnly }
         try HouseholdRoutine.validate(routines)
     }
 }

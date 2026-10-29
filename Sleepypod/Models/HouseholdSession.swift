@@ -1,7 +1,7 @@
 import Foundation
 
 enum HouseholdFailure: Error, LocalizedError, Equatable {
-    case invalid, changedIdentity, authentication, conflict, unavailable, invitation, forbidden, rateLimited, uncertain, storage
+    case invalid, changedIdentity, authentication, conflict, unavailable, invitation, forbidden, rateLimited, uncertain, storage, preparationOnly
     var errorDescription: String? {
         switch self {
         case .invalid: "The personal-account response could not be verified. Refresh before continuing."
@@ -13,6 +13,7 @@ enum HouseholdFailure: Error, LocalizedError, Equatable {
         case .forbidden: "This action is not available to your personal account."
         case .rateLimited: "Too many requests or pending invitations. Wait before trying again."
         case .uncertain: "The result is unknown. Your original request and connection secret are kept securely. Check the saved state before retrying."
+        case .preparationOnly: "This controller reports an active personal routine. Update the app before editing it; this workspace supports drafts only."
         case .storage: "Secure storage is unavailable. Unlock this device and refresh; a request already sent may still need confirmation."
         }
     }
