@@ -191,7 +191,8 @@ final class SleepypodCoreClient: SleepypodProtocol, @unchecked Sendable {
             BatchCall(procedure: "health.scheduler", input: nil),
             BatchCall(procedure: "health.hardware", input: nil),
             BatchCall(procedure: "health.dacMonitor", input: nil),
-            BatchCall(procedure: "system.wifiStatus", input: nil)
+            BatchCall(procedure: "system.wifiStatus", input: nil),
+            BatchCall(procedure: "system.getLogSources", input: nil)
         ])
         let health = try decoder.decode(TRPCSystemHealth.self, from: results[0].get())
         let scheduler = try decoder.decode(TRPCSchedulerHealth.self, from: results[1].get())
@@ -200,6 +201,7 @@ final class SleepypodCoreClient: SleepypodProtocol, @unchecked Sendable {
         let hardware = tryDecode(TRPCHardwareHealth.self, from: results[2])
         let dacMonitor = tryDecode(TRPCDacMonitor.self, from: results[3])
         let wifi = tryDecode(TRPCWifiStatus.self, from: results[4])
+        let processes = tryDecode(CoreProcessStatus.self, from: results[5])
 
         func info(_ name: String, status: ServiceStatus, desc: String, msg: String = "OK") -> StatusInfo {
             StatusInfo(name: name, status: status, description: desc, message: msg)
@@ -233,7 +235,7 @@ final class SleepypodCoreClient: SleepypodProtocol, @unchecked Sendable {
             powerSchedule: info("Power Schedule", status: schedStatus, desc: "Auto on/off scheduler", msg: "\(scheduler.jobCounts.powerOn + scheduler.jobCounts.powerOff) power jobs"),
             primeSchedule: info("Prime Schedule", status: schedStatus, desc: "Daily prime scheduler", msg: "\(scheduler.jobCounts.prime) prime jobs"),
             rebootSchedule: info("Reboot Schedule", status: schedStatus, desc: "Daily reboot scheduler", msg: "\(scheduler.jobCounts.reboot) reboot jobs"),
-            systemDate: info("Biometrics", status: .notStarted, desc: "Sleep data processing", msg: "Status unavailable"),
+            systemDate: processes?.biometrics ?? CoreProcessStatus.unavailable,
             temperatureSchedule: info("Temperature Schedule", status: schedStatus, desc: "Temperature curve scheduler", msg: "\(scheduler.jobCounts.temperature) temp jobs"),
             coreFirewall: health.iptables,
             coreWiFi: wifi.map { .init(connected: $0.connected, ssid: $0.ssid, signal: $0.signal) }
@@ -268,10 +270,7 @@ final class SleepypodCoreClient: SleepypodProtocol, @unchecked Sendable {
     // MARK: - Log Sources
 
     func getLogSources() async throws -> [LogSource] {
-        struct LogSourcesResponse: Decodable {
-            let sources: [LogSource]
-        }
-        let response: LogSourcesResponse = try await query("system.getLogSources")
+        let response: CoreProcessStatus = try await query("system.getLogSources")
         return response.sources
     }
 
