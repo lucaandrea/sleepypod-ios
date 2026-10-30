@@ -25,7 +25,8 @@ import XCTest
     }
     private func openReview(_ app: XCUIApplication) {
         let link = app.buttons["publication.accountLink"]; reveal(link, in: app); link.tap()
-        XCTAssertTrue(app.staticTexts["publication.reason"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.navigationBars["Operating week"].waitForExistence(timeout: 10))
+        reveal(app.staticTexts["publication.reason"], in: app)
     }
     private func confirm(_ app: XCUIApplication) {
         let first = app.switches["publication.confirmWeek"], second = app.switches["publication.confirmEffect"]
