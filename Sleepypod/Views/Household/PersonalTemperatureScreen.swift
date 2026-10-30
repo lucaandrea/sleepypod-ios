@@ -33,6 +33,10 @@ struct PersonalTemperatureScreen: View {
                         Text("An earlier command needs review in Account. Power off and Stop vibration remain available.")
                             .font(.footnote).foregroundStyle(Theme.amber)
                     }
+                    if household.hasUnresolvedPublicationEffects {
+                        Text("An earlier routine publication needs receipt review in Account. Power off and Stop vibration remain available.")
+                            .font(.footnote).foregroundStyle(Theme.amber)
+                    }
                     receipts
                 }.padding(16).padding(.bottom, 24)
             }

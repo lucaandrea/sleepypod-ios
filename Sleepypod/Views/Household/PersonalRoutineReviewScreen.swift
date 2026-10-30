@@ -32,7 +32,7 @@ struct PersonalRoutineReviewScreen: View {
             }
             if model.hasUnresolved {
                 Section {
-                    Text("Resolve the earlier publication before publishing another week. A missing receipt or unconfirmed scheduler refresh must not be repaired by publishing again.")
+                    Text("Resolve earlier control or publication receipts before publishing another week. A missing receipt or unconfirmed scheduler refresh must not be repaired by publishing again.")
                         .font(.footnote).foregroundStyle(Theme.amber).accessibilityIdentifier("publication.unresolved")
                 }
             }

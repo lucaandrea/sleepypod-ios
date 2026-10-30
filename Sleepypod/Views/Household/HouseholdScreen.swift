@@ -14,19 +14,19 @@ struct HouseholdScreen: View {
         NavigationStack(path: $navigation) {
             Form {
                 Section {
-                    Label(model.temperature == nil ? "Personal preparation" : "Personal account", systemImage: "person.crop.circle").font(.headline)
-                    Text(model.publication?.enabled == true
-                         ? "Personal controls and routine publication use your bed assignment. Saving a draft stays separate from publishing it. Assignment changes, sleep history and Apple Health are not active here."
-                         : model.temperature == nil
-                         ? "Prepare your own comfort preferences and weekly routine. Bed controls, side assignment, sleep history and Apple Health are not active in this workspace."
-                         : "Temperature controls use your personal bed assignment. Weekly routines remain drafts; assignment changes, sleep history and Apple Health are not active here.")
-                        .font(.footnote).foregroundStyle(Theme.text2)
+                    Label(model.temperature == nil && model.publication?.enabled != true ? "Personal preparation" : "Personal account", systemImage: "person.crop.circle").font(.headline)
                     if let session = model.session {
                         Text(session.person.displayName).font(.title2.bold())
                         Text(session.assignmentLabel).accessibilityIdentifier("household.assignment")
                         Text("\(session.role.capitalized) account · \(model.selected?.endpoint.host ?? "Controller")")
                             .font(.caption).foregroundStyle(Theme.text2)
                     }
+                    Text(model.publication?.enabled == true
+                         ? "Drafts stay private until you publish them. Controls follow your bed assignment. Assignment changes, history and Apple Health are not active here."
+                         : model.temperature == nil
+                         ? "Prepare your own comfort preferences and weekly routine. Bed controls, side assignment, sleep history and Apple Health are not active in this workspace."
+                         : "Temperature controls use your personal bed assignment. Weekly routines remain drafts; assignment changes, sleep history and Apple Health are not active here.")
+                        .font(.footnote).foregroundStyle(Theme.text2)
                 }
                 feedback
                 controlRecovery

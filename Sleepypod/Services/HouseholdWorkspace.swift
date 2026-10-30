@@ -423,7 +423,9 @@ import Observation
                 guard let self, self.active, self.state.selected == record.id, self.generation == operation,
                       self.session?.context == session.context else { throw HouseholdFailure.changedIdentity }
                 try self.saveControl(attempt, recordId: record.id, session: session)
-            }, recoveryPending: { [weak self] in self?.controlRecoveries.isEmpty == false }, revoked: { [weak self] in
+            }, recoveryPending: { [weak self] in
+                self?.controlRecoveries.isEmpty == false || self?.hasUnresolvedPublicationEffects == true
+            }, revoked: { [weak self] in
                 guard let self, self.generation == operation, self.state.selected == record.id else { return }
                 self.clearVisible()
                 do { try self.forget(record.id); self.error = HouseholdFailure.authentication.localizedDescription }
@@ -461,6 +463,12 @@ import Observation
     private var unresolvedRequestCount: Int {
         state.connections.reduce(0) { $0 + ($1.personalControls ?? []).filter(\.needsReview).count + ($1.personalPublications ?? []).filter(\.unresolved).count }
             + (state.controlTombstones?.count ?? 0) + (state.publicationTombstones?.count ?? 0)
+    }
+    var hasUnresolvedPublicationEffects: Bool {
+        active && session != nil && ((selected?.personalPublications ?? []).contains(where: \.unresolved) || !publicationRecoveries.isEmpty)
+    }
+    private var hasUnresolvedControlEffects: Bool {
+        active && session != nil && ((selected?.personalControls ?? []).contains(where: \.needsReview) || !controlRecoveries.isEmpty)
     }
     var publicationRecoveries: [PersonalRoutineTombstone] {
         guard active, let session, selected?.identity?.identity == session.identity else { return [] }
@@ -508,7 +516,9 @@ import Observation
             guard let self, self.active, self.state.selected == record.id, self.generation == operation,
                   self.session?.context == session.context else { throw HouseholdFailure.changedIdentity }
             try self.savePublication(attempt, recordId: record.id, session: session)
-        }, recoveryPending: { [weak self] in self?.publicationRecoveries.isEmpty == false }, revoked: { [weak self] in
+        }, recoveryPending: { [weak self] in
+            self?.publicationRecoveries.isEmpty == false || self?.hasUnresolvedControlEffects == true
+        }, revoked: { [weak self] in
             guard let self, self.generation == operation, self.state.selected == record.id else { return }
             self.clearVisible()
             do { try self.forget(record.id); self.error = HouseholdFailure.authentication.localizedDescription }

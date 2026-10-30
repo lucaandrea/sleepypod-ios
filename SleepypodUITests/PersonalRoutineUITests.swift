@@ -9,13 +9,16 @@ import XCTest
         app.launch(); XCTAssertTrue(app.staticTexts["household.assignment"].waitForExistence(timeout: 20)); return app
     }
     private func reveal(_ element: XCUIElement, in app: XCUIApplication, upward: Bool = true) {
-        for _ in 0..<20 where !element.isHittable {
+        func visible() -> Bool {
+            element.isHittable && element.frame.midY >= app.frame.minY + 110 && element.frame.midY <= app.frame.maxY - 70
+        }
+        for _ in 0..<20 where !visible() {
             let start = app.coordinate(withNormalizedOffset: CGVector(dx: 0.90, dy: upward ? 0.78 : 0.28))
             let end = app.coordinate(withNormalizedOffset: CGVector(dx: 0.90, dy: upward ? 0.28 : 0.78))
             start.press(forDuration: 0.05, thenDragTo: end)
         }
-        if !element.isHittable { capture(app, "Unreachable-\(element.identifier)") }
-        XCTAssertTrue(element.isHittable, "Unreachable \(element.identifier)")
+        if !visible() { capture(app, "Unreachable-\(element.identifier)") }
+        XCTAssertTrue(visible(), "Unreachable \(element.identifier)")
     }
     private func capture(_ app: XCUIApplication, _ name: String) {
         let attachment = XCTAttachment(screenshot: app.screenshot()); attachment.name = name; attachment.lifetime = .keepAlways; add(attachment)

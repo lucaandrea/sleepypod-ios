@@ -113,6 +113,19 @@ import FreeSleepKit
         XCTAssertEqual(vault.state.connections[0].draftPreferences, .blank); XCTAssertEqual(vault.state.connections.count, 2)
         vault.reject = true; XCTAssertFalse(restored.discardRetainedRoutineDraft())
     }
+    func testUnknownEffectsBlockOrdinaryChangesAcrossBothWorkspacesButKeepStops() async throws {
+        let controls = try PersonalTestServer(bed: PersonalControlFixtures.currentBed(), session: PersonalRoutineFixtures.session())
+        let (parent, vault, server) = try setup(controls: controls)
+        await parent.refresh(); let temperature = try XCTUnwrap(parent.temperature); await temperature.refresh()
+        XCTAssertTrue(temperature.canAdjust)
+        await server.configure(postFailure: .uncertain); let publication = try await publish(parent)
+        XCTAssertFalse(temperature.canAdjust); XCTAssertTrue(temperature.canStopPower); XCTAssertTrue(temperature.canStopVibration)
+        await publication.reconcile(try XCTUnwrap(vault.state.connections.first?.personalPublications?.first?.id))
+        XCTAssertTrue(temperature.canAdjust)
+        await controls.configure(postFailure: .uncertain); await temperature.submit(.init(kind: "temperature", temperatureF: 70, holdMinutes: 30))
+        await publication.refresh(); publication.confirmReplaceLiveWeek = true; publication.acknowledgeCurrentTargetEffect = true
+        XCTAssertFalse(publication.canPublish); XCTAssertTrue(temperature.canStopPower)
+    }
     func testPublicationMarkerNeverMatchesAnotherAccountWithSameSleeperNameOrSide() throws {
         let session = try PersonalRoutineFixtures.session()
         let marker = PersonalRoutineTombstone(identity: session.identity, requestId: UUID(), expiresAt: 1_793_314_830_000, unresolvedState: "awaiting")
