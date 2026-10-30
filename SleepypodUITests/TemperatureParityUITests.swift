@@ -41,6 +41,7 @@ final class TemperatureParityUITests: XCTestCase {
     }
 
     func testAppearanceChoicesPreserveNativeControls() {
+        continueAfterFailure = false
         let app = launch(layout: "cards", appearance: "Light")
         app.buttons["Settings"].tap()
         let appearance = app.buttons["Appearance"]
@@ -70,8 +71,10 @@ final class TemperatureParityUITests: XCTestCase {
         }
         expectation(for: settled, evaluatedWith: nil)
         waitForExpectations(timeout: 5)
-        option.tap()
+        option.press(forDuration: 0.15)
         expectation(for: NSPredicate { _, _ in picker.value as? String == title }, evaluatedWith: nil)
+        waitForExpectations(timeout: 5)
+        expectation(for: NSPredicate(format: "exists == false"), evaluatedWith: option)
         waitForExpectations(timeout: 5)
     }
 
