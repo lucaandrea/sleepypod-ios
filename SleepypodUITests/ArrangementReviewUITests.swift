@@ -84,12 +84,17 @@ import XCTest
     }
     func testOwnerProposalLargeTextRequiresPreservingOperatingWeek() {
         let app = launch("propose", large: true); open(app)
+        let left = app.descendants(matching: .any).matching(NSPredicate(format: "label == %@", "Left")).firstMatch
+        reveal(left, in: app); left.tap(); capture(app, "Arrangement-scaled-side-picker")
         let propose = app.buttons["arrangement.propose"]; reveal(propose, in: app); XCTAssertFalse(propose.isEnabled)
         let preserve = app.switches["arrangement.preserveWeek"]; reveal(preserve, in: app, upward: false)
         preserve.coordinate(withNormalizedOffset: CGVector(dx: 0.95, dy: 0.5)).tap(); XCTAssertEqual(preserve.value as? String, "1")
         reveal(propose, in: app); XCTAssertTrue(propose.isEnabled); capture(app, "Arrangement-owner-large-text-proposal"); propose.tap()
         let notice = app.staticTexts["arrangement.notice"]; reveal(notice, in: app, upward: false)
-        XCTAssertTrue(notice.label.contains("Review prepared")); app.terminate()
+        XCTAssertTrue(notice.label.contains("Review prepared"))
+        let ownSide = app.descendants(matching: .any).matching(identifier: "arrangement.side.left").firstMatch
+        reveal(ownSide, in: app); XCTAssertTrue(ownSide.label.contains("Your proposed side")); capture(app, "Arrangement-owner-left-side-selected")
+        app.terminate()
     }
     func testExpiredReviewAndUnavailableCapabilityAreHonest() {
         var app = launch("expired"); open(app)

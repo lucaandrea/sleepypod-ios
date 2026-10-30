@@ -8,6 +8,8 @@ The optional `arrangementReview` capability must be explicitly true to enter the
 
 Each projection contains only the caller's preferences and full week. The partner projection accepts exactly display name, proposed side and approval status; extra partner-private fields fail decoding. All seven nights are shown, including absent and disabled nights. Expanded details reuse the complete routine renderer for phases, notes, overnight timing, wake temperatures, vibration, wake window, custom snooze duration and taper. The controller timezone and review expiry are explicit.
 
+At accessibility text sizes, the future-side selector uses full-size native choice rows. Side cards stack vertically, and routine details and confirmations wrap within the scrollable form.
+
 Approving requires three independent acknowledgments: own side, own routine, and separate activation. Refreshing, changed facts, expiry, backgrounding, revocation and identity changes disable approval or reset those confirmations. A fresh session and exact displayed projection are checked before each mutation. Either participant can cancel an unconsumed review. Both saved approvals still report that the bed has not switched sides. There is no activation method, endpoint or button.
 
 ## Private ephemeral state and recovery

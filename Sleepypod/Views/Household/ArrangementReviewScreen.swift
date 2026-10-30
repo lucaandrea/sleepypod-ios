@@ -109,14 +109,19 @@ struct ArrangementReviewScreen: View {
     private var proposal: some View {
         Section("Prepare a shared review") {
             Text("Both people first save their own preferences. The joining person also saves their private weekly draft. Existing calendar schedules must already be reviewed.").font(.footnote)
-            Picker("My future side", selection: $model.ownerSide) {
-                Text("Left").tag(Side.left); Text("Right").tag(Side.right)
-            }.pickerStyle(.segmented).accessibilityIdentifier("arrangement.ownerSide")
+            if dynamicTypeSize.isAccessibilitySize { sidePicker.pickerStyle(.inline) }
+            else { sidePicker.pickerStyle(.segmented) }
             Toggle("Keep my current operating week, including wake alarms, for my proposed side", isOn: $model.preserveOperatingWeek)
                 .accessibilityIdentifier("arrangement.preserveWeek")
             Button("Prepare shared side review") { Task { await model.propose() } }
                 .disabled(!model.canPropose).accessibilityIdentifier("arrangement.propose")
         }
+    }
+    private var sidePicker: some View {
+        Picker("My future side", selection: $model.ownerSide) {
+            Text("Left").tag(Side.left)
+            Text("Right").tag(Side.right)
+        }.accessibilityIdentifier("arrangement.ownerSide")
     }
     private func temperature(_ value: HouseholdPreferences) -> String {
         value.displayUnit == "C" ? String(format: "%.1f °C", Double(value.preferredTemperatureF - 32) * 5 / 9) : "\(value.preferredTemperatureF) °F"
