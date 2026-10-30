@@ -29,6 +29,7 @@ enum PersonalHistoryFixtures {
 
 actor PersonalHistoryTestServer: PersonalHistoryTransport {
     var account: HouseholdSession
+    let relativeDates: Bool
     var pages: [PersonalHistoryPage]
     var recorded: PersonalHistoryDetail
     var failure: HouseholdFailure?
@@ -37,7 +38,8 @@ actor PersonalHistoryTestServer: PersonalHistoryTransport {
     var queries: [PersonalHistoryQuery] = []
     private var held: String?
     private var continuation: CheckedContinuation<Void, Never>?
-    init(enabled: Bool = true) throws {
+    init(enabled: Bool = true, relativeDates: Bool = false) throws {
+        self.relativeDates = relativeDates
         account = try PersonalHistoryFixtures.session(enabled: enabled)
         pages = [try PersonalHistoryFixtures.page()]; recorded = try PersonalHistoryFixtures.detail()
     }
@@ -57,7 +59,17 @@ actor PersonalHistoryTestServer: PersonalHistoryTransport {
     func page(_ query: PersonalHistoryQuery, cursor: String?) async throws -> PersonalHistoryPage {
         queries.append(query); requests.append(cursor ?? "first"); let result = pages.count > 1 ? pages.removeFirst() : pages[0]
         await pause("page"); if let failure { throw failure }
-        return try PersonalHistoryFixtures.changed(result) { $0["query"] = try HouseholdRequestBody.object(query) }
+        return try PersonalHistoryFixtures.changed(result) { value in
+            value["query"] = try HouseholdRequestBody.object(query)
+            if relativeDates {
+                var records = try XCTUnwrap(value["records"] as? [[String: Any]])
+                for index in records.indices {
+                    records[index]["startsAt"] = query.endsAt - 86_400_000
+                    records[index]["endsAt"] = query.endsAt - 57_600_000
+                }
+                value["records"] = records
+            }
+        }
     }
     func detail(_ id: UUID) async throws -> PersonalHistoryDetail {
         requests.append(id.uuidString.lowercased()); let result = recorded

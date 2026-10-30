@@ -14,7 +14,7 @@ Every request uses the pinned personal credential and sleeper header. Reads reva
 
 Personal account → Your recordings shows presence, vitals or movement for rolling 7/30/90-day ranges. Records retain their complete original interval and recorded side. No presence values are clipped or prorated, and no sleep score or sleep stages are inferred. Null vitals remain unavailable; Pod HRV retains its own metric. Times use the device's named time zone.
 
-A detail read reauthorizes and verifies the selected record against the page snapshot. Pagination retains the original query and attribution revision. A stale cursor, invalid response, interrupted body or mismatched record discards the accumulated private snapshot; Refresh starts again. Backgrounding, account changes and revocation clear bodies. Nothing is stored in defaults, the credential vault, command recovery or Health. Stop uses an independent transport and remains available while history reads are pending.
+A detail read reauthorizes and verifies the selected record against the page snapshot. Pagination retains the original query and attribution revision. A stale cursor, invalid response, interrupted body or mismatched record discards the accumulated private snapshot; Refresh starts again. Foreground list/detail screens recheck personal access every 15 seconds; backgrounding, account changes and detected revocation clear bodies. Nothing is stored in defaults, the credential vault, command recovery or Health. Stop uses an independent transport and remains available while history reads are pending.
 
 ## Validation
 

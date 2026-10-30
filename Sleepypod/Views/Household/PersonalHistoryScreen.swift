@@ -63,6 +63,7 @@ struct PersonalHistoryScreen: View {
                 Section { Text("Loaded from your Pod · \(PersonalHistoryPresentation.date(generated))").font(.caption).foregroundStyle(Theme.text2) }
             }
         }
+        .modifier(PersonalHistoryAccessCheck(model: model))
         .privacySensitive().scrollContentBackground(.hidden).background(Theme.background)
         .navigationTitle("Your recordings").navigationBarTitleDisplayMode(.inline)
         .toolbar { ToolbarItem(placement: .topBarTrailing) {

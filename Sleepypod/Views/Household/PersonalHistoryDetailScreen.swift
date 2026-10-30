@@ -32,6 +32,7 @@ struct PersonalHistoryDetailScreen: View {
                 }
             }
         }
+        .modifier(PersonalHistoryAccessCheck(model: model))
         .privacySensitive().scrollContentBackground(.hidden).background(Theme.background)
         .navigationTitle("Recording").navigationBarTitleDisplayMode(.inline)
         .toolbar { ToolbarItem(placement: .topBarTrailing) {

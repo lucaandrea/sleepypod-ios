@@ -23,6 +23,7 @@ import Observation
     private let pageSize: Int
     private let clock: @MainActor () -> Int64
     private var generation = 0
+    private var checkingAccess = false
     private var recordIds: Set<String> = []
     private var usedCursors: Set<String> = []
 
@@ -96,6 +97,15 @@ import Observation
                   expectedRecord.map({ $0 == result.record }) ?? true else { throw HouseholdFailure.conflict }
             detail = result
         } catch { fail(error, operation: operation) }
+    }
+    /// Withdraw visible bodies when a foreground account check detects revocation or a changed scope.
+    func checkAccess() async {
+        guard enabled, !busy, !checkingAccess, loaded || detail != nil else { return }
+        let operation = generation
+        checkingAccess = true
+        defer { checkingAccess = false }
+        do { _ = try await freshSession(operation) }
+        catch { if !Task.isCancelled { fail(error, operation: operation) } }
     }
     private func freshSession(_ operation: Int) async throws -> HouseholdSession {
         let value = try await client.session()

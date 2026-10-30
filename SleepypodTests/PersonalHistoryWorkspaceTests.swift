@@ -71,6 +71,26 @@ import XCTest
         await model.refresh(); await server.configure(sessionFailure: .authentication); await model.refresh()
         XCTAssertTrue(model.records.isEmpty); XCTAssertEqual(context.revocations, 1); XCTAssertFalse(model.enabled)
     }
+    func testForegroundAccessCheckWithdrawsRevokedRecordsAndIgnoresLateOldCheck() async throws {
+        let server = try PersonalHistoryTestServer(), context = PersonalHistoryTestContext(), model = try context.workspace(server)
+        await model.refresh(); await model.loadDetail(try XCTUnwrap(model.records.first?.id))
+        await server.configure(sessionFailure: .authentication); await model.checkAccess()
+        XCTAssertTrue(model.records.isEmpty); XCTAssertNil(model.detail); XCTAssertEqual(context.revocations, 1)
+        let fresh = try PersonalHistoryTestServer(), visible = try context.workspace(fresh)
+        await visible.refresh(); await fresh.hold("session")
+        let checking = Task { await visible.checkAccess() }; await fresh.waitHeld()
+        visible.suspend(); await fresh.configure(sessionFailure: .authentication); await fresh.release(); await checking.value
+        XCTAssertFalse(visible.isInvalidated); XCTAssertEqual(context.revocations, 1)
+        XCTAssertTrue(visible.records.isEmpty); XCTAssertNil(visible.error)
+    }
+    func testCancellingForegroundAccessTaskForNavigationKeepsVerifiedSnapshot() async throws {
+        let server = try PersonalHistoryTestServer(), context = PersonalHistoryTestContext(), model = try context.workspace(server)
+        await model.refresh(); let original = model.records
+        await server.hold("session")
+        let checking = Task { await model.checkAccess() }; await server.waitHeld()
+        checking.cancel(); await server.release(); await checking.value
+        XCTAssertEqual(model.records, original); XCTAssertTrue(model.loaded); XCTAssertFalse(model.isInvalidated); XCTAssertNil(model.error)
+    }
     func testDisabledAndInvalidQuerySendNoRequest() async throws {
         let server = try PersonalHistoryTestServer(enabled: false), context = PersonalHistoryTestContext()
         let model = try context.workspace(server, session: PersonalHistoryFixtures.session(enabled: false))
@@ -120,7 +140,7 @@ import XCTest
         }
     }
     func testParentKeepsRecordingsEphemeralAndReplacesChildForHouseholdRevision() async throws {
-        let account = try PersonalHistoryFixtures.session(), server = try ArrangementTestServer(), history = try PersonalHistoryTestServer()
+        let account = try PersonalHistoryFixtures.session(), server = try ArrangementTestServer(), history = try PersonalHistoryTestServer(relativeDates: true)
         await server.setSession(account)
         let vault = ArrangementTestVault(account), defaults = UserDefaults(suiteName: UUID().uuidString)!
         let parent = HouseholdWorkspace(vault: vault, defaults: defaults, client: { _ in server }, historyClient: { _ in history }, capability: { false }, ownerEndpoint: { nil })
@@ -138,7 +158,7 @@ import XCTest
         let session = try PersonalHistoryFixtures.changed(PersonalHistoryFixtures.session()) {
             var flags = try XCTUnwrap($0["capabilities"] as? [String: Any]); flags["personalControls"] = true; $0["capabilities"] = flags
         }
-        let server = try ArrangementTestServer(), history = try PersonalHistoryTestServer(); await server.setSession(session); await history.setSession(session)
+        let server = try ArrangementTestServer(), history = try PersonalHistoryTestServer(relativeDates: true); await server.setSession(session); await history.setSession(session)
         let bed = try PersonalHistoryFixtures.changed(PersonalControlFixtures.currentBed()) {
             var scope = try XCTUnwrap($0["scope"] as? [String: Any]); scope["podId"] = session.podId; scope["householdId"] = session.householdId
             scope["sleeperId"] = session.selfSleeperId; scope["sessionRevision"] = session.sessionRevision; scope["assignmentRevision"] = session.assignmentRevision; $0["scope"] = scope
