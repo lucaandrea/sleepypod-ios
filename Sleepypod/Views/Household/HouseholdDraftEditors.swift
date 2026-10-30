@@ -29,6 +29,12 @@ struct HouseholdRoutineWeek: View {
     @Environment(HouseholdWorkspace.self) private var model
     @State private var week: [HouseholdRoutine] = []
     @State private var validation: String?
+    @State private var initialized = false
+    @State private var importReview: PersonalRoutineReview?
+    @State private var clearWeek = false
+    @State private var editingRevision: Int?
+    @State private var reloadDraft = false
+    private var savedDraftChanged: Bool { initialized && editingRevision != model.routines?.revision }
     var body: some View {
         Form {
             Section {
@@ -38,7 +44,8 @@ struct HouseholdRoutineWeek: View {
             Section("Bedtime nights") {
                 ForEach(DayOfWeek.weekdays) { day in
                     NavigationLink {
-                        HouseholdNightEditor(day: day, draft: binding(day), unit: model.draftPreferences.displayUnit)
+                        HouseholdNightEditor(day: day, draft: binding(day), unit: model.draftPreferences.displayUnit,
+                            hasRoutine: week.contains { $0.dayOfWeek == day }, remove: { week.removeAll { $0.dayOfWeek == day } })
                     } label: {
                         VStack(alignment: .leading) {
                             Text(day.displayName)
@@ -51,19 +58,77 @@ struct HouseholdRoutineWeek: View {
                 }
                 Text("Weekday morning alarms belong to Sunday–Thursday nights.").font(.footnote).foregroundStyle(Theme.text2)
             }
+            Section("Saved draft") {
+                if savedDraftChanged {
+                    Text("The saved draft changed while you were editing. Your local edits have been kept. Review the new saved values or explicitly keep your edits before saving.")
+                        .font(.footnote).foregroundStyle(Theme.amber).accessibilityIdentifier("publication.editorConflict")
+                    Button("Keep my edits for review") { editingRevision = model.routines?.revision }.disabled(!model.maySave)
+                }
+                Button("Reload saved draft") { reloadDraft = true }.disabled(!model.maySave)
+                    .accessibilityIdentifier("publication.reloadDraft")
+            }
+            if let publication = model.publication, publication.enabled {
+                Section("Start from your current week") {
+                    Button("Copy current week into draft") {
+                        Task { await publication.refresh(); importReview = publication.review }
+                    }.disabled(!model.maySave || publication.refreshing || publication.publishing)
+                        .accessibilityIdentifier("publication.copyCurrent")
+                    Text("Reads your actual operating week. Confirm the copy, edit it, then save the draft. Copying never publishes it.").font(.footnote).foregroundStyle(Theme.text2)
+                    if let error = publication.error { Text(error).font(.footnote).foregroundStyle(Theme.amber) }
+                }
+            }
+            Section {
+                Button("Clear draft week", role: .destructive) { clearWeek = true }.disabled(week.isEmpty || !model.maySave)
+                    .accessibilityIdentifier("publication.clearDraft")
+                Text("An empty draft removes all nights only after a separate review and publication.").font(.footnote).foregroundStyle(Theme.text2)
+            }
             Section {
                 Button("Save weekly drafts") {
                     do {
                         let normalized = week.map { HouseholdRoutine(dayOfWeek: $0.dayOfWeek, draft: $0.draft.normalized) }
                         try HouseholdRoutine.validate(normalized); validation = nil
-                        Task { await model.saveRoutines(normalized) }
+                        Task {
+                            await model.saveRoutines(normalized)
+                            if model.pending == nil, model.routines?.routines == normalized,
+                               PersonalRoutineWeek.normalized(week) == PersonalRoutineWeek.normalized(normalized) {
+                                week = normalized; editingRevision = model.routines?.revision
+                            }
+                        }
                     } catch { validation = error.localizedDescription }
-                }.disabled(!model.maySave).accessibilityIdentifier("household.routines.save")
+                }.disabled(!model.maySave || savedDraftChanged).accessibilityIdentifier("household.routines.save")
                 if let validation { Text(validation).font(.footnote).foregroundStyle(Theme.amber) }
                 HouseholdSaveFeedback()
             }
+            if let publication = model.publication, publication.enabled {
+                Section {
+                    NavigationLink("Review saved draft for publication") { PersonalRoutineReviewScreen(model: publication, unit: model.draftPreferences.displayUnit) }
+                        .disabled(!model.maySave || savedDraftChanged || PersonalRoutineWeek.normalized(week) != PersonalRoutineWeek.normalized(model.routines?.routines ?? []))
+                        .accessibilityIdentifier("publication.openReview")
+                    Text("Save your edits first. The review compares your saved draft with the current operating week.").font(.footnote).foregroundStyle(Theme.text2)
+                }
+            }
         }.scrollContentBackground(.hidden).background(Theme.background).navigationTitle("Weekly drafts")
-            .onAppear { if week.isEmpty { week = model.draftRoutines } }
+            .onAppear { if !initialized { week = model.draftRoutines; editingRevision = model.routines?.revision; initialized = true } }
+            .alert("Replace your edits with the saved draft?", isPresented: $reloadDraft) {
+                Button("Load saved draft") {
+                    if model.discardRetainedRoutineDraft() { week = model.routines?.routines ?? []; editingRevision = model.routines?.revision; validation = nil }
+                }
+                Button("Cancel", role: .cancel) { }
+            } message: { Text("This discards unsaved changes in this editor, even when the saved draft revision has not changed. It does not publish anything.") }
+            .alert("Replace this draft with your current week?", isPresented: Binding(get: { importReview != nil }, set: { if !$0 { importReview = nil } })) {
+                Button("Copy current week") {
+                    if let snapshot = importReview, model.publication?.review == snapshot,
+                       let session = model.session, snapshot.scope.matches(session), model.maySave {
+                        week = PersonalRoutineWeek.drafts(snapshot.liveWeek); validation = nil
+                    }
+                    importReview = nil
+                }
+                Button("Cancel", role: .cancel) { importReview = nil }
+            } message: { Text("This replaces unsaved draft edits with the actual operating routines. It does not save or publish them.") }
+            .alert("Clear every draft night?", isPresented: $clearWeek) {
+                Button("Clear draft", role: .destructive) { week = []; validation = nil }
+                Button("Cancel", role: .cancel) { }
+            } message: { Text("The bed keeps its current week. Save the empty draft and review its removals separately before publication.") }
     }
     private func binding(_ day: DayOfWeek) -> Binding<BedtimeRoutineDraft> {
         Binding(get: { week.first { $0.dayOfWeek == day }?.draft ?? .blank }, set: { draft in
@@ -74,9 +139,12 @@ struct HouseholdRoutineWeek: View {
 }
 
 private struct HouseholdNightEditor: View {
+    @Environment(\.dismiss) private var dismiss
     let day: DayOfWeek
     @Binding var draft: BedtimeRoutineDraft
     let unit: String
+    let hasRoutine: Bool
+    let remove: () -> Void
     var body: some View {
         Form {
             Section("Power · draft only") {
@@ -114,6 +182,12 @@ private struct HouseholdNightEditor: View {
                 Text("\(draft.notes.utf16.count) / 1000").font(.caption).foregroundStyle(Theme.text2)
                 Text("Return to Weekly drafts to save all nights together. Nothing here activates an alarm.").font(.footnote).foregroundStyle(Theme.amber)
             }
+            if hasRoutine {
+                Section {
+                    Button("Remove this draft night", role: .destructive) { remove(); dismiss() }
+                    Text("The removal is a draft until the complete week is saved and separately published.").font(.footnote).foregroundStyle(Theme.text2)
+                }
+            }
         }.scrollContentBackground(.hidden).background(Theme.background).navigationTitle("\(day.displayName) draft").navigationBarTitleDisplayMode(.inline)
     }
 }
@@ -131,7 +205,7 @@ private struct HouseholdAlarmDraft: View {
         Picker("Wake window", selection: $alarm.wakeWindow) {
             Text("Exact time").tag(0); ForEach([10, 15, 20, 30], id: \.self) { Text("\($0) minutes").tag($0) }
         }
-        Stepper("Snooze: \((alarm.snoozeDuration ?? 300) / 60) minutes", value: Binding(get: { alarm.snoozeDuration ?? 300 }, set: { alarm.snoozeDuration = $0 }), in: 60...1800, step: 60)
+        Stepper("Snooze: \(PersonalRoutineWeek.duration(alarm.snoozeDuration ?? 300))", value: Binding(get: { alarm.snoozeDuration ?? 300 }, set: { alarm.snoozeDuration = $0 }), in: 60...1800, step: 60)
         Picker("Snooze reduction", selection: Binding(get: { alarm.snoozeTaper ?? 0 }, set: { alarm.snoozeTaper = $0 })) {
             Text("None").tag(0); ForEach([30, 40, 50, 60], id: \.self) { Text("\($0)%").tag($0) }
         }

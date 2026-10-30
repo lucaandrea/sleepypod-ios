@@ -27,6 +27,7 @@ struct HouseholdSession: Codable, Equatable, Sendable {
         let manageOwnDevices: Bool
         let personalPreferences: Bool
         let personalRoutineDrafts: Bool
+        var personalRoutinePublication: Bool?
         let activateArrangement: Bool
         let personalControls: Bool
         let personalHistory: Bool

@@ -15,7 +15,9 @@ struct HouseholdScreen: View {
             Form {
                 Section {
                     Label(model.temperature == nil ? "Personal preparation" : "Personal account", systemImage: "person.crop.circle").font(.headline)
-                    Text(model.temperature == nil
+                    Text(model.publication?.enabled == true
+                         ? "Personal controls and routine publication use your bed assignment. Saving a draft stays separate from publishing it. Assignment changes, sleep history and Apple Health are not active here."
+                         : model.temperature == nil
                          ? "Prepare your own comfort preferences and weekly routine. Bed controls, side assignment, sleep history and Apple Health are not active in this workspace."
                          : "Temperature controls use your personal bed assignment. Weekly routines remain drafts; assignment changes, sleep history and Apple Health are not active here.")
                         .font(.footnote).foregroundStyle(Theme.text2)
@@ -28,6 +30,7 @@ struct HouseholdScreen: View {
                 }
                 feedback
                 controlRecovery
+                publicationRecovery
                 if let session = model.session {
                     Section("Your private drafts") {
                         NavigationLink("Comfort preferences", value: "preferences")
@@ -36,6 +39,14 @@ struct HouseholdScreen: View {
                             .disabled(!model.maySave)
                         Text("Draft only · nothing here schedules or moves the bed.").font(.footnote).foregroundStyle(Theme.amber)
                             .accessibilityIdentifier("household.draftOnly")
+                    }
+                    if let publication = model.publication, publication.enabled || !publication.attempts.isEmpty {
+                        Section("Operating routines") {
+                            NavigationLink("Review operating week and receipts", value: "publication")
+                                .accessibilityIdentifier("publication.accountLink")
+                            Text("Publication is separate from saving drafts. Review the complete week and confirm its effects before replacing the operating schedule.")
+                                .font(.footnote).foregroundStyle(Theme.text2)
+                        }
                     }
                     invitations(session)
                     Section("Your paired devices") {
@@ -81,7 +92,7 @@ struct HouseholdScreen: View {
                 }
                 Section("Local data") {
                     Button("Erase all local personal data", role: .destructive) { eraseLocalData = true }.disabled(model.busy)
-                    Text("Removes personal credentials, drafts and command recovery records on this device. It does not revoke server access or alter the bed.")
+                    Text("Removes personal credentials, drafts, command and publication recovery records on this device. It does not revoke server access or alter the bed.")
                         .font(.footnote).foregroundStyle(Theme.text2)
                 }
                 if model.canReturnToOwner {
@@ -100,14 +111,15 @@ struct HouseholdScreen: View {
             .navigationDestination(for: String.self) { route in
                 if let session = model.session {
                     if route == "preferences" { HouseholdPreferencesEditor().id(session.namespace + String(model.preferences?.revision ?? 0)) }
-                    else { HouseholdRoutineWeek().id(session.namespace + String(model.routines?.revision ?? 0)) }
+                    else if route == "routines" { HouseholdRoutineWeek().id(session.namespace) }
+                    else if let publication = model.publication { PersonalRoutineReviewScreen(model: publication, unit: model.draftPreferences.displayUnit).id(session.namespace) }
                 }
             }
             .sheet(item: $connectionForm) { kind in NavigationStack { HouseholdConnectionForm(kind: kind) } }
             .alert("Erase all local personal data?", isPresented: $eraseLocalData) {
                 Button("Erase local personal data", role: .destructive) { model.erasePersonalLocalData() }
                 Button("Cancel", role: .cancel) { }
-            } message: { Text("This also removes recovery records for commands whose outcomes are unknown. You will need a new invitation to pair again.") }
+            } message: { Text("This also removes recovery records for commands and publications whose outcomes are unknown. You will need a new invitation to pair again.") }
             .alert("Confirm you checked the bed", isPresented: Binding(get: { reviewRecovery != nil }, set: { if !$0 { reviewRecovery = nil } })) {
                 Button("I checked the bed") { if let reviewRecovery { model.reviewControlRecovery(reviewRecovery) }; reviewRecovery = nil }
                 Button("Cancel", role: .cancel) { reviewRecovery = nil }
@@ -123,6 +135,21 @@ struct HouseholdScreen: View {
         .task { await model.refresh() }
         .onChange(of: scenePhase) { if scenePhase != .active { revealedCode = nil } }
         .onChange(of: model.session?.context) { revealedCode = nil; navigation = [] }
+    }
+    @ViewBuilder private var publicationRecovery: some View {
+        if !model.publicationRecoveries.isEmpty {
+            Section("Earlier publications to resolve") {
+                Text("Only receipt references remain after revocation. The private week, request body and old credential were erased. Check the original receipt; publication will not be repeated.")
+                    .font(.footnote).foregroundStyle(Theme.text2)
+                ForEach(model.publicationRecoveries) { item in
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text("Publication \(item.unresolvedState)").font(.headline)
+                        Text("Request \(item.id.uuidString.lowercased())").font(.caption.monospaced()).textSelection(.enabled)
+                        Button("Check earlier publication") { Task { await model.reconcilePublicationRecovery(item.id) } }.disabled(model.recoveryBusy != nil)
+                    }.padding(.vertical, 4)
+                }
+            }
+        }
     }
     @ViewBuilder private var controlRecovery: some View {
         if !model.controlRecoveries.isEmpty {

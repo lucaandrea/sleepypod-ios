@@ -52,7 +52,7 @@ import XCTest
         XCTAssertTrue(model.hasUnresolved); XCTAssertFalse(model.canReview(attempt)); XCTAssertFalse(model.canAdjust)
         ledger.date.addTimeInterval(31); ledger.uptime += 31; model.tick()
         XCTAssertTrue(model.canReview(attempt)); model.markReviewed(attempt.id)
-        XCTAssertFalse(model.hasUnresolved); XCTAssertNil(model.attempts.first?.receipt)
+        XCTAssertFalse(model.hasUnresolved); XCTAssertNil(model.attempts.first?.receipt); XCTAssertFalse(model.canAdjust)
         let posts = await server.posts; XCTAssertEqual(posts.count, 1)
     }
     func testUncertainCommandsDoNotBlockExplicitStops() async throws {
@@ -88,6 +88,20 @@ import XCTest
             XCTAssertEqual(try JSONDecoder().decode(PersonalControlRequest.self, from: XCTUnwrap(posts.first)).action, stop)
             XCTAssertEqual(ledger.attempts.count, 1)
             XCTAssertTrue(model.error?.contains("cancelled before sending") == true)
+        }
+    }
+    func testUnsafeOrStalePreflightBlocksAdjustmentsButStillAllowsStop() async throws {
+        let instant = Int64(PersonalControlFixtures.instant.timeIntervalSince1970 * 1_000)
+        for (water, priming, observedAt) in [("low", false, instant), ("unknown", false, instant), ("ok", true, instant), ("ok", false, instant - 16_000)] {
+            let (model, server, _) = try await setup()
+            let original = try PersonalControlFixtures.bed()
+            let unsafe = PersonalBed(version: original.version, scope: original.scope, arrangement: original.arrangement,
+                availability: original.availability, routing: original.routing,
+                observation: .init(state: "fresh", observedAt: observedAt, water: water, priming: priming), zones: original.zones, physicalVerification: "unverified")
+            await server.setBed(unsafe); await model.submit(.init(kind: "temperature", temperatureF: 70, holdMinutes: 30))
+            var posts = await server.posts; XCTAssertTrue(posts.isEmpty); XCTAssertFalse(model.canAdjust); XCTAssertTrue(model.canStopPower)
+            await model.submit(.init(kind: "power", powered: false))
+            posts = await server.posts; XCTAssertEqual(posts.count, 1)
         }
     }
     func testNewConfigurationNeedsReviewAndCannotReceiveAnOldGesture() async throws {

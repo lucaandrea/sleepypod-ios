@@ -4,7 +4,7 @@ import FreeSleepKit
 
 @MainActor final class PersonalControlVaultTests: XCTestCase {
     func testParentWriterPreservesDraftsOtherAccountsAndControlReceiptsAcrossRefresh() async throws {
-        let bed = try PersonalControlFixtures.bed(), session = try PersonalControlFixtures.session(for: bed)
+        let bed = try PersonalControlFixtures.currentBed(), session = try PersonalControlFixtures.session(for: bed)
         let endpoint = URL(string: "https://personal-parent.invalid")!
         var record = HouseholdConnectionRecord(id: UUID(), endpoint: endpoint, deviceSecret: String(repeating: "A", count: 43), identity: session)
         var draft = HouseholdPreferences.blank; draft.preferredTemperatureF = 71
@@ -33,7 +33,7 @@ import FreeSleepKit
         XCTAssertEqual(vault.state.connections.first?.personalControls?.count, 1)
     }
     func testOldVaultRecordsDecodeWithoutControlHistoryAndFailedSaveBlocksDispatch() async throws {
-        let bed = try PersonalControlFixtures.bed(), session = try PersonalControlFixtures.session(for: bed)
+        let bed = try PersonalControlFixtures.currentBed(), session = try PersonalControlFixtures.session(for: bed)
         let record = HouseholdConnectionRecord(id: UUID(), endpoint: URL(string: "https://personal-parent.invalid")!, deviceSecret: String(repeating: "A", count: 43), identity: session)
         let data = try JSONEncoder().encode(HouseholdVaultState(connections: [record], selected: record.id))
         let restored = try JSONDecoder().decode(HouseholdVaultState.self, from: data)
@@ -51,7 +51,7 @@ import FreeSleepKit
         XCTAssertNil(vault.state.connections.first?.personalControls)
     }
     func testRevocationKeepsOnlyMinimalRecoveryThenExplicitRepairCanReadWithoutReplay() async throws {
-        let bed = try PersonalControlFixtures.bed(), session = try PersonalControlFixtures.session(for: bed)
+        let bed = try PersonalControlFixtures.currentBed(), session = try PersonalControlFixtures.session(for: bed)
         var record = HouseholdConnectionRecord(id: UUID(), endpoint: URL(string: "https://personal-parent.invalid")!, deviceSecret: String(repeating: "A", count: 43), identity: session)
         record.draftPreferences = .blank
         let vault = PersonalParentVault(state: .init(connections: [record], selected: record.id))
@@ -92,7 +92,7 @@ import FreeSleepKit
     }
 
     func testRecoveryNeverMatchesAnotherAccountAndSignOutDiscardsLateReceipt() async throws {
-        let bed = try PersonalControlFixtures.bed(), session = try PersonalControlFixtures.session(for: bed)
+        let bed = try PersonalControlFixtures.currentBed(), session = try PersonalControlFixtures.session(for: bed)
         let request = try PersonalControlRequest(scope: bed.scope, action: .init(kind: "power", powered: false), now: PersonalControlFixtures.instant)
         let marker = PersonalControlTombstone(identity: session.identity, requestId: request.requestId, expiresAt: request.expiresAt, unresolvedState: "unknown")
         let record = HouseholdConnectionRecord(id: UUID(), endpoint: URL(string: "https://personal-parent.invalid")!, deviceSecret: String(repeating: "A", count: 43), identity: session)
@@ -122,7 +122,7 @@ import FreeSleepKit
     }
 
     func testRecoveryCapacityBlocksNewPostWithoutEvictingExecutingEvidence() async throws {
-        let bed = try PersonalControlFixtures.bed(), session = try PersonalControlFixtures.session(for: bed)
+        let bed = try PersonalControlFixtures.currentBed(), session = try PersonalControlFixtures.session(for: bed)
         let record = HouseholdConnectionRecord(id: UUID(), endpoint: URL(string: "https://personal-parent.invalid")!, deviceSecret: String(repeating: "A", count: 43), identity: session)
         var otherIdentity = session.identity; otherIdentity[2] = UUID().uuidString
         let markers = (0..<PersonalControlTombstone.capacity).map { _ in PersonalControlTombstone(identity: otherIdentity, requestId: UUID(), expiresAt: 1_793_314_830_000, unresolvedState: "executing") }

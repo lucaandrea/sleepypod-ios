@@ -9,6 +9,12 @@ enum PersonalControlFixtures {
         return try JSONSerialization.data(withJSONObject: XCTUnwrap(values[key]))
     }
     static func bed(_ key: String = "soloBed") throws -> PersonalBed { try JSONDecoder().decode(PersonalBed.self, from: data(key)) }
+    static func currentBed() throws -> PersonalBed {
+        let original = try bed()
+        return .init(version: original.version, scope: original.scope, arrangement: original.arrangement, availability: original.availability,
+            routing: original.routing, observation: .init(state: "fresh", observedAt: Int64(Date().timeIntervalSince1970 * 1_000), water: "ok", priming: false),
+            zones: original.zones, physicalVerification: original.physicalVerification)
+    }
     static func session(for bed: PersonalBed, controls: Bool = true) throws -> HouseholdSession {
         var values = try XCTUnwrap(JSONSerialization.jsonObject(with: data("ownerSession", file: "household-preparation-v1")) as? [String: Any])
         values["podId"] = bed.scope.podId; values["householdId"] = bed.scope.householdId; values["selfSleeperId"] = bed.scope.sleeperId

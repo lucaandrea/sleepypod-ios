@@ -36,12 +36,14 @@ struct HouseholdConnectionRecord: Codable, Identifiable, Sendable {
     var draftPreferencesRevision: Int?
     var draftRoutinesRevision: Int?
     var personalControls: [PersonalControlAttempt]?
+    var personalPublications: [PersonalRoutineAttempt]?
 }
 
 struct HouseholdVaultState: Codable {
     var connections: [HouseholdConnectionRecord] = []
     var selected: UUID?
     var controlTombstones: [PersonalControlTombstone]?
+    var publicationTombstones: [PersonalRoutineTombstone]?
 }
 
 @MainActor protocol HouseholdVault {

@@ -20,6 +20,7 @@ import Observation
     private let save: (PersonalControlAttempt) throws -> Void
     private let recoveryPending: () -> Bool
     private let revoked: () -> Void
+    private let stopping: () -> Void
     private let now: () -> Date
     private let uptime: () -> TimeInterval
     private var generation = 0
@@ -33,17 +34,17 @@ import Observation
     init(connection: PersonalBedConnection, client: any PersonalBedTransport, unit: TemperatureFormat,
          permitted: @escaping () -> Bool, load: @escaping () throws -> [PersonalControlAttempt],
          save: @escaping (PersonalControlAttempt) throws -> Void,
-         recoveryPending: @escaping () -> Bool = { false }, revoked: @escaping () -> Void = {},
+         recoveryPending: @escaping () -> Bool = { false }, revoked: @escaping () -> Void = {}, stopping: @escaping () -> Void = {},
          now: @escaping () -> Date = Date.init, uptime: @escaping () -> TimeInterval = { ProcessInfo.processInfo.systemUptime }) {
         self.connection = connection; self.client = client; self.unit = unit
-        self.permitted = permitted; self.load = load; self.save = save; self.recoveryPending = recoveryPending; self.revoked = revoked; self.now = now; self.uptime = uptime
+        self.permitted = permitted; self.load = load; self.save = save; self.recoveryPending = recoveryPending; self.revoked = revoked; self.stopping = stopping; self.now = now; self.uptime = uptime
         clockDate = now()
         reloadAttempts()
     }
     var sending: Bool { !inflight.isEmpty }
     var hasUnresolved: Bool { attempts.contains(where: \.needsReview) || recoveryPending() }
     var available: Bool { permitted() && storageReady && bed?.availability == "ready" }
-    var canAdjust: Bool { available && !requiresReview && !sending && !hasUnresolved && !(readingsCurrent && bed?.observation.priming == true) }
+    var canAdjust: Bool { available && !requiresReview && !sending && !hasUnresolved && readingsCurrent && bed?.observation.water == "ok" && bed?.observation.priming == false }
     var canStopPower: Bool { available && !inflight.values.contains { $0.kind == "power" && $0.powered == false } }
     var canStopVibration: Bool { available && !inflight.values.contains { $0.kind == "vibration.clear" } }
     var zones: [PersonalBed.Zone] { bed?.zones.map { readingsCurrent ? $0 : $0.withoutObservation } ?? [] }
@@ -127,7 +128,7 @@ import Observation
               let reviewed = bed else { return }
         let operation = generation, reservation = UUID()
         // Stop supersedes ordinary actions still waiting for preflight; already-sent actions keep their receipts.
-        if action.isStopping { controlEpoch += 1 }
+        if action.isStopping { controlEpoch += 1; stopping() }
         let epoch = controlEpoch
         inflight[reservation] = action; readGeneration += 1; refreshing = false; error = nil
         defer { if operation == generation { inflight[reservation] = nil } }
@@ -137,6 +138,9 @@ import Observation
             guard action.isStopping || epoch == controlEpoch else { throw PersonalControlFailure.supersededByStop }
             guard snapshot.availability == "ready" else { apply(snapshot); throw HouseholdFailure.unavailable }
             guard snapshot.scope == reviewed.scope else { apply(snapshot); throw HouseholdFailure.conflict }
+            guard action.isStopping || (snapshot.observation.isFresh(at: now()) && snapshot.observation.water == "ok" && snapshot.observation.priming == false) else {
+                apply(snapshot); throw PersonalControlFailure.observationRequired
+            }
             let request = try PersonalControlRequest(scope: snapshot.scope, action: action, now: now())
             let encoder = JSONEncoder(); encoder.outputFormatting = [.sortedKeys]
             var attempt = PersonalControlAttempt(request: request, body: try encoder.encode(request), authorizedZones: snapshot.routing.zones(for: action))
