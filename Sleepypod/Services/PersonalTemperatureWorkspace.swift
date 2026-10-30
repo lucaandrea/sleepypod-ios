@@ -24,6 +24,7 @@ import Observation
     private let uptime: () -> TimeInterval
     private var generation = 0
     private var readGeneration = 0
+    private var controlEpoch = 0
     private var receivedUptime: TimeInterval?
     private var inflight: [UUID: PersonalControlAction] = [:]
     private var receiptReads: [UUID: Int] = [:]
@@ -125,11 +126,15 @@ import Observation
         guard action.isStopping ? (action.kind == "power" ? canStopPower : canStopVibration) : canAdjust,
               let reviewed = bed else { return }
         let operation = generation, reservation = UUID()
+        // Stop supersedes ordinary actions still waiting for preflight; already-sent actions keep their receipts.
+        if action.isStopping { controlEpoch += 1 }
+        let epoch = controlEpoch
         inflight[reservation] = action; readGeneration += 1; refreshing = false; error = nil
         defer { if operation == generation { inflight[reservation] = nil } }
         do {
             try action.validate()
             let snapshot = try await verifiedBed(operation)
+            guard action.isStopping || epoch == controlEpoch else { throw PersonalControlFailure.supersededByStop }
             guard snapshot.availability == "ready" else { apply(snapshot); throw HouseholdFailure.unavailable }
             guard snapshot.scope == reviewed.scope else { apply(snapshot); throw HouseholdFailure.conflict }
             let request = try PersonalControlRequest(scope: snapshot.scope, action: action, now: now())
@@ -137,6 +142,7 @@ import Observation
             var attempt = PersonalControlAttempt(request: request, body: try encoder.encode(request), authorizedZones: snapshot.routing.zones(for: action))
             try attempt.validate(); try check(operation); try save(attempt); reloadAttempts()
             guard storageReady else { throw HouseholdFailure.storage }
+            guard action.isStopping || epoch == controlEpoch else { throw PersonalControlFailure.supersededByStop }
             let receipt = try await client.submit(attempt.body)
             try check(operation); try receipt.validate(for: attempt)
             receiptReads[attempt.id, default: 0] += 1

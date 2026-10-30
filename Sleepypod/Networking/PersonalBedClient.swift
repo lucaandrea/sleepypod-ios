@@ -15,9 +15,10 @@ protocol PersonalBedTransport: Sendable {
 }
 
 enum PersonalControlFailure: Error, LocalizedError {
-    case missingReceipt, recoveryCapacity, connectionUncertain
+    case missingReceipt, recoveryCapacity, connectionUncertain, supersededByStop
     var errorDescription: String? {
         switch self {
+        case .supersededByStop: "The earlier adjustment was cancelled before sending because you pressed Stop. Check the Stop receipt and the bed."
         case .missingReceipt: "No receipt is available. The saved command has not been resent; its outcome remains uncertain."
         case .connectionUncertain: "The connection ended before a result could be confirmed. Check any pending receipt and the bed before another adjustment. Saved commands will not be resent."
         case .recoveryCapacity: "Command recovery storage is full. Review earlier commands in your paired accounts or erase local personal data before another command. No new command was sent."

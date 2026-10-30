@@ -77,6 +77,19 @@ import XCTest
         await server.release(); await command.value
         let posts = await server.posts; XCTAssertEqual(posts.count, 2)
     }
+    func testStopPreemptsOrdinaryActionStillWaitingForPreflight() async throws {
+        for stop in [PersonalControlAction(kind: "power", powered: false), .init(kind: "vibration.clear")] {
+            let (model, server, ledger) = try await setup()
+            await server.hold("bed")
+            let command = Task { await model.submit(.init(kind: "temperature", temperatureF: 70, holdMinutes: 30)) }
+            await server.waitHeld(); await model.submit(stop); await server.release(); await command.value
+            let posts = await server.posts
+            XCTAssertEqual(posts.count, 1)
+            XCTAssertEqual(try JSONDecoder().decode(PersonalControlRequest.self, from: XCTUnwrap(posts.first)).action, stop)
+            XCTAssertEqual(ledger.attempts.count, 1)
+            XCTAssertTrue(model.error?.contains("cancelled before sending") == true)
+        }
+    }
     func testNewConfigurationNeedsReviewAndCannotReceiveAnOldGesture() async throws {
         let (model, server, _) = try await setup()
         model.edit(fraction: 0.4)
