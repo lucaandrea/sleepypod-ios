@@ -2,6 +2,7 @@
 """Verify the app compiles Sleepypod presentation and not the retired app shell."""
 from pathlib import Path
 import argparse
+import re
 import subprocess
 
 parser = argparse.ArgumentParser()
@@ -15,7 +16,7 @@ for component in ['TemperatureDialView()', 'TempSliderView(', 'TempStepperView('
     assert component in temperature, f'Native temperature layout removed: {component}'
 app = (root / 'Sleepypod/SleepypodApp.swift').read_text()
 for retired in ['RootView()', 'TonightScreen(', 'HomeScreen(']:
-    assert retired not in app, f'Retired navigation restored: {retired}'
+    assert re.search(r'\b' + re.escape(retired), app) is None, f'Retired navigation restored: {retired}'
 file_lists = list(options.derived_data.glob('Build/Intermediates.noindex/Sleepypod.build/Debug-iphonesimulator/FreeSleepKit.build/Objects-normal/*/FreeSleepKit.SwiftFileList'))
 assert file_lists, 'Build the simulator app before checking compiled sources'
 for file in file_lists:

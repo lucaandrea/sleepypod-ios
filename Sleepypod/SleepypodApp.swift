@@ -106,7 +106,14 @@ struct SleepypodApp: App {
         }
     }
     private var ownerContent: some View {
-        ContentView()
+        Group {
+            #if DEBUG
+            if ProcessInfo.processInfo.arguments.contains("--connection-fixture") { ConnectionRecoveryPreview() }
+            else { ContentView() }
+            #else
+            ContentView()
+            #endif
+        }
             .environment(deviceManager).environment(scheduleManager).environment(alarms).environment(curves)
             .environment(metricsManager).environment(statusManager).environment(settingsManager).environment(podDiscovery)
             .environment(userProfile).environment(sensorStream).environment(notificationRelay).environment(alertInbox)
@@ -133,6 +140,7 @@ struct ContentView: View {
     @Environment(\.scenePhase) private var scenePhase
     @State private var selectedTab = Self.initialTab
     @State private var showWelcome = false
+    @State private var connectionPath = ConnectionPathMonitor()
     @AppStorage("apiBackend") private var backendIdentity = ""
     @AppStorage("podURL") private var inboxOwnerURL = ""
     @AppStorage("podIPAddress") private var inboxPodHost = ""
@@ -276,10 +284,12 @@ struct ContentView: View {
                 do { try await Task.sleep(for: .seconds(60)) } catch { return }
             }
         }
-        .task(id: scenePhase) {
-            guard scenePhase == .active, !isDemo else { return }
+        .task(id: "\(scenePhase)-\(backendIdentity)") {
+            guard scenePhase == .active, !isDemo else { connectionPath.stop(); return }
+            connectionPath.start(onPermission: { deviceManager.localNetworkAccessDenied = $0 }) { deviceManager.networkRouteChanged() }
             await UnifiedRuntime.refreshHealth()
         }
+        .onDisappear { connectionPath.stop() }
         .onChange(of: scenePhase) {
             if !isDemo {
                 if scenePhase == .active {

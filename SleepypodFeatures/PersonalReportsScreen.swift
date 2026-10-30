@@ -24,6 +24,19 @@ struct PersonalReportsScreen: View {
         self.coach = coach; self.nativeActions = nativeActions
         _includePod = State(initialValue: coach); _includeHealth = State(initialValue: !coach); _local = State(initialValue: coach)
     }
+    private var showsExampleReport: Bool {
+        #if DEBUG
+        AppMode.isDemo && UserDefaults.standard.string(forKey: "uiReportScenario") == "saved"
+        #else
+        false
+        #endif
+    }
+    private var reports: [PersonalSleepReport] {
+        #if DEBUG
+        if showsExampleReport { return [ReportPresentationExample.report] }
+        #endif
+        return workspace.archive.reports
+    }
     private var title: String { coach ? "Sleep coach" : "Personal reports" }
     private var evidence: [SleepFact] { (includeHealth ? workspace.facts : []) + (includePod ? pod.facts : []) }
     private var scope: String { "\(includePod)|\(model.side.rawValue)|\(days)|\(model.connectionRevision)|\(model.recordRevision)|\(ownerRevision)|\(address)|\(backend)|\(refresh)" }
@@ -47,6 +60,7 @@ struct PersonalReportsScreen: View {
                         .font(.subheadline).foregroundStyle(Theme.text2)
                 }
             }
+            if !local, let report = reports.first { PersonalReportCard(report: report) }
             if !local { connections }
             FeatureSection(title: local ? "Evidence" : "Create a report") {
                 if !local { FeatureNotes(title: "What would you like to understand?", limit: 600, text: $workspace.question).disabled(workspace.busy) }
@@ -83,15 +97,14 @@ struct PersonalReportsScreen: View {
             }
             if !local {
                 if let message = workspace.message { Text(message).font(.subheadline).accessibilityAddTraits(.updatesFrequently) }
-                if let report = workspace.archive.reports.first { PersonalReportCard(report: report) }
-                if workspace.archive.reports.count > 1 {
-                    DisclosureGroup("Previous reports (\(workspace.archive.reports.count - 1))", isExpanded: $showHistory) {
-                        ForEach(workspace.archive.reports.dropFirst()) { PersonalReportCard(report: $0) }
+                if reports.count > 1 {
+                    DisclosureGroup("Previous reports (\(reports.count - 1))", isExpanded: $showHistory) {
+                        ForEach(reports.dropFirst()) { PersonalReportCard(report: $0) }
                     }
                 }
             }
         }.frame(maxWidth: 720).frame(maxWidth: .infinity)
-            .task { workspace.restore() }
+            .task { if !showsExampleReport { workspace.restore() } }
             .task(id: scope) { reset(); await loadPod() }
             .onChange(of: workspace.provider) { reset() }
             .onChange(of: workspace.modelID) { reset() }

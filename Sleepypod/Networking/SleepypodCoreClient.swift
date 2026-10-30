@@ -641,6 +641,9 @@ final class SleepypodCoreClient: SleepypodProtocol, @unchecked Sendable {
             throw APIError.invalidResponse(statusCode: 0)
         }
         guard (200...299).contains(httpResponse.statusCode) else {
+            if httpResponse.statusCode == 401 || httpResponse.statusCode == 403 {
+                throw APIError.invalidResponse(statusCode: httpResponse.statusCode)
+            }
             let tag = procedure ?? httpResponse.url?.absoluteString ?? "?"
             // Surface the tRPC error message so validation failures aren't silent
             let body = data.flatMap { String(data: $0, encoding: .utf8) }?.prefix(500) ?? ""

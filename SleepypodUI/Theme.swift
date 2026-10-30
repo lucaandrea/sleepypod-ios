@@ -18,6 +18,7 @@ enum Theme {
     static let red = Color("red")
     static let violet = Color("violet")
     static let indigo = Color("indigo")
+    static let reportAccent = Color("reportAccent")
     static let track = Color("track")
 
     static let cardBorder = border1

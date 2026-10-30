@@ -11,6 +11,8 @@ final class DeviceManager {
     var selectedSide: SideSelection = .left
     var isLinked = false
     var error: String?
+    private(set) var connectionIssue: ConnectionIssue?
+    var localNetworkAccessDenied = false
     var commandError: String?
     var holdMinutes = UserDefaults.standard.integer(forKey: "temperatureHoldMinutes").validatedHoldMinutes {
         didSet { UserDefaults.standard.set(holdMinutes.validatedHoldMinutes, forKey: "temperatureHoldMinutes") }
@@ -130,10 +132,12 @@ final class DeviceManager {
         statusRequestID = UUID()
         api = newClient
         deviceStatus = nil
+        lastUpdated = nil
         hasLiveFetched = false
         isConnected = false
         retryCount = 0
         error = nil
+        connectionIssue = nil
         UserDefaults.standard.removeObject(forKey: Self.cacheKey)
         startPolling()
     }
@@ -170,6 +174,7 @@ final class DeviceManager {
         isConnecting = false
         retryCount = 0
         error = nil
+        connectionIssue = nil
         lastUpdated = now()
     }
 
@@ -203,6 +208,8 @@ final class DeviceManager {
         if liveEndpoint != Self.endpointIdentity {
             liveEndpoint = Self.endpointIdentity
             hasLiveFetched = false
+            lastUpdated = nil
+            connectionIssue = nil
             isConnected = false
             isReceivingWebSocket = false
             deviceStatus = Self.loadCachedStatus()
@@ -230,7 +237,8 @@ final class DeviceManager {
             isConnected = hasLiveFetched && age.map { $0 >= 0 && $0 <= 30 } == true
             isConnecting = false
             retryCount += 1
-            self.error = "\(error)"
+            self.connectionIssue = ConnectionIssue(error)
+            self.error = APIError.message(for: error)
             Log.device.error("fetchStatus failed (attempt \(self.retryCount)): \(error)")
         }
     }
@@ -250,7 +258,12 @@ final class DeviceManager {
     func retryConnection() {
         retryCount = 0
         isConnecting = true
-        Task { await fetchStatus() }
+        startPolling(immediate: true)
+    }
+
+    func networkRouteChanged() {
+        guard !isConnected else { return }
+        retryConnection()
     }
 
     // MARK: - Temperature Control

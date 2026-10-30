@@ -2,12 +2,13 @@ import XCTest
 import UIKit
 
 @MainActor final class NativeReportsUITests: XCTestCase {
-    private func launch(_ route: String, empty: Bool = false) -> XCUIApplication {
+    private func launch(_ route: String, empty: Bool = false, saved: Bool = false, large: Bool = false) -> XCUIApplication {
         continueAfterFailure = false
         let app = XCUIApplication()
         app.launchArguments = ["-apiBackend", "demo", "--demo", "-onboardingComplete", "YES", "-uiRoute", route,
-            "-uiReportScenario", empty ? "empty" : "normal", "-intelligence.provider", "ollama", "-intelligence.localAddress", "http://127.0.0.1:11434",
+            "-uiReportScenario", saved ? "saved" : empty ? "empty" : "normal", "-intelligence.provider", "ollama", "-intelligence.localAddress", "http://127.0.0.1:11434",
             "-appearance", UIDevice.current.userInterfaceIdiom == .pad ? "Light" : "Dark"]
+        if large { app.launchArguments += ["-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL"] }
         app.launch()
         let navigation = app.navigationBars[route == "coach" ? "Sleep coach" : "Personal reports"]
         XCTAssertTrue(navigation.waitForExistence(timeout: 15))
@@ -41,6 +42,66 @@ import UIKit
         XCTAssertFalse(generate.isEnabled); capture(app, "Reports-demo-model")
         reveal(include, app); include.tap()
         reveal(consent, app); XCTAssertEqual(consent.value as? String, "0"); capture(app, "Reports-consent-reset")
+    }
+    func testSavedReportRendersHeadingsAndTraceableEvidence() {
+        let app = launch("reports", saved: true)
+        let heading = app.staticTexts["Your recent pattern"]
+        reveal(heading, app); capture(app, "Saved-report-rendered")
+        XCTAssertFalse(app.staticTexts["### Your recent pattern"].exists)
+        let source = app.buttons["report.source.health.recent"].firstMatch
+        reveal(source, app); source.tap()
+        // The coverage card already contains this fact; the second match proves expansion.
+        let evidence = app.staticTexts.matching(NSPredicate(format: "label == %@",
+            "Three recorded days in seven. Missing days remain unknown, not zero sleep.")).element(boundBy: 1)
+        reveal(evidence, app)
+        XCTAssertEqual(evidence.label, "Three recorded days in seven. Missing days remain unknown, not zero sleep.")
+        capture(app, "Saved-report-source")
+        let original = app.buttons["report.original"]
+        reveal(original, app); original.tap()
+        let raw = app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH %@", "### Your recent pattern")).firstMatch
+        XCTAssertTrue(raw.waitForExistence(timeout: 5))
+        capture(app, "Saved-report-original-preserved")
+    }
+    func testMaximumTextReportAndEvidenceFitScreen() {
+        let app = launch("reports", saved: true, large: true)
+        for title in ["Your recent pattern", "What the evidence can tell us", "One optional experiment", "Uncertainty"] {
+            let heading = app.staticTexts[title]
+            reveal(heading, app, partial: true)
+            XCTAssertGreaterThanOrEqual(heading.frame.minX, app.frame.minX)
+            XCTAssertLessThanOrEqual(heading.frame.maxX, app.frame.maxX)
+            capture(app, "Saved-report-large-" + title)
+        }
+        let source = app.buttons["report.source.health.hrv"].firstMatch
+        reveal(source, app); source.tap()
+        let evidence = app.staticTexts.matching(NSPredicate(format: "label == %@",
+            "Daily HRV uses SDNN; it is not the Pod’s window variability metric.")).firstMatch
+        reveal(evidence, app)
+        XCTAssertEqual(evidence.label, "Daily HRV uses SDNN; it is not the Pod’s window variability metric.")
+        XCTAssertGreaterThanOrEqual(evidence.frame.minX, app.frame.minX)
+        XCTAssertLessThanOrEqual(evidence.frame.maxX, app.frame.maxX)
+        capture(app, "Saved-report-large-evidence")
+    }
+    func testRecoveryShowsSavedAddressAndRetryWithoutChangingKeys() {
+        continueAfterFailure = false
+        let app = XCUIApplication()
+        app.launchArguments = ["--connection-fixture", "--demo", "-apiBackend", "demo", "-podURL", "https://connection-preview.invalid",
+                               "-podIPAddress", "192.0.2.99", "-appearance", "Light", "-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL"]
+        app.launch()
+        let title = app.staticTexts["connection.title"]
+        XCTAssertTrue(title.waitForExistence(timeout: 10))
+        let rejected = NSPredicate(format: "label == %@", "Connection needs attention")
+        expectation(for: rejected, evaluatedWith: title); waitForExpectations(timeout: 10)
+        reveal(title, app, partial: true); capture(app, "Connection-access-rejected")
+        let address = app.staticTexts["connection.savedAddress"]
+        reveal(address, app, partial: true)
+        XCTAssertEqual(address.label, "https://connection-preview.invalid")
+        let retry = app.buttons["connection.retry"]
+        reveal(retry, app); XCTAssertTrue(retry.isEnabled); retry.tap()
+        let settings = app.buttons["connection.settings"]
+        reveal(settings, app); capture(app, "Connection-recovery-actions")
+        settings.tap()
+        XCTAssertTrue(app.navigationBars["Pod connection"].waitForExistence(timeout: 10))
+        XCTAssertEqual(app.textFields["Pod controller address"].value as? String, "https://connection-preview.invalid")
     }
     private func choose(_ title: String, picker: String, app: XCUIApplication) {
         let button = app.buttons[title]
