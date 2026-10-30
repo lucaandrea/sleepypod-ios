@@ -41,6 +41,7 @@ final class TemperatureParityUITests: XCTestCase {
     }
 
     func testAppearanceChoicesPreserveNativeControls() {
+        continueAfterFailure = false
         let app = launch(layout: "cards", appearance: "Light")
         app.buttons["Settings"].tap()
         let appearance = app.buttons["Appearance"]
@@ -50,14 +51,31 @@ final class TemperatureParityUITests: XCTestCase {
         XCTAssertTrue(app.navigationBars["Appearance"].waitForExistence(timeout: 5))
         let display = app.buttons["temperature.display"]
         XCTAssertTrue(display.exists)
-        display.tap()
-        app.buttons["Offset"].tap()
-        display.tap()
-        app.buttons["Degrees"].tap()
+        choose("Offset", in: display, app: app)
+        choose("Degrees", in: display, app: app)
         let zones = app.buttons["temperature.zones"]
-        zones.tap()
-        app.buttons["On selection"].tap()
+        choose("On selection", in: zones, app: app)
         capture(app, "Appearance-light")
+    }
+
+    /// Wait for the popover's hit target to settle, then verify the selected value.
+    private func choose(_ title: String, in picker: XCUIElement, app: XCUIApplication) {
+        picker.tap()
+        let option = app.buttons[title]
+        XCTAssertTrue(option.waitForExistence(timeout: 5))
+        var previousFrame: CGRect?
+        let settled = NSPredicate { _, _ in
+            let currentFrame = option.frame
+            defer { previousFrame = currentFrame }
+            return option.isHittable && currentFrame == previousFrame
+        }
+        expectation(for: settled, evaluatedWith: nil)
+        waitForExpectations(timeout: 5)
+        option.press(forDuration: 0.15)
+        expectation(for: NSPredicate { _, _ in picker.value as? String == title }, evaluatedWith: nil)
+        waitForExpectations(timeout: 5)
+        expectation(for: NSPredicate(format: "exists == false"), evaluatedWith: option)
+        waitForExpectations(timeout: 5)
     }
 
     func testDialDragAndButtonsUseTheSelectedTemperatureScale() {

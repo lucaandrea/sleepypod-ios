@@ -15,11 +15,13 @@ import Observation
     private(set) var notice: String?
     private(set) var state = HouseholdVaultState()
     private(set) var temperature: PersonalTemperatureWorkspace?
+    private(set) var publication: PersonalRoutineWorkspace?
     private(set) var recoveryBusy: UUID?
     private let vault: any HouseholdVault
     private let defaults: UserDefaults
     private let client: @Sendable (URL) -> any HouseholdTransport
     private let personalClient: @Sendable (PersonalBedConnection) -> any PersonalBedTransport
+    private let routineClient: @Sendable (PersonalBedConnection) -> any PersonalRoutineTransport
     private let capability: @MainActor () async throws -> Bool
     private var ownerGateScope: [String]?
     private let ownerEndpoint: @MainActor () -> URL?
@@ -31,11 +33,12 @@ import Observation
     init(vault: any HouseholdVault = HouseholdKeychainVault(), defaults: UserDefaults = .standard,
          client: @escaping @Sendable (URL) -> any HouseholdTransport = { HouseholdHTTPClient(endpoint: $0) },
          personalClient: @escaping @Sendable (PersonalBedConnection) -> any PersonalBedTransport = { PersonalBedHTTPClient(connection: $0) },
+         routineClient: @escaping @Sendable (PersonalBedConnection) -> any PersonalRoutineTransport = { PersonalRoutineHTTPClient(connection: $0) },
          capability: @escaping @MainActor () async throws -> Bool = { try await HouseholdPreparationCapability.load() },
          ownerEndpoint: @escaping @MainActor () -> URL? = { OwnerConnection.endpoint },
          ownerKey: @escaping @MainActor (URL) -> String = { UnifiedRuntime.savedKey(for: $0.absoluteString) },
          secret: @escaping @MainActor () throws -> String = { try HouseholdKeychainVault.secret() }) {
-        self.vault = vault; self.defaults = defaults; self.client = client; self.personalClient = personalClient
+        self.vault = vault; self.defaults = defaults; self.client = client; self.personalClient = personalClient; self.routineClient = routineClient
         self.capability = capability; self.ownerEndpoint = ownerEndpoint; self.ownerKey = ownerKey; self.secret = secret
         active = defaults.bool(forKey: PersonalWorkspaceBoundary.preferenceKey)
         do { state = try vault.load(); storageLoaded = true } catch { self.error = HouseholdFailure.storage.localizedDescription }
@@ -71,6 +74,14 @@ import Observation
     var canReturnToOwner: Bool { ownerEndpoint().map { !ownerKey($0).isEmpty } == true }
     var draftPreferences: HouseholdPreferences { selected?.draftPreferences ?? preferences?.preferences ?? .blank }
     var draftRoutines: [HouseholdRoutine] { selected?.draftRoutines ?? routines?.routines ?? [] }
+    /// Explicit reload also clears a retained conflict draft, without touching preferences or receipts.
+    func discardRetainedRoutineDraft() -> Bool {
+        guard maySave, let record = selected else { return false }
+        do {
+            try update(record.id) { $0.draftRoutines = nil; $0.draftRoutinesRevision = nil }
+            return true
+        } catch { self.error = HouseholdFailure.storage.localizedDescription; return false }
+    }
 
     func enter() {
         generation += 1; active = true
@@ -165,8 +176,10 @@ import Observation
             let invited: Invitations = try await read("household/invitations", record: record)
             try invited.invitations.forEach { try $0.validate() }; try check(operation, record.id)
             guard Set(invited.invitations.map(\.id)).count == invited.invitations.count else { throw HouseholdFailure.invalid }
+            if routines != week { publication?.discardReview() }
             preferences = personal; routines = week; devices = paired.devices; invitations = invited.invitations
             configureTemperature(record: record, session: value, unit: personal.preferences.displayUnit == "C" ? .celsius : .fahrenheit)
+            configurePublication(record: record, session: value)
             notice = pending == nil ? "Personal account refreshed. Routine drafts do not run the bed." : "Saved state refreshed. An earlier request still needs review; retrying uses the same request."
         } catch {
             guard operation == generation else { return }
@@ -302,6 +315,14 @@ import Observation
                 if !tombstones.contains(where: { $0.id == tombstone.id }) { tombstones.append(tombstone) }
             }
             next.controlTombstones = tombstones
+            var publications = next.publicationTombstones ?? []
+            for attempt in record.personalPublications ?? [] where attempt.unresolved {
+                let marker = PersonalRoutineTombstone(identity: identity.identity, requestId: attempt.id,
+                    expiresAt: attempt.request.expiresAt, unresolvedState: attempt.receipt?.scheduler ?? "awaiting")
+                try marker.validate()
+                if !publications.contains(where: { $0.id == marker.id }) { publications.append(marker) }
+            }
+            next.publicationTombstones = publications
         }
         next.connections.removeAll { $0.id == id }
         if next.selected == id { next.selected = nil }
@@ -329,6 +350,7 @@ import Observation
     }
     private func clearVisible() {
         temperature?.invalidate(); temperature = nil
+        publication?.invalidate(); publication = nil
         session = nil; preferences = nil; routines = nil; devices = []; invitations = []; busy = false; error = nil; notice = nil; recoveryBusy = nil
     }
 
@@ -377,7 +399,7 @@ import Observation
     }
     func erasePersonalLocalData() {
         generation += 1; clearVisible()
-        do { try persist(.init()); notice = "Personal credentials, drafts and command recovery records erased from this device." }
+        do { try persist(.init()); notice = "Personal credentials, drafts, command and publication recovery records erased from this device." }
         catch { self.error = HouseholdFailure.storage.localizedDescription }
     }
 
@@ -401,11 +423,16 @@ import Observation
                 guard let self, self.active, self.state.selected == record.id, self.generation == operation,
                       self.session?.context == session.context else { throw HouseholdFailure.changedIdentity }
                 try self.saveControl(attempt, recordId: record.id, session: session)
-            }, recoveryPending: { [weak self] in self?.controlRecoveries.isEmpty == false }, revoked: { [weak self] in
+            }, recoveryPending: { [weak self] in
+                self?.controlRecoveries.isEmpty == false || self?.hasUnresolvedPublicationEffects == true
+            }, revoked: { [weak self] in
                 guard let self, self.generation == operation, self.state.selected == record.id else { return }
                 self.clearVisible()
                 do { try self.forget(record.id); self.error = HouseholdFailure.authentication.localizedDescription }
                 catch { self.error = HouseholdFailure.storage.localizedDescription }
+            }, stopping: { [weak self] in
+                guard let self, self.generation == operation, self.state.selected == record.id else { return }
+                self.publication?.stopUnsentPublication()
             })
     }
 
@@ -424,13 +451,106 @@ import Observation
             } else {
                 guard attempt.request.scope.matches(session) else { throw HouseholdFailure.changedIdentity }
                 // Reserve recovery space before POST; never evict an executing or uncertain request.
-                let pendingCount = state.connections.reduce(0) { $0 + ($1.personalControls ?? []).filter(\.needsReview).count }
-                guard pendingCount + (state.controlTombstones?.count ?? 0) < PersonalControlTombstone.capacity else { throw PersonalControlFailure.recoveryCapacity }
+                guard unresolvedRequestCount < PersonalControlTombstone.capacity else { throw PersonalControlFailure.recoveryCapacity }
                 attempts.append(attempt)
             }
             // Keep every unresolved request; retain the newest completed/reviewed receipts for context.
             let retained = Set(attempts.filter { !$0.needsReview }.suffix(30).map(\.id))
             saved.personalControls = attempts.filter { $0.needsReview || retained.contains($0.id) }
+        }
+    }
+
+    private var unresolvedRequestCount: Int {
+        let savedRequests = state.connections.reduce(0) { count, connection in
+            let controls = (connection.personalControls ?? []).filter(\.needsReview).count
+            let publications = (connection.personalPublications ?? []).filter(\.unresolved).count
+            return count + controls + publications
+        }
+        let controlMarkers = state.controlTombstones?.count ?? 0
+        let publicationMarkers = state.publicationTombstones?.count ?? 0
+        return savedRequests + controlMarkers + publicationMarkers
+    }
+    var hasUnresolvedPublicationEffects: Bool {
+        active && session != nil && ((selected?.personalPublications ?? []).contains(where: \.unresolved) || !publicationRecoveries.isEmpty)
+    }
+    private var hasUnresolvedControlEffects: Bool {
+        active && session != nil && ((selected?.personalControls ?? []).contains(where: \.needsReview) || !controlRecoveries.isEmpty)
+    }
+    var publicationRecoveries: [PersonalRoutineTombstone] {
+        guard active, let session, selected?.identity?.identity == session.identity else { return [] }
+        return (state.publicationTombstones ?? []).filter { $0.matches(session) }
+    }
+    func reconcilePublicationRecovery(_ id: UUID) async {
+        guard active, recoveryBusy == nil, let record = selected, let session,
+              let marker = publicationRecoveries.first(where: { $0.id == id }) else { return }
+        let operation = generation; recoveryBusy = id; error = nil
+        defer { if operation == generation { recoveryBusy = nil } }
+        do {
+            let connection = PersonalBedConnection(id: record.id, endpoint: record.endpoint, token: record.deviceSecret, session: session)
+            let transport = routineClient(connection)
+            let fresh = try await transport.session()
+            try check(operation, record.id); try fresh.validate(); try marker.validate()
+            guard fresh.context == session.context else { throw HouseholdFailure.changedIdentity }
+            let receipt = try await transport.publication(id)
+            try check(operation, record.id); try marker.validate(receipt, session: fresh)
+            guard self.session == session else { throw HouseholdFailure.changedIdentity }
+            var next = state
+            guard let index = next.publicationTombstones?.firstIndex(where: { $0 == marker }) else { return }
+            if receipt.unresolved { next.publicationTombstones?[index].unresolvedState = receipt.scheduler }
+            else { next.publicationTombstones?.remove(at: index) }
+            try persist(next); notice = receipt.message
+        } catch {
+            guard operation == generation else { return }
+            if error as? HouseholdFailure == .authentication { clearVisible(); try? forget(record.id) }
+            else if error as? HouseholdFailure == .changedIdentity { clearVisible() }
+            self.error = PersonalRoutineFailure.message(for: error)
+        }
+    }
+    private func configurePublication(record: HouseholdConnectionRecord, session: HouseholdSession) {
+        if let publication, publication.connection.id == record.id, publication.connection.session == session { return }
+        publication?.invalidate()
+        let operation = generation
+        let connection = PersonalBedConnection(id: record.id, endpoint: record.endpoint, token: record.deviceSecret, session: session)
+        publication = PersonalRoutineWorkspace(connection: connection, client: routineClient(connection), permitted: { [weak self] in
+            guard let self else { return false }
+            return self.active && self.generation == operation && self.state.selected == record.id && self.session == session
+        }, ready: { [weak self] in self?.maySave == true }, savedDraft: { [weak self] in self?.routines }, load: { [weak self] in
+            guard let self, self.active, self.state.selected == record.id, self.generation == operation,
+                  let saved = self.state.connections.first(where: { $0.id == record.id }), saved.identity?.identity == session.identity else { throw HouseholdFailure.changedIdentity }
+            return saved.personalPublications ?? []
+        }, save: { [weak self] attempt in
+            guard let self, self.active, self.state.selected == record.id, self.generation == operation,
+                  self.session?.context == session.context else { throw HouseholdFailure.changedIdentity }
+            try self.savePublication(attempt, recordId: record.id, session: session)
+        }, recoveryPending: { [weak self] in
+            self?.publicationRecoveries.isEmpty == false || self?.hasUnresolvedControlEffects == true
+        }, revoked: { [weak self] in
+            guard let self, self.generation == operation, self.state.selected == record.id else { return }
+            self.clearVisible()
+            do { try self.forget(record.id); self.error = HouseholdFailure.authentication.localizedDescription }
+            catch { self.error = HouseholdFailure.storage.localizedDescription }
+        })
+    }
+    /// Merge publication results into the latest parent vault without dropping drafts or controls.
+    private func savePublication(_ attempt: PersonalRoutineAttempt, recordId: UUID, session: HouseholdSession) throws {
+        try attempt.validate()
+        guard attempt.request.scope.belongs(to: session) else { throw HouseholdFailure.changedIdentity }
+        try update(recordId) { saved in
+            var attempts = saved.personalPublications ?? []
+            if let index = attempts.firstIndex(where: { $0.id == attempt.id }) {
+                let previous = attempts[index]
+                guard previous.request == attempt.request, previous.body == attempt.body, previous.review == attempt.review else { throw HouseholdFailure.invalid }
+                if let receipt = previous.receipt {
+                    guard let replacement = attempt.receipt, replacement.mayReplace(receipt) else { throw HouseholdFailure.invalid }
+                }
+                attempts[index] = attempt
+            } else {
+                guard attempt.request.scope.matches(session) else { throw HouseholdFailure.changedIdentity }
+                guard unresolvedRequestCount < PersonalControlTombstone.capacity else { throw PersonalControlFailure.recoveryCapacity }
+                attempts.append(attempt)
+            }
+            let retained = Set(attempts.filter { !$0.unresolved }.suffix(30).map(\.id))
+            saved.personalPublications = attempts.filter { $0.unresolved || retained.contains($0.id) }
         }
     }
 }
