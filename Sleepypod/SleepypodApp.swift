@@ -31,7 +31,7 @@ struct SleepypodApp: App {
 
     init() {
         #if DEBUG
-        let household = ArrangementReviewPreview.make() ?? PersonalRoutinePreview.make() ?? PersonalTemperaturePreview.make() ?? HouseholdPreview.make() ?? HouseholdWorkspace()
+        let household = PersonalHistoryPreview.make() ?? ArrangementReviewPreview.make() ?? PersonalRoutinePreview.make() ?? PersonalTemperaturePreview.make() ?? HouseholdPreview.make() ?? HouseholdWorkspace()
         #else
         let household = HouseholdWorkspace()
         #endif

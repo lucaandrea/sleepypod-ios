@@ -17,6 +17,7 @@ import Observation
     private(set) var temperature: PersonalTemperatureWorkspace?
     private(set) var publication: PersonalRoutineWorkspace?
     private(set) var arrangement: ArrangementReviewWorkspace?
+    private(set) var history: PersonalHistoryWorkspace?
     private(set) var recoveryBusy: UUID?
     private let vault: any HouseholdVault
     private let defaults: UserDefaults
@@ -24,6 +25,7 @@ import Observation
     private let personalClient: @Sendable (PersonalBedConnection) -> any PersonalBedTransport
     private let routineClient: @Sendable (PersonalBedConnection) -> any PersonalRoutineTransport
     private let arrangementClient: @Sendable (PersonalBedConnection) -> any ArrangementReviewTransport
+    private let historyClient: @Sendable (PersonalBedConnection) -> any PersonalHistoryTransport
     private let capability: @MainActor () async throws -> Bool
     private var ownerGateScope: [String]?
     private let ownerEndpoint: @MainActor () -> URL?
@@ -37,12 +39,13 @@ import Observation
          personalClient: @escaping @Sendable (PersonalBedConnection) -> any PersonalBedTransport = { PersonalBedHTTPClient(connection: $0) },
          routineClient: @escaping @Sendable (PersonalBedConnection) -> any PersonalRoutineTransport = { PersonalRoutineHTTPClient(connection: $0) },
          arrangementClient: @escaping @Sendable (PersonalBedConnection) -> any ArrangementReviewTransport = { ArrangementReviewHTTPClient(connection: $0) },
+         historyClient: @escaping @Sendable (PersonalBedConnection) -> any PersonalHistoryTransport = { PersonalHistoryHTTPClient(connection: $0) },
          capability: @escaping @MainActor () async throws -> Bool = { try await HouseholdPreparationCapability.load() },
          ownerEndpoint: @escaping @MainActor () -> URL? = { OwnerConnection.endpoint },
          ownerKey: @escaping @MainActor (URL) -> String = { UnifiedRuntime.savedKey(for: $0.absoluteString) },
          secret: @escaping @MainActor () throws -> String = { try HouseholdKeychainVault.secret() }) {
         self.vault = vault; self.defaults = defaults; self.client = client; self.personalClient = personalClient; self.routineClient = routineClient
-        self.arrangementClient = arrangementClient
+        self.arrangementClient = arrangementClient; self.historyClient = historyClient
         self.capability = capability; self.ownerEndpoint = ownerEndpoint; self.ownerKey = ownerKey; self.secret = secret
         active = defaults.bool(forKey: PersonalWorkspaceBoundary.preferenceKey)
         do { state = try vault.load(); storageLoaded = true } catch { self.error = HouseholdFailure.storage.localizedDescription }
@@ -163,7 +166,7 @@ import Observation
             let value: HouseholdSession = try await read("household/session", record: record)
             try value.validate(); try check(operation, record.id)
             if let previous = record.identity, previous.identity != value.identity { throw HouseholdFailure.changedIdentity }
-            if session != value { arrangement?.invalidate(); arrangement = nil }
+            if session != value { arrangement?.invalidate(); arrangement = nil; history?.invalidate(); history = nil }
             session = value
             try update(record.id) { saved in
                 saved.identity = value
@@ -187,6 +190,7 @@ import Observation
             configureTemperature(record: record, session: value, unit: personal.preferences.displayUnit == "C" ? .celsius : .fahrenheit)
             configurePublication(record: record, session: value)
             configureArrangement(record: record, session: value)
+            configureHistory(record: record, session: value)
             notice = pending == nil ? "Personal account refreshed. Routine drafts do not run the bed." : "Saved state refreshed. An earlier request still needs review; retrying uses the same request."
         } catch {
             guard operation == generation else { return }
@@ -359,6 +363,7 @@ import Observation
         temperature?.invalidate(); temperature = nil
         publication?.invalidate(); publication = nil
         arrangement?.invalidate(); arrangement = nil
+        history?.invalidate(); history = nil
         session = nil; preferences = nil; routines = nil; devices = []; invitations = []; busy = false; error = nil; notice = nil; recoveryBusy = nil
     }
 
@@ -548,6 +553,21 @@ import Observation
             guard let self else { return false }
             return self.active && self.generation == operation && self.state.selected == record.id && self.session == session
         }, ready: { [weak self] in self?.maySave == true }, revoked: { [weak self] in
+            guard let self, self.generation == operation, self.state.selected == record.id else { return }
+            self.clearVisible()
+            do { try self.forget(record.id); self.error = HouseholdFailure.authentication.localizedDescription }
+            catch { self.error = HouseholdFailure.storage.localizedDescription }
+        })
+    }
+    private func configureHistory(record: HouseholdConnectionRecord, session: HouseholdSession) {
+        if let history, !history.isInvalidated, history.connection.id == record.id, history.connection.session == session { return }
+        history?.invalidate()
+        let operation = generation
+        let connection = PersonalBedConnection(id: record.id, endpoint: record.endpoint, token: record.deviceSecret, session: session)
+        history = PersonalHistoryWorkspace(connection: connection, client: historyClient(connection), permitted: { [weak self] in
+            guard let self else { return false }
+            return self.active && self.generation == operation && self.state.selected == record.id && self.session == session
+        }, revoked: { [weak self] in
             guard let self, self.generation == operation, self.state.selected == record.id else { return }
             self.clearVisible()
             do { try self.forget(record.id); self.error = HouseholdFailure.authentication.localizedDescription }

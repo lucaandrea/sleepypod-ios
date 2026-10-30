@@ -22,10 +22,10 @@ struct HouseholdScreen: View {
                             .font(.caption).foregroundStyle(Theme.text2)
                     }
                     Text(model.publication?.enabled == true
-                         ? "Drafts stay private until you publish them. Controls follow your bed assignment. Assignment changes, history and Apple Health are not active here."
+                         ? "Drafts stay private until you publish them. Controls follow your bed assignment. Assignment changes and Apple Health are not active here."
                          : model.temperature == nil
-                         ? "Prepare your own comfort preferences and weekly routine. Bed controls, side assignment, sleep history and Apple Health are not active in this workspace."
-                         : "Temperature controls use your personal bed assignment. Weekly routines remain drafts; assignment changes, sleep history and Apple Health are not active here.")
+                         ? "Prepare your own comfort preferences and weekly routine. Bed controls, side assignment and Apple Health are not active in this workspace."
+                         : "Temperature controls use your personal bed assignment. Weekly routines remain drafts; assignment changes and Apple Health are not active here.")
                         .font(.footnote).foregroundStyle(Theme.text2)
                 }
                 feedback
@@ -47,6 +47,14 @@ struct HouseholdScreen: View {
                             Text("Publication is separate from saving drafts. Review the complete week and confirm its effects before replacing the operating schedule.")
                                 .font(.footnote).foregroundStyle(Theme.text2)
                         }
+                    }
+                    Section("Your recordings") {
+                        NavigationLink("View your recordings", value: "history")
+                            .disabled(model.history?.enabled != true).accessibilityIdentifier("history.accountLink")
+                        Text(model.history?.enabled == true
+                             ? "Your attributed Pod recordings. Bed presence and movement do not confirm sleep or sleep stages."
+                             : "Personal recordings are not enabled on this controller.")
+                            .font(.footnote).foregroundStyle(Theme.text2).accessibilityIdentifier("history.availability")
                     }
                     Section("Future bed arrangement") {
                         NavigationLink("Shared side review", value: "arrangement")
@@ -121,6 +129,7 @@ struct HouseholdScreen: View {
                     if route == "preferences" { HouseholdPreferencesEditor().id(session.namespace + String(model.preferences?.revision ?? 0)) }
                     else if route == "routines" { HouseholdRoutineWeek().id(session.namespace) }
                     else if route == "publication", let publication = model.publication { PersonalRoutineReviewScreen(model: publication, unit: model.draftPreferences.displayUnit).id(session.namespace) }
+                    else if route == "history", let history = model.history { PersonalHistoryScreen(model: history).id(ObjectIdentifier(history)) }
                     else if route == "arrangement", let arrangement = model.arrangement { ArrangementReviewScreen(model: arrangement).id(ObjectIdentifier(arrangement)) }
                 }
             }
