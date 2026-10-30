@@ -52,15 +52,27 @@ import XCTest
                 context.confirm(model); model.preserveOperatingWeek = true
                 await model.approve(); await model.propose(); await model.cancel()
                 var posts = await server.posts; XCTAssertEqual(posts.count, 1)
-                await model.refresh(); XCTAssertTrue(model.loaded); XCTAssertFalse(model.needsReconciliation)
-                XCTAssertFalse(model.confirmMySide)
                 let relaunched = context.workspace(server, session: session)
                 XCTAssertNil(relaunched.review); context.confirm(relaunched); await relaunched.approve()
-                await relaunched.refresh(); XCTAssertEqual(relaunched.review, model.review)
+                await relaunched.refresh(); XCTAssertTrue(relaunched.loaded)
+                await model.refresh(); XCTAssertTrue(model.loaded); XCTAssertFalse(model.needsReconciliation)
+                XCTAssertFalse(model.confirmMySide); XCTAssertEqual(relaunched.review, model.review)
                 posts = await server.posts; XCTAssertEqual(posts.count, 1)
                 let reads = await server.reads; XCTAssertGreaterThanOrEqual(reads.filter { $0 == "latest" }.count, 4)
             }
         }
+    }
+    func testMissingOriginalReviewKeepsUnknownApprovalLockedUntilGetSucceeds() async throws {
+        let server = try ArrangementTestServer(), context = ArrangementTestContext()
+        let model = context.workspace(server, session: try ArrangementFixtures.session())
+        await model.refresh(); context.confirm(model); await server.configure(postFailure: .uncertain); await model.approve()
+        let saved = await server.projection; await server.setReview(nil); await model.refresh()
+        XCTAssertTrue(model.needsReconciliation); XCTAssertFalse(model.loaded)
+        context.confirm(model); await model.approve(); await model.cancel()
+        var posts = await server.posts; XCTAssertEqual(posts.count, 1)
+        await server.setReview(saved); await model.refresh()
+        XCTAssertFalse(model.needsReconciliation); XCTAssertTrue(model.review?.person.approved == true)
+        posts = await server.posts; XCTAssertEqual(posts.count, 1)
     }
     func testFreshPreflightDetectsChangedWeekPartnerApprovalAndRevocationStaleness() async throws {
         for change in 0..<3 {

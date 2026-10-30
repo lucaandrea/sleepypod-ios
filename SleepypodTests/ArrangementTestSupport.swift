@@ -68,7 +68,8 @@ actor ArrangementTestServer: ArrangementReviewTransport, HouseholdTransport {
     }
     func review(_ id: UUID) async throws -> ArrangementReview {
         reads.append(id.uuidString.lowercased()); await pause("review")
-        return try XCTUnwrap(projection)
+        guard let projection, UUID(uuidString: projection.reviewId) == id else { throw HouseholdFailure.unavailable }
+        return projection
     }
     func send(_ action: ArrangementRequest.Action, body: Data) async throws -> ArrangementReview {
         let request = try ArrangementRequest.decodeExact(body, action: action, session: account)
