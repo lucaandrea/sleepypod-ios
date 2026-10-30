@@ -121,7 +121,7 @@ struct HouseholdScreen: View {
                     if route == "preferences" { HouseholdPreferencesEditor().id(session.namespace + String(model.preferences?.revision ?? 0)) }
                     else if route == "routines" { HouseholdRoutineWeek().id(session.namespace) }
                     else if route == "publication", let publication = model.publication { PersonalRoutineReviewScreen(model: publication, unit: model.draftPreferences.displayUnit).id(session.namespace) }
-                    else if route == "arrangement", let arrangement = model.arrangement { ArrangementReviewScreen(model: arrangement).id(session.context.joined(separator: "/")) }
+                    else if route == "arrangement", let arrangement = model.arrangement { ArrangementReviewScreen(model: arrangement).id(ObjectIdentifier(arrangement)) }
                 }
             }
             .sheet(item: $connectionForm) { kind in NavigationStack { HouseholdConnectionForm(kind: kind) } }
