@@ -461,8 +461,14 @@ import Observation
     }
 
     private var unresolvedRequestCount: Int {
-        state.connections.reduce(0) { $0 + ($1.personalControls ?? []).filter(\.needsReview).count + ($1.personalPublications ?? []).filter(\.unresolved).count }
-            + (state.controlTombstones?.count ?? 0) + (state.publicationTombstones?.count ?? 0)
+        let savedRequests = state.connections.reduce(0) { count, connection in
+            let controls = (connection.personalControls ?? []).filter(\.needsReview).count
+            let publications = (connection.personalPublications ?? []).filter(\.unresolved).count
+            return count + controls + publications
+        }
+        let controlMarkers = state.controlTombstones?.count ?? 0
+        let publicationMarkers = state.publicationTombstones?.count ?? 0
+        return savedRequests + controlMarkers + publicationMarkers
     }
     var hasUnresolvedPublicationEffects: Bool {
         active && session != nil && ((selected?.personalPublications ?? []).contains(where: \.unresolved) || !publicationRecoveries.isEmpty)
