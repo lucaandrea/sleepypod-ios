@@ -33,17 +33,41 @@ import XCTest
         let count = await client.gate.count
         XCTAssertEqual(count, 2)
     }
+    func testRetryAndRouteRecoveryReadStatusWithoutReplayingCommands() async throws {
+        let client = RecoveryClient(status: try await MockClient().getDeviceStatus())
+        let manager = DeviceManager(api: client)
+        await client.gate.setFailure(true)
+        await manager.fetchStatus()
+        XCTAssertEqual(manager.connectionIssue, .unconfigured)
+        await client.gate.setFailure(false)
+        manager.networkRouteChanged()
+        defer { manager.stopPolling() }
+        for _ in 0..<100 where !manager.isConnected { await Task.yield() }
+        XCTAssertTrue(manager.isConnected)
+        XCTAssertNil(manager.connectionIssue)
+        let before = await client.gate.count
+        manager.networkRouteChanged()
+        for _ in 0..<10 { await Task.yield() }
+        let after = await client.gate.count
+        XCTAssertEqual(before, after, "A healthy connection should not be reset by route notifications")
+        let writes = await client.gate.writes
+        XCTAssertEqual(writes, 0)
+    }
+
 }
 
 private final class RecoveryClient: MockAPIClient, @unchecked Sendable {
     let gate: RecoveryGate
     init(status: DeviceStatus) { gate = RecoveryGate(status: status) }
     override func getDeviceStatus() async throws -> DeviceStatus { try await gate.read() }
+    override func updateDeviceStatus(_ update: DeviceStatusUpdate) async throws { await gate.wrote() }
 }
 private actor RecoveryGate {
     let status: DeviceStatus
     var failure = false
     private(set) var count = 0
+    private(set) var writes = 0
+    func wrote() { writes += 1 }
     init(status: DeviceStatus) { self.status = status }
     func setFailure(_ value: Bool) { failure = value }
     func read() throws -> DeviceStatus {

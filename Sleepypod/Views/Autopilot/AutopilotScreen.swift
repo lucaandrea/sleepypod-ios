@@ -109,6 +109,8 @@ struct AutopilotScreen: View {
     private var tonight: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Tonight").font(.title3.bold())
+            Text("Scheduled temperatures follow your saved routine. Preview rules show proposals and do not change the bed.")
+                .font(.footnote).foregroundStyle(Theme.text2).accessibilityIdentifier("autopilot.tonightMeaning")
             if let error = schedules.error { Text("Schedule: \(error)").font(.footnote).foregroundStyle(Theme.amber) }
             if let error = model.timelineError { Text("Recorded firings: \(error)").font(.footnote).foregroundStyle(Theme.amber) }
             AutomationTonightTimeline(timeline: AutomationTimeline(schedules: schedules.error == nil ? schedules.schedules : nil, rules: model.ready ? model.rules : [], timezone: settings.timeZone, now: model.tonight.map { Date(timeIntervalSince1970: $0.now / 1000) } ?? .now), snapshot: model.tonight, activity: model.timelineActivity, enabled: model.ready ? model.globalEnabled : nil)

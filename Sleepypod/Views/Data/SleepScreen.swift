@@ -203,6 +203,20 @@ struct SleepScreen: View {
                         .init(value: .month, title: "Month")
                     ], selection: $period
                 ).padding(.horizontal, 4).padding(.bottom, 8)
+                NavigationLink {
+                    PodFeatureScreen(.reports, side: metrics.selectedSide.rawValue, nativeActions: nativeActions.bridge)
+                } label: {
+                    HStack(spacing: 12) {
+                        Image(systemName: "sparkles").foregroundStyle(Theme.indigo)
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Personal reports").font(.headline)
+                            Text("Your saved insights and supporting evidence").font(.caption).foregroundStyle(Theme.text2)
+                        }
+                        Spacer(minLength: 0)
+                        Image(systemName: "chevron.right").font(.caption).foregroundStyle(Theme.text2)
+                    }.padding(16).frame(maxWidth: .infinity, alignment: .leading)
+                        .background(Theme.card, in: RoundedRectangle(cornerRadius: 16))
+                }.buttonStyle(.plain).accessibilityIdentifier("sleep.personalReports")
                 periodContent
                 dataFooter
             }.padding(.horizontal, 16).padding(.bottom, 24)

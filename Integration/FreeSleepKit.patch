@@ -1,8 +1,8 @@
 diff --git a/FreeSleepKit/App/AppMode.swift b/FreeSleepKit/App/AppMode.swift
-index f019ca0..ebdb202 100644
+index f019ca0..01749a7 100644
 --- a/FreeSleepKit/App/AppMode.swift
 +++ b/FreeSleepKit/App/AppMode.swift
-@@ -1,11 +1,23 @@
+@@ -1,14 +1,27 @@
  import Foundation
  
  enum AppMode {
@@ -28,6 +28,10 @@ index f019ca0..ebdb202 100644
          #endif
      }
      static func requireLiveConnection() throws {
++        try PersonalWorkspaceBoundary.requireLegacyAccess()
+         guard !isDemo else { throw PodError.message("System actions are unavailable in the demo. Open the app with your real Pod connection first.") }
+     }
+ }
 diff --git a/FreeSleepKit/App/AppModel.swift b/FreeSleepKit/App/AppModel.swift
 index b2ebbb6..cfae8fa 100644
 --- a/FreeSleepKit/App/AppModel.swift
@@ -69,7 +73,7 @@ index bf16c36..1bc23a1 100644
              SleepCard(title: "Routines & wake alarms") {
                  NavigationLink("Edit your routines") { RoutinesView() }.buttonStyle(SleepButtonStyle())
 diff --git a/FreeSleepKit/Intelligence/IntelligenceWorkspace.swift b/FreeSleepKit/Intelligence/IntelligenceWorkspace.swift
-index 71835d7..02e1a15 100644
+index 71835d7..c7c34ef 100644
 --- a/FreeSleepKit/Intelligence/IntelligenceWorkspace.swift
 +++ b/FreeSleepKit/Intelligence/IntelligenceWorkspace.swift
 @@ -24,9 +24,12 @@ final class IntelligenceWorkspace {
@@ -86,7 +90,30 @@ index 71835d7..02e1a15 100644
          let selected = IntelligenceProvider(rawValue: defaults.string(forKey: "intelligence.provider") ?? "") ?? .apple
          provider = selected
          let savedModels = defaults.dictionary(forKey: "intelligence.models") as? [String: String] ?? [:]
-@@ -105,18 +108,22 @@ final class IntelligenceWorkspace {
+@@ -83,6 +86,7 @@ final class IntelligenceWorkspace {
+         } catch { message = error is CancellationError ? "Test cancelled." : error.localizedDescription }
+     }
+     func importHistory(authorize: Bool = true) async {
++        guard !PersonalWorkspaceBoundary.isActive else { return }
+         guard !busy, !AppMode.isDemo else { return }
+         busy = true; message = "Reading accessible Health history…"; lastRefreshAttempt = .now
+         defer { busy = false }
+@@ -90,6 +94,7 @@ final class IntelligenceWorkspace {
+             let reader = HealthHistoryReader(store: HKHealthStore())
+             if authorize { try await reader.authorize(); defaults.set(true, forKey: "intelligence.healthRequested") }
+             let history = try await reader.read()
++            try PersonalWorkspaceBoundary.requireLegacyAccess()
+             try Task.checkCancellation()
+             var updated = archive; updated.history = history
+             try store.write(updated); archive = updated
+@@ -99,24 +104,29 @@ final class IntelligenceWorkspace {
+         } catch { message = error is CancellationError ? "History refresh cancelled. The previous import is unchanged." : error.localizedDescription }
+     }
+     func refreshOnActivation() async {
++        guard !PersonalWorkspaceBoundary.isActive else { return }
+         restore()
+         guard refreshHistory, defaults.bool(forKey: "intelligence.healthRequested"), !busy,
+               Date.now.timeIntervalSince(archive.history.importedAt) >= 6 * 3600,
                Date.now.timeIntervalSince(lastRefreshAttempt) >= 15 * 60 else { return }
          await importHistory(authorize: false)
      }
@@ -113,7 +140,7 @@ index 71835d7..02e1a15 100644
                      let report = PersonalSleepReport(id: UUID(), createdAt: .now, provider: input.provider, model: reply.model,
                          source: sourceName, facts: facts, text: reply.text, inputTokens: reply.inputTokens, outputTokens: reply.outputTokens)
                      var updated = archive; updated.reports = Array(([report] + updated.reports).prefix(30))
-@@ -127,6 +134,7 @@ final class IntelligenceWorkspace {
+@@ -127,6 +137,7 @@ final class IntelligenceWorkspace {
          } catch { busy = false; message = error.localizedDescription }
      }
      func cancel() { operation?.cancel() }
@@ -234,6 +261,32 @@ index a530f65..6331dd0 100644
          try await PodActions.client().post("deviceStatus", body: [side.rawValue: ["isAlarmVibrating": false]])
          return .result(dialog: "The alarm dismissal command was sent to your \(side.rawValue) side.")
      }
+diff --git a/FreeSleepKit/Intents/FreeSleepShortcuts.swift b/FreeSleepKit/Intents/FreeSleepShortcuts.swift
+index f3dd754..f8910c0 100644
+--- a/FreeSleepKit/Intents/FreeSleepShortcuts.swift
++++ b/FreeSleepKit/Intents/FreeSleepShortcuts.swift
+@@ -12,15 +12,15 @@ struct FreeSleepShortcuts: AppShortcutsProvider {
+             shortTitle: "Stop bed", systemImageName: "stop.circle")
+         AppShortcut(intent: SleepSummaryIntent(), phrases: ["My sleep routine in \(.applicationName)"],
+             shortTitle: "Sleep routine", systemImageName: "chart.bar")
+-        AppShortcut(intent: SetBaseAnglesIntent(), phrases: ["Set my bed angles with \(.applicationName)"],
+-            shortTitle: "Head and feet angles", systemImageName: "angle")
++        AppShortcut(intent: GetNextAlarmIntent(), phrases: ["When is my next bed alarm in \(.applicationName)"],
++            shortTitle: "Next bed alarm", systemImageName: "alarm")
+         AppShortcut(intent: SyncHealthIntent(), phrases: ["Sync Health with \(.applicationName)"],
+             shortTitle: "Sync Apple Health", systemImageName: "heart")
+         AppShortcut(intent: SetComfortIntent(), phrases: ["Set adaptive comfort with \(.applicationName)"],
+             shortTitle: "Adaptive comfort", systemImageName: "thermometer.variable")
+-        AppShortcut(intent: SetAwayModeIntent(), phrases: ["Set Away mode with \(.applicationName)"],
+-            shortTitle: "Away mode", systemImageName: "suitcase")
+-        AppShortcut(intent: PrimePodIntent(), phrases: ["Prime my Pod with \(.applicationName)"],
+-            shortTitle: "Prime Pod", systemImageName: "drop")
++        AppShortcut(intent: ChangeNextAlarmIntent(), phrases: ["Change my next bed alarm with \(.applicationName)"],
++            shortTitle: "Change next alarm", systemImageName: "alarm.waves.left.and.right")
++        AppShortcut(intent: SkipNextAlarmIntent(), phrases: ["Skip my next bed alarm with \(.applicationName)"],
++            shortTitle: "Skip next alarm", systemImageName: "alarm.slash")
+     }
+ }
 diff --git a/FreeSleepKit/Intents/GetTemperatureIntent.swift b/FreeSleepKit/Intents/GetTemperatureIntent.swift
 index 529f330..44d102f 100644
 --- a/FreeSleepKit/Intents/GetTemperatureIntent.swift
@@ -468,10 +521,78 @@ index 0c7ed0b..a7eb515 100644
          }
          id = settings.id; timeZone = settings.timeZone
      }
+diff --git a/FreeSleepKit/Services/HealthSyncEngine.swift b/FreeSleepKit/Services/HealthSyncEngine.swift
+index 74e4d72..418ad54 100644
+--- a/FreeSleepKit/Services/HealthSyncEngine.swift
++++ b/FreeSleepKit/Services/HealthSyncEngine.swift
+@@ -9,6 +9,7 @@ final class HealthSyncEngine {
+ 
+     // Fetch a complete export before changing Health. Save replacements before reconciling obsolete, owned samples.
+     func synchronize(source: any HealthExportSource, settings: HealthSyncSettings, range: DateInterval, now: Date = .now) async throws -> Int {
++        try PersonalWorkspaceBoundary.requireLegacyAccess()
+         guard !running else { throw PodError.message("A Health sync is already running.") }
+         running = true; defer { running = false }
+         guard store.canWrite(heartRate: settings.exportHeartRate) else {
+@@ -23,6 +24,7 @@ final class HealthSyncEngine {
+         try validate(records: records, vitals: vitals)
+         guard try await source.identity() == settings.podID else { throw PodError.message("The Pod changed during export. Nothing was written to Health.") }
+         try Task.checkCancellation()
++        try PersonalWorkspaceBoundary.requireLegacyAccess()
+         let old = try await store.existing(pod: settings.podID, side: settings.side, range: range, heartRate: settings.exportHeartRate)
+         let previousVersion = old.compactMap { ($0.metadata?[HKMetadataKeySyncVersion] as? NSNumber)?.intValue }.max() ?? 0
+         guard previousVersion < Int.max else { throw PodError.message("A Health sample has an invalid sync version.") }
+@@ -39,6 +41,7 @@ final class HealthSyncEngine {
+             written += try await save(HealthSampleBuilder.heart(batch, pod: settings.podID, side: settings.side, version: version), identifiers: &identifiers)
+         }
+         try Task.checkCancellation()
++        try PersonalWorkspaceBoundary.requireLegacyAccess()
+         let obsolete = old.filter { sample in
+             guard sample.metadata?["FreeSleepPod"] as? String == settings.podID,
+                   sample.metadata?["FreeSleepSide"] as? String == settings.side.rawValue,
+@@ -49,6 +52,7 @@ final class HealthSyncEngine {
+         }
+         for offset in stride(from: 0, to: obsolete.count, by: 400) {
+             try Task.checkCancellation()
++            try PersonalWorkspaceBoundary.requireLegacyAccess()
+             try await store.delete(Array(obsolete[offset..<min(offset + 400, obsolete.count)]))
+         }
+         return written
+@@ -57,6 +61,7 @@ final class HealthSyncEngine {
+     private func save(_ samples: [HKSample], identifiers: inout Set<String>) async throws -> Int {
+         for offset in stride(from: 0, to: samples.count, by: 400) {
+             try Task.checkCancellation()
++            try PersonalWorkspaceBoundary.requireLegacyAccess()
+             let batch = Array(samples[offset..<min(offset + 400, samples.count)])
+             try await store.save(batch)
+             identifiers.formUnion(batch.compactMap { $0.metadata?[HKMetadataKeySyncIdentifier] as? String })
 diff --git a/FreeSleepKit/Services/HealthSyncService.swift b/FreeSleepKit/Services/HealthSyncService.swift
-index 6ab8f45..9c8e25b 100644
+index 6ab8f45..cd1863b 100644
 --- a/FreeSleepKit/Services/HealthSyncService.swift
 +++ b/FreeSleepKit/Services/HealthSyncService.swift
+@@ -28,7 +28,7 @@ final class HealthSyncService {
+         }
+     }
+     func authorize() async {
+-        guard available, !busy, !AppMode.isDemo else { return }
++        guard !PersonalWorkspaceBoundary.isActive, available, !busy, !AppMode.isDemo else { return }
+         busy = true; defer { busy = false }
+         do {
+             try await store.requestAuthorization(toShare: [sleepType, heartType],
+@@ -54,12 +54,12 @@ final class HealthSyncService {
+         } catch { message = error.localizedDescription }
+     }
+     func refreshComparison() async throws {
+-        guard available, !AppMode.isDemo, defaults.bool(forKey: "healthAuthorizationRequested") else { return }
++        guard !PersonalWorkspaceBoundary.isActive, available, !AppMode.isDemo, defaults.bool(forKey: "healthAuthorizationRequested") else { return }
+         comparison = try await HealthComparisonReader(store: store).read()
+         comparisonRefreshedAt = .now
+     }
+     func refreshOnActivation() async {
+-        guard !AppMode.isDemo else { return }
++        guard !PersonalWorkspaceBoundary.isActive, !AppMode.isDemo else { return }
+         if settings?.automatic == true { _ = try? await synchronize(trigger: .foreground) }
+         if !busy && Date().timeIntervalSince(comparisonRefreshedAt) > 60 {
+             do { try await refreshComparison() } catch { message = error.localizedDescription }
 @@ -85,7 +85,7 @@ final class HealthSyncService {
          try AppMode.requireLiveConnection()
          guard available else { throw PodError.message("Apple Health is unavailable on this device.") }
@@ -578,6 +699,23 @@ index 0000000..e0f8a09
 +        return value
 +    }
 +}
+diff --git a/FreeSleepKit/Services/PersonalWorkspaceBoundary.swift b/FreeSleepKit/Services/PersonalWorkspaceBoundary.swift
+new file mode 100644
+index 0000000..ecdf8f4
+--- /dev/null
++++ b/FreeSleepKit/Services/PersonalWorkspaceBoundary.swift
+@@ -0,0 +1,11 @@
++import Foundation
++
++/// Personal preparation never borrows the saved installation-owner connection.
++public enum PersonalWorkspaceBoundary {
++    public static let preferenceKey = "household.personalWorkspaceActive"
++    @TaskLocal public static var suppliedActive: Bool?
++    public static var isActive: Bool { suppliedActive ?? UserDefaults.standard.bool(forKey: preferenceKey) }
++    public static func requireLegacyAccess() throws {
++        guard !isActive else { throw PodError.message("Personal accounts are in preparation. Bed controls and Health access are unavailable in this workspace.") }
++    }
++}
 diff --git a/FreeSleepKit/Services/PodClient.swift b/FreeSleepKit/Services/PodClient.swift
 index 203e7ed..b93e462 100644
 --- a/FreeSleepKit/Services/PodClient.swift
@@ -623,29 +761,3 @@ index 203e7ed..b93e462 100644
              let failure = try? JSONDecoder().decode(APIError.self, from: data)
              throw PodError.message(failure?.error.message ?? "The Pod returned an error (\(response.statusCode)).")
          }
-diff --git a/FreeSleepKit/Intents/FreeSleepShortcuts.swift b/FreeSleepKit/Intents/FreeSleepShortcuts.swift
-index f3dd754..f8910c0 100644
---- a/FreeSleepKit/Intents/FreeSleepShortcuts.swift
-+++ b/FreeSleepKit/Intents/FreeSleepShortcuts.swift
-@@ -12,15 +12,15 @@ struct FreeSleepShortcuts: AppShortcutsProvider {
-             shortTitle: "Stop bed", systemImageName: "stop.circle")
-         AppShortcut(intent: SleepSummaryIntent(), phrases: ["My sleep routine in \(.applicationName)"],
-             shortTitle: "Sleep routine", systemImageName: "chart.bar")
--        AppShortcut(intent: SetBaseAnglesIntent(), phrases: ["Set my bed angles with \(.applicationName)"],
--            shortTitle: "Head and feet angles", systemImageName: "angle")
-+        AppShortcut(intent: GetNextAlarmIntent(), phrases: ["When is my next bed alarm in \(.applicationName)"],
-+            shortTitle: "Next bed alarm", systemImageName: "alarm")
-         AppShortcut(intent: SyncHealthIntent(), phrases: ["Sync Health with \(.applicationName)"],
-             shortTitle: "Sync Apple Health", systemImageName: "heart")
-         AppShortcut(intent: SetComfortIntent(), phrases: ["Set adaptive comfort with \(.applicationName)"],
-             shortTitle: "Adaptive comfort", systemImageName: "thermometer.variable")
--        AppShortcut(intent: SetAwayModeIntent(), phrases: ["Set Away mode with \(.applicationName)"],
--            shortTitle: "Away mode", systemImageName: "suitcase")
--        AppShortcut(intent: PrimePodIntent(), phrases: ["Prime my Pod with \(.applicationName)"],
--            shortTitle: "Prime Pod", systemImageName: "drop")
-+        AppShortcut(intent: ChangeNextAlarmIntent(), phrases: ["Change my next bed alarm with \(.applicationName)"],
-+            shortTitle: "Change next alarm", systemImageName: "alarm.waves.left.and.right")
-+        AppShortcut(intent: SkipNextAlarmIntent(), phrases: ["Skip my next bed alarm with \(.applicationName)"],
-+            shortTitle: "Skip next alarm", systemImageName: "alarm.slash")
-     }
- }
