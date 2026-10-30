@@ -50,7 +50,9 @@ import UIKit
         XCTAssertFalse(app.staticTexts["### Your recent pattern"].exists)
         let source = app.buttons["report.source.health.recent"].firstMatch
         reveal(source, app); source.tap()
-        let evidence = app.staticTexts["report.evidence.health.recent"]
+        // The coverage card already contains this fact; the second match proves expansion.
+        let evidence = app.staticTexts.matching(NSPredicate(format: "label == %@",
+            "Three recorded days in seven. Missing days remain unknown, not zero sleep.")).element(boundBy: 1)
         reveal(evidence, app)
         XCTAssertEqual(evidence.label, "Three recorded days in seven. Missing days remain unknown, not zero sleep.")
         capture(app, "Saved-report-source")
@@ -71,7 +73,8 @@ import UIKit
         }
         let source = app.buttons["report.source.health.hrv"].firstMatch
         reveal(source, app); source.tap()
-        let evidence = app.staticTexts["report.evidence.health.hrv"]
+        let evidence = app.staticTexts.matching(NSPredicate(format: "label == %@",
+            "Daily HRV uses SDNN; it is not the Pod’s window variability metric.")).firstMatch
         reveal(evidence, app)
         XCTAssertEqual(evidence.label, "Daily HRV uses SDNN; it is not the Pod’s window variability metric.")
         XCTAssertGreaterThanOrEqual(evidence.frame.minX, app.frame.minX)
