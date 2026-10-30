@@ -48,6 +48,14 @@ struct HouseholdScreen: View {
                                 .font(.footnote).foregroundStyle(Theme.text2)
                         }
                     }
+                    Section("Future bed arrangement") {
+                        NavigationLink("Shared side review", value: "arrangement")
+                            .disabled(model.arrangement?.enabled != true).accessibilityIdentifier("arrangement.accountLink")
+                        Text(model.arrangement?.enabled == true
+                             ? "Review your proposed side and your own routine. Both approvals are separate from switching the bed."
+                             : "Side review is not enabled on this controller. Your current bed arrangement stays unchanged.")
+                            .font(.footnote).foregroundStyle(Theme.text2).accessibilityIdentifier("arrangement.availability")
+                    }
                     invitations(session)
                     Section("Your paired devices") {
                         ForEach(model.devices) { device in
@@ -112,7 +120,8 @@ struct HouseholdScreen: View {
                 if let session = model.session {
                     if route == "preferences" { HouseholdPreferencesEditor().id(session.namespace + String(model.preferences?.revision ?? 0)) }
                     else if route == "routines" { HouseholdRoutineWeek().id(session.namespace) }
-                    else if let publication = model.publication { PersonalRoutineReviewScreen(model: publication, unit: model.draftPreferences.displayUnit).id(session.namespace) }
+                    else if route == "publication", let publication = model.publication { PersonalRoutineReviewScreen(model: publication, unit: model.draftPreferences.displayUnit).id(session.namespace) }
+                    else if route == "arrangement", let arrangement = model.arrangement { ArrangementReviewScreen(model: arrangement).id(ObjectIdentifier(arrangement)) }
                 }
             }
             .sheet(item: $connectionForm) { kind in NavigationStack { HouseholdConnectionForm(kind: kind) } }
