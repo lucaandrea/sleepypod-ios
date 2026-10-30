@@ -16,12 +16,14 @@ import Observation
     private(set) var state = HouseholdVaultState()
     private(set) var temperature: PersonalTemperatureWorkspace?
     private(set) var publication: PersonalRoutineWorkspace?
+    private(set) var arrangement: ArrangementReviewWorkspace?
     private(set) var recoveryBusy: UUID?
     private let vault: any HouseholdVault
     private let defaults: UserDefaults
     private let client: @Sendable (URL) -> any HouseholdTransport
     private let personalClient: @Sendable (PersonalBedConnection) -> any PersonalBedTransport
     private let routineClient: @Sendable (PersonalBedConnection) -> any PersonalRoutineTransport
+    private let arrangementClient: @Sendable (PersonalBedConnection) -> any ArrangementReviewTransport
     private let capability: @MainActor () async throws -> Bool
     private var ownerGateScope: [String]?
     private let ownerEndpoint: @MainActor () -> URL?
@@ -34,11 +36,13 @@ import Observation
          client: @escaping @Sendable (URL) -> any HouseholdTransport = { HouseholdHTTPClient(endpoint: $0) },
          personalClient: @escaping @Sendable (PersonalBedConnection) -> any PersonalBedTransport = { PersonalBedHTTPClient(connection: $0) },
          routineClient: @escaping @Sendable (PersonalBedConnection) -> any PersonalRoutineTransport = { PersonalRoutineHTTPClient(connection: $0) },
+         arrangementClient: @escaping @Sendable (PersonalBedConnection) -> any ArrangementReviewTransport = { ArrangementReviewHTTPClient(connection: $0) },
          capability: @escaping @MainActor () async throws -> Bool = { try await HouseholdPreparationCapability.load() },
          ownerEndpoint: @escaping @MainActor () -> URL? = { OwnerConnection.endpoint },
          ownerKey: @escaping @MainActor (URL) -> String = { UnifiedRuntime.savedKey(for: $0.absoluteString) },
          secret: @escaping @MainActor () throws -> String = { try HouseholdKeychainVault.secret() }) {
         self.vault = vault; self.defaults = defaults; self.client = client; self.personalClient = personalClient; self.routineClient = routineClient
+        self.arrangementClient = arrangementClient
         self.capability = capability; self.ownerEndpoint = ownerEndpoint; self.ownerKey = ownerKey; self.secret = secret
         active = defaults.bool(forKey: PersonalWorkspaceBoundary.preferenceKey)
         do { state = try vault.load(); storageLoaded = true } catch { self.error = HouseholdFailure.storage.localizedDescription }
@@ -159,6 +163,7 @@ import Observation
             let value: HouseholdSession = try await read("household/session", record: record)
             try value.validate(); try check(operation, record.id)
             if let previous = record.identity, previous.identity != value.identity { throw HouseholdFailure.changedIdentity }
+            if session != value { arrangement?.invalidate(); arrangement = nil }
             session = value
             try update(record.id) { saved in
                 saved.identity = value
@@ -177,9 +182,11 @@ import Observation
             try invited.invitations.forEach { try $0.validate() }; try check(operation, record.id)
             guard Set(invited.invitations.map(\.id)).count == invited.invitations.count else { throw HouseholdFailure.invalid }
             if routines != week { publication?.discardReview() }
+            if preferences != personal || routines != week { arrangement?.discardReview() }
             preferences = personal; routines = week; devices = paired.devices; invitations = invited.invitations
             configureTemperature(record: record, session: value, unit: personal.preferences.displayUnit == "C" ? .celsius : .fahrenheit)
             configurePublication(record: record, session: value)
+            configureArrangement(record: record, session: value)
             notice = pending == nil ? "Personal account refreshed. Routine drafts do not run the bed." : "Saved state refreshed. An earlier request still needs review; retrying uses the same request."
         } catch {
             guard operation == generation else { return }
@@ -351,6 +358,7 @@ import Observation
     private func clearVisible() {
         temperature?.invalidate(); temperature = nil
         publication?.invalidate(); publication = nil
+        arrangement?.invalidate(); arrangement = nil
         session = nil; preferences = nil; routines = nil; devices = []; invitations = []; busy = false; error = nil; notice = nil; recoveryBusy = nil
     }
 
@@ -525,6 +533,21 @@ import Observation
         }, recoveryPending: { [weak self] in
             self?.publicationRecoveries.isEmpty == false || self?.hasUnresolvedControlEffects == true
         }, revoked: { [weak self] in
+            guard let self, self.generation == operation, self.state.selected == record.id else { return }
+            self.clearVisible()
+            do { try self.forget(record.id); self.error = HouseholdFailure.authentication.localizedDescription }
+            catch { self.error = HouseholdFailure.storage.localizedDescription }
+        })
+    }
+    private func configureArrangement(record: HouseholdConnectionRecord, session: HouseholdSession) {
+        if let arrangement, !arrangement.isInvalidated, arrangement.connection.id == record.id, arrangement.connection.session == session { return }
+        arrangement?.invalidate()
+        let operation = generation
+        let connection = PersonalBedConnection(id: record.id, endpoint: record.endpoint, token: record.deviceSecret, session: session)
+        arrangement = ArrangementReviewWorkspace(connection: connection, client: arrangementClient(connection), permitted: { [weak self] in
+            guard let self else { return false }
+            return self.active && self.generation == operation && self.state.selected == record.id && self.session == session
+        }, ready: { [weak self] in self?.maySave == true }, revoked: { [weak self] in
             guard let self, self.generation == operation, self.state.selected == record.id else { return }
             self.clearVisible()
             do { try self.forget(record.id); self.error = HouseholdFailure.authentication.localizedDescription }
