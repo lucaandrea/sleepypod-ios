@@ -10,7 +10,7 @@ import XCTest
     }
     private func reveal(_ element: XCUIElement, in app: XCUIApplication, upward: Bool = true) {
         func visible() -> Bool {
-            element.isHittable && element.frame.midY >= app.frame.minY + 110 && element.frame.midY <= app.frame.maxY - 70
+            element.isHittable && element.frame.midY >= app.frame.minY + 110 && element.frame.midY <= app.frame.maxY - 40
         }
         for _ in 0..<20 where !visible() {
             let start = app.coordinate(withNormalizedOffset: CGVector(dx: 0.90, dy: upward ? 0.78 : 0.28))
