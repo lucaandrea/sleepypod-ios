@@ -8,12 +8,16 @@ struct HouseholdScreen: View {
     @State private var connectionForm: HouseholdConnectionForm.Kind?
     @State private var revealedCode: String?
     @State private var revokeDevice: HouseholdDevice?
+    @State private var eraseLocalData = false
+    @State private var reviewRecovery: UUID?
     var body: some View {
         NavigationStack(path: $navigation) {
             Form {
                 Section {
-                    Label("Personal preparation", systemImage: "person.crop.circle").font(.headline)
-                    Text("Prepare your own comfort preferences and weekly routine. Bed controls, side assignment, sleep history and Apple Health are not active in this workspace.")
+                    Label(model.temperature == nil ? "Personal preparation" : "Personal account", systemImage: "person.crop.circle").font(.headline)
+                    Text(model.temperature == nil
+                         ? "Prepare your own comfort preferences and weekly routine. Bed controls, side assignment, sleep history and Apple Health are not active in this workspace."
+                         : "Temperature controls use your personal bed assignment. Weekly routines remain drafts; assignment changes, sleep history and Apple Health are not active here.")
                         .font(.footnote).foregroundStyle(Theme.text2)
                     if let session = model.session {
                         Text(session.person.displayName).font(.title2.bold())
@@ -23,6 +27,7 @@ struct HouseholdScreen: View {
                     }
                 }
                 feedback
+                controlRecovery
                 if let session = model.session {
                     Section("Your private drafts") {
                         NavigationLink("Comfort preferences", value: "preferences")
@@ -74,6 +79,11 @@ struct HouseholdScreen: View {
                         Text("Closing keeps this device paired. Use Revoke to remove its access.").font(.footnote).foregroundStyle(Theme.text2)
                     }
                 }
+                Section("Local data") {
+                    Button("Erase all local personal data", role: .destructive) { eraseLocalData = true }.disabled(model.busy)
+                    Text("Removes personal credentials, drafts and command recovery records on this device. It does not revoke server access or alter the bed.")
+                        .font(.footnote).foregroundStyle(Theme.text2)
+                }
                 if model.canReturnToOwner {
                     Section {
                         Button("Return to owner controls") { Task { await model.returnToOwner() } }.disabled(model.busy)
@@ -94,17 +104,41 @@ struct HouseholdScreen: View {
                 }
             }
             .sheet(item: $connectionForm) { kind in NavigationStack { HouseholdConnectionForm(kind: kind) } }
+            .alert("Erase all local personal data?", isPresented: $eraseLocalData) {
+                Button("Erase local personal data", role: .destructive) { model.erasePersonalLocalData() }
+                Button("Cancel", role: .cancel) { }
+            } message: { Text("This also removes recovery records for commands whose outcomes are unknown. You will need a new invitation to pair again.") }
+            .alert("Confirm you checked the bed", isPresented: Binding(get: { reviewRecovery != nil }, set: { if !$0 { reviewRecovery = nil } })) {
+                Button("I checked the bed") { if let reviewRecovery { model.reviewControlRecovery(reviewRecovery) }; reviewRecovery = nil }
+                Button("Cancel", role: .cancel) { reviewRecovery = nil }
+            } message: { Text("Remove this recovery reminder and allow a new deliberate adjustment. The earlier outcome remains unknown; its command will never be resent.") }
             .alert("Revoke device?", isPresented: Binding(get: { revokeDevice != nil }, set: { if !$0 { revokeDevice = nil } })) {
                 Button("Revoke", role: .destructive) {
                     if let identifier = revokeDevice?.id { Task { await model.revoke(deviceId: identifier) } }
                     revokeDevice = nil
                 }
                 Button("Cancel", role: .cancel) { revokeDevice = nil }
-            } message: { Text("\(revokeDevice?.name ?? "This device") will lose personal-account access. This does not change bed controls or schedules.") }
+            } message: { Text("\(revokeDevice?.name ?? "This device") will lose personal-account access. This does not move the bed or change its schedules.") }
         }
         .task { await model.refresh() }
         .onChange(of: scenePhase) { if scenePhase != .active { revealedCode = nil } }
         .onChange(of: model.session?.context) { revealedCode = nil; navigation = [] }
+    }
+    @ViewBuilder private var controlRecovery: some View {
+        if !model.controlRecoveries.isEmpty {
+            Section("Earlier commands to review") {
+                Text("These receipt references survived device revocation. Their command contents and old credentials were erased. Check the receipt or inspect the bed before another adjustment.")
+                    .font(.footnote).foregroundStyle(Theme.text2)
+                ForEach(model.controlRecoveries) { item in
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text("Command outcome unresolved").font(.headline)
+                        Text("Request \(item.id.uuidString.lowercased())").font(.caption.monospaced()).textSelection(.enabled)
+                        Button("Check earlier receipt") { Task { await model.reconcileControlRecovery(item.id) } }.disabled(model.recoveryBusy != nil)
+                        Button("Review after checking the bed") { reviewRecovery = item.id }.disabled(!model.canReviewControlRecovery(item))
+                    }.padding(.vertical, 4)
+                }
+            }
+        }
     }
     @ViewBuilder private var feedback: some View {
         if model.busy { Section { ProgressView("Updating personal account…") } }
