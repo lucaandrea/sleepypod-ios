@@ -9,13 +9,21 @@ import XCTest
         app.launch(); XCTAssertTrue(app.staticTexts["household.assignment"].waitForExistence(timeout: 20)); return app
     }
     private func reveal(_ element: XCUIElement, in app: XCUIApplication, upward: Bool = true) {
-        func visible() -> Bool { element.isHittable && element.frame.midY > app.frame.minY + 110 && element.frame.midY < app.frame.maxY - 40 }
-        for _ in 0..<24 where !visible() {
-            app.coordinate(withNormalizedOffset: CGVector(dx: 0.90, dy: upward ? 0.78 : 0.28))
-                .press(forDuration: 0.05, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.90, dy: upward ? 0.28 : 0.78)))
+        func visible() -> Bool { element.exists && element.isHittable && element.frame.midY > app.frame.minY + 110 && element.frame.midY < app.frame.maxY - 40 }
+        var towardBottom = upward
+        for _ in 0..<32 {
+            if visible() { break }
+            if element.exists {
+                if element.frame.midY >= app.frame.maxY - 40 { towardBottom = true }
+                else if element.frame.midY <= app.frame.minY + 110 { towardBottom = false }
+            } else if !towardBottom && app.staticTexts["Review your future sides together."].exists && app.staticTexts["Review your future sides together."].isHittable {
+                // Inserting a review can move a large-text Form back to its beginning.
+                towardBottom = true
+            }
+            app.coordinate(withNormalizedOffset: CGVector(dx: 0.90, dy: towardBottom ? 0.78 : 0.28))
+                .press(forDuration: 0.05, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.90, dy: towardBottom ? 0.28 : 0.78)))
         }
-        if !visible() { capture(app, "Unreachable-\(element.identifier)") }
-        XCTAssertTrue(visible(), "Unreachable \(element.identifier)")
+        guard visible() else { capture(app, "Unreachable-\(element.identifier)"); XCTFail("Unreachable \(element.identifier)"); return }
         XCTAssertGreaterThanOrEqual(element.frame.minX, app.frame.minX)
         XCTAssertLessThanOrEqual(element.frame.maxX, app.frame.maxX)
     }
