@@ -12,6 +12,19 @@ struct PersonalHistoryPage: Codable, Equatable, Sendable {
     let records: [PersonalHistoryRecord]
     let nextCursor: String?
 
+    private enum CodingKeys: String, CodingKey {
+        case version, scope, attributionRevision, generatedAt, source, interpretation, query, intervalSelection, records, nextCursor
+    }
+    func encode(to encoder: any Encoder) throws {
+        var values = encoder.container(keyedBy: CodingKeys.self)
+        try values.encode(version, forKey: .version); try values.encode(scope, forKey: .scope)
+        try values.encode(attributionRevision, forKey: .attributionRevision); try values.encode(generatedAt, forKey: .generatedAt)
+        try values.encode(source, forKey: .source); try values.encode(interpretation, forKey: .interpretation)
+        try values.encode(query, forKey: .query); try values.encode(intervalSelection, forKey: .intervalSelection)
+        try values.encode(records, forKey: .records)
+        // The contract requires an explicit null when the snapshot has no next page.
+        try values.encode(nextCursor, forKey: .nextCursor)
+    }
     static func decodeExact(_ data: Data) throws -> Self {
         try PersonalHistoryDecoding.check(data, detail: false)
         return try JSONDecoder().decode(Self.self, from: data)
