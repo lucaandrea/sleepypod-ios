@@ -524,7 +524,7 @@ struct AnalysisInventoryView: View {
                         }
                         .accessibilityLabel("Sleep stages from, \(sourceTitle(stageModels.source))")
                         SettingsRow("Pod model", subtitle: stageModels.podModel.map { "\($0.title) · κ \($0.metrics?["lono"]?.kappa.map { String(format: "%.2f", $0) } ?? "—") held out · \(stageModels.podActive ? "pod stages nights with it" : "pod uses rules")" }
-                                        ?? (stageModels.podError ?? "None stored on the pod; train one on a Mac"),
+                                        ?? (stageModels.podError ?? "No sleep-stage model stored. Check complete-night coverage in Compare and train models."),
                                     icon: "server.rack", iconColor: Theme.cool, tile: true, height: 56) {
                             RowValue(stageModels.podModel?.version.split(separator: "-").last.map(String.init) ?? "—", mono: true)
                         }

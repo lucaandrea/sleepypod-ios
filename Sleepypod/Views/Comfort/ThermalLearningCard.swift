@@ -10,7 +10,7 @@ struct ThermalLearningCard: View {
                 ComfortValueRow("Matched nights", value: "\(learning.nights) / \(learning.requiredNights) minimum")
                 ComfortValueRow("Later validation nights", value: String(learning.validationNights))
                 if let modelError = learning.modelErrorF, let baselineError = learning.baselineErrorF {
-                    Text("Comfort-label error: model \(modelError.formatted(.number.precision(.fractionLength(2))))°F · simpler baseline \(baselineError.formatted(.number.precision(.fractionLength(2))))°F")
+                    Text("Feedback-direction error: model \(modelError.formatted(.number.precision(.fractionLength(2)))) · simpler baseline \(baselineError.formatted(.number.precision(.fractionLength(2)))). These scores are not ideal temperatures.")
                         .font(.caption).foregroundStyle(Theme.text2)
                 }
                 if let suggestion = learning.suggestedOffsetF {

@@ -12,7 +12,7 @@ final class StageModelStore {
         case rules
         case personalLogistic
         case personalForest
-        /// The model stored on the pod, trained on a Mac; fetched, validated and evaluated here.
+        /// The stage model stored on the Pod; fetched, validated and evaluated here.
         case pod
 
         var id: String { rawValue }
@@ -75,6 +75,12 @@ final class StageModelStore {
     }
     var trainingError: String?
     private(set) var lastReport: StageTrainingReport?
+    private(set) var checkedTrainingNights: Int?
+    private(set) var trainingExclusions: [StageTrainingExclusion] = []
+    private(set) var trainingShortfall: String?
+    private(set) var trainingCandidates: [StageDataset.Night] = []
+    private(set) var confirmedTrainingNights: Set<String> = []
+    private var trainingAuditScope: String?
 
     let directory: URL
     private let persistence: UserDefaults
@@ -234,6 +240,57 @@ final class StageModelStore {
         reload()
     }
 
+    private func auditScope(_ side: Side) -> String {
+        "\(OwnerConnection.revision)|\(side.rawValue)|\(contract.rawValue)"
+    }
+
+    func hasCurrentTrainingAudit(side: Side) -> Bool { trainingAuditScope == auditScope(side) }
+
+    private func recordAudit(_ dataset: StageDataset, scope: String) {
+        if trainingAuditScope != scope { confirmedTrainingNights = [] }
+        trainingCandidates = dataset.nights
+        confirmedTrainingNights.formIntersection(Set(dataset.nights.compactMap { $0.reviewToken(contract: dataset.contract) }))
+        checkedTrainingNights = dataset.nights.count
+        trainingExclusions = dataset.exclusions
+        trainingShortfall = dataset.shortfall
+        trainingAuditScope = scope
+    }
+
+    func isTrainingNightConfirmed(_ night: StageDataset.Night) -> Bool {
+        night.reviewToken(contract: contract).map { confirmedTrainingNights.contains($0) } ?? false
+    }
+
+    func confirmTrainingNight(_ night: StageDataset.Night, side: Side, confirmed: Bool) {
+        guard hasCurrentTrainingAudit(side: side), !isTraining,
+              let token = night.reviewToken(contract: contract),
+              trainingCandidates.contains(where: { $0.reviewToken(contract: contract) == token }) else { return }
+        if confirmed { confirmedTrainingNights.insert(token) } else { confirmedTrainingNights.remove(token) }
+    }
+
+    /// Inspect coverage without starting a fit or changing the selected model.
+    func checkTrainingData(builder: StageDatasetBuilder) async {
+        guard !isTraining else { return }
+        let scope = auditScope(builder.side)
+        isTraining = true
+        trainingKind = nil
+        trainingError = nil
+        trainingStatus = "Checking complete nights"
+        defer { isTraining = false; trainingStatus = nil }
+        do {
+            let dataset = try await builder.build(contract: contract) { done, total in
+                self.trainingStatus = "Checking night \(min(done + 1, max(total, 1))) of \(total)"
+                self.trainingProgress = total == 0 ? 0 : Double(done) / Double(total)
+            }
+            guard scope == auditScope(builder.side), !Task.isCancelled else { return }
+            recordAudit(dataset, scope: scope)
+        } catch is CancellationError {
+            return
+        } catch {
+            guard scope == auditScope(builder.side) else { return }
+            trainingError = error.localizedDescription
+        }
+    }
+
     /// Builds the dataset, trains the model and installs it. Returns false on failure, with `trainingError` set.
     @discardableResult
     func train(_ kind: StageModelKind, builder: StageDatasetBuilder) async -> Bool {
@@ -242,6 +299,7 @@ final class StageModelStore {
         trainingKind = kind
         trainingProgress = 0
         trainingError = nil
+        let scope = auditScope(builder.side)
         // A locked phone suspends the app mid-fit; the screen stays on until the run ends.
         UIApplication.shared.isIdleTimerDisabled = true
         defer {
@@ -252,16 +310,34 @@ final class StageModelStore {
         }
         do {
             trainingStatus = "Reading nights"
-            let dataset = try await builder.build(contract: contract) { done, total in
+            var dataset = try await builder.build(contract: contract) { done, total in
                 self.trainingStatus = "Reading night \(min(done + 1, max(total, 1))) of \(total)"
                 self.trainingProgress = total == 0 ? 0 : 0.5 * Double(done) / Double(total)
             }
+            guard scope == auditScope(builder.side), !Task.isCancelled else { throw CancellationError() }
+            recordAudit(dataset, scope: scope)
+            let confirmed = dataset.nights.filter { isTrainingNightConfirmed($0) }
+            guard confirmed.count >= Self.minimumNights else {
+                throw StageTrainer.TrainingError.notEnoughData("Review the candidate dates and confirm at least \(Self.minimumNights) actual full nights before training. Tests and partial nights must remain unselected.")
+            }
+            dataset = StageDataset(contract: dataset.contract, nights: confirmed, exclusions: dataset.exclusions)
+            if let shortfall = dataset.shortfall { throw StageTrainer.TrainingError.notEnoughData(shortfall) }
             trainingStatus = "Training \(kind.title.lowercased())"
-            let result = try await StageTrainer.train(dataset: dataset, kind: kind, into: directory, progress: { fraction in
+            // Fit into an isolated directory; changing the connected owner during a fit cannot install its result.
+            let staging = directory.appendingPathComponent("training-\(UUID().uuidString)", isDirectory: true)
+            defer { try? FileManager.default.removeItem(at: staging) }
+            let result = try await StageTrainer.train(dataset: dataset, kind: kind, into: staging, progress: { fraction in
                 Task { @MainActor in self.trainingProgress = 0.5 + 0.5 * fraction }
             }, status: { text in
                 Task { @MainActor in self.trainingStatus = "Training \(kind.title.lowercased()): \(text)" }
             })
+            guard scope == auditScope(builder.side), !Task.isCancelled else { throw CancellationError() }
+            try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+            for file in try FileManager.default.contentsOfDirectory(at: staging, includingPropertiesForKeys: nil) {
+                let target = directory.appendingPathComponent(file.lastPathComponent)
+                if FileManager.default.fileExists(atPath: target.path) { _ = try FileManager.default.replaceItemAt(target, withItemAt: file) }
+                else { try FileManager.default.moveItem(at: file, to: target) }
+            }
             lastReport = result.report
             reload()
             Log.general.info("Trained \(kind.rawValue) on \(result.report.nights) nights, κ \(result.report.pooled?.kappa ?? -1)")

@@ -24,6 +24,18 @@ enum ReportPresentationExample {
         1. Keep a consistent bedtime for a week.
         2. Compare your morning notes with the next available records.
 
+        ### Reading guide
+        | Measure | Meaning |
+        | --- | --- |
+        | Recorded sleep | Source estimate |
+        | Bed presence | Time in bed |
+
+        > These example readings do not establish improved sleep.
+
+        ```text
+        No bed settings were changed.
+        ```
+
         ### Uncertainty
         Missing readings do not prove a poor night. An unsupported reference stays visible: [unknown.source].
         """, inputTokens: nil, outputTokens: nil)

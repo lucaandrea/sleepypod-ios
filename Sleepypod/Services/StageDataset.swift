@@ -1,4 +1,5 @@
 import Foundation
+import CryptoKit
 
 /// The user's Watch-labelled nights as training rows: one row per 5-minute epoch the Watch staged, plus what
 /// the rules and the bundled challenger said for the same night so a personal model is scored against both.
@@ -23,23 +24,38 @@ struct StageDataset: Sendable {
         let rules: [Block]
         /// The bundled challenger's blocks; empty when it is not bundled or had no heart rate.
         let challenger: [Block]
+        var recordIDs: [Int] = []
+
+        /// Confirmation belongs to these exact signals and labels, not just a date that can be reprocessed.
+        func reviewToken(contract: StageFeatures.Contract) -> String? {
+            let document: [String: Any] = [
+                "contract": contract.rawValue, "records": recordIDs.sorted(),
+                "start": enteredBed.timeIntervalSince1970, "end": leftBed.timeIntervalSince1970,
+                "rows": rows.map { ["start": $0.start.timeIntervalSince1970, "values": $0.values,
+                                      "label": StageDataset.classIndex($0.label)] as [String: Any] },
+                "watch": watch.map { [$0.start.timeIntervalSince1970, $0.end.timeIntervalSince1970,
+                                        Double(StageDataset.classIndex($0.stage))] }
+            ]
+            guard let data = try? JSONSerialization.data(withJSONObject: document, options: [.sortedKeys]) else { return nil }
+            return SHA256.hash(data: data).map { String(format: "%02x", $0) }.joined()
+        }
     }
 
     static let minimumNights = 5
     static let minimumEpochs = 300
-    static let minimumWatchSleep: TimeInterval = 2 * 3600
     static let daysBack = 90
 
     let contract: StageFeatures.Contract
     /// Oldest first.
     let nights: [Night]
+    var exclusions: [StageTrainingExclusion] = []
 
     var labeledEpochs: Int { nights.reduce(0) { $0 + $1.rows.count } }
     var isTrainable: Bool { shortfall == nil }
     /// Why training is not offered yet, in the user's terms.
     var shortfall: String? {
         if nights.count < Self.minimumNights {
-            return "Needs \(Self.minimumNights) nights with Apple Watch sleep; found \(nights.count)."
+            return "Needs \(Self.minimumNights) complete nights with matching Pod and Watch coverage; found \(nights.count). \(exclusions.count) recordings or night groups were excluded. Review the coverage details below."
         }
         if labeledEpochs < Self.minimumEpochs {
             return "Needs \(Self.minimumEpochs) Watch-staged epochs; found \(labeledEpochs)."
@@ -107,44 +123,51 @@ struct StageDatasetBuilder {
     func build(contract: StageFeatures.Contract, progress: @MainActor (Int, Int) -> Void) async throws -> StageDataset {
         let end = Date()
         let start = Calendar.current.date(byAdding: .day, value: -StageDataset.daysBack, to: end) ?? end
+        let settings = try await api.getSettings()
+        guard TimeZone(identifier: settings.timeZone) != nil else {
+            throw StageTrainer.TrainingError.notEnoughData("The Pod's timezone is unavailable. Reconnect before checking training nights.")
+        }
+        let calendar = SleepCalendar.calendar(timeZone: settings.timeZone)
         let records = try await HealthSyncService.sleepRecords(api: api, side: side, start: start, end: end)
-            .filter { $0.side == side.rawValue && HealthSyncService.isSyncable($0) && $0.leftBedDate <= end }
-        let candidates = Self.longestPerDay(records)
+            .filter { $0.side == side.rawValue }
+        let candidates = StageTrainingNight.grouped(records, calendar: calendar)
         let calibration = try? await api.getCalibrationStatus(side: side)
         var nights: [StageDataset.Night] = []
+        var exclusions: [StageTrainingExclusion] = []
         Log.general.notice("Stage dataset: \(candidates.count) candidate nights over \(StageDataset.daysBack) days")
-        for (index, record) in candidates.enumerated() {
+        for (index, candidate) in candidates.enumerated() {
             progress(index, candidates.count)
             try Task.checkCancellation()
             let started = Date()
-            if let night = try await night(record, contract: contract, calibrationQuality: calibration?.piezo?.qualityScore ?? 0) {
-                nights.append(night)
-                Log.general.notice("Stage dataset: night \(index + 1)/\(candidates.count) record \(record.id) kept, \(night.rows.count) labelled epochs, \(Int(Date().timeIntervalSince(started))) s")
-            } else {
-                Log.general.notice("Stage dataset: night \(index + 1)/\(candidates.count) record \(record.id) skipped, \(Int(Date().timeIntervalSince(started))) s")
+            do {
+                if let issue = candidate.issue(now: end) { throw Rejection.coverage(issue) }
+                let accepted = try await night(candidate, contract: contract, calibrationQuality: calibration?.piezo?.qualityScore ?? 0)
+                nights.append(accepted)
+                Log.general.notice("Stage dataset: night \(index + 1)/\(candidates.count) kept, \(accepted.rows.count) labelled epochs, \(Int(Date().timeIntervalSince(started))) s")
+            } catch Rejection.coverage(let reason) {
+                exclusions.append(StageTrainingExclusion(date: candidate.date, recordIDs: candidate.records.map(\.id), reason: reason))
             }
         }
         Log.general.notice("Stage dataset: \(nights.count) nights, \(nights.reduce(0) { $0 + $1.rows.count }) labelled epochs")
         progress(candidates.count, candidates.count)
-        return StageDataset(contract: contract, nights: nights)
+        return StageDataset(contract: contract, nights: nights, exclusions: exclusions)
     }
 
-    /// The day's longest sleep record, as the Night page picks it, oldest first.
-    static func longestPerDay(_ records: [SleepRecord]) -> [SleepRecord] {
-        let calendar = Calendar.current
-        let byDay = Dictionary(grouping: records) { calendar.startOfDay(for: $0.enteredBedDate) }
-        return byDay.values.compactMap { $0.max { $0.sleepPeriodSeconds < $1.sleepPeriodSeconds } }
-            .sorted { $0.enteredBedDate < $1.enteredBedDate }
-    }
+    private enum Rejection: Error { case coverage(String) }
 
-    private func night(_ record: SleepRecord, contract: StageFeatures.Contract, calibrationQuality: Double) async throws -> StageDataset.Night? {
-        let enteredBed = record.enteredBedDate, leftBed = record.leftBedDate
+    private func night(_ candidate: StageTrainingNight, contract: StageFeatures.Contract, calibrationQuality: Double) async throws -> StageDataset.Night {
+        let enteredBed = candidate.start, leftBed = candidate.end
+        let presence = StageTrainingCoverage.merged(candidate.presence ?? [], within: candidate.window)
         let vitals = try await api.getVitals(side: side, start: enteredBed, end: leftBed)
-            .filter { $0.side == side.rawValue && $0.date >= enteredBed && $0.date < leftBed }
-        let movement = try await api.getMovement(side: side, start: enteredBed, end: leftBed).filter { $0.side == side.rawValue }
+            .filter { sample in sample.side == side.rawValue && presence.contains { sample.date >= $0.start && sample.date < $0.end } }
+        let movement = try await api.getMovement(side: side, start: enteredBed, end: leftBed)
+            .filter { sample in sample.side == side.rawValue && presence.contains { sample.date >= $0.start && sample.date < $0.end } }
         let analyzer = SleepAnalyzer()
         let filtered = analyzer.filterOutliers(vitals: vitals)
-        guard !filtered.isEmpty else { return nil }
+        let heartRateWindows = filtered.filter { $0.heartRate?.isFinite == true }.map { DateInterval(start: $0.date, duration: 60) }
+        if let issue = StageTrainingCoverage.issue(heartRateWindows, within: candidate.window) { throw Rejection.coverage("Pod heart rate: \(issue)") }
+        let movementWindows = movement.map { DateInterval(start: $0.date, duration: 60) }
+        if let issue = StageTrainingCoverage.issue(movementWindows, within: candidate.window) { throw Rejection.coverage("Pod movement: \(issue)") }
         analyzer.analyze(vitals: vitals, movement: movement, calibrationQuality: calibrationQuality)
         let starts = StageComparison.epochStarts(enteredBed: enteredBed, leftBed: leftBed)
         let rules = StageComparison.gridded(SleepStagesTimelineView.segments(analyzer.stages).map {
@@ -153,7 +176,7 @@ struct StageDatasetBuilder {
 
         let watch: [StageDataset.Block]
         if demo {
-            watch = StageComparison.demoWatch(record: record, pod: rules)
+            throw Rejection.coverage("Demo recordings are excluded from training")
         } else {
             let margin = HealthSyncService.watchSearchMargin
             let samples = await health.sleepSamples(start: enteredBed.addingTimeInterval(-margin), end: leftBed.addingTimeInterval(margin))
@@ -162,17 +185,23 @@ struct StageDatasetBuilder {
             })
             watch = WatchComparison.session(for: enteredBed, end: leftBed, in: WatchComparison.sessions(stages))?.samples ?? []
         }
-        guard StageDataset.watchSleepSeconds(watch) >= StageDataset.minimumWatchSleep else { return nil }
+        guard !StageTrainingCoverage.hasConflictingStages(watch) else { throw Rejection.coverage("Watch stages conflict") }
+        if let issue = StageTrainingCoverage.issue(watch.map { DateInterval(start: $0.start, end: $0.end) }, within: candidate.window) {
+            throw Rejection.coverage("Apple Watch: \(issue)")
+        }
 
-        let rows = StageDataset.label(StageFeatures.rows(contract: contract, enteredBed: enteredBed, leftBed: leftBed,
-                                                         vitals: filtered, movement: movement), watch: watch)
-        guard !rows.isEmpty else { return nil }
+        let features = StageFeatures.rows(contract: contract, enteredBed: enteredBed, leftBed: leftBed, vitals: filtered, movement: movement)
+            .filter { epoch in presence.contains { epoch.start >= $0.start && epoch.start.addingTimeInterval(StageChallenger.epochSeconds) <= $0.end } }
+        let rows = StageDataset.label(features, watch: watch)
+        if let issue = StageTrainingCoverage.issue(rows.map { DateInterval(start: $0.start, duration: StageChallenger.epochSeconds) }, within: candidate.window) {
+            throw Rejection.coverage("Matched training epochs: \(issue)")
+        }
         var challengerBlocks: [StageDataset.Block] = []
         if let classifier = challenger.classifier {
             let features = StageChallenger.features(enteredBed: enteredBed, leftBed: leftBed, vitals: filtered, movement: movement)
             challengerBlocks = (try? StageChallenger.classify(features, with: classifier)) ?? []
         }
-        return StageDataset.Night(id: record.id, enteredBed: enteredBed, leftBed: leftBed, watch: watch, rows: rows,
-                                  rules: rules, challenger: challengerBlocks)
+        return StageDataset.Night(id: candidate.id, enteredBed: enteredBed, leftBed: leftBed, watch: watch, rows: rows,
+                                  rules: rules, challenger: challengerBlocks, recordIDs: candidate.records.map(\.id))
     }
 }

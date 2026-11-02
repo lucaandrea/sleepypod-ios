@@ -35,7 +35,7 @@ struct PersonalComfortStatus: Codable, Sendable {
         let pauseRequired: Bool
     }
     struct Activation: Codable, Sendable { let available: Bool; let reason: String; var current: Bool? }
-    struct Features: Codable, Sendable { let sensorAware: Bool; let followBedtime: Bool; let nightReports: Bool?; var modeOnly: Bool?; var ownerActivation: Bool?; var roomAware: Bool? }
+    struct Features: Codable, Sendable { let sensorAware: Bool; let followBedtime: Bool; let nightReports: Bool?; var modeOnly: Bool?; var ownerActivation: Bool?; var roomAware: Bool?; var modelTraining: Bool? }
     let apiVersion: Int
     let generatedAt: Double
     let side: Side

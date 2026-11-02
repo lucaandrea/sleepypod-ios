@@ -18,6 +18,26 @@ struct ReportDocumentView: View {
                             Text(marker).foregroundStyle(Theme.reportAccent).bold().accessibilityHidden(true)
                             Text(ReportDocument.inline(block.text)).font(.body).lineSpacing(4)
                         }
+                    case .quote:
+                        Text(ReportDocument.inline(block.text)).font(.body).foregroundStyle(Theme.text2)
+                            .padding(.leading, 12)
+                    case .code:
+                        ScrollView(.horizontal) {
+                            Text(block.text).font(.system(.body, design: .monospaced)).padding(12)
+                        }
+                    case .table:
+                        ScrollView(.horizontal) {
+                            Grid(alignment: .leading, horizontalSpacing: 20, verticalSpacing: 12) {
+                                // A report is an immutable snapshot; row and column positions are stable.
+                                ForEach(Array(block.cells.enumerated()), id: \.offset) { rowIndex, cells in
+                                    GridRow {
+                                        ForEach(Array(cells.enumerated()), id: \.offset) { _, cell in
+                                            Text(ReportDocument.inline(cell)).font(rowIndex == 0 ? .headline : .body)
+                                        }
+                                    }
+                                }
+                            }.padding(12)
+                        }
                     }
                     ForEach(block.evidence, id: \.self) { identifier in
                         if let fact = facts.first(where: { $0.id == identifier }) {

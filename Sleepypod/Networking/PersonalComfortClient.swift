@@ -8,14 +8,30 @@ protocol PersonalComfortClient: Sendable {
     func reports(side: Side) async throws -> ComfortNightList
     func report(side: Side, id: String, after: Int?) async throws -> ComfortNightDetail
     func review(_ input: ComfortReviewInput) async throws -> ComfortNightReview
+    func thermalModel(side: Side) async throws -> ThermalModelStatus
+    func trainThermalModel(side: Side, datasetHash: String) async throws -> ThermalModelStatus
 }
 extension PersonalComfortClient {
+    func thermalModel(side: Side) async throws -> ThermalModelStatus {
+        throw APIError.serverError(message: "This controller does not offer on-Pod temperature training.")
+    }
+    func trainThermalModel(side: Side, datasetHash: String) async throws -> ThermalModelStatus {
+        throw APIError.serverError(message: "This controller does not offer on-Pod temperature training.")
+    }
     func mode(side: Side, mode: String) async throws -> PersonalComfortStatus {
         throw APIError.serverError(message: "This controller does not support a mode-only comfort change.")
     }
 }
 struct CorePersonalComfortClient: PersonalComfortClient {
     let transport: CoreRESTClient
+    func thermalModel(side: Side) async throws -> ThermalModelStatus {
+        try await transport.get("v1/comfort/model", query: ["side": side.rawValue])
+    }
+    func trainThermalModel(side: Side, datasetHash: String) async throws -> ThermalModelStatus {
+        guard ComfortReviewInput.validDigest(datasetHash) else { throw APIError.serverError(message: "Check training nights again before fitting.") }
+        struct Input: Encodable, Sendable { let side: Side; let expectedDatasetHash: String }
+        return try await transport.post("v1/comfort/model/train", body: Input(side: side, expectedDatasetHash: datasetHash), returning: ThermalModelStatus.self)
+    }
     func status(side: Side) async throws -> PersonalComfortStatus { try await transport.get("v1/comfort", query: ["side": side.rawValue]) }
     func configure(side: Side, config: PersonalComfortConfig) async throws -> PersonalComfortStatus {
         struct Input: Encodable, Sendable { let side: Side; let config: PersonalComfortConfig }

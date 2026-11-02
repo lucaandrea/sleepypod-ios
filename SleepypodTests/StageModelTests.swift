@@ -89,7 +89,7 @@ struct StageModelTests {
                   rules: [], challenger: [])
         }
         let small = StageDataset(contract: .challenger, nights: [night(1, rows: 10), night(2, rows: 20)])
-        #expect(small.shortfall?.contains("5 nights") == true)
+        #expect(small.shortfall?.contains("5 complete nights") == true)
         #expect(!small.isTrainable)
         let folds = small.leaveOneNightOut()
         #expect(folds.map { $0.heldOut.id } == [1, 2])
@@ -115,18 +115,20 @@ struct StageModelTests {
         }
     }
 
-    @Test func longestRecordPerDayIsTheNight() throws {
+    @Test func recordsAcrossMidnightStayInOneTrainingNight() throws {
         func record(_ id: Int, enteredMinute: Int, sleepSeconds: Int) throws -> SleepRecord {
             let json = """
             {"id":\(id),"side":"left","enteredBedAt":\(Int(t0.timeIntervalSince1970) + enteredMinute * 60),"leftBedAt":\(Int(t0.timeIntervalSince1970) + enteredMinute * 60 + sleepSeconds),"sleepDurationSeconds":\(sleepSeconds)}
             """
             return try JSONDecoder().decode(SleepRecord.self, from: Data(json.utf8))
         }
-        let nap = try record(1, enteredMinute: 0, sleepSeconds: 1200)
-        let night = try record(2, enteredMinute: 300, sleepSeconds: 20_000)
-        let nextDay = try record(3, enteredMinute: 60 * 26, sleepSeconds: 18_000)
-        let chosen = StageDatasetBuilder.longestPerDay([nextDay, nap, night])
-        #expect(chosen.map(\.id) == [2, 3])
+        let first = try record(1, enteredMinute: 0, sleepSeconds: 1200)
+        let next = try record(2, enteredMinute: 30, sleepSeconds: 20_000)
+        let later = try record(3, enteredMinute: 60 * 26, sleepSeconds: 18_000)
+        let chosen = StageTrainingNight.grouped([later, first, next], calendar: SleepCalendar.calendar(timeZone: "UTC"))
+        #expect(chosen.flatMap(\.records).count == 3)
+        #expect(chosen.count == 2)
+        #expect(chosen[0].records.map(\.id) == [1, 2])
     }
 
     // MARK: Training report and eligibility
