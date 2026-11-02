@@ -91,7 +91,7 @@ struct StatusScreen: View {
 
                         // Insert hardware-related cards after the Hardware category
                         if category.name == "Hardware" {
-                            processingCard
+                            IntelligenceModelsCard()
                             networkDiscoveryCard
 
                             if let runOnceError { Text(runOnceError).foregroundStyle(Theme.amber) }
@@ -164,128 +164,6 @@ struct StatusScreen: View {
             runOnceNotice = "Run once cancelled. The recurring schedule resumes."
             await deviceManager.fetchStatus()
         } catch { runOnceError = error.localizedDescription }
-    }
-
-    // MARK: - Processing
-
-    @State private var isMLExpanded = false
-
-    private var processingCard: some View {
-        VStack(spacing: 0) {
-            Button {
-                Haptics.light()
-                withAnimation(.easeInOut(duration: 0.2)) { isMLExpanded.toggle() }
-            } label: {
-                HStack(spacing: 12) {
-                    Image(systemName: "brain")
-                        .font(.system(size: 14))
-                        .foregroundColor(Theme.purple)
-                        .frame(width: 32, height: 32)
-                        .background(Theme.purple.opacity(0.2))
-                        .clipShape(RoundedRectangle(cornerRadius: 8))
-
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("On-Device Intelligence")
-                            .font(.subheadline.weight(.medium))
-                            .foregroundColor(Theme.text1)
-                        Text("rule-based · on this iPhone")
-                            .font(.caption)
-                            .foregroundColor(Theme.textSecondary)
-                    }
-
-                    Spacer()
-
-                    HStack(spacing: 4) {
-                        Image(systemName: "checkmark.circle.fill")
-                            .font(.caption2)
-                            .foregroundColor(Theme.healthy)
-                        Text("3/3")
-                            .font(.caption.weight(.medium))
-                            .foregroundColor(Theme.textSecondary)
-                    }
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 4)
-                    .background(Theme.active)
-                    .clipShape(Capsule())
-
-                    Image(systemName: "chevron.right")
-                        .font(.caption)
-                        .foregroundColor(Theme.textMuted)
-                        .rotationEffect(.degrees(isMLExpanded ? 90 : 0))
-                }
-            }
-            .buttonStyle(.plain)
-
-            if isMLExpanded {
-                Divider().background(Theme.cardBorder).padding(.vertical, 8)
-
-                VStack(spacing: 6) {
-                    modelRow(
-                        name: "Sleep Stage Classifier",
-                        type: "Rule-based",
-                        status: "Active",
-                        icon: "moon.zzz.fill",
-                        color: Theme.purple
-                    )
-                    modelRow(
-                        name: "Outlier Filter",
-                        type: "Sleep-context limits · rolling median",
-                        status: "Active",
-                        icon: "line.3.crossed.swirl.circle.fill",
-                        color: Theme.accent
-                    )
-                    modelRow(
-                        name: "HRV Trend Analysis",
-                        type: "EMA baseline comparison",
-                        status: "Active",
-                        icon: "chart.xyaxis.line",
-                        color: Theme.healthy
-                    )
-
-                    Divider().background(Theme.cardBorder).padding(.vertical, 4)
-
-                    // Future models
-                    modelRow(
-                        name: "Sleep Stage CNN",
-                        type: "Core ML · Requires training data",
-                        status: "Not trained",
-                        icon: "brain.head.profile.fill",
-                        color: Theme.textMuted
-                    )
-                    modelRow(
-                        name: "Anomaly Detection",
-                        type: "Core ML · Requires baseline",
-                        status: "Not trained",
-                        icon: "exclamationmark.bubble.fill",
-                        color: Theme.textMuted
-                    )
-                }
-            }
-        }
-        .padding(16)
-        .background(Theme.card)
-        .clipShape(RoundedRectangle(cornerRadius: 16))
-    }
-
-    private func modelRow(name: String, type: String, status: String, icon: String, color: Color) -> some View {
-        HStack(spacing: 10) {
-            Image(systemName: icon)
-                .font(.system(size: 11))
-                .foregroundColor(color)
-                .frame(width: 20)
-            VStack(alignment: .leading, spacing: 1) {
-                Text(name)
-                    .font(.caption)
-                    .foregroundColor(Theme.text1)
-                Text(type)
-                    .font(.caption2)
-                    .foregroundColor(Theme.textMuted)
-            }
-            Spacer()
-            Text(status)
-                .font(.caption2)
-                .foregroundColor(color == Theme.textMuted ? Theme.textMuted : Theme.healthy)
-        }
     }
 
     // MARK: - Services
