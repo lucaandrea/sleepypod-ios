@@ -2,6 +2,18 @@ import XCTest
 @testable import FreeSleepKit
 
 final class ReportDocumentTests: XCTestCase {
+    func testTablesAndCodeAreStructuredAndNeverCitationBadges() {
+        let document = ReportDocument(text: "| Metric | Value |\n| --- | ---: |\n| Sleep | 7h |\n\n```\n# literal\n[health.sleep]\n```", facts: [.init(id: "health.sleep", text: "Seven hours")])
+        XCTAssertEqual(document.blocks.map(\.kind), [.table, .code])
+        XCTAssertEqual(document.blocks[0].cells, [["Metric", "Value"], ["Sleep", "7h"]])
+        XCTAssertEqual(document.blocks[1].text, "# literal\n[health.sleep]")
+        XCTAssertTrue(document.blocks[1].evidence.isEmpty)
+    }
+    func testUnclosedCodeAndQuotesKeepContent() {
+        let document = ReportDocument(text: "> A measured observation\n\n```swift\nlet value = 1", facts: [])
+        XCTAssertEqual(document.blocks.map(\.kind), [.quote, .code])
+        XCTAssertEqual(document.blocks.last?.text, "let value = 1")
+    }
     func testHeadingsListsEmphasisAndOrder() {
         let document = ReportDocument(text: "### Summary\n**Recorded** observations.\n\n- First\n2. Second", facts: [])
         XCTAssertEqual(document.blocks.map(\.kind), [.heading(3), .paragraph, .bullet("•"), .bullet("2.")])

@@ -7,6 +7,10 @@ import XCTest
         let session = URLSession(configuration: configuration); defer { session.invalidateAndCancel() }
         let client = CorePersonalComfortClient(transport: .init(endpoint: URL(string: "https://comfort-contract.invalid")!, session: session))
         let status = try await client.status(side: .left); try status.validate(side: .left)
+        let thermal = try await client.thermalModel(side: .left)
+        XCTAssertEqual(thermal.requiredNights, 20); XCTAssertFalse(thermal.canTrain)
+        let submitted = try await client.trainThermalModel(side: .left, datasetHash: thermal.datasetHash)
+        XCTAssertEqual(submitted.side, .left)
         _ = try await client.configure(side: .left, config: status.state!.config)
         _ = try await client.feedback(side: .left, input: .init(date: "2026-10-25", comfort: "comfortable"))
         let reports = try await client.reports(side: .left); try reports.validate(side: .left)
@@ -27,6 +31,15 @@ private final class ComfortRequestProtocol: URLProtocol, @unchecked Sendable {
             let data: Data
             let valid: Bool
             switch path {
+            case "/api/v1/comfort/model", "/api/v1/comfort/model/train":
+                valid = path.hasSuffix("/train")
+                    ? request.httpMethod == "POST" && input?["side"] as? String == "left"
+                        && input?["expectedDatasetHash"] as? String == String(repeating: "a", count: 64)
+                        && Set(input?.keys.map { $0 } ?? []) == ["side", "expectedDatasetHash"]
+                    : request.httpMethod == "GET" && query == [.init(name: "side", value: "left")]
+                data = try JSONSerialization.data(withJSONObject: ["apiVersion": 1, "side": "left", "requiredNights": 20,
+                    "completeNights": 0, "feedbackNights": 1, "datasetHash": String(repeating: "a", count: 64),
+                    "canTrain": false, "excluded": [], "model": NSNull(), "reason": "Transport fixture only"])
             case "/api/v1/comfort":
                 valid = request.httpMethod == "GET" && query == [.init(name: "side", value: "left")]
                 data = try encoder.encode(example.status)

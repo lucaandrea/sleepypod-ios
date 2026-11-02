@@ -54,6 +54,7 @@ struct StageComparisonView: View {
                 nightPicker.padding(.horizontal, 4)
                 experimentalNote
                 if needsHealthAccess { healthAccessCard }
+                StageTrainingReadinessCard(side: side, builder: builder, disabled: isDemo || needsHealthAccess)
                 if let comparison {
                     let lanes = StageLanes.lanes(comparison, podTitle: stageModels.podModel?.title, challengerBundled: challenger.classifier != nil)
                     overlayCard(comparison, lanes: lanes)
@@ -389,12 +390,12 @@ struct StageComparisonView: View {
 
     private static let changeHint = "Change in Settings › On-device analysis › Sleep stages from."
 
-    /// The model stored on the pod, trained on a Mac in seconds; the phone evaluates it without training.
+    /// The stage model stored on the Pod; this view does not infer where it was trained.
     private var podCard: some View {
         VStack(alignment: .leading, spacing: 12) {
             if let model = stageModels.podModel {
                 let lono = model.metrics?["lono"]
-                cardHeader(.pod, title: model.title, origin: "Stored on the pod · trained on a Mac", pill: stageModels.source == .pod ? ("IN USE", Theme.green) : nil)
+                cardHeader(.pod, title: model.title, origin: "Sleep-stage model · stored on the Pod", pill: stageModels.source == .pod ? ("IN USE", Theme.green) : nil)
                 VStack(spacing: 0) {
                     factRow("Trained on", "Mac, from the pod's nights")
                     factRow("Tested", "\(lono?.nights ?? 0) nights, one held out at a time")
@@ -406,7 +407,7 @@ struct StageComparisonView: View {
                     .font(.footnote).foregroundStyle(stageModels.podActive ? Theme.green : Theme.text2)
             } else {
                 cardHeader(.pod, title: "Pod model", origin: "Stored on the pod", pill: nil)
-                Text(stageModels.podError ?? "Nothing stored on the pod yet. Train on a Mac with scripts/train-personal-models.py and it appears here.")
+                Text(stageModels.podError ?? "No sleep-stage model is stored on the Pod. Check complete-night coverage here; a validated portable model can be added through Pod model library. Temperature Autopilot is separate.")
                     .font(.footnote).foregroundStyle(stageModels.podError == nil ? Theme.text2 : Theme.amber).fixedSize(horizontal: false, vertical: true)
             }
             Button("Refresh from pod") { Task { await stageModels.refreshPodModel(api: APIBackend.current.createClient(), side: side) } }
@@ -462,7 +463,7 @@ struct StageComparisonView: View {
                     }
                 }
             } else if card == nil, !training {
-                Text("Trained on this iPhone from your own nights, with the Watch as the label. Needs at least \(StageModelStore.minimumNights) nights with both.")
+                Text("Learns from at least \(StageModelStore.minimumNights) complete nights with overlapping Pod signals and Watch stages. Coverage is checked again before every fit.")
                     .font(.footnote).foregroundStyle(Theme.text2).fixedSize(horizontal: false, vertical: true)
             }
             HStack(spacing: 8) {

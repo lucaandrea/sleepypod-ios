@@ -27,6 +27,20 @@ import XCTest
         expectation(for: NSPredicate(format: "label == 'Personal comfort off'"), evaluatedWith: app.staticTexts["comfort.mode"])
         waitForExpectations(timeout: 6); capture(app, "Comfort-off")
     }
+    func testTemperatureModelReadinessExplainsMissingNightsWithoutTraining() {
+        let app = launch()
+        reveal(app.staticTexts["Your temperature model"], app)
+        let train = app.buttons["thermalModel.train"]
+        XCTAssertTrue(train.waitForExistence(timeout: 10))
+        reveal(train, app)
+        XCTAssertFalse(train.isEnabled)
+        XCTAssertTrue(app.staticTexts["0 / 20"].exists)
+        capture(app, "Thermal-model-readiness")
+        let refresh = app.buttons["thermalModel.refresh"]
+        reveal(refresh, app); refresh.tap()
+        XCTAssertFalse(train.isEnabled)
+        XCTAssertTrue(app.staticTexts["Demo has no complete recorded nights. Connect your Pod to check actual training coverage."].exists)
+    }
     func testReportPagingAndExplicitRetestReviewCannotQualifyDemo() {
         let app = launch()
         let report = app.buttons["comfort.report." + String(repeating: "a", count: 64)]
