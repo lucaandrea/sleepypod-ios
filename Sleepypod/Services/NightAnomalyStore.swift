@@ -93,6 +93,33 @@ final class NightAnomalyStore {
         if verified { assessReviewedNight(now: .now) }
     }
 
+    private var recentCandidates: [NightAnomalyObservation] {
+        Array(candidates.sorted { first, second in
+            first.end == second.end ? first.id < second.id : first.end > second.end
+        }.prefix(NightAnomalyModel.minimumNights))
+    }
+
+    func recentReviewBatch() -> NightAnomalyReviewBatch? {
+        guard loaded, !busy, !PersonalWorkspaceBoundary.isActive,
+              candidates.count >= NightAnomalyModel.minimumNights else { return nil }
+        return .init(scope: scope, sourceID: selectedSource, sourceName: sourceName(selectedSource), nights: recentCandidates)
+    }
+
+    /// Confirmation reviews only the displayed source and unchanged records; it never starts training.
+    @discardableResult
+    func confirmReview(_ batch: NightAnomalyReviewBatch, currentScope: String) -> Bool {
+        guard loaded, !busy, !PersonalWorkspaceBoundary.isActive,
+              scope == currentScope, scope == batch.scope, selectedSource == batch.sourceID,
+              batch.nights.count == NightAnomalyModel.minimumNights,
+              recentCandidates == batch.nights else {
+            message = "The source or nights changed. Review the latest selection again."
+            return false
+        }
+        for night in batch.nights { reviewed[night.id] = night.reviewToken }
+        if verified { assessReviewedNight(now: .now) }
+        return true
+    }
+
     func train(now: Date = .now, currentScope: @MainActor () -> String) async {
         guard canTrain, currentScope() == scope else { return }
         let operation = UUID(); generation = operation; let originalScope = scope, observations = selected, useVitals = includeVitals
