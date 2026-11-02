@@ -129,6 +129,68 @@ struct NightAnomalyDatasetTests {
 
 @Suite("Private anomaly model lifecycle", .serialized) @MainActor
 struct NightAnomalyStoreTests {
+    @Test func recentReviewRequiresConfirmationAndKeepsSourcesSeparate() throws {
+        let fixtures = NightAnomalyTests(), store = NightAnomalyStore()
+        store.activate(scope: "owner-A")
+        let sameSource = (0..<105).map { fixtures.night($0) }.reversed()
+        store.accept(.init(nights: Array(sameSource) + [fixtures.night(106, source: "other")]), now: fixtures.now)
+        store.selectedSource = "watch"
+        let batch = try #require(store.recentReviewBatch())
+        #expect(batch.nights.count == 40)
+        #expect(Set(batch.nights.map(\.id)) == Set((65..<105).map { "watch-\($0)" }))
+        #expect(store.selected.isEmpty); #expect(!store.canTrain); #expect(store.model == nil)
+        #expect(store.confirmReview(batch, currentScope: "owner-A"))
+        #expect(store.selected.count == 40); #expect(store.canTrain); #expect(store.model == nil)
+        #expect(store.reviewed["other-106"] == nil)
+    }
+
+    @Test func bulkReviewPreservesEarlierReviewsAndIndividualChanges() throws {
+        let fixtures = NightAnomalyTests(), store = NightAnomalyStore()
+        store.activate(scope: "owner-A")
+        store.accept(.init(nights: (0..<50).map { fixtures.night($0) }), now: fixtures.now)
+        store.review(fixtures.night(0), confirmed: true)
+        let batch = try #require(store.recentReviewBatch())
+        #expect(store.confirmReview(batch, currentScope: "owner-A")); #expect(store.selected.count == 41)
+        store.review(fixtures.night(49), confirmed: false)
+        #expect(store.selected.count == 40); #expect(store.reviewed["watch-49"] == nil)
+        #expect(store.reviewed["watch-0"] != nil)
+    }
+
+    @Test func staleBatchCannotApproveChangedOrNewRecordings() throws {
+        let fixtures = NightAnomalyTests(), store = NightAnomalyStore()
+        store.activate(scope: "owner-A")
+        let original = (0..<40).map { fixtures.night($0) }
+        store.accept(.init(nights: original), now: fixtures.now)
+        let batch = try #require(store.recentReviewBatch())
+        store.accept(.init(nights: Array(original.dropLast()) + [fixtures.night(39, sleep: 455)]), now: fixtures.now)
+        #expect(!store.confirmReview(batch, currentScope: "owner-A")); #expect(store.selected.isEmpty)
+        store.accept(.init(nights: original + [fixtures.night(40)]), now: fixtures.now)
+        #expect(!store.confirmReview(batch, currentScope: "owner-A")); #expect(store.selected.isEmpty)
+    }
+
+    @Test func changedSourceOrOwnerInvalidatesPendingConfirmation() throws {
+        let fixtures = NightAnomalyTests(), store = NightAnomalyStore()
+        store.activate(scope: "owner-A")
+        let audit = NightAnomalyDataset.Audit(nights: (0..<40).map { fixtures.night($0) } + (0..<40).map { fixtures.night($0, source: "other") })
+        store.accept(audit, now: fixtures.now); store.selectedSource = "watch"
+        let batch = try #require(store.recentReviewBatch())
+        store.selectedSource = "other"
+        #expect(!store.confirmReview(batch, currentScope: "owner-A")); #expect(store.reviewed.isEmpty)
+        store.selectedSource = "watch"
+        #expect(!store.confirmReview(batch, currentScope: "owner-B")); #expect(store.reviewed.isEmpty)
+        store.activate(scope: "owner-B"); store.accept(audit, now: fixtures.now); store.selectedSource = "watch"
+        #expect(!store.confirmReview(batch, currentScope: "owner-B")); #expect(store.reviewed.isEmpty)
+    }
+
+    @Test func bulkReviewNeverFillsMissingNights() {
+        let fixtures = NightAnomalyTests(), store = NightAnomalyStore()
+        store.activate(scope: "owner-A")
+        #expect(store.recentReviewBatch() == nil)
+        store.accept(.init(nights: (0..<39).map { fixtures.night($0) } + [fixtures.night(40, source: "other")]), now: fixtures.now)
+        store.selectedSource = "watch"
+        #expect(store.recentReviewBatch() == nil); #expect(!store.canTrain)
+    }
+
     @Test func trainingRequiresReviewsAndReloadRequiresUnchangedReferences() async throws {
         let fixtures = NightAnomalyTests()
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
@@ -139,7 +201,8 @@ struct NightAnomalyStoreTests {
         let audit = NightAnomalyDataset.Audit(nights: (0..<40).map { fixtures.night($0) })
         store.accept(audit, now: fixtures.now)
         #expect(!store.canTrain)
-        for night in store.nights { store.review(night, confirmed: true) }
+        let batch = try #require(store.recentReviewBatch())
+        #expect(store.confirmReview(batch, currentScope: "owner-A"))
         #expect(store.canTrain)
         await store.train(now: fixtures.now, currentScope: { "owner-A" })
         #expect(store.model != nil); #expect(store.verified); #expect(store.assessment == nil)

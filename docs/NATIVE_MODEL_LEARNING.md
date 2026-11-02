@@ -33,6 +33,7 @@ flowchart LR
 - Read the last 180 days; separate source bundle, hardware product and available device identifier. Reject this app's own predictions as input.
 - Group using the Pod timezone, noon to noon; split gaps above 30 minutes. Windows must be 6–12 elapsed hours, have six recorded sleep hours, 90% coverage and no gap over 30 minutes. Wait an hour after the last sample. In-bed samples are not sleep. Reject conflicting stages; deduplicate samples.
 - Coverage identifies candidates only. A six-hour partial night can look intact: the person must confirm actual full-night wearing/recording. Tests and partial nights stay unselected. Changed intervals invalidate review tokens.
+- **Review latest 40 nights** offers a source-specific date range and requires explicit confirmation before selecting those candidates. Individual switches remain available. The pending selection captures the exact records and owner scope; new/changed nights, source changes or owner changes reject that confirmation. It preserves other existing reviews and never starts training automatically.
 - Original Eight Sleep/Oura duration summaries can inform timing/duration after review; they cannot label mattress epochs. Summary-only sources do not invent zero awake time.
 - Required features: sleep minutes and local-clock midpoint. Detailed stages can add awake fraction. Optional Watch features: median overnight HR, SDNN HRV and respiratory rate, matching source/device with enough sample spread. No daily averages, cross-source borrowing or zero imputation.
 - Fit the latest 40–90 reviewed nights. Reserve `max(20, n/3)` later nights for calibration; at least 20 earlier nights fit the model. Choose optional columns using training data only; calibration must supply those columns. Vitals default off so sparse data does not silently change the sleep/timing model's meaning.
@@ -49,5 +50,7 @@ There is no notification, publishing, hardware or Autopilot command path. Person
 ## Validation scope
 
 Unit tests cover chronological separation, midnight wrap, constant/rounded data, source isolation, corrupt artifacts, clock rollback, stale baselines, changed evidence, gaps, conflicts, duplicates, in-bed exclusions, DST and private persistence. UI tests check actual bundled model loading and readiness at normal and maximum text size. Synthetic fixtures test software only; they are not training data shipped to the user or evidence of improved sleep.
+
+Bulk-review regressions cover source boundaries, changed records, newly arriving nights, owner changes, preserving earlier selections and the explicit review → fit → protected reload workflow. The Mac can build and test this workflow without occupying the owner's phone. Original Health interval evidence remains on the phone; cached daily report summaries cannot replace it for training or reference validation.
 
 Personal accuracy and useful anomaly detection still require prospective, reviewed complete nights. Neither a passing build nor an artifact establishes medical accuracy, improved sleep outcomes or qualified autonomous temperature control.

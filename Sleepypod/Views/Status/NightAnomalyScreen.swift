@@ -6,6 +6,8 @@ struct NightAnomalyScreen: View {
     @Environment(SettingsManager.self) private var settings
     @Environment(\.scenePhase) private var phase
     @State private var confirmingDelete = false
+    @State private var reviewBatch: NightAnomalyReviewBatch?
+    @State private var confirmingRecentNights = false
     private var scope: String { (health.watchReferenceContext + [settings.timeZone]).joined(separator: "|") }
     private var calendar: Calendar { SleepCalendar.calendar(timeZone: settings.timeZone) }
 
@@ -49,6 +51,12 @@ struct NightAnomalyScreen: View {
             .task(id: scope) { store.activate(scope: scope) }
             .onChange(of: phase) { if phase != .active { store.cancel() } }
             .onDisappear { store.cancel() }
+            .confirmationDialog("Confirm the latest 40 nights?", isPresented: $confirmingRecentNights, titleVisibility: .visible, presenting: reviewBatch) { batch in
+                Button("These were complete nights") { store.confirmReview(batch, currentScope: scope) }
+                Button("Review individually", role: .cancel) { reviewBatch = nil }
+            } message: { batch in
+                Text("\(batch.sourceName)\n\(reviewDate(batch.firstBedtime)) – \(reviewDate(batch.lastWake))\n\nConfirm only if these 40 recordings cover genuine nights from bedtime to waking, without naps or test sessions. You can uncheck individual nights afterward. This selects records; it does not train a model.")
+            }
             .confirmationDialog("Delete this iPhone’s learned baseline?", isPresented: $confirmingDelete) {
                 Button("Delete baseline", role: .destructive) { store.delete() }
             } message: { Text("Your Apple Health records stay in Health.") }
@@ -67,6 +75,15 @@ struct NightAnomalyScreen: View {
                 .font(.subheadline).foregroundStyle(Theme.cool).accessibilityIdentifier("anomaly.counts")
             Text("Confirm only genuine nights recorded from bedtime to waking. Leave partial nights, naps and test sessions off. Long recordings still need your review; software cannot know whether you wore the device all night.")
                 .font(.footnote).foregroundStyle(Theme.text2)
+            Button("Review latest 40 nights", systemImage: "checklist") {
+                reviewBatch = store.recentReviewBatch()
+                confirmingRecentNights = reviewBatch != nil
+            }
+            .buttonStyle(CapsuleButtonStyle(weight: .tinted))
+            .disabled(store.busy || store.candidates.count < NightAnomalyModel.minimumNights || APIBackend.current.isDemo)
+            .accessibilityIdentifier("anomaly.reviewRecent")
+            Text("Uses only the selected Health source. Existing reviews stay selected; no records are sent off your iPhone.")
+                .font(.caption).foregroundStyle(Theme.text2)
             Toggle("Include matched Watch vitals", isOn: $store.includeVitals).disabled(store.busy)
             Text("Optional: requires consistently covered Watch measurements on both training and later reference nights. If readings are sparse, leave this off to learn sleep and timing only. Missing vitals are never filled in.")
                 .font(.caption).foregroundStyle(Theme.text2)
@@ -125,5 +142,9 @@ struct NightAnomalyScreen: View {
         case "respiratoryRate": return String(format: "%.1f /min", value)
         default: return String(format: "%.1f", value)
         }
+    }
+
+    private func reviewDate(_ date: Date) -> String {
+        date.formatted(Date.FormatStyle(date: .abbreviated, time: .omitted, timeZone: calendar.timeZone))
     }
 }
