@@ -662,6 +662,17 @@ final class HealthSyncService {
             String(preferences.readSleep), String(preferences.readVitals)]
     }
 
+    /// Model reads use the same owner and consent boundary as sleep history, with explicit errors.
+    func analysisQuantitySamples(_ type: HKQuantityTypeIdentifier, start: Date, end: Date) async throws -> [HKQuantitySample] {
+        guard !PersonalWorkspaceBoundary.isActive, enabled, preferences.readVitals, Self.vitalsReadTypes.contains(type) else {
+            throw APIError.notSupported("Enable Apple Health vital reading before adding overnight measurements.")
+        }
+        let context = watchReferenceContext
+        let samples = try await store.quantitySamples(type, start: start, end: end)
+        guard !PersonalWorkspaceBoundary.isActive, context == watchReferenceContext else { throw CancellationError() }
+        return samples
+    }
+
     /// Read only the requested Watch metrics, in weekly pages, without exporting the rest of Health.
     func watchReferenceSnapshot(side: Side, days: Int, now: Date = .now) async throws -> HealthWatchSnapshot {
         guard !PersonalWorkspaceBoundary.isActive, enabled, store.available, preferences.readSleep || preferences.readVitals,

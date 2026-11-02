@@ -15,6 +15,7 @@ struct SettingsSheet: View {
     @State private var showHealth = DebugRoute.current == "health"
     @State private var showPersonalReport = ["reports", "coach"].contains(DebugRoute.current)
     @State private var showTemperatureApplications = DebugRoute.current == "temperatureApplications"
+    @State private var showModels = DebugRoute.current == "models"
     @State private var confirmPrime = false
     @State private var primeError: String?
     @State private var showBase = false
@@ -75,6 +76,9 @@ struct SettingsSheet: View {
                                          color: status.totalCount == 0 ? Theme.text2 : status.healthyCount == status.totalCount ? Theme.green : Theme.amber)
                             }
                         }
+                        Button { showModels = true } label: {
+                            SettingsRow("Intelligence models", subtitle: "Evidence, learning and readiness", icon: "brain", iconColor: Theme.purple, chevron: true)
+                        }.accessibilityIdentifier("settings.models")
                         NavigationLink { BedSensorScreen().navigationTitle("Sensors") } label: {
                             SettingsRow("Sensors", icon: "waveform", iconColor: Theme.text1, chevron: true)
                         }
@@ -123,6 +127,7 @@ struct SettingsSheet: View {
             } message: { Text("Water will circulate through the pod to remove trapped air.") }
             .task { await settings.fetchSettings(); await status.fetchAll() }
             .navigationDestination(isPresented: $showTemperatureApplications) { TemperatureApplicationScreen() }
+            .navigationDestination(isPresented: $showModels) { IntelligenceModelsScreen() }
             .navigationDestination(isPresented: $showHealth) { HealthAccessView() }
             .navigationDestination(isPresented: $showPersonalReport) {
                 PodFeatureScreen(DebugRoute.current == "coach" ? .coach : .reports, side: device.selectedSide.primarySide.rawValue, nativeActions: nativeActions.bridge)

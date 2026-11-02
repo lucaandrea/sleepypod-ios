@@ -26,6 +26,7 @@ struct SleepypodApp: App {
     @State private var nativeActions: NativeActionSession
     @State private var healthSync: HealthSyncService
     @State private var stageModels: StageModelStore
+    @State private var nightAnomalies = NightAnomalyStore()
     @State private var watchMotion = WatchMotionReceiver()
     @State private var snoreCapture = SnoreCaptureService()
 
@@ -118,7 +119,7 @@ struct SleepypodApp: App {
             .environment(metricsManager).environment(statusManager).environment(settingsManager).environment(podDiscovery)
             .environment(userProfile).environment(sensorStream).environment(notificationRelay).environment(alertInbox)
             .environment(homeRoom).environment(bedroom).environment(healthSync).environment(nativeActions)
-            .environment(stageModels).environment(watchMotion).environment(snoreCapture)
+            .environment(stageModels).environment(nightAnomalies).environment(watchMotion).environment(snoreCapture)
     }
 }
 
