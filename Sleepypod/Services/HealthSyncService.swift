@@ -38,7 +38,7 @@ final class SystemHealthSyncStore: HealthSyncStore {
                                                           operatorType: .lessThan, value: version))
         }
         let predicate = NSCompoundPredicate(andPredicateWithSubpredicates: predicates)
-        for type in types {
+        for type in HealthSyncService.cleanupTypes(types) {
             _ = try await store.deleteObjects(of: type, predicate: predicate)
         }
     }
@@ -49,7 +49,7 @@ final class SystemHealthSyncStore: HealthSyncStore {
             HKQuery.predicateForObjects(withDeviceProperty: HKDevicePropertyKeyLocalIdentifier, allowedValues: [deviceID]),
             HKQuery.predicateForObjects(withMetadataKey: HKMetadataKeySyncVersion, operatorType: .lessThan, value: version)
         ])
-        for type in types {
+        for type in HealthSyncService.cleanupTypes(types) {
             _ = try await store.deleteObjects(of: type, predicate: predicate)
         }
     }
@@ -68,7 +68,7 @@ final class HealthSyncService {
         var presence = true
         var sleep = true
         var heartRate = true
-        var hrv = true
+        var hrv = false
         var respiration = true
         var readSleep = true
         var readVitals = true
@@ -81,7 +81,7 @@ final class HealthSyncService {
             sleep = try c.decodeIfPresent(Bool.self, forKey: .sleep) ?? true
             presence = try c.decodeIfPresent(Bool.self, forKey: .presence) ?? sleep
             heartRate = try c.decodeIfPresent(Bool.self, forKey: .heartRate) ?? true
-            hrv = try c.decodeIfPresent(Bool.self, forKey: .hrv) ?? true
+            hrv = try c.decodeIfPresent(Bool.self, forKey: .hrv) ?? false
             respiration = try c.decodeIfPresent(Bool.self, forKey: .respiration) ?? true
             readSleep = try c.decodeIfPresent(Bool.self, forKey: .readSleep) ?? true
             readVitals = try c.decodeIfPresent(Bool.self, forKey: .readVitals) ?? true
@@ -122,10 +122,21 @@ final class HealthSyncService {
         preferences = defaults.data(forKey: "healthSyncPreferences").flatMap { try? JSONDecoder().decode(Preferences.self, from: $0) } ?? Preferences()
         receipts = defaults.data(forKey: "healthSyncReceipts").flatMap { try? JSONDecoder().decode([String: Receipt].self, from: $0) } ?? [:]
         enabled = defaults.bool(forKey: "healthSyncEnabled")
+        // Earlier app exports can remain in Health. Pause HRV once, without altering read consent or deleting samples.
+        if defaults.integer(forKey: "healthHRVExportReviewVersion") < 1 {
+            preferences.hrv = false
+            defaults.set(try? JSONEncoder().encode(preferences), forKey: "healthSyncPreferences")
+            defaults.set(1, forKey: "healthHRVExportReviewVersion")
+        }
     }
 
     static let allWriteTypes: [HKSampleType] = [HKCategoryType(.sleepAnalysis), HKQuantityType(.heartRate),
                                                 HKQuantityType(.heartRateVariabilitySDNN), HKQuantityType(.respiratoryRate)]
+
+    /// Legacy HRV needs an exact, reviewed selection; ordinary sync/rebuild must never sweep it by date.
+    static func cleanupTypes(_ types: Set<HKSampleType>) -> Set<HKSampleType> {
+        types.subtracting([HKQuantityType(.heartRateVariabilitySDNN)])
+    }
 
     var writeTypes: Set<HKSampleType> {
         var types: Set<HKSampleType> = []
@@ -178,8 +189,8 @@ final class HealthSyncService {
     static func deviceID(podID: String, record: SleepRecord) -> String { "\(podID)-\(record.side)" }
 
     /// Bump when the samples written for a night change, so every synced night is rewritten once.
-    /// v3: separately consented, disjoint reported presence; explicit sample provenance.
-    static let syncVersion = 3
+    /// v4: explicit HRV metric provenance for source-scoped review of older, unverified exports.
+    static let syncVersion = 4
     static func receiptSignature(_ preferences: Preferences, model: String? = nil) -> String {
         "v\(syncVersion)-a\(SleepAnalyzer.version)-m\(model ?? "rules")-\(preferences.signature)"
     }
@@ -302,7 +313,7 @@ final class HealthSyncService {
         rebuiltKeys.removeAll()
         guard await sync(api: api, podID: podID, side: side, days: Self.rebuildDays, forceRewrite: true), isCurrent(context) else { return false }
         // Types switched off since an earlier sync may still hold samples; only granted types can be deleted.
-        let types = Set(Self.allWriteTypes.filter { store.authorizationStatus(for: $0) == .sharingAuthorized })
+        let types = Self.cleanupTypes(Set(Self.allWriteTypes.filter { store.authorizationStatus(for: $0) == .sharingAuthorized }))
         do {
             try await store.deleteAll(types: types, deviceID: deviceID, olderThan: version)
             guard isCurrent(context) else { return false }
@@ -382,7 +393,7 @@ final class HealthSyncService {
                     let clearStart = min(record.enteredBedDate, previous?.enteredAt ?? record.enteredBedDate)
                     let clearEnd = max(record.leftBedDate, previous?.closedAt ?? record.leftBedDate)
                     guard syncable else {
-                        try await store.delete(types: writeTypes, deviceID: deviceID, start: clearStart, end: clearEnd, olderThan: nil)
+                        try await store.delete(types: Self.cleanupTypes(writeTypes), deviceID: deviceID, start: clearStart, end: clearEnd, olderThan: nil)
                         guard isCurrent(context) else { return false }
                         receipts[key] = nil
                         failures[key] = nil
@@ -432,7 +443,7 @@ final class HealthSyncService {
                     guard isCurrent(context) else { return false }
                     lastSyncSampleCount += samples.count
                     // Save first, then drop whatever this write didn't replace, so a failed save never empties the night.
-                    try await store.delete(types: availableTypes, deviceID: deviceID, start: clearStart, end: clearEnd, olderThan: version)
+                    try await store.delete(types: Self.cleanupTypes(availableTypes), deviceID: deviceID, start: clearStart, end: clearEnd, olderThan: version)
                     guard isCurrent(context) else { return false }
                     Log.health.info("Saved \(samples.count, privacy: .private) samples to Health")
                     guard missingTypes.isEmpty else {
@@ -535,8 +546,13 @@ final class HealthSyncService {
             ]
             for (enabled, type, value, unit, range) in quantities {
                 if enabled, let value, value.isFinite, range.contains(value) {
+                    var sampleMetadata = metadata(id, type: type.rawValue, source: "recorded_pod_vitals")
+                    if type == .heartRateVariabilitySDNN {
+                        sampleMetadata["sleepypod_hrv_metric"] = "hrv_sdnn"
+                        sampleMetadata["sleepypod_hrv_provenance"] = "recorded"
+                    }
                     result.append(HKQuantitySample(type: HKQuantityType(type), quantity: HKQuantity(unit: unit, doubleValue: value),
-                        start: vital.date, end: end, device: device, metadata: metadata(id, type: type.rawValue, source: "recorded_pod_vitals")))
+                        start: vital.date, end: end, device: device, metadata: sampleMetadata))
                 }
             }
         }

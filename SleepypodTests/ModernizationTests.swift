@@ -268,7 +268,7 @@ struct HealthSyncLifecycleTests {
         #expect(service.rebuildProgress == nil && !service.isSyncing)
         service.preferences.hrv = false
         #expect(await service.rebuild(api: api, podID: "test-pod", side: .left, demo: false))
-        #expect(store.sweeps.last?.types == Set(HealthSyncService.allWriteTypes))
+        #expect(store.sweeps.last?.types == HealthSyncService.cleanupTypes(Set(HealthSyncService.allWriteTypes)))
     }
 
     @Test func incompleteAnalysisCannotSweepPreviouslyWrittenNights() async {

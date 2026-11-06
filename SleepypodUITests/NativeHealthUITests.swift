@@ -51,6 +51,16 @@ import UIKit
         XCTAssertLessThanOrEqual(notice.frame.maxY, app.scrollViews.firstMatch.frame.maxY)
         capture(app, "Health-demo-rebuild")
     }
+    func testHRVReviewExplainsScopeAndCannotReadOrRemoveInDemo() {
+        let app = launch(), link = app.buttons["health.hrvReview"]
+        reveal(link, app); link.tap()
+        XCTAssertTrue(app.navigationBars["Review app HRV"].waitForExistence(timeout: 5))
+        let read = app.buttons["health.hrvReviewRead"]; reveal(read, app)
+        XCTAssertFalse(read.isEnabled)
+        XCTAssertFalse(app.buttons["health.hrvReviewRemove"].exists)
+        XCTAssertTrue(app.staticTexts["Demo mode never reads or removes Health entries."].exists)
+        capture(app, "Health-HRV-review")
+    }
     private func reveal(_ element: XCUIElement, _ app: XCUIApplication) {
         let scroll = app.scrollViews.firstMatch
         for _ in 0..<30 {

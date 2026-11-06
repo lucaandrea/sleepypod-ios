@@ -47,8 +47,11 @@ struct HealthAccessView: View {
                                 Toggle("Estimated sleep stages", isOn: $health.preferences.sleep).labelsHidden().accessibilityIdentifier("health.stages")
                             }
                             SettingsRow("Heart rate") { Toggle("Heart rate", isOn: $health.preferences.heartRate).labelsHidden() }
-                            SettingsRow("Heart rate variability", subtitle: "Only recorded SDNN measurements", height: 64) { Toggle("Heart rate variability", isOn: $health.preferences.hrv).labelsHidden() }
+                            SettingsRow("Heart rate variability", subtitle: "Off by default; only recorded SDNN", height: 64) { Toggle("Heart rate variability", isOn: $health.preferences.hrv).labelsHidden().accessibilityIdentifier("health.hrvWrite") }
                             SettingsRow("Respiratory rate") { Toggle("Respiratory rate", isOn: $health.preferences.respiration).labelsHidden() }
+                            NavigationLink { HealthHRVReviewView() } label: {
+                                SettingsRow("Review earlier HRV entries", subtitle: "This app’s exports only", icon: "heart.text.clipboard", height: 64) { Image(systemName: "chevron.right") }
+                            }.accessibilityIdentifier("health.hrvReview")
                         }
                     }
                     GroupedSection("READ") {
@@ -96,7 +99,7 @@ struct HealthAccessView: View {
         .confirmationDialog("Rebuild Apple Health data?", isPresented: $confirmRebuild, titleVisibility: .visible) {
             Button("Rebuild", role: .destructive) { rebuild() }
         } message: {
-            Text("Rewrites up to \(HealthSyncService.rebuildDays) days for \(settings.sideName(for: profile.defaultSide)) on this Pod, then removes its older sleepypod samples. Other sides, Pods, Apple Watch and other apps stay untouched. Keep the app open until it finishes.")
+            Text("Rewrites up to \(HealthSyncService.rebuildDays) days for \(settings.sideName(for: profile.defaultSide)) on this Pod, then removes its older sleep, heart rate and breathing samples. Earlier HRV entries are removed only through Review earlier HRV entries. Other sides, Pods, Apple Watch and other apps stay untouched. Keep the app open until it finishes.")
         }
     }
 
