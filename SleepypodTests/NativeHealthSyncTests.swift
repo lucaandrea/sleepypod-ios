@@ -4,6 +4,36 @@ import FreeSleepKit
 @testable import Sleepypod
 
 @MainActor final class NativeHealthSyncTests: XCTestCase {
+    func testHRVStartsOffAndUpgradePausesOnlyHRVOnceWithoutDeletingAnything() throws {
+        XCTAssertFalse(HealthSyncService.Preferences().hrv)
+        let defaults = UserDefaults(suiteName: "hrv-upgrade-\(UUID().uuidString)")!
+        var previous = HealthSyncService.Preferences()
+        previous.hrv = true; previous.readVitals = false; previous.presence = false
+        defaults.set(try JSONEncoder().encode(previous), forKey: "healthSyncPreferences")
+        let store = NativeHealthTestStore(), service = HealthSyncService(store: store, defaults: defaults)
+        XCTAssertFalse(service.preferences.hrv); XCTAssertFalse(service.preferences.readVitals); XCTAssertFalse(service.preferences.presence)
+        XCTAssertTrue(service.preferences.heartRate); XCTAssertTrue(store.deleted.isEmpty); XCTAssertEqual(store.sweeps, 0)
+        service.preferences.hrv = true
+        let reopened = HealthSyncService(store: store, defaults: defaults)
+        XCTAssertTrue(reopened.preferences.hrv, "Do not override a later explicit choice every launch")
+        let missing = try JSONDecoder().decode(HealthSyncService.Preferences.self, from: Data("{}".utf8))
+        XCTAssertFalse(missing.hrv)
+    }
+    func testOrdinaryRebuildAfterHRVPauseNeverSweepsReviewedOrUnreviewedHRV() async {
+        let store = NativeHealthTestStore(), (earlierService, defaults) = make(store)
+        earlierService.preferences.hrv = true
+        defaults.removeObject(forKey: "healthHRVExportReviewVersion")
+        let service = HealthSyncService(store: store, defaults: defaults)
+        XCTAssertFalse(service.preferences.hrv)
+        let rebuilt = await service.rebuild(api: NativeHealthTestClient(.init()), podID: "pod", side: .right, demo: false)
+        XCTAssertTrue(rebuilt); XCTAssertEqual(store.sweptTypes.count, 1)
+        let hrv = HKQuantityType(.heartRateVariabilitySDNN)
+        XCTAssertTrue(store.sweptTypes.allSatisfy { !$0.contains(hrv) })
+        XCTAssertTrue(store.deletedTypes.allSatisfy { !$0.contains(hrv) })
+        XCTAssertEqual(HealthSyncService.cleanupTypes([hrv]), [])
+        XCTAssertEqual(HealthSyncService.cleanupTypes(Set(HealthSyncService.allWriteTypes)),
+                       [HKCategoryType(.sleepAnalysis), HKQuantityType(.heartRate), HKQuantityType(.respiratoryRate)])
+    }
     func testPersonalPreparationBlocksHealthReadsAndWritesBeforeStoreAccess() async throws {
         let store = NativeHealthTestStore(), (service, _) = make(store), probe = NativeHealthTestProbe()
         service.preferences.readSleep = true; service.preferences.readVitals = true
@@ -209,6 +239,7 @@ private final class NativeHealthTestClient: MockAPIClient, @unchecked Sendable {
     var failAt: Int?, attempts = 0, sweeps = 0
     var saved: [[HKSample]] = [], deleted: [String] = []
     var deletedTypes: [Set<HKSampleType>] = []
+    var sweptTypes: [Set<HKSampleType>] = []
     var afterSave: (() -> Void)?
     var sleepRanges: [ClosedRange<Date>] = []
     var sleepFailure: Error?
@@ -220,7 +251,7 @@ private final class NativeHealthTestClient: MockAPIClient, @unchecked Sendable {
         saved.append(samples); afterSave?()
     }
     func delete(types: Set<HKSampleType>, deviceID: String, start: Date, end: Date, olderThan version: Int?) async throws { deleted.append(deviceID); deletedTypes.append(types) }
-    func deleteAll(types: Set<HKSampleType>, deviceID: String, olderThan version: Int) async throws { sweeps += 1 }
+    func deleteAll(types: Set<HKSampleType>, deviceID: String, olderThan version: Int) async throws { sweeps += 1; sweptTypes.append(types) }
     func sleepSamples(start: Date, end: Date) async throws -> [HKCategorySample] {
         sleepRanges.append(start...end)
         if let sleepFailure { throw sleepFailure }

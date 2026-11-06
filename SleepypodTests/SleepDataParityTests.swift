@@ -91,13 +91,17 @@ import HealthKit
         let record = SleepRecord(id: 1, side: "left", enteredBed: base, leftBed: base.addingTimeInterval(3600))
         var vital = VitalsRecord(id: 1, heartRate: 60, hrv: 40, breathingRate: 14, date: base)
         func quantities(_ vital: VitalsRecord) -> [HKQuantitySample] {
-            HealthSyncService.samples(record: record, epochs: [], podID: "test", preferences: .init(), vitals: [vital]).compactMap { $0 as? HKQuantitySample }
+            var preferences = HealthSyncService.Preferences(); preferences.hrv = true
+            return HealthSyncService.samples(record: record, epochs: [], podID: "test", preferences: preferences, vitals: [vital]).compactMap { $0 as? HKQuantitySample }
         }
         XCTAssertEqual(quantities(vital).count, 2)
         vital.provenance = VitalProvenance(interpretation: "original_observation", status: "recorded", processingRunId: "r", configurationHash: "h", hrvMetricId: "window_ibi_variability_v1")
         XCTAssertEqual(quantities(vital).count, 2)
         vital.provenance?.hrvMetricId = "hrv_sdnn"
-        XCTAssertEqual(quantities(vital).filter { $0.quantityType.identifier == HKQuantityTypeIdentifier.heartRateVariabilitySDNN.rawValue }.count, 1)
+        let sdnn = quantities(vital).filter { $0.quantityType.identifier == HKQuantityTypeIdentifier.heartRateVariabilitySDNN.rawValue }
+        XCTAssertEqual(sdnn.count, 1)
+        XCTAssertEqual(sdnn.first?.metadata?["sleepypod_hrv_metric"] as? String, "hrv_sdnn")
+        XCTAssertEqual(sdnn.first?.metadata?["sleepypod_hrv_provenance"] as? String, "recorded")
     }
     func testSleepEditsPersistInDemoAndStaleDraftCannotOverwrite() async throws {
         let client = MockClient(); let metrics = MetricsManager(api: client)
