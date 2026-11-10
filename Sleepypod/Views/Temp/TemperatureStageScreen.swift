@@ -30,6 +30,7 @@ struct TemperatureStageScreen: View {
             ScrollView {
                 VStack(spacing: 18) {
                     TemperatureNoticesView()
+                    TonightOverview()
                     sideLayout {
                         sideLabel(.left, preview: previewDate.map { previewState(.left, timeline: timeline, at: $0) })
                         sideLabel(.right, preview: previewDate.map { previewState(.right, timeline: timeline, at: $0) })

@@ -6,7 +6,7 @@ import UIKit
         continueAfterFailure = false; let app = XCUIApplication()
         app.launchArguments = ["-apiBackend", "demo", "--demo", "-onboardingComplete", "YES", "-healthSyncEnabled", "NO", "-uiRoute", "", "-temperatureLayout", "cards", "-tempControl", "dial", "-uiNextAlarmScenario", scenario,
             "-appearance", UIDevice.current.userInterfaceIdiom == .pad ? "Light" : "Dark"]
-        app.launch(); XCTAssertTrue(app.buttons["Temp"].firstMatch.waitForExistence(timeout: 15))
+        app.launch(); XCTAssertTrue(app.buttons["Tonight"].firstMatch.waitForExistence(timeout: 15))
         reveal(app.buttons["nextAlarm.reload"], app); return app
     }
     func testSkipFollowingRestoreTimeDraftAndSeparateWeeklyEditor() {

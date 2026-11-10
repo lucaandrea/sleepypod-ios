@@ -83,7 +83,7 @@ final class AlarmParityUITests: XCTestCase {
                                "-healthSyncEnabled", "NO", "-uiRoute", "", "-tempControl", control, "-temperatureLayout", layout,
                                "-uiAlarmScenario", scenario, "-userDefaultSide", "left"]
         app.launch()
-        XCTAssertTrue(app.buttons["Temp"].firstMatch.waitForExistence(timeout: 15))
+        XCTAssertTrue(app.buttons["Tonight"].firstMatch.waitForExistence(timeout: 15))
         return app
     }
     private func showContext(_ element: XCUIElement, app: XCUIApplication) {
