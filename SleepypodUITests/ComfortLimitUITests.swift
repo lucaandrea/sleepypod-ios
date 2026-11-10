@@ -8,8 +8,8 @@ import XCTest
         let app = XCUIApplication()
         app.launchArguments = ["--demo", "-apiBackend", "demo", "-onboardingComplete", "YES", "-healthSyncEnabled", "NO",
             "-household.personalWorkspaceActive", "NO", "-uiRoute", "", "-userDefaultSide", "left",
-            "-temperatureLayout", "stage", "-appearance", large ? "Light" : "Dark"]
-        if large { app.launchArguments += ["-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL"] }
+            "-temperatureLayout", "stage", "-appearance", large ? "Light" : "Dark",
+            "-UIPreferredContentSizeCategoryName", large ? "UICTContentSizeCategoryAccessibilityXXXL" : "UICTContentSizeCategoryL"]
         app.launch()
         let open = app.buttons["comfort.limit.open.left"]
         XCTAssertTrue(open.waitForExistence(timeout: 30))
@@ -18,7 +18,12 @@ import XCTest
         XCTAssertTrue(edit.waitForExistence(timeout: 15))
         reveal(edit, in: app); edit.tap()
         let toggle = app.switches["Enable automatic comfort range"]
-        reveal(toggle, in: app); toggle.tap()
+        reveal(toggle, in: app)
+        // SwiftUI exposes the full multiline label as the switch frame on iPad.
+        // Tap the trailing thumb, then verify the requested value before saving.
+        toggle.coordinate(withNormalizedOffset: CGVector(dx: 1, dy: 0.5)).withOffset(CGVector(dx: -24, dy: 0)).tap()
+        let enabled = XCTNSPredicateExpectation(predicate: NSPredicate(format: "value == '1'"), object: toggle)
+        XCTAssertEqual(XCTWaiter.wait(for: [enabled], timeout: 5), .completed)
         let save = app.buttons["comfort.limit.save"]
         reveal(save, in: app)
         XCTAssertTrue(save.isEnabled)

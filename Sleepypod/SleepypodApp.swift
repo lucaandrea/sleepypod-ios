@@ -189,7 +189,7 @@ struct ContentView: View {
             TabView(selection: $selectedTab) {
                 Tab(value: "temp") {
                     TempScreen()
-                } label: { tabLabel("Temp", "thermometer.medium") }
+                } label: { tabLabel("Tonight", "thermometer.medium") }
                 Tab(value: "schedule") {
                     if isConnected { ScheduleScreen() }
                     else { OfflineLibraryScreen(page: .schedule) }

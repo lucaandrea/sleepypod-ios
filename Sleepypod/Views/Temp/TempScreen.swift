@@ -100,11 +100,11 @@ struct TempScreen: View {
                     case .slider:
                         TempSliderView(curve: activeCurve, profileName: activeCurve.map { profileName($0.setPoints) } ?? "")
                     case .sides:
-                        ScrollView { VStack(spacing: 16) { TemperatureNoticesView(); BothSidesView(curve: activeCurve) } }
+                        ScrollView { VStack(spacing: 16) { TemperatureNoticesView(); TonightOverview(); BothSidesView(curve: activeCurve) } }
                             .refreshable { await deviceManager.fetchStatus(); await fetchActiveCurve() }
                     } }
                 } else {
-                    DisconnectedTabView(tab: "Temp")
+                    DisconnectedTabView(tab: "Tonight")
                 }
                 }
             }
@@ -178,6 +178,7 @@ struct TempScreen: View {
         ScrollView {
             VStack(spacing: 0) {
                 TemperatureNoticesView()
+                TonightOverview().padding(.bottom, 16)
                 SideSelectorView()
                 if profile.tempControl == .stepper {
                     TempStepperView(store: nightPhases, tab: $stepperTab).padding(.top, 20)

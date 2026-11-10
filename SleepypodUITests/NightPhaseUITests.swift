@@ -5,7 +5,7 @@ import XCTest
         continueAfterFailure = false
         let app = XCUIApplication()
         app.launchArguments = ["-apiBackend", "demo", "--demo", "-onboardingComplete", "YES", "-healthSyncEnabled", "NO", "-uiRoute", "", "-tempControl", "stepper", "-temperatureLayout", "cards", "-temperatureDisplay", display, "-uiContextScenario", scenario]
-        app.launch(); XCTAssertTrue(app.buttons["Temp"].firstMatch.waitForExistence(timeout: 15)); return app
+        app.launch(); XCTAssertTrue(app.buttons["Tonight"].firstMatch.waitForExistence(timeout: 15)); return app
     }
     func testPhaseEditsReadBackInEveryDisplayMode() {
         for display in ["degrees", "offset", "eightSleep"] {

@@ -723,6 +723,7 @@ final class SleepypodCoreClient: SleepypodProtocol, @unchecked Sendable {
         return PodSettings(
             timeFormat: device?.timeFormat,
             bedMode: device?.bedMode,
+            unusedZoneMode: device?.unusedZoneMode,
             defaultScheduleEndAction: device?.defaultScheduleEndAction,
             id: "1",
             timeZone: device?.timezone ?? TimeZone.current.identifier,
@@ -815,6 +816,7 @@ private struct TRPCDeviceStatus: Decodable {
 private struct TRPCDeviceSettings: Decodable {
     let timeFormat: String?
     let bedMode: String?
+    let unusedZoneMode: String?
     let defaultScheduleEndAction: ScheduleEndAction?
     let timezone: String?
     let temperatureUnit: String?

@@ -1,4 +1,4 @@
-name: Recording and learning UI
+name: Everyday screens UI
 
 on:
   pull_request:
@@ -9,6 +9,9 @@ on:
       - 'SleepypodUITests/WatchRecordingUITests.swift'
       - 'SleepypodUITests/LearningJourneyUITests.swift'
       - 'Sleepypod/**/LearningJourney*.swift'
+      - 'Sleepypod/**/Tonight*.swift'
+      - 'SleepypodFeatures/MorningReportPreview.swift'
+      - 'SleepypodUITests/TonightUITests.swift'
       - 'SleepypodFeatures/WatchRecordingAssistant.swift'
       - 'FreeSleepKit/Intelligence/WatchRecordingSummary.swift'
       - 'FreeSleepKit/Intelligence/HealthHistory*.swift'
@@ -55,6 +58,7 @@ jobs:
             -only-testing:SleepypodUITests/RecordingReadinessUITests \
             -only-testing:SleepypodUITests/WatchRecordingUITests \
             -only-testing:SleepypodUITests/LearningJourneyUITests \
+            -only-testing:SleepypodUITests/TonightUITests \
             CODE_SIGNING_ALLOWED=YES CODE_SIGN_IDENTITY=-
       - name: Boot simulator
         timeout-minutes: 15
@@ -68,6 +72,7 @@ jobs:
             -only-testing:SleepypodUITests/RecordingReadinessUITests \
             -only-testing:SleepypodUITests/WatchRecordingUITests \
             -only-testing:SleepypodUITests/LearningJourneyUITests \
+            -only-testing:SleepypodUITests/TonightUITests \
             -resultBundlePath "$RUNNER_TEMP/Recording.xcresult" \
             -collect-test-diagnostics never -parallel-testing-enabled NO \
             CODE_SIGNING_ALLOWED=YES CODE_SIGN_IDENTITY=-
