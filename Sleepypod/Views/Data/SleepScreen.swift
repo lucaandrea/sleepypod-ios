@@ -219,6 +219,7 @@ struct SleepScreen: View {
                 }.buttonStyle(.plain).accessibilityIdentifier("sleep.personalReports")
                 RecordingReadinessCard()
                 WatchRecordingAssistantLink()
+                LearningJourneyLink()
                 periodContent
                 dataFooter
             }.padding(.horizontal, 16).padding(.bottom, 24)
