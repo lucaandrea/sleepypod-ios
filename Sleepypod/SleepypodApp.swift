@@ -107,7 +107,8 @@ struct SleepypodApp: App {
         }
         .backgroundTask(.appRefresh(HealthSyncService.backgroundTaskID)) { [healthSync] in
             // Queue the next wake-up first so a sync that runs out of time doesn't end the chain.
-            HealthSyncService.scheduleBackgroundSync()
+            HealthSyncService.scheduleBackgroundSync(after: 30 * 60)
+            await UnifiedRuntime.refreshPersonalHealth()
             await healthSync.syncInBackground()
         }
     }
@@ -314,6 +315,10 @@ struct ContentView: View {
             guard scenePhase == .active, !isDemo else { connectionPath.stop(); return }
             connectionPath.start(onPermission: { deviceManager.localNetworkAccessDenied = $0 }) { deviceManager.networkRouteChanged() }
             await UnifiedRuntime.refreshHealth()
+            while !Task.isCancelled {
+                do { try await Task.sleep(for: .seconds(60)) } catch { return }
+                await UnifiedRuntime.refreshPersonalHealth()
+            }
         }
         .onDisappear { connectionPath.stop() }
         .onChange(of: scenePhase) {
@@ -326,8 +331,8 @@ struct ContentView: View {
                     sensorStream.disconnect()
                 }
             }
-            if scenePhase == .background && healthSync.enabled && !isDemo {
-                HealthSyncService.scheduleBackgroundSync()
+            if scenePhase == .background && (healthSync.enabled || UnifiedRuntime.automaticHistoryRefresh) && !isDemo {
+                HealthSyncService.scheduleBackgroundSync(after: 30 * 60)
             }
         }
         .onChange(of: deviceManager.isConnected) {

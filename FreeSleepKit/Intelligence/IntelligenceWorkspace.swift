@@ -1,6 +1,7 @@
 import Foundation
 import HealthKit
 import Observation
+import UIKit
 
 @MainActor @Observable
 final class IntelligenceWorkspace {
@@ -18,18 +19,32 @@ final class IntelligenceWorkspace {
     private(set) var busy = false
     private(set) var keySaved = false
     private(set) var attempts = 0
+    private(set) var healthReadError: String?
+    private(set) var lastHealthAttempt: Date?
     private let defaults: UserDefaults
     private let store: PersonalIntelligenceStore
     private var modelIDs: [String: String]
     private var operation: Task<Void, Never>?
-    private var lastRefreshAttempt = Date.distantPast
     private var restored = false
     private let generateModel: @Sendable (ModelRequest) async throws -> ModelReply
+    private let readHistory: @MainActor () async throws -> HealthHistory
+    private let authorizeHistory: @MainActor () async throws -> Void
+    private let protectedDataAvailable: @MainActor () -> Bool
+    private let historyScope: @MainActor () -> String
 
     init(defaults: UserDefaults = .standard, store: PersonalIntelligenceStore = .init(),
-         generateModel: @escaping @Sendable (ModelRequest) async throws -> ModelReply = { try await NativeModelClient().generate($0) }) {
+         generateModel: @escaping @Sendable (ModelRequest) async throws -> ModelReply = { try await NativeModelClient().generate($0) },
+         readHistory: @escaping @MainActor () async throws -> HealthHistory = { try await HealthHistoryReader(store: HKHealthStore()).read() },
+         authorizeHistory: @escaping @MainActor () async throws -> Void = { try await HealthHistoryReader(store: HKHealthStore()).authorize() },
+         protectedDataAvailable: @escaping @MainActor () -> Bool = { UIApplication.shared.isProtectedDataAvailable },
+         historyScope: @escaping @MainActor () -> String = {
+             ["apiBackend", "podURL", "podIPAddress", "ownerConnectionRevision", "household.boundaryRevision"]
+                 .map { UserDefaults.standard.string(forKey: $0) ?? "" }.joined(separator: "|")
+         }) {
         self.defaults = defaults; self.store = store
         self.generateModel = generateModel
+        self.readHistory = readHistory; self.authorizeHistory = authorizeHistory
+        self.protectedDataAvailable = protectedDataAvailable; self.historyScope = historyScope
         let selected = IntelligenceProvider(rawValue: defaults.string(forKey: "intelligence.provider") ?? "") ?? .apple
         provider = selected
         let savedModels = defaults.dictionary(forKey: "intelligence.models") as? [String: String] ?? [:]
@@ -47,6 +62,7 @@ final class IntelligenceWorkspace {
     }
     var choices: [String] { Array(Set(provider.models + catalog + (modelID.isEmpty ? [] : [modelID]))).sorted() }
     var reportInProgress: Bool { operation != nil }
+    var automaticHistoryRefresh: Bool { refreshHistory && defaults.bool(forKey: "intelligence.healthRequested") }
     var ready: Bool { provider == .apple ? AppleIntelligenceClient.available : provider == .ollama ? !localAddress.isEmpty : keySaved }
     func restore() {
         if !restored {
@@ -54,7 +70,10 @@ final class IntelligenceWorkspace {
                 archive = try store.read(); restored = true
                 if !archive.history.sources.contains(where: { $0.id == selectedSource }) { selectedSource = archive.history.sources.first?.id ?? "" }
             }
-            catch { message = "Saved Health history is unavailable while this device is locked, or the archive could not be read." }
+            catch {
+                healthReadError = "Saved Health history is unavailable while this device is locked, or the archive could not be read."
+                message = healthReadError
+            }
         }
         checkKey(); updateAttempts()
     }
@@ -88,27 +107,41 @@ final class IntelligenceWorkspace {
     func importHistory(authorize: Bool = true) async {
         guard !PersonalWorkspaceBoundary.isActive else { return }
         guard !busy, !AppMode.isDemo else { return }
-        busy = true; message = "Reading accessible Health history…"; lastRefreshAttempt = .now
+        guard protectedDataAvailable() else {
+            healthReadError = "Unlock this device to read Health. Your previous import is unchanged."; return
+        }
+        restore()
+        guard restored else { return } // Never overwrite an unreadable archive and its existing reports.
+        let scope = historyScope()
+        busy = true; healthReadError = nil; message = "Reading accessible Health history…"; lastHealthAttempt = .now
         defer { busy = false }
         do {
-            let reader = HealthHistoryReader(store: HKHealthStore())
-            if authorize { try await reader.authorize(); defaults.set(true, forKey: "intelligence.healthRequested") }
-            let history = try await reader.read()
+            if authorize {
+                try await authorizeHistory()
+                guard historyScope() == scope, !PersonalWorkspaceBoundary.isActive else { return }
+                defaults.set(true, forKey: "intelligence.healthRequested")
+            }
+            let history = try await readHistory()
             try PersonalWorkspaceBoundary.requireLegacyAccess()
+            guard historyScope() == scope else { return }
             try Task.checkCancellation()
             var updated = archive; updated.history = history
             try store.write(updated); archive = updated
             if !history.sources.contains(where: { $0.id == selectedSource }) { selectedSource = history.sources.first?.id ?? "" }
             message = history.sources.isEmpty ? "No readable sleep records were returned. Health does not reveal whether access was denied; review permissions or try again after data syncs."
                 : "History refreshed. Choose one sleep source below. No Health data has been sent to a model."
-        } catch { message = error is CancellationError ? "History refresh cancelled. The previous import is unchanged." : error.localizedDescription }
+        } catch {
+            guard historyScope() == scope, !PersonalWorkspaceBoundary.isActive else { return }
+            healthReadError = error is CancellationError ? "History refresh cancelled. The previous import is unchanged."
+                : "Health could not be read. Your previous import is unchanged. Unlock this device, then try again. If it continues, check sleepypod’s access in Health."
+            message = healthReadError
+        }
     }
     func refreshOnActivation() async {
-        guard !PersonalWorkspaceBoundary.isActive else { return }
+        guard !PersonalWorkspaceBoundary.isActive, protectedDataAvailable(), !AppMode.isDemo else { return }
         restore()
-        guard refreshHistory, defaults.bool(forKey: "intelligence.healthRequested"), !busy,
-              Date.now.timeIntervalSince(archive.history.importedAt) >= 6 * 3600,
-              Date.now.timeIntervalSince(lastRefreshAttempt) >= 15 * 60 else { return }
+        guard restored, !busy, HealthHistoryRefreshPolicy.shouldRefresh(now: .now, importedAt: archive.history.importedAt,
+            lastAttempt: lastHealthAttempt, enabled: refreshHistory, requested: defaults.bool(forKey: "intelligence.healthRequested")) else { return }
         await importHistory(authorize: false)
     }
     func generate(facts: [SleepFact], consent: Bool, sourceName: String? = nil, valid: @escaping @MainActor () -> Bool = { true }) {
@@ -143,6 +176,7 @@ final class IntelligenceWorkspace {
         do {
             let empty = PersonalIntelligenceArchive(); try store.write(empty); archive = empty
             defaults.set(false, forKey: "intelligence.healthRequested"); refreshHistory = false
+            healthReadError = nil; lastHealthAttempt = nil; restored = true
             message = "Local history and reports removed. Apple Health records and API keys are unchanged."
         } catch { message = "The local archive could not be cleared." }
     }
