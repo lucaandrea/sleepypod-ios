@@ -29,9 +29,13 @@ struct SleepypodApp: App {
     @State private var nightAnomalies = NightAnomalyStore()
     @State private var watchMotion = WatchMotionReceiver()
     @State private var snoreCapture = SnoreCaptureService()
+    @State private var offlineLibrary = OfflineLibrarySession()
 
     init() {
         #if DEBUG
+        if ProcessInfo.processInfo.arguments.contains("--offline-library-fixture") {
+            _offlineLibrary = State(initialValue: OfflineLibrarySession(currentScope: { "offline-ui-example" }))
+        }
         let household = PersonalHistoryPreview.make() ?? ArrangementReviewPreview.make() ?? PersonalRoutinePreview.make() ?? PersonalTemperaturePreview.make() ?? HouseholdPreview.make() ?? HouseholdWorkspace()
         #else
         let household = HouseholdWorkspace()
@@ -86,6 +90,7 @@ struct SleepypodApp: App {
                 }
                 .onChange(of: household.active) {
                     if household.active {
+                        offlineLibrary.withdraw()
                         deviceManager.suspendConnection(); sensorStream.disconnect(); podDiscovery.stopBrowsing()
                         snoreCapture.stop(reason: "personal account opened")
                     } else { watchMotion.activate() }
@@ -109,7 +114,14 @@ struct SleepypodApp: App {
     private var ownerContent: some View {
         Group {
             #if DEBUG
-            if ProcessInfo.processInfo.arguments.contains("--connection-fixture") { ConnectionRecoveryPreview() }
+            if ProcessInfo.processInfo.arguments.contains("--offline-library-fixture") {
+                OfflineLibraryScreen(page: UserDefaults.standard.string(forKey: "uiOfflinePage") == "schedule" ? .schedule : .sleep)
+                    .task {
+                        if UserDefaults.standard.bool(forKey: "uiOfflineReadOnly") { offlineLibrary.restore() }
+                        else { await offlineLibrary.refresh(client: MockClient(), timeZone: "America/Los_Angeles") }
+                    }
+            }
+            else if ProcessInfo.processInfo.arguments.contains("--connection-fixture") { ConnectionRecoveryPreview() }
             else { ContentView() }
             #else
             ContentView()
@@ -120,6 +132,7 @@ struct SleepypodApp: App {
             .environment(userProfile).environment(sensorStream).environment(notificationRelay).environment(alertInbox)
             .environment(homeRoom).environment(bedroom).environment(healthSync).environment(nativeActions)
             .environment(stageModels).environment(nightAnomalies).environment(watchMotion).environment(snoreCapture)
+            .environment(offlineLibrary)
     }
 }
 
@@ -137,6 +150,7 @@ struct ContentView: View {
     @Environment(MetricsManager.self) private var metricsManager
     @Environment(StatusManager.self) private var statusManager
     @Environment(HealthSyncService.self) private var healthSync
+    @Environment(OfflineLibrarySession.self) private var offlineLibrary
     @Environment(UserProfile.self) private var profile
     @Environment(\.scenePhase) private var scenePhase
     @State private var selectedTab = Self.initialTab
@@ -177,11 +191,11 @@ struct ContentView: View {
                 } label: { tabLabel("Temp", "thermometer.medium") }
                 Tab(value: "schedule") {
                     if isConnected { ScheduleScreen() }
-                    else { NavigationStack { DisconnectedTabView(tab: "Schedule", selectedTab: $selectedTab).settingsToolbar() } }
+                    else { OfflineLibraryScreen(page: .schedule) }
                 } label: { tabLabel("Schedule", "calendar") }
                 Tab(value: "sleep") {
                     if isConnected { SleepScreen() }
-                    else { NavigationStack { DisconnectedTabView(tab: "Sleep", selectedTab: $selectedTab).settingsToolbar() } }
+                    else { OfflineLibraryScreen(page: .sleep) }
                 } label: { tabLabel("Sleep", "moon") }
             }
             .id(inboxScope)
@@ -212,6 +226,17 @@ struct ContentView: View {
 
         }
         .overlay(alignment: .top) { AlertForegroundBanner() }
+        .task(id: "offline-\(inboxScope)-\(scenePhase)-\(isConnected)-\(settingsManager.settings?.timeZone ?? "")") {
+            offlineLibrary.restore()
+            guard scenePhase == .active, isConnected, !isDemo, settingsManager.settings != nil else { return }
+            while !Task.isCancelled {
+                await offlineLibrary.refresh(client: HealthSyncService.frozenClient(), timeZone: settingsManager.timeZone)
+                do { try await Task.sleep(for: .seconds(120)) } catch { return }
+            }
+        }
+        .onChange(of: deviceManager.connectionIssue) {
+            if deviceManager.connectionIssue == .authentication { offlineLibrary.erase() }
+        }
         .task(id: "\(inboxScope)-\(scenePhase)") {
             alertInbox.configure(scope: inboxScope)
             guard let model = alertInbox.workspace else { return }

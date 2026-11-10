@@ -52,8 +52,8 @@ struct SleepRecord: Codable, Sendable, Identifiable, Equatable {
         try c.encode(side, forKey: .side)
         try c.encode(_sleepSeconds, forKey: .sleepDurationSeconds)
         try c.encode(timesExitedBed, forKey: .timesExitedBed)
-        try c.encode(Int(_enteredBedAt), forKey: .enteredBedAt)
-        try c.encodeIfPresent(_leftBedAt.map(Int.init), forKey: .leftBedAt)
+        try c.encode(_enteredBedAt, forKey: .enteredBedAt)
+        try c.encodeIfPresent(_leftBedAt, forKey: .leftBedAt)
         try c.encodeIfPresent(presentIntervals, forKey: .presentIntervals)
         try c.encodeIfPresent(notPresentIntervals, forKey: .notPresentIntervals)
     }
@@ -71,8 +71,8 @@ struct SleepRecord: Codable, Sendable, Identifiable, Equatable {
 
     private static func parseTimestamp(_ c: KeyedDecodingContainer<CodingKeys>, keys: [CodingKeys]) -> TimeInterval {
         for key in keys {
-            if let unix = try? c.decode(Int.self, forKey: key) {
-                return TimeInterval(unix)
+            if let unix = try? c.decode(Double.self, forKey: key), unix.isFinite {
+                return unix
             }
             if let iso = try? c.decode(String.self, forKey: key) {
                 let fmt = ISO8601DateFormatter()

@@ -1,4 +1,5 @@
 import Foundation
+import CryptoKit
 import Testing
 
 @Test func localProvidersDoNotAccessKeychain() throws {
@@ -76,7 +77,9 @@ struct PersonalIntelligenceTests {
     @Test func privateHistoryStoreRoundTripsAndClearingDoesNotLeaveReports() throws {
         let directory = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
         defer { try? FileManager.default.removeItem(at: directory) }
-        let store = PersonalIntelligenceStore(directory: directory)
+        let key = SymmetricKey(size: .bits256)
+        let snapshots = PrivateSnapshotStore(directory: directory, namespace: "history-test", encryptionKey: { key })
+        let store = PersonalIntelligenceStore(directory: directory, snapshots: snapshots)
         var archive = PersonalIntelligenceArchive()
         archive.reports = [.init(id: UUID(), createdAt: .now, provider: .apple, model: "Apple", source: "Synthetic", facts: [], text: "Fixture")]
         try store.write(archive)
