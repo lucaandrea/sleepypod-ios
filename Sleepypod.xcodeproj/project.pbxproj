@@ -45,6 +45,7 @@
 		08CE65FCB906EAB862271CA5 /* PersonalReportPrompt.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6609FBA3B881355B05CD01F8 /* PersonalReportPrompt.swift */; };
 		0911824544AF401433A9DC43 /* PiezoWaveformView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7BC90983ABD4505D2BE197D8 /* PiezoWaveformView.swift */; };
 		0924020083436EF548E429C4 /* TemperatureHistoryClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA418B92A2C306663D5C00CD /* TemperatureHistoryClient.swift */; };
+		0949177D1BA71638F0990349 /* ComfortLimitTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4FB70F8100ECAAC8EB628653 /* ComfortLimitTests.swift */; };
 		096C22DDAFBEBBC52E23DD03 /* PodFeatureLink.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACEA4AE9C367F66EBADBBBB1 /* PodFeatureLink.swift */; };
 		09B2667D5E0E3F504B606261 /* NextAlarmRESTTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26149D422D4EB5ACD548A5A8 /* NextAlarmRESTTests.swift */; };
 		0A90C10339B69F0C2CAB72BD /* BiometricStageReport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38BFD30A00F1D00D7D77C99D /* BiometricStageReport.swift */; };
@@ -250,6 +251,7 @@
 		3A614B258C48D76328C444BB /* DemoCoachFacts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3C93A9185A24AD9F7EC8F60F /* DemoCoachFacts.swift */; };
 		3A8BA0C8A89CCBCDAF2C71D1 /* Journal.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88D507ED3358EAA28B7E69CB /* Journal.swift */; };
 		3B23182D2D1CA7F99CB5E2F8 /* SensorCalibrationUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E49937910D17A1E0A29786E /* SensorCalibrationUITests.swift */; };
+		3B271695F4BC65656A64C4FD /* ComfortLimitScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 97D576899655C7C2BC78EA24 /* ComfortLimitScreen.swift */; };
 		3B3042DE6CFEB904189E6151 /* stage-model-demo.json in Resources */ = {isa = PBXBuildFile; fileRef = 33A63EDBBB1B841B42BAF60B /* stage-model-demo.json */; };
 		3B3B1817AA79C7C5C70D9F51 /* HealthComparison.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E7FA2C23C916CBADE75A220 /* HealthComparison.swift */; };
 		3C04B00AB838992EEFB613DD /* ArrangementReviewScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7A1E46D7AB4D93C83BBF1B4 /* ArrangementReviewScreen.swift */; };
@@ -368,6 +370,7 @@
 		57CD774ED341E24DC30E4B27 /* PersonalTemperatureWorkspace.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44112AEF0643D3BE53683CD5 /* PersonalTemperatureWorkspace.swift */; };
 		57DCB23539BD264EB9CC3B88 /* ExampleAlertInboxClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 574A5D3FC9E89C40955922D1 /* ExampleAlertInboxClient.swift */; };
 		58CF43CD5D3125108DC7E639 /* CoreConnectionTransportTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 323F1415D54E5F60AAA15262 /* CoreConnectionTransportTests.swift */; };
+		591376D9B42C4595E6650A50 /* ComfortLimit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B19D4BFB0B928B2878E075F /* ComfortLimit.swift */; };
 		598F8218383423156403B37E /* CoreBiometricWaveformsClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 538065B54804B71133EB5E9A /* CoreBiometricWaveformsClient.swift */; };
 		59D63C6FB621C08C2D068AA7 /* NotificationRelay.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3B44F02B272682A83840CA4 /* NotificationRelay.swift */; };
 		59F63D9F223D60F457B5079A /* PumpAlert.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E0716D0C9CB55312A5DB0AA /* PumpAlert.swift */; };
@@ -378,6 +381,7 @@
 		5B25E9BC63C38C27C8D7BD5D /* WatchReferenceClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D80B844D752A65599BB91C4 /* WatchReferenceClient.swift */; };
 		5B2DF124F3FCC842FD28DE78 /* CoachUsageWorkspace.swift in Sources */ = {isa = PBXBuildFile; fileRef = 516B05145B02A7518A39D112 /* CoachUsageWorkspace.swift */; };
 		5BC457AD7423395EA891146B /* TemperatureHistoryScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7107D3A234C3337CEF5486FA /* TemperatureHistoryScreen.swift */; };
+		5C071BFE97626AFF2BE91791 /* ComfortLimitUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00C595C3C05F8FCBA9400C1D /* ComfortLimitUITests.swift */; };
 		5C1E0E31917A60FA0EC46A10 /* DevicePreferencesClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EE6617412A9AFF4E294884A /* DevicePreferencesClient.swift */; };
 		5C3D2D77643815234F533DB2 /* TemperatureHistoryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 87144B04B2CF0148395FB765 /* TemperatureHistoryTests.swift */; };
 		5C3DD83F9E27810788A9C7A1 /* TemperatureCurve.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0F14C7A4B6C837B173C5EFA /* TemperatureCurve.swift */; };
@@ -733,6 +737,7 @@
 		B69E71AA0B8ED4BF06C31AD1 /* PersonalReportCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF956DDC284CB1E174A77042 /* PersonalReportCard.swift */; };
 		B69F31ED0A8F9F53BCA75DBB /* WatchComparisonTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 97C4FF2FF166CD9D12DEEBD0 /* WatchComparisonTests.swift */; };
 		B6D8E0C514FC3149E1A43998 /* SensorCalibrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C0714229976412C38E3B1E8 /* SensorCalibrationTests.swift */; };
+		B7371E28180155C4ADA2CC2D /* ComfortLimitWorkspace.swift in Sources */ = {isa = PBXBuildFile; fileRef = A68D238E586B33B7930C38BD /* ComfortLimitWorkspace.swift */; };
 		B7D89D774DA76C38C6AF98F3 /* SensorFrames.swift in Sources */ = {isa = PBXBuildFile; fileRef = 489B1791FCB967E58E8D40F6 /* SensorFrames.swift */; };
 		B813FD1E7EC4D32B0657462E /* SystemDatabase.swift in Sources */ = {isa = PBXBuildFile; fileRef = EFC0F821B816F9CF9086DE34 /* SystemDatabase.swift */; };
 		B83F8D48736FA606BA78E5A7 /* AppleHomeService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 383C633CC8E58B5DA28E906A /* AppleHomeService.swift */; };
@@ -946,6 +951,7 @@
 		EB59F245D7EF4572F7775886 /* SystemDashboardNightCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = C94EFDC6A092C06FBF9A8244 /* SystemDashboardNightCard.swift */; };
 		EB837F4F0EBCD9283A7F3F3D /* NativeControl.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F207B7B5E95F12A55ABBFDC /* NativeControl.swift */; };
 		EBC64819141EB5BCC3E21789 /* HomeFeedbackLiveTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E369B40FBE27392893F5F09 /* HomeFeedbackLiveTests.swift */; };
+		EC598F0A339D4BB674AF33C9 /* ComfortLimitClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = EEF79938346A10E88AA3E44D /* ComfortLimitClient.swift */; };
 		EC72936E1CC6422CEEC0E2C4 /* CurveWorkspace.swift in Sources */ = {isa = PBXBuildFile; fileRef = 608B3D3016DB8F9B56AE624B /* CurveWorkspace.swift */; };
 		ECB32894E5D4CE2B77D4F6E3 /* PortableStageModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36CA3E2091E691163F71E3A2 /* PortableStageModelTests.swift */; };
 		ECB4636166B34844B471A8D3 /* BiometricsContextClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E142FFB667A7C223BB4D832 /* BiometricsContextClient.swift */; };
@@ -1103,6 +1109,7 @@
 		000D3A41033F131648229FE9 /* ControllerUpdatesScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ControllerUpdatesScreen.swift; sourceTree = "<group>"; };
 		000E31765E9104B7E8ECEA44 /* AutomationDiagnosticCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutomationDiagnosticCard.swift; sourceTree = "<group>"; };
 		00ACD26F7A732EAF0E9B4016 /* HealthHRVReviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthHRVReviewView.swift; sourceTree = "<group>"; };
+		00C595C3C05F8FCBA9400C1D /* ComfortLimitUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComfortLimitUITests.swift; sourceTree = "<group>"; };
 		013BB9A9DD870F5C912AE3F2 /* PersonalHistoryPreviewVault.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersonalHistoryPreviewVault.swift; sourceTree = "<group>"; };
 		0144EC2C3B96839B69D7A14A /* SleepypodProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SleepypodProtocol.swift; sourceTree = "<group>"; };
 		01D54A3F47417764EE8A1730 /* PersonalHistoryWorkspaceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersonalHistoryWorkspaceTests.swift; sourceTree = "<group>"; };
@@ -1403,6 +1410,7 @@
 		4EF53BE62A2C887F2F438EFE /* PersonalHistoryDetailScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersonalHistoryDetailScreen.swift; sourceTree = "<group>"; };
 		4EFCA6523351EC15B71EF977 /* personal-routines-v1.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "personal-routines-v1.json"; sourceTree = "<group>"; };
 		4F4EAF0885B4206D02501DC8 /* StatusManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusManager.swift; sourceTree = "<group>"; };
+		4FB70F8100ECAAC8EB628653 /* ComfortLimitTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComfortLimitTests.swift; sourceTree = "<group>"; };
 		4FB8B2DA678429E6911F7158 /* BridgeSettingsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BridgeSettingsTests.swift; sourceTree = "<group>"; };
 		4FD03C0AEDBFC72ABE6091F1 /* CoachSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoachSession.swift; sourceTree = "<group>"; };
 		4FF755316550B89052F80058 /* StageLanesTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StageLanesTests.swift; sourceTree = "<group>"; };
@@ -1583,6 +1591,7 @@
 		7A6FF64E72F4ED36D4A05386 /* RecordingController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordingController.swift; sourceTree = "<group>"; };
 		7A89CDBBC9BF2AAE10BA0302 /* SleepProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SleepProfile.swift; sourceTree = "<group>"; };
 		7B0F30028207CF0DC99974D1 /* DeviceStatus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceStatus.swift; sourceTree = "<group>"; };
+		7B19D4BFB0B928B2878E075F /* ComfortLimit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComfortLimit.swift; sourceTree = "<group>"; };
 		7B4A78F7220A8976E8047BF2 /* TempControlsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TempControlsView.swift; sourceTree = "<group>"; };
 		7B974DA1015929FA2A53E3EA /* PersonalHistoryPayload.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersonalHistoryPayload.swift; sourceTree = "<group>"; };
 		7BA75DF7DB0908E6FF913E08 /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
@@ -1681,6 +1690,7 @@
 		973A33546BC60C27585A13C8 /* BedroomDeviceReadings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BedroomDeviceReadings.swift; sourceTree = "<group>"; };
 		97B5E8C17FB07F1DB62AEEA5 /* BaseSchedulesScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BaseSchedulesScreen.swift; sourceTree = "<group>"; };
 		97C4FF2FF166CD9D12DEEBD0 /* WatchComparisonTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchComparisonTests.swift; sourceTree = "<group>"; };
+		97D576899655C7C2BC78EA24 /* ComfortLimitScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComfortLimitScreen.swift; sourceTree = "<group>"; };
 		982DF7898B5B080238D636F4 /* AlarmCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmCard.swift; sourceTree = "<group>"; };
 		987F4C796A69FBEA5B834DEF /* SetPointEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SetPointEditor.swift; sourceTree = "<group>"; };
 		98935B7E2AFC02DC367956D8 /* AppModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppModel.swift; sourceTree = "<group>"; };
@@ -1738,6 +1748,7 @@
 		A5480D3E1BA5B479DECCA785 /* NativePodEvidence.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativePodEvidence.swift; sourceTree = "<group>"; };
 		A58BD3EE1C5B47277EFC3D08 /* HomeRoomTransportTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeRoomTransportTests.swift; sourceTree = "<group>"; };
 		A5F6D53CAAA063258CCAA6D7 /* SystemDashboardTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemDashboardTests.swift; sourceTree = "<group>"; };
+		A68D238E586B33B7930C38BD /* ComfortLimitWorkspace.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComfortLimitWorkspace.swift; sourceTree = "<group>"; };
 		A6F101B6B3CD939C8FB9CCF4 /* AlarmParityUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmParityUITests.swift; sourceTree = "<group>"; };
 		A76D36286E623D5618D32EEF /* IBMPlexMono-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "IBMPlexMono-Regular.ttf"; sourceTree = "<group>"; };
 		A77A6E2CD8CB96511F60AC0B /* temperature-applications-example.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "temperature-applications-example.json"; sourceTree = "<group>"; };
@@ -2025,6 +2036,7 @@
 		ED53C388A9A1BE8B0FB0382E /* SideSelectorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SideSelectorView.swift; sourceTree = "<group>"; };
 		ED71C7684867299327307368 /* GestureBindingsScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GestureBindingsScreen.swift; sourceTree = "<group>"; };
 		EE04658EF507E97A933986A0 /* ActiveCurve.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActiveCurve.swift; sourceTree = "<group>"; };
+		EEF79938346A10E88AA3E44D /* ComfortLimitClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComfortLimitClient.swift; sourceTree = "<group>"; };
 		EF0A3E249737A182E7FB1DC3 /* MorningJournalClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MorningJournalClient.swift; sourceTree = "<group>"; };
 		EF0B2422EAC341B690AB1E50 /* BiometricExperimentsUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiometricExperimentsUITests.swift; sourceTree = "<group>"; };
 		EF0E237026027FF6BF0DC5A8 /* SensorDiagnosticsWorkspace.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SensorDiagnosticsWorkspace.swift; sourceTree = "<group>"; };
@@ -2264,6 +2276,7 @@
 			children = (
 				97B5E8C17FB07F1DB62AEEA5 /* BaseSchedulesScreen.swift */,
 				BACCA7BD3D78B0D77B37A536 /* BothSidesView.swift */,
+				97D576899655C7C2BC78EA24 /* ComfortLimitScreen.swift */,
 				2D039BE0CE64C5F6438E6442 /* LoadingView.swift */,
 				03E5DFA72720A6968DE3369C /* PrimingIndicator.swift */,
 				ED53C388A9A1BE8B0FB0382E /* SideSelectorView.swift */,
@@ -2424,6 +2437,7 @@
 				C2E42A805130A561F3230EA4 /* BiometricWaveformDemoFixture.swift */,
 				57C1BDB90A279D6C4490975F /* BridgeSettingsClient.swift */,
 				55598C477D62C8A029E61120 /* CalendarScheduleClient.swift */,
+				EEF79938346A10E88AA3E44D /* ComfortLimitClient.swift */,
 				39658E70652303A88261A2BE /* ComfortOwnerClient.swift */,
 				56F8C64470BD6CB2BFF9E9A0 /* ComfortOwnerExampleClient.swift */,
 				1553242EC4167F9EED30F328 /* ControllerUpdateClient.swift */,
@@ -2669,6 +2683,7 @@
 				148D7F0C3BD874AF365D933F /* BridgeSettings.swift */,
 				1E48D49C180ECFE78A2FC922 /* CalendarScheduleControl.swift */,
 				D2FD2FA3FA80666605E9EBBC /* CalibrationSignalBuffer.swift */,
+				7B19D4BFB0B928B2878E075F /* ComfortLimit.swift */,
 				3FD0C9B667B6683191EF3F6A /* ComfortNightReport.swift */,
 				CECFF1CC757084569D385E94 /* ComfortOwner.swift */,
 				8154B9917B65378D32C31783 /* ConnectionIssue.swift */,
@@ -2812,6 +2827,7 @@
 				B905ACC6068537BA8BC29F6E /* BridgeSettingsTransportTests.swift */,
 				4D723AB328D920083A085F3A /* CalendarScheduleControlTests.swift */,
 				DE0553DF9686966CDE7AF58B /* CalibrationTests.swift */,
+				4FB70F8100ECAAC8EB628653 /* ComfortLimitTests.swift */,
 				C8098BCC6FA955029BBF13D0 /* ComfortOwnerTests.swift */,
 				5680F15960644C4C66DFBBA5 /* ComfortOwnerTransportTests.swift */,
 				26095C0D934EA6D1206FC8D6 /* ConnectionIssueTests.swift */,
@@ -3073,6 +3089,7 @@
 				BF288B032287E52F9850CD46 /* BiometricsWorkspace.swift */,
 				85BDFDECCB7C0B9D09B7673B /* BiometricTraceWorkspace.swift */,
 				E201E696B875BE5E6244D706 /* CalendarScheduleWorkspace.swift */,
+				A68D238E586B33B7930C38BD /* ComfortLimitWorkspace.swift */,
 				9DD438F3B2E4190535C32C29 /* ComfortOwnerWorkspace.swift */,
 				D9DFFF5FC5AC7F8027244703 /* ConnectionPathMonitor.swift */,
 				0F16E1D43EB41278F77C1722 /* ControllerUpdateJournal.swift */,
@@ -3323,6 +3340,7 @@
 				918E893F2F4265D35AE8B546 /* BiometricValidatedActivationUITests.swift */,
 				BB109171A31BAAA02760C0F2 /* BiometricWaveformsUITests.swift */,
 				B2328FD96FCFADFF4EF665AF /* BridgeSettingsUITests.swift */,
+				00C595C3C05F8FCBA9400C1D /* ComfortLimitUITests.swift */,
 				3817D77DE3217114FEFA3F54 /* ComfortOwnerUITests.swift */,
 				DCAF8711D6CC836C125C56FD /* ControllerUpdatesUITests.swift */,
 				B50B7B41BE55D84641374F00 /* CurveParityUITests.swift */,
@@ -3825,6 +3843,7 @@
 				56C967B06F1232BBB2B39AFE /* BridgeSettingsTransportTests.swift in Sources */,
 				FC5CBC68ACF307E9F85DE243 /* CalendarScheduleControlTests.swift in Sources */,
 				53581400686FE861A24087AE /* CalibrationTests.swift in Sources */,
+				0949177D1BA71638F0990349 /* ComfortLimitTests.swift in Sources */,
 				C267ACD43DE992C8F6D7E6F5 /* ComfortOwnerTests.swift in Sources */,
 				3CC6EDA413496463A558BF30 /* ComfortOwnerTransportTests.swift in Sources */,
 				D226B9B8A0CC58632539062A /* ConnectionIssueTests.swift in Sources */,
@@ -3970,6 +3989,7 @@
 				B9EAFCE0D1A4B177833BA0D0 /* BiometricValidatedActivationUITests.swift in Sources */,
 				931BCCCC7F1B2AA0207A2F37 /* BiometricWaveformsUITests.swift in Sources */,
 				2703AFBB4E98CFEAD3F637F8 /* BridgeSettingsUITests.swift in Sources */,
+				5C071BFE97626AFF2BE91791 /* ComfortLimitUITests.swift in Sources */,
 				0697A77884510F8BFBF0FF23 /* ComfortOwnerUITests.swift in Sources */,
 				7DFC017B17971A7F942D5DD2 /* ControllerUpdatesUITests.swift in Sources */,
 				4ADD4C0F3F8861C750B235BC /* CurveParityUITests.swift in Sources */,
@@ -4324,6 +4344,10 @@
 				17DBBAD617E07F2F8DF76468 /* CalendarScheduleWorkspace.swift in Sources */,
 				ABCEA98720E6ED6B1AEABBF6 /* CalibrationSignalBuffer.swift in Sources */,
 				ED2D1270554FD08D4FB92320 /* CalibrationSignalChart.swift in Sources */,
+				591376D9B42C4595E6650A50 /* ComfortLimit.swift in Sources */,
+				EC598F0A339D4BB674AF33C9 /* ComfortLimitClient.swift in Sources */,
+				3B271695F4BC65656A64C4FD /* ComfortLimitScreen.swift in Sources */,
+				B7371E28180155C4ADA2CC2D /* ComfortLimitWorkspace.swift in Sources */,
 				309B8E3F88AF13448B3CFB19 /* ComfortNightReport.swift in Sources */,
 				C217F34C0CD363D9B214086C /* ComfortNightReportScreen.swift in Sources */,
 				C703377DFDDF0D439CBE33F1 /* ComfortOwner.swift in Sources */,

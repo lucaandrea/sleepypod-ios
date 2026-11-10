@@ -7,6 +7,7 @@ struct TemperatureControlStatus: Codable, Sendable, Equatable {
     var targetTemperature: Double?
     var holdUntil: Double?
     var blocked: String?
+    var comfortLimit: ComfortLimitDecision?
 
     var holdDate: Date? { holdUntil.map { Date(timeIntervalSince1970: $0 / 1000) } }
     var title: String {
