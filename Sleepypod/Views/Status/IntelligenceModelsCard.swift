@@ -9,7 +9,7 @@ struct IntelligenceModelsCard: View {
     private var scope: String { (health.watchReferenceContext + [settings.timeZone]).joined(separator: "|") }
 
     var body: some View {
-        NavigationLink { IntelligenceModelsScreen() } label: {
+        NavigationLink { LearningJourneyScreen() } label: {
             VStack(alignment: .leading, spacing: 14) {
                 Label("On-device intelligence", systemImage: "brain").font(.headline).foregroundStyle(Theme.purple)
                 Text(stages.active.map { "Sleep estimates · \($0.title)" } ?? "Sleep estimates · rule-based")
@@ -21,7 +21,7 @@ struct IntelligenceModelsCard: View {
                     Spacer(minLength: 8)
                     Text(anomalies.status).font(.caption).foregroundStyle(anomalies.verified ? Theme.green : Theme.text2)
                 }
-                Label("Models, evidence and training", systemImage: "chevron.right").font(.subheadline).foregroundStyle(Theme.cool)
+                Label("Learning journey and model details", systemImage: "chevron.right").font(.subheadline).foregroundStyle(Theme.cool)
             }.frame(maxWidth: .infinity, alignment: .leading).cardStyle()
         }.buttonStyle(.plain).accessibilityIdentifier("models.open")
             .task(id: scope) { anomalies.activate(scope: scope) }

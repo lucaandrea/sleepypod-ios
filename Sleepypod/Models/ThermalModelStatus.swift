@@ -30,4 +30,5 @@ struct ThermalModelStatus: Decodable, Sendable {
     let excluded: [Exclusion]
     let model: Model?
     let reason: String
+    var generatedAt: Double?
 }
