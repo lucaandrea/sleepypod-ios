@@ -1,8 +1,15 @@
+import CryptoKit
 import Foundation
 import Testing
 @testable import FreeSleepKit
 
 @MainActor struct PersonalEvidenceTests {
+    /// Unsigned CI runners cannot access Keychain. Keep unit fixtures encrypted
+    /// with an ephemeral test key; signed UI tests cover actual Keychain storage.
+    private func store(in directory: URL) -> PersonalIntelligenceStore {
+        let key = SymmetricKey(size: .bits256)
+        return .init(directory: directory, snapshots: .init(directory: directory, namespace: "evidence-test", encryptionKey: { key }))
+    }
     private func evidence(_ side: String = "right", days: Int = 30) -> NativePodEvidence {
         .init(side: side, days: days, timeZone: "America/Los_Angeles", start: Date(timeIntervalSince1970: 1000), end: Date(timeIntervalSince1970: 2000),
               facts: [.init(id: "pod.presence", text: "Recorded presence, not measured sleep.")], summary: "Presence only.", hasObservations: true)
@@ -32,7 +39,7 @@ import Testing
             defer { try? FileManager.default.removeItem(at: directory) }
             let gate = EvidenceGate(), scope = EvidenceValidity()
             let defaults = UserDefaults(suiteName: "report-\(UUID().uuidString)")!
-            let model = IntelligenceWorkspace(defaults: defaults, store: .init(directory: directory), generateModel: { _ in
+            let model = IntelligenceWorkspace(defaults: defaults, store: store(in: directory), generateModel: { _ in
                 await gate.wait(); return .init(text: "Synthetic reply", model: "test")
             })
             await AppMode.$suppliedBackend.withValue("sleepypod-core") {
@@ -53,7 +60,7 @@ import Testing
         defaults.set("ollama", forKey: "intelligence.provider")
         let directory = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
         defer { try? FileManager.default.removeItem(at: directory) }
-        let model = IntelligenceWorkspace(defaults: defaults, store: .init(directory: directory), generateModel: { _ in
+        let model = IntelligenceWorkspace(defaults: defaults, store: store(in: directory), generateModel: { _ in
             await gate.wait(); return .init(text: "Synthetic reply", model: "test")
         })
         let facts = [SleepFact(id: "pod.presence", text: "Presence only")]
