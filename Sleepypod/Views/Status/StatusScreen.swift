@@ -33,6 +33,10 @@ struct StatusScreen: View {
 
                 if APIBackend.current != .freeSleep {
                     GroupedCard {
+                        NavigationLink { BedCareScreen() } label: {
+                            SettingsRow("Bed care", subtitle: "Water, recording and practical recovery", icon: "bed.double", iconColor: Theme.cool, chevron: true)
+                        }.accessibilityIdentifier("system.care")
+                        Divider()
                         NavigationLink { SystemDashboardScreen() } label: {
                             SettingsRow("Overview", subtitle: "Tonight, maintenance and controller health", icon: "square.grid.2x2", iconColor: Theme.cool, chevron: true)
                         }.accessibilityIdentifier("system.dashboard")
