@@ -5,13 +5,18 @@ on:
     paths:
       - 'Sleepypod/**/PersonalHistory*.swift'
       - 'Sleepypod/**/PersonalLearning*.swift'
+      - 'Sleepypod/**/PersonalJournal*.swift'
       - 'Sleepypod/SleepypodApp.swift'
       - 'Sleepypod/Services/HouseholdWorkspace.swift'
       - 'Sleepypod/Views/Household/HouseholdScreen.swift'
       - 'SleepypodUITests/PersonalHistoryUITests.swift'
       - 'SleepypodUITests/PersonalLearningUITests.swift'
+      - 'SleepypodUITests/PersonalJournalUITests.swift'
+      - 'SleepypodUITests/PersonalJournalPatternsUITests.swift'
       - 'Integration/Fixtures/personal-history-v1.json'
       - 'Integration/Fixtures/personal-learning-v1.json'
+      - 'Integration/Fixtures/personal-journal-v1.json'
+      - 'Integration/Fixtures/personal-journal-patterns-v1.json'
       - '.github/workflows/personal-history-ui.yml'
   workflow_dispatch:
 
@@ -49,6 +54,8 @@ jobs:
             -destination "platform=iOS Simulator,id=$RECORDINGS_SIM_ID" \
             -derivedDataPath "$RUNNER_TEMP/RecordingsBuild" \
             -only-testing:SleepypodUITests/PersonalHistoryUITests \
+            -only-testing:SleepypodUITests/PersonalJournalUITests \
+            -only-testing:SleepypodUITests/PersonalJournalPatternsUITests \
             -only-testing:SleepypodUITests/PersonalLearningUITests CODE_SIGNING_ALLOWED=NO
       - name: Boot simulator
         timeout-minutes: 15
@@ -60,14 +67,26 @@ jobs:
             -destination "platform=iOS Simulator,id=$RECORDINGS_SIM_ID" \
             -derivedDataPath "$RUNNER_TEMP/RecordingsBuild" \
             -only-testing:SleepypodUITests/PersonalHistoryUITests \
+            -only-testing:SleepypodUITests/PersonalJournalUITests \
             -only-testing:SleepypodUITests/PersonalLearningUITests \
             -resultBundlePath "$RUNNER_TEMP/Recordings.xcresult" \
+            -collect-test-diagnostics never -parallel-testing-enabled NO CODE_SIGNING_ALLOWED=NO
+      - name: Verify private habit comparisons
+        timeout-minutes: 10
+        run: |
+          xcodebuild test-without-building -project Sleepypod.xcodeproj -scheme Sleepypod \
+            -destination "platform=iOS Simulator,id=$RECORDINGS_SIM_ID" \
+            -derivedDataPath "$RUNNER_TEMP/RecordingsBuild" \
+            -only-testing:SleepypodUITests/PersonalJournalPatternsUITests \
+            -resultBundlePath "$RUNNER_TEMP/PersonalPatterns.xcresult" \
             -collect-test-diagnostics never -parallel-testing-enabled NO CODE_SIGNING_ALLOWED=NO
       - name: Preserve screenshots and results
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: personal-recordings-${{ matrix.form }}
-          path: ${{ runner.temp }}/Recordings.xcresult
+          path: |
+            ${{ runner.temp }}/Recordings.xcresult
+            ${{ runner.temp }}/PersonalPatterns.xcresult
           if-no-files-found: ignore
           retention-days: 7
