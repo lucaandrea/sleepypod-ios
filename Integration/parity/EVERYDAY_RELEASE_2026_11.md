@@ -89,3 +89,33 @@ release operation. Fresh attended availability is required before a live restart
 
 See the feature-specific records in `Integration/parity/` for contract boundaries,
 source fixtures, independent design review and validation history.
+
+## Private check-ins and comparison consolidation
+
+The integrated candidate includes the private editor from PR 71 and the saved
+check-in comparisons from `be0094e`. Comparisons pin the account and revisions,
+exclude unsaved and legacy content, retain the original time zone, and explain
+usable counts and association limits. The independent reviewer scored the
+expanded Dynamic Type finding resolved after the complete result block received
+intrinsic vertical sizing.
+
+The product source at `cd472dd` passes all 1,472 app/framework checks with nine
+existing live-service skips and the phone export-cancellation UI scenario. The
+same built product passes seven iPad checks: all six household maintenance cases
+and export cancellation. Strict SwiftLint passes. Separate final-source habit
+comparison evidence covers all four scenarios per device across split runs,
+including the restarted iPad's largest-text and landscape check.
+
+Hosted video from the previous revision shows Files still blank at video second
+44, then the actual Save control at second 50, after the ten-second assertion had
+expired. The test now allows thirty seconds for that same visible, hittable Save
+control, captures the result before asserting, and still explicitly cancels and
+requires no export-success receipt. No production export behavior was changed.
+The separate hosted maintenance failure occurred before tests while waiting for
+the simulator accessibility service. Original failures are preserved.
+
+The enlarged hosted UI coverage builds all four recording/learning/journal suites
+once, runs each once per device in separate steps, and retains all four result
+bundles. Existing recording and learning checks retain their assertions; the new
+journal and habit checks get distinct reports. This is coverage organization,
+not proof of hosted success. Final hosted checks and distribution remain pending.

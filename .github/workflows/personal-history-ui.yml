@@ -67,9 +67,25 @@ jobs:
             -destination "platform=iOS Simulator,id=$RECORDINGS_SIM_ID" \
             -derivedDataPath "$RUNNER_TEMP/RecordingsBuild" \
             -only-testing:SleepypodUITests/PersonalHistoryUITests \
-            -only-testing:SleepypodUITests/PersonalJournalUITests \
-            -only-testing:SleepypodUITests/PersonalLearningUITests \
             -resultBundlePath "$RUNNER_TEMP/Recordings.xcresult" \
+            -collect-test-diagnostics never -parallel-testing-enabled NO CODE_SIGNING_ALLOWED=NO
+      - name: Verify saved learning and export
+        timeout-minutes: 20
+        run: |
+          xcodebuild test-without-building -project Sleepypod.xcodeproj -scheme Sleepypod \
+            -destination "platform=iOS Simulator,id=$RECORDINGS_SIM_ID" \
+            -derivedDataPath "$RUNNER_TEMP/RecordingsBuild" \
+            -only-testing:SleepypodUITests/PersonalLearningUITests \
+            -resultBundlePath "$RUNNER_TEMP/PersonalLearning.xcresult" \
+            -collect-test-diagnostics never -parallel-testing-enabled NO CODE_SIGNING_ALLOWED=NO
+      - name: Verify private check-ins
+        timeout-minutes: 10
+        run: |
+          xcodebuild test-without-building -project Sleepypod.xcodeproj -scheme Sleepypod \
+            -destination "platform=iOS Simulator,id=$RECORDINGS_SIM_ID" \
+            -derivedDataPath "$RUNNER_TEMP/RecordingsBuild" \
+            -only-testing:SleepypodUITests/PersonalJournalUITests \
+            -resultBundlePath "$RUNNER_TEMP/PersonalJournal.xcresult" \
             -collect-test-diagnostics never -parallel-testing-enabled NO CODE_SIGNING_ALLOWED=NO
       - name: Verify private habit comparisons
         timeout-minutes: 10
@@ -87,6 +103,8 @@ jobs:
           name: personal-recordings-${{ matrix.form }}
           path: |
             ${{ runner.temp }}/Recordings.xcresult
+            ${{ runner.temp }}/PersonalLearning.xcresult
+            ${{ runner.temp }}/PersonalJournal.xcresult
             ${{ runner.temp }}/PersonalPatterns.xcresult
           if-no-files-found: ignore
           retention-days: 7
