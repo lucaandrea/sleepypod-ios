@@ -57,10 +57,16 @@ import UIKit
         app.terminate()
     }
     private func reveal(_ element: XCUIElement, _ app: XCUIApplication) {
-        let bottomInset: CGFloat = UIDevice.current.userInterfaceIdiom == .pad ? 24 : 60
+        let container = app.scrollViews.firstMatch
         for _ in 0..<24 {
-            if element.exists, element.isHittable, element.frame.midY > 110, element.frame.midY < app.frame.maxY - bottomInset { return }
-            if element.exists, element.frame.midY < 110 { app.swipeDown() } else { app.swipeUp() }
+            let viewport = container.frame.intersection(app.frame).insetBy(dx: 8, dy: 32)
+            let frame = element.exists ? element.frame : .zero
+            if frame.height > 0, element.isHittable, viewport.contains(CGPoint(x: frame.midX, y: frame.midY)) { return }
+            let downward = !frame.isEmpty && frame.midY < viewport.minY
+            // The center of Tonight contains the temperature dial; scroll only in the content margin.
+            let start = container.coordinate(withNormalizedOffset: .init(dx: 0.02, dy: downward ? 0.2 : 0.8))
+            let end = container.coordinate(withNormalizedOffset: .init(dx: 0.02, dy: downward ? 0.8 : 0.2))
+            start.press(forDuration: 0.05, thenDragTo: end)
         }
         capture("Night-unreachable")
         XCTFail("Could not reach \(element.identifier); element: \(element.frame), app: \(app.frame), hittable: \(element.isHittable)")

@@ -193,3 +193,13 @@ failed while GitHub's artifact service timed out five times. That upload failure
 is not a failed response-model assertion, but the workflow still needs a green
 exact-revision run before merge. No physical-device or deployed acceptance is
 implied by these source and simulator results.
+
+The next exact-head hosted night test exposed the same center-drag problem in
+night-history navigation: its scroll gesture changed the simulated temperature
+dial instead of revealing the history link. That helper now uses the actual
+scroll container's content margin. All three night scenarios passed on both
+signed device classes in `SleepypodConnectionNightUI-iPhone-v12.xcresult` and
+`SleepypodConnectionNightUI-iPad-v12.xcresult`, without removing assertions.
+The separate hosted guidance failure occurred before any scenario initialized
+(`Timed out waiting for AX loaded notification`); it is retained as runner
+failure evidence, not reported as a passing check.
