@@ -62,3 +62,26 @@ scopes for the offline library, reports, learning and app-owned backup alarms.
 A route change must neither erase a valid backup alarm nor expose another
 account's data. Unacknowledged hardware operations must never replay. Verify
 work-network/cellular access and actual device behavior separately.
+
+## Encrypted profile and identity anchor
+
+`EnrolledOwnerRoutes` retains the original five-field owner revision while a
+verified home/away transport changes. `OwnerRouteProfileStore` encrypts that
+record with the existing device-local snapshot store. Loading checks the
+backend, account boundary, credential revision, exact enrolled address and both
+Keychain credential digests. A new owner revision cannot read the prior record;
+changed keys or an unrelated origin withdraw it. Corrupt ciphertext raises an
+unavailable-state error rather than pretending no profile exists.
+
+Disabling automatic selection retains the original identity anchor so that the
+eventual integration can preserve valid history and phone alarms. Re-enrollment
+may retain that anchor only for the same verified installation. This metadata is
+not yet used by the app's live history, alarm or connection lifecycle; those
+consumers must distinguish an unavailable identity read from a known owner change
+before cancellation or data migration.
+
+Six profile tests passed alongside the 14 identity/selection tests in
+`SleepypodRouteProfile-v2.xcresult` (20 total). They cover encrypted-at-rest
+relaunch, both origins, personal workspace denial, changed keys/account/backend,
+disabled selection, same-installation re-enrollment and corrupt ciphertext. The
+signed generic simulator build and strict lint passed again for this addition.
