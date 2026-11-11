@@ -149,6 +149,8 @@ final class IntelligenceWorkspace {
         busy = true; message = nil
         let sourceName = sourceName ?? source?.name ?? "Pod"
         let context = reportContext
+        let comparison = facts.contains { $0.id.hasPrefix("health.") }
+            ? ReportSleepComparison.capture(source: source, history: archive.history, now: .now) : nil
         do {
             let input = try request(prompt: PersonalReportPrompt.make(facts: facts, question: question))
             try reserve(provider: input.provider)
@@ -161,11 +163,49 @@ final class IntelligenceWorkspace {
                     try Task.checkCancellation()
                     guard context == reportContext, valid() else { throw CancellationError() }
                     let report = PersonalSleepReport(id: UUID(), createdAt: .now, provider: input.provider, model: reply.model,
-                        source: sourceName, facts: facts, text: reply.text, inputTokens: reply.inputTokens, outputTokens: reply.outputTokens)
+                        source: sourceName, facts: facts, text: reply.text, inputTokens: reply.inputTokens, outputTokens: reply.outputTokens,
+                        comparison: comparison)
                     var updated = archive; updated.reports = Array(([report] + updated.reports).prefix(30))
                     try store.write(updated); archive = updated
                     message = "Report saved privately on this device. Suggested changes are yours to review."
                 } catch { message = error is CancellationError ? "Report cancelled." : error.localizedDescription }
+            }
+        } catch { busy = false; message = error.localizedDescription }
+    }
+    /// Follow-ups reuse this report's frozen facts; they never substitute a newer Health import.
+    func followUp(report: PersonalSleepReport, question: String, consent: Bool,
+                  valid: @escaping @MainActor () -> Bool = { true }) {
+        let question = String(question.trimmingCharacters(in: .whitespacesAndNewlines).prefix(600))
+        guard !busy, !question.isEmpty, !report.facts.isEmpty, !AppMode.isDemo,
+              !PersonalWorkspaceBoundary.isActive, protectedDataAvailable(),
+              !provider.leavesDevice || consent, valid() else { return }
+        restore()
+        guard restored, archive.reports.contains(report), (report.followUps?.count ?? 0) < 10 else {
+            message = "Reload the saved report before asking a question. Each report keeps up to ten answers."; return
+        }
+        let scope = historyScope(), context = reportContext
+        do {
+            let input = try request(prompt: PersonalReportPrompt.followUp(report: report, question: question))
+            try reserve(provider: input.provider)
+            busy = true; message = nil
+            operation = Task {
+                defer { busy = false; operation = nil }
+                do {
+                    try Task.checkCancellation()
+                    guard scope == historyScope(), context == reportContext, valid(),
+                          !PersonalWorkspaceBoundary.isActive, protectedDataAvailable() else { throw CancellationError() }
+                    let reply = try await generateModel(input)
+                    try Task.checkCancellation()
+                    guard scope == historyScope(), context == reportContext, valid(),
+                          !PersonalWorkspaceBoundary.isActive, protectedDataAvailable() else { throw CancellationError() }
+                    var updated = try store.read()
+                    guard let index = updated.reports.firstIndex(of: report) else { throw CancellationError() }
+                    updated.reports[index].followUps = (report.followUps ?? []) + [.init(id: UUID(), createdAt: .now,
+                        question: question, text: reply.text, provider: input.provider, model: reply.model,
+                        inputTokens: reply.inputTokens, outputTokens: reply.outputTokens)]
+                    try store.write(updated); archive = updated
+                    message = "Answer saved with this report. Its evidence and your bed settings are unchanged."
+                } catch { message = error is CancellationError ? "Question cancelled. No answer was saved." : error.localizedDescription }
             }
         } catch { busy = false; message = error.localizedDescription }
     }

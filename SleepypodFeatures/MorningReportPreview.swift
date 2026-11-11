@@ -10,14 +10,11 @@ public struct MorningReportPreview: View {
     public var body: some View {
         if !personalAccount {
             VStack(alignment: .leading, spacing: 12) {
-                Text("Your morning review").font(.title2.bold())
+                Text("Your morning brief").font(.title2.bold())
                 if let report, loaded {
-                    Text("Latest personal report · \(report.createdAt.formatted(date: .abbreviated, time: .shortened))")
-                        .font(.subheadline).foregroundStyle(Theme.text2)
-                    if let fact = report.facts.first(where: { $0.id == "health.sleep" }) ?? report.facts.first {
-                        Text(fact.text).font(.subheadline).fixedSize(horizontal: false, vertical: true)
-                    }
-                    Text("Saved interpretation of that report’s evidence, not a new analysis of last night.").font(.caption).foregroundStyle(Theme.text2)
+                    MorningBriefContent(report: report, compact: true)
+                    NavigationLink("Open brief and ask a question") { MorningBriefScreen(report: report) }
+                        .buttonStyle(.bordered).accessibilityIdentifier("tonight.brief")
                 } else {
                     Text("Review your latest night in Sleep, or open a report already saved on this iPhone.").font(.subheadline).foregroundStyle(Theme.text2)
                 }
