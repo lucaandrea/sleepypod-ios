@@ -57,6 +57,26 @@ combined head before merge. Earlier branch checks do not substitute for that run
 The earlier PR 64 phone-run failures occurred before tests during simulator AX
 startup; those failed receipts remain retained.
 
+### Hosted cooling follow-up
+
+The combined hosted run exposed an iPad cooling-cancellation failure at maximum
+text size. The panel used the preceding TimelineView tick to validate a newer
+network reply, briefly treating the active cooling lease as future data and
+replacing its Cancel action. Validation now uses the current render clock;
+future timestamps and the existing freshness limit remain rejected by the model.
+The UI check explicitly waits for cancellation and verifies that Cancel disappears.
+
+The correction passes build-for-testing, strict SwiftLint, all 14 temporary-cooling
+model tests and all three cooling UI scenarios on both iPad and iPhone. These
+cover maximum text size, delayed operations and unconfirmed replies. The tablet
+maximum-text-size capture was inspected for wrapping and scrolling. This local
+evidence uses Xcode 27.2; the final hosted iOS 26 run remains a separate gate.
+
+Hosted attempts also reported that macOS runners were not acquired because of
+capacity constraints. The matrix now requests at most two runners concurrently,
+retaining all 18 form/suite combinations, their shared exact-revision bundle and
+existing timeouts. This limits demand; it does not count an unacquired job as a pass.
+
 ## Acceptance still separate
 
 This candidate makes no claim of a newly deployed Pod, TestFlight distribution,

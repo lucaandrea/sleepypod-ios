@@ -107,6 +107,8 @@ jobs:
     timeout-minutes: 75
     strategy:
       fail-fast: false
+      # Avoid requesting all 18 hosted macOS runners at once during capacity limits.
+      max-parallel: 2
       matrix:
         form: [iPhone, iPad]
         suite: [recording, guidance, morning, wake, cooling, night, response, connection, later-wake]

@@ -53,7 +53,10 @@ import XCTest
             XCTAssertFalse(cancel.isEnabled)
             capture("Cooling-cancel-unconfirmed")
         } else {
-            cancel.tap(); reveal(preview, app); waitUntilEnabled(preview)
+            waitUntilEnabled(cancel); cancel.tap()
+            XCTAssertTrue(preview.waitForExistence(timeout: 5))
+            XCTAssertFalse(cancel.exists)
+            reveal(preview, app); waitUntilEnabled(preview)
         }
         app.terminate()
     }

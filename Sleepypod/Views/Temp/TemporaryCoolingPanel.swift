@@ -14,8 +14,11 @@ struct TemporaryCoolingPanel: View {
     private var format: TemperatureFormat { settings.temperatureFormat == .relative ? .fahrenheit : settings.temperatureFormat }
 
     var body: some View {
-        TimelineView(.periodic(from: .now, by: 1)) { context in
-            let report = workspace.report.flatMap { $0.current(at: context.date) ? $0 : nil }
+        TimelineView(.periodic(from: .now, by: 1)) { _ in
+            // A network reply can arrive after the last timeline tick. Validate against the
+            // render clock so a fresh active lease does not briefly become an unavailable preview.
+            let now = Date.now
+            let report = workspace.report.flatMap { $0.current(at: now) ? $0 : nil }
             let pendingPreview: TemporaryCooling.Proposal? = {
                 if case let .starting(proposal) = workspace.operation { return proposal }
                 return nil
@@ -47,13 +50,13 @@ struct TemporaryCoolingPanel: View {
                 if let preview = pendingPreview ?? preview {
                     Text("Request \(temperature(preview.targetF)) instead of \(temperature(preview.fromTargetF)), until no later than \(clock(preview.expiresAt)). This records ‘too hot’ as feedback and pauses personal adaptation. Your wake schedule is unchanged.")
                         .font(.subheadline).accessibilityIdentifier("cooling.review")
-                    if pendingPreview == nil && report?.matches(preview, at: context.date) != true {
+                    if pendingPreview == nil && report?.matches(preview, at: now) != true {
                         Text("The proposal changed or expired. Refresh and review it again.").font(.footnote).foregroundStyle(Theme.text2)
                     }
                     if pendingPreview == nil {
                         ViewThatFits(in: .horizontal) {
-                            HStack(spacing: 12) { reviewActions(preview, report: report, now: context.date) }
-                            VStack(alignment: .leading, spacing: 8) { reviewActions(preview, report: report, now: context.date) }
+                            HStack(spacing: 12) { reviewActions(preview, report: report, now: now) }
+                            VStack(alignment: .leading, spacing: 8) { reviewActions(preview, report: report, now: now) }
                         }
                     }
                 }
