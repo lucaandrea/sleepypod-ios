@@ -22,10 +22,14 @@ struct HouseholdScreen: View {
                             .font(.caption).foregroundStyle(Theme.text2)
                     }
                     Text(model.publication?.enabled == true
-                         ? "Drafts stay private until you publish them. Controls follow your bed assignment. Assignment changes and Apple Health are not active here."
+                         ? "Drafts stay private until you publish them. Controls follow your bed assignment."
                          : model.temperature == nil
-                         ? "Prepare your own comfort preferences and weekly routine. Bed controls, side assignment and Apple Health are not active in this workspace."
-                         : "Temperature controls use your personal bed assignment. Weekly routines remain drafts; assignment changes and Apple Health are not active here.")
+                         ? "Prepare your own comfort preferences and weekly routine. Bed controls are not active in this workspace."
+                         : "Temperature controls use your personal bed assignment. Weekly routines remain drafts.")
+                        .font(.footnote).foregroundStyle(Theme.text2)
+                    Text(model.maintenance?.canActivate == true
+                         ? "Changing sides needs both approvals and a separate attended confirmation. Apple Health is not active in this workspace."
+                         : "Side activation and Apple Health are not enabled in this workspace.")
                         .font(.footnote).foregroundStyle(Theme.text2)
                 }
                 feedback
@@ -130,7 +134,9 @@ struct HouseholdScreen: View {
                     else if route == "routines" { HouseholdRoutineWeek().id(session.namespace) }
                     else if route == "publication", let publication = model.publication { PersonalRoutineReviewScreen(model: publication, unit: model.draftPreferences.displayUnit).id(session.namespace) }
                     else if route == "history", let history = model.history { PersonalHistoryScreen(model: history).id(ObjectIdentifier(history)) }
-                    else if route == "arrangement", let arrangement = model.arrangement { ArrangementReviewScreen(model: arrangement).id(ObjectIdentifier(arrangement)) }
+                    else if route == "arrangement", let arrangement = model.arrangement {
+                        ArrangementReviewScreen(model: arrangement, maintenance: model.maintenance, close: { model.signOut() }).id(ObjectIdentifier(arrangement))
+                    }
                 }
             }
             .sheet(item: $connectionForm) { kind in NavigationStack { HouseholdConnectionForm(kind: kind) } }
@@ -150,7 +156,6 @@ struct HouseholdScreen: View {
                 Button("Cancel", role: .cancel) { revokeDevice = nil }
             } message: { Text("\(revokeDevice?.name ?? "This device") will lose personal-account access. This does not move the bed or change its schedules.") }
         }
-        .task { await model.refresh() }
         .onChange(of: scenePhase) { if scenePhase != .active { revealedCode = nil } }
         .onChange(of: model.session?.context) { revealedCode = nil; navigation = [] }
     }

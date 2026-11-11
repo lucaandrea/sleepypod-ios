@@ -1,0 +1,69 @@
+name: Household maintenance UI
+
+on:
+  pull_request:
+    paths:
+      - 'Sleepypod/**/Arrangement*.swift'
+      - 'Sleepypod/**/Household*.swift'
+      - 'Sleepypod/SleepypodApp.swift'
+      - 'SleepypodUITests/Arrangement*.swift'
+      - 'SleepypodUITests/Household*.swift'
+      - 'Integration/Fixtures/household-maintenance-v1.json'
+      - '.github/workflows/household-maintenance-ui.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  maintenance:
+    name: Household maintenance (${{ matrix.form }})
+    runs-on: macos-15-intel
+    timeout-minutes: 65
+    strategy:
+      fail-fast: false
+      matrix:
+        form: [iPhone, iPad]
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+      - name: Select simulator
+        run: |
+          MAINTENANCE_SIM_ID=$(xcrun simctl list devices available --json | python3 -c '
+          import json, sys
+          matches = [device["udid"] for runtime, group in sorted(json.load(sys.stdin)["devices"].items(), reverse=True)
+                     if ".iOS-26-" in runtime for device in group if device["name"].startswith(sys.argv[1])]
+          if not matches: sys.exit("Requested iOS 26 simulator is unavailable")
+          print(matches[0])' '${{ matrix.form }}')
+          printf 'MAINTENANCE_SIM_ID=%s\n' "$MAINTENANCE_SIM_ID" >> "$GITHUB_ENV"
+      - name: Build household tests
+        timeout-minutes: 30
+        run: |
+          xcodebuild build-for-testing -project Sleepypod.xcodeproj -scheme Sleepypod \
+            -destination "platform=iOS Simulator,id=$MAINTENANCE_SIM_ID" \
+            -derivedDataPath "$RUNNER_TEMP/MaintenanceBuild" CODE_SIGNING_ALLOWED=NO
+      - name: Boot simulator
+        timeout-minutes: 15
+        run: xcrun simctl bootstatus "$MAINTENANCE_SIM_ID" -b
+      - name: Verify maintenance and existing account navigation
+        timeout-minutes: 20
+        run: |
+          xcodebuild test-without-building -project Sleepypod.xcodeproj -scheme Sleepypod \
+            -destination "platform=iOS Simulator,id=$MAINTENANCE_SIM_ID" \
+            -derivedDataPath "$RUNNER_TEMP/MaintenanceBuild" \
+            -only-testing:SleepypodUITests/ArrangementMaintenanceUITests \
+            -only-testing:SleepypodUITests/ArrangementReviewUITests \
+            -only-testing:SleepypodUITests/HouseholdPreparationUITests \
+            -resultBundlePath "$RUNNER_TEMP/Maintenance.xcresult" \
+            -collect-test-diagnostics never -parallel-testing-enabled NO CODE_SIGNING_ALLOWED=NO
+      - name: Preserve screenshots and results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: household-maintenance-${{ matrix.form }}
+          path: ${{ runner.temp }}/Maintenance.xcresult
+          if-no-files-found: ignore
+          retention-days: 7

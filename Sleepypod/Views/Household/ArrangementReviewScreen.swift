@@ -2,6 +2,8 @@ import SwiftUI
 
 struct ArrangementReviewScreen: View {
     @Bindable var model: ArrangementReviewWorkspace
+    var maintenance: ArrangementMaintenanceWorkspace?
+    var close: () -> Void = {}
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @State private var confirmingCancellation = false
@@ -11,7 +13,9 @@ struct ArrangementReviewScreen: View {
             Form {
                 Section("When you are both ready") {
                     Text("Review your future sides together.").font(.headline)
-                    Text("This saves a proposal and each person’s approval. Switching to two sleepers is not available in this release.")
+                    Text(maintenance?.canActivate == true
+                         ? "This saves a proposal and each person’s approval. Switching the bed requires a separate attended step."
+                         : "This saves a proposal and each person’s approval. Switching to two sleepers is not enabled on this controller.")
                         .font(.footnote).accessibilityIdentifier("arrangement.boundary")
                     Button("Check current side review") { Task { await model.refresh() } }
                         .disabled(model.busy).accessibilityIdentifier("arrangement.refresh")
@@ -44,6 +48,15 @@ struct ArrangementReviewScreen: View {
         } message: { Text("Any saved approvals belong to this review. Your current bed arrangement and routines stay unchanged.") }
     }
     @ViewBuilder private func reviewSections(_ review: ArrangementReview) -> some View {
+        if let maintenance, review.canActivate, model.currentState == .approved {
+            Section("Switch when you are both ready") {
+                NavigationLink("Review the attended side change") {
+                    ArrangementMaintenanceScreen(model: maintenance, review: review, refresh: { await maintenance.refresh() }, close: close)
+                }.accessibilityIdentifier("maintenance.reviewLink")
+                Text("Bed controls pause during the change. You will verify the empty bed, controller restart and assigned sides before controls reopen.")
+                    .font(.footnote).foregroundStyle(Theme.text2)
+            }
+        }
         Section("Proposed sides only") {
             Text(model.currentState?.message ?? review.state.message).font(.headline).accessibilityIdentifier("arrangement.status")
             if dynamicTypeSize.isAccessibilitySize {

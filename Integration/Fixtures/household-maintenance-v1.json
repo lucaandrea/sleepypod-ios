@@ -1,0 +1,232 @@
+{
+  "synthetic": true,
+  "sourceCommit": "0a4f707ff9a66dc9dc3c869694d6ed67399f97c8",
+  "now": 1794337200000,
+  "empty": {
+    "version": 1,
+    "observedAt": 1794337200000,
+    "expectedSessionRevision": 1,
+    "expectedAssignmentRevision": 1,
+    "operation": null
+  },
+  "held": {
+    "version": 1,
+    "observedAt": 1794337200000,
+    "expectedSessionRevision": 1,
+    "expectedAssignmentRevision": 1,
+    "operation": {
+      "operationId": "10000000-0000-4000-8000-000000000088",
+      "reviewId": "10000000-0000-4000-8000-000000000041",
+      "state": "held",
+      "createdAt": 1794337196000,
+      "committedAt": null,
+      "controllerRestarted": false,
+      "admission": "held_for_this_transition",
+      "recovery": null,
+      "cancellation": null,
+      "restart": null
+    }
+  },
+  "committed": {
+    "version": 1,
+    "observedAt": 1794337200000,
+    "expectedSessionRevision": 1,
+    "expectedAssignmentRevision": 1,
+    "operation": {
+      "operationId": "10000000-0000-4000-8000-000000000088",
+      "reviewId": "10000000-0000-4000-8000-000000000041",
+      "state": "committed",
+      "createdAt": 1794337196000,
+      "committedAt": 1794337197000,
+      "controllerRestarted": false,
+      "admission": "held_for_this_transition",
+      "recovery": null,
+      "cancellation": null,
+      "restart": null
+    }
+  },
+  "restartSubmitted": {
+    "version": 1,
+    "observedAt": 1794337200000,
+    "expectedSessionRevision": 1,
+    "expectedAssignmentRevision": 1,
+    "operation": {
+      "operationId": "10000000-0000-4000-8000-000000000088",
+      "reviewId": "10000000-0000-4000-8000-000000000041",
+      "state": "committed",
+      "createdAt": 1794337196000,
+      "committedAt": 1794337197000,
+      "controllerRestarted": false,
+      "admission": "held_for_this_transition",
+      "recovery": null,
+      "cancellation": null,
+      "restart": {
+        "operationId": "10000000-0000-4000-8000-000000000088",
+        "requestId": "10000000-0000-4000-8000-000000000089",
+        "state": "submitted",
+        "requestedAt": 1794337198000,
+        "resultAt": 1794337198500,
+        "hardware": "held_for_runtime_recovery",
+        "replayAllowed": false
+      }
+    }
+  },
+  "readyToRecover": {
+    "version": 1,
+    "observedAt": 1794337200000,
+    "expectedSessionRevision": 1,
+    "expectedAssignmentRevision": 1,
+    "operation": {
+      "operationId": "10000000-0000-4000-8000-000000000088",
+      "reviewId": "10000000-0000-4000-8000-000000000041",
+      "state": "committed",
+      "createdAt": 1794337196000,
+      "committedAt": 1794337197000,
+      "controllerRestarted": true,
+      "admission": "held_for_this_transition",
+      "recovery": null,
+      "cancellation": null,
+      "restart": {
+        "operationId": "10000000-0000-4000-8000-000000000088",
+        "requestId": "10000000-0000-4000-8000-000000000089",
+        "state": "submitted",
+        "requestedAt": 1794337198000,
+        "resultAt": 1794337198500,
+        "hardware": "held_for_runtime_recovery",
+        "replayAllowed": false
+      }
+    }
+  },
+  "completed": {
+    "version": 1,
+    "observedAt": 1794337200000,
+    "expectedSessionRevision": 1,
+    "expectedAssignmentRevision": 1,
+    "operation": {
+      "operationId": "10000000-0000-4000-8000-000000000088",
+      "reviewId": "10000000-0000-4000-8000-000000000041",
+      "state": "completed",
+      "createdAt": 1794337196000,
+      "committedAt": 1794337197000,
+      "controllerRestarted": true,
+      "admission": "open",
+      "recovery": {
+        "operationId": "10000000-0000-4000-8000-000000000088",
+        "requestId": "10000000-0000-4000-8000-000000000089",
+        "reviewId": "10000000-0000-4000-8000-000000000041",
+        "state": "completed",
+        "completedAt": 1794337199900,
+        "admissionRevision": 3,
+        "epochId": "10000000-0000-4000-8000-000000000089",
+        "recordingStartsAt": 1794337199500,
+        "hardware": "admission_released",
+        "physicalMovement": "not_requested"
+      },
+      "cancellation": null,
+      "restart": {
+        "operationId": "10000000-0000-4000-8000-000000000088",
+        "requestId": "10000000-0000-4000-8000-000000000089",
+        "state": "submitted",
+        "requestedAt": 1794337198000,
+        "resultAt": 1794337198500,
+        "hardware": "held_for_runtime_recovery",
+        "replayAllowed": false
+      }
+    }
+  },
+  "cancelled": {
+    "version": 1,
+    "observedAt": 1794337200000,
+    "expectedSessionRevision": 1,
+    "expectedAssignmentRevision": 1,
+    "operation": {
+      "operationId": "10000000-0000-4000-8000-000000000088",
+      "reviewId": "10000000-0000-4000-8000-000000000041",
+      "state": "cancelled",
+      "createdAt": 1794337196000,
+      "committedAt": null,
+      "controllerRestarted": true,
+      "admission": "open",
+      "recovery": null,
+      "cancellation": {
+        "operationId": "10000000-0000-4000-8000-000000000088",
+        "requestId": "10000000-0000-4000-8000-000000000089",
+        "reviewId": "10000000-0000-4000-8000-000000000041",
+        "state": "cancelled",
+        "completedAt": 1794337199900,
+        "admissionRevision": 3,
+        "controlDigest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "arrangement": "solo-anywhere",
+        "hardware": "admission_released",
+        "physicalMovement": "not_requested"
+      },
+      "restart": {
+        "operationId": "10000000-0000-4000-8000-000000000088",
+        "requestId": "10000000-0000-4000-8000-000000000089",
+        "state": "submitted",
+        "requestedAt": 1794337198000,
+        "resultAt": 1794337198500,
+        "hardware": "held_for_runtime_recovery",
+        "replayAllowed": false
+      }
+    }
+  },
+  "cancellationPreview": {
+    "operationId": "10000000-0000-4000-8000-000000000088",
+    "expectedSessionRevision": 1,
+    "expectedAssignmentRevision": 1,
+    "controlDigest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "observedAt": 1794337200000
+  },
+  "activateRequest": {
+    "requestId": "10000000-0000-4000-8000-000000000089",
+    "expectedSessionRevision": 1,
+    "expectedAssignmentRevision": 1,
+    "version": 1,
+    "reviewId": "10000000-0000-4000-8000-000000000041",
+    "issuedAt": 1794337200000,
+    "expiresAt": 1794337260000,
+    "confirmEmptyAndAttended": true,
+    "confirmClearTemporaryActions": true,
+    "confirmPauseLearningAndSharedAutomations": true,
+    "acknowledgeHeldUntilRecovery": true
+  },
+  "restartRequest": {
+    "requestId": "10000000-0000-4000-8000-000000000089",
+    "expectedSessionRevision": 1,
+    "expectedAssignmentRevision": 1,
+    "version": 1,
+    "operationId": "10000000-0000-4000-8000-000000000088",
+    "issuedAt": 1794337200000,
+    "expiresAt": 1794337260000,
+    "confirmEmptyAndAttended": true,
+    "acknowledgeConnectionWillClose": true,
+    "acknowledgeControlsRemainPaused": true
+  },
+  "recoverRequest": {
+    "requestId": "10000000-0000-4000-8000-000000000089",
+    "expectedSessionRevision": 1,
+    "expectedAssignmentRevision": 1,
+    "version": 1,
+    "operationId": "10000000-0000-4000-8000-000000000088",
+    "issuedAt": 1794337200000,
+    "expiresAt": 1794337260000,
+    "confirmEmptyAndAttended": true,
+    "confirmAssignedSides": true,
+    "acknowledgeRecordingGap": true,
+    "acknowledgeLearningRemainsOff": true
+  },
+  "cancelRequest": {
+    "requestId": "10000000-0000-4000-8000-000000000089",
+    "expectedSessionRevision": 1,
+    "expectedAssignmentRevision": 1,
+    "version": 1,
+    "operationId": "10000000-0000-4000-8000-000000000088",
+    "issuedAt": 1794337200000,
+    "expiresAt": 1794337260000,
+    "expectedControlDigest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "confirmEmptyAndAttended": true,
+    "confirmKeepSoloArrangement": true,
+    "acknowledgeSavedRoutinesMayResume": true
+  }
+}
