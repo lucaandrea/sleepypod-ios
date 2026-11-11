@@ -124,6 +124,9 @@ struct SleepypodApp: App {
                     }
             }
             else if ProcessInfo.processInfo.arguments.contains("--connection-fixture") { ConnectionRecoveryPreview() }
+            else if ProcessInfo.processInfo.arguments.contains("--daytime-context-fixture") {
+                NavigationStack { PodFeatureScreen(.daytimeContext) }
+            }
             else { ContentView() }
             #else
             ContentView()

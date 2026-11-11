@@ -94,7 +94,7 @@ import XCTest
 }
 private enum ModelFixture {
     static func document() throws -> RemoteStageModelDocument {
-        let file = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent().appendingPathComponent("Integration/Fixtures/stage-model-demo.json")
+        let file = try XCTUnwrap(Bundle(for: RemoteStageModelTests.self).url(forResource: "stage-model-demo", withExtension: "json"))
         return try RemoteStageModelDocument.read(Data(contentsOf: file))
     }
 }
