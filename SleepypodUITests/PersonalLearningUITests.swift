@@ -47,8 +47,12 @@ import XCTest
         let ready = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
             save.exists && save.isHittable && app.frame.contains(save.frame)
         }, object: nil)
-        XCTAssertEqual(XCTWaiter.wait(for: [ready], timeout: 10), .completed)
+        // The hosted simulator's first Files launch can exceed ten seconds. Still
+        // require the real, hittable Save control before testing cancellation.
+        let pickerResult = XCTWaiter.wait(for: [ready], timeout: 30)
         capture(app, "Learning-export-destination")
+        if pickerResult != .completed { print(app.debugDescription) }
+        XCTAssertEqual(pickerResult, .completed)
         cancelExport(in: app)
         XCTAssertTrue(app.navigationBars["Saved record"].waitForExistence(timeout: 10))
         XCTAssertFalse(app.staticTexts["learning.exportNotice"].exists)
