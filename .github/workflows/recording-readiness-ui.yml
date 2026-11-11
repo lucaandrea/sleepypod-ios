@@ -107,11 +107,11 @@ jobs:
     timeout-minutes: 75
     strategy:
       fail-fast: false
-      # Avoid requesting all 18 hosted macOS runners at once during capacity limits.
+      # Three groups per device retain every scenario with fewer runner acquisitions.
       max-parallel: 2
       matrix:
         form: [iPhone, iPad]
-        suite: [recording, guidance, morning, wake, cooling, night, response, connection, later-wake]
+        suite: [reading, temperature, waking]
     env:
       DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
     steps:
@@ -147,7 +147,7 @@ jobs:
         timeout-minutes: 15
         run: xcrun simctl bootstatus "$RECORDING_SIM_ID" -b
       - name: Verify everyday scenarios
-        timeout-minutes: 30
+        timeout-minutes: 45
         run: bash scripts/verify-everyday-ui.sh test "${{ matrix.suite }}"
       - name: Preserve screenshots and results
         if: always()

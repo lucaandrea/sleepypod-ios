@@ -3,46 +3,55 @@ set -euo pipefail
 
 # Keep the same phone/tablet scenarios in bounded groups on the hosted runner.
 mode="${1:?Choose build, test or list}"
-suite="${2:?Choose recording, guidance, morning, wake, cooling, night, response, connection, later-wake or all}"
+suite="${2:?Choose reading, temperature, waking, an individual suite or all}"
 case "$suite" in
-  all)
-    [[ "$mode" == build ]] || { printf 'The all selector is only for building the shared bundle.\n' >&2; exit 2; }
-    selectors=(SleepypodUITests)
-    ;;
-  recording)
-    selectors=(SleepypodUITests/RecordingReadinessUITests SleepypodUITests/WatchRecordingUITests)
-    ;;
-  guidance)
-    selectors=(SleepypodUITests/LearningJourneyUITests SleepypodUITests/TonightUITests SleepypodUITests/BedCareUITests)
-    ;;
-  morning)
-    selectors=(SleepypodUITests/MorningBriefUITests)
-    ;;
-  cooling)
-    selectors=(SleepypodUITests/TemporaryCoolingUITests)
-    ;;
-  response)
-    selectors=(SleepypodUITests/TargetResponseUITests)
-    ;;
-  connection)
-    selectors=(SleepypodUITests/OwnerConnectionEnrollmentUITests SleepypodUITests/OwnerRouteSettingsUITests)
-    ;;
-  night)
-    selectors=(SleepypodUITests/NightExplanationUITests)
-    ;;
-  later-wake)
-    selectors=(SleepypodUITests/LaterWakeUITests)
-    ;;
-  wake)
-    selectors=(
-      SleepypodUITests/AlarmParityUITests/testAlarmCreateSmartWakeSnoozePauseAndDelete
-      SleepypodUITests/AlarmParityUITests/testAlarmEditorAtCurrentDeviceTextSize
-      SleepypodUITests/AlarmParityUITests/testAlarmEditorAtAccessibilityTextSize
-      SleepypodUITests/NextAlarmUITests
-    )
-    ;;
-  *) printf 'Unknown suite: %s\n' "$suite" >&2; exit 2 ;;
+  reading) componentSuites=(recording guidance morning) ;;
+  temperature) componentSuites=(cooling night response) ;;
+  waking) componentSuites=(wake connection later-wake) ;;
+  *) componentSuites=("$suite") ;;
 esac
+selectors=()
+for componentSuite in "${componentSuites[@]}"; do
+  case "$componentSuite" in
+    all)
+      [[ "$mode" == build ]] || { printf 'The all selector is only for building the shared bundle.\n' >&2; exit 2; }
+      selectors+=(SleepypodUITests)
+      ;;
+    recording)
+      selectors+=(SleepypodUITests/RecordingReadinessUITests SleepypodUITests/WatchRecordingUITests)
+      ;;
+    guidance)
+      selectors+=(SleepypodUITests/LearningJourneyUITests SleepypodUITests/TonightUITests SleepypodUITests/BedCareUITests)
+      ;;
+    morning)
+      selectors+=(SleepypodUITests/MorningBriefUITests)
+      ;;
+    cooling)
+      selectors+=(SleepypodUITests/TemporaryCoolingUITests)
+      ;;
+    response)
+      selectors+=(SleepypodUITests/TargetResponseUITests)
+      ;;
+    connection)
+      selectors+=(SleepypodUITests/OwnerConnectionEnrollmentUITests SleepypodUITests/OwnerRouteSettingsUITests)
+      ;;
+    night)
+      selectors+=(SleepypodUITests/NightExplanationUITests)
+      ;;
+    later-wake)
+      selectors+=(SleepypodUITests/LaterWakeUITests)
+      ;;
+    wake)
+      selectors+=(
+        SleepypodUITests/AlarmParityUITests/testAlarmCreateSmartWakeSnoozePauseAndDelete
+        SleepypodUITests/AlarmParityUITests/testAlarmEditorAtCurrentDeviceTextSize
+        SleepypodUITests/AlarmParityUITests/testAlarmEditorAtAccessibilityTextSize
+        SleepypodUITests/NextAlarmUITests
+      )
+      ;;
+    *) printf 'Unknown suite: %s\n' "$componentSuite" >&2; exit 2 ;;
+  esac
+done
 if [[ "$mode" == list ]]; then
   printf '%s\n' "${selectors[@]}"
   exit 0
