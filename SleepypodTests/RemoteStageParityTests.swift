@@ -75,7 +75,7 @@ import XCTest
 
 private enum StageFixture {
     static func defaults() throws -> RemoteStageClassifier {
-        let path = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent().appendingPathComponent("Integration/Fixtures/stage-rules-defaults.json")
+        let path = try XCTUnwrap(Bundle(for: RemoteStageParityTests.self).url(forResource: "stage-rules-defaults", withExtension: "json"))
         return try JSONDecoder().decode(RemoteStageClassifier.self, from: Data(contentsOf: path))
     }
 }

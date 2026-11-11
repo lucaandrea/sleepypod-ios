@@ -6,7 +6,7 @@ struct IntelligenceModelsCard: View {
     @Environment(NightAnomalyStore.self) private var anomalies
     @Environment(HealthSyncService.self) private var health
     @Environment(SettingsManager.self) private var settings
-    private var scope: String { (health.watchReferenceContext + [settings.timeZone]).joined(separator: "|") }
+    private var scope: String { (health.watchReferenceDataContext + [settings.timeZone]).joined(separator: "|") }
 
     var body: some View {
         NavigationLink { LearningJourneyScreen() } label: {

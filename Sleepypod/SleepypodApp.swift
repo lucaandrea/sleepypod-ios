@@ -30,6 +30,7 @@ struct SleepypodApp: App {
     @State private var watchMotion = WatchMotionReceiver()
     @State private var snoreCapture = SnoreCaptureService()
     @State private var offlineLibrary = OfflineLibrarySession()
+    @State private var ownerRoutes: OwnerRouteSession
 
     init() {
         #if DEBUG
@@ -41,13 +42,17 @@ struct SleepypodApp: App {
         let household = HouseholdWorkspace()
         #endif
         _household = State(initialValue: household)
+        UnifiedRuntime.configureOwnerIdentity { OwnerDataIdentity.current.revision }
         UnifiedRuntime.initialize()
         #if DEBUG
+        _ownerRoutes = State(initialValue: OwnerRouteExample.configured() ?? OwnerRouteSession())
         if APIBackend.current.isDemo && ProcessInfo.processInfo.arguments.contains("--reset-base-preferences") {
             for key in ["mattress", "simple", "instantPresets", "linked", "cards", "scope"] {
                 UserDefaults.standard.removeObject(forKey: "base.\(key)")
             }
         }
+        #else
+        _ownerRoutes = State(initialValue: OwnerRouteSession())
         #endif
         let client = APIBackend.current.createClient()
         let device = DeviceManager(api: client)
@@ -124,6 +129,18 @@ struct SleepypodApp: App {
                     }
             }
             else if ProcessInfo.processInfo.arguments.contains("--connection-fixture") { ConnectionRecoveryPreview() }
+            else if ProcessInfo.processInfo.arguments.contains("--daytime-context-fixture") {
+                NavigationStack { PodFeatureScreen(.daytimeContext) }
+            }
+            else if ProcessInfo.processInfo.arguments.contains("--journal-context-fixture") {
+                NavigationStack { MorningJournalScreen(side: .left) }
+            }
+            else if APIBackend.current.isDemo, UserDefaults.standard.string(forKey: "uiRouteExample") != nil {
+                NavigationStack { OwnerRouteSettingsView() }
+            }
+            else if APIBackend.current.isDemo, UserDefaults.standard.string(forKey: "uiConnectionExample") != nil {
+                NavigationStack { OwnerConnectionView() }
+            }
             else { ContentView() }
             #else
             ContentView()
@@ -135,6 +152,7 @@ struct SleepypodApp: App {
             .environment(homeRoom).environment(bedroom).environment(healthSync).environment(nativeActions)
             .environment(stageModels).environment(nightAnomalies).environment(watchMotion).environment(snoreCapture)
             .environment(offlineLibrary)
+            .environment(ownerRoutes)
     }
 }
 
@@ -321,6 +339,7 @@ struct ContentView: View {
                 await UnifiedRuntime.refreshPersonalHealth()
             }
         }
+        .modifier(OwnerRouteLifecycle())
         .onDisappear { connectionPath.stop() }
         .onChange(of: scenePhase) {
             if !isDemo {

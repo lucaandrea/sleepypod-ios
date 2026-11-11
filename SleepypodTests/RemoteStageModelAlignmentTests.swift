@@ -3,8 +3,7 @@ import XCTest
 
 @MainActor final class RemoteStageModelAlignmentTests: XCTestCase {
     private func fixture() throws -> JSONValue {
-        let url = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent()
-            .appendingPathComponent("Integration/Fixtures/stage-model-core-identity.json")
+        let url = try XCTUnwrap(Bundle(for: RemoteStageModelAlignmentTests.self).url(forResource: "stage-model-core-identity", withExtension: "json"))
         return try JSONDecoder().decode(JSONValue.self, from: Data(contentsOf: url))
     }
     private func decode<Value: Decodable>(_ value: JSONValue?, as: Value.Type) throws -> Value {

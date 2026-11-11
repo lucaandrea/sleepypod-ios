@@ -25,7 +25,7 @@ struct LearningJourneyScreen: View {
     @AppStorage("podIPAddress") private var host = ""
     @AppStorage("household.boundaryRevision") private var boundary = ""
     private var side: Side { selectedSide ?? profile.defaultSide }
-    private var baselineScope: String { (health.watchReferenceContext + [settings.timeZone]).joined(separator: "|") }
+    private var baselineScope: String { (health.watchReferenceDataContext + [settings.timeZone]).joined(separator: "|") }
     private var scope: String { "\(owner)|\(backend)|\(address)|\(host)|\(boundary)|\(baselineScope)|\(side)|\(phase)" }
 
     var body: some View {

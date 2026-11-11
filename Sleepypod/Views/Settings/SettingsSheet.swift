@@ -69,7 +69,7 @@ struct SettingsSheet: View {
                         }.accessibilityIdentifier("settings.personalAccount")
                         NavigationLink { OwnerConnectionView() } label: {
                             SettingsRow("Pod connection", icon: "network", iconColor: Theme.text1, chevron: true)
-                        }
+                        }.accessibilityIdentifier("settings.connection")
                         Button { showStatus = true } label: {
                             SettingsRow("Status", icon: "waveform.path.ecg", iconColor: Theme.text1, chevron: true) {
                                 RowValue(status.totalCount > 0 ? "\(status.healthyCount)/\(status.totalCount)" : "—", mono: true,
@@ -305,7 +305,7 @@ struct AllSettingsScreen: View {
                         }.accessibilityIdentifier("settings.personalAccount")
                         NavigationLink { OwnerConnectionView() } label: {
                             SettingsRow("Pod connection", icon: "network", tile: true, chevron: true)
-                        }
+                        }.accessibilityIdentifier("settings.connection")
                         PodFeatureLink(.home, icon: "house", tile: true)
                         if APIBackend.current != .freeSleep {
                             NavigationLink { NativeCommandHistoryScreen() } label: {

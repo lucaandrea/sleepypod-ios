@@ -19,7 +19,7 @@
 		<string>_sleepypod._tcp.</string>
 	</array>
 	<key>NSHealthShareUsageDescription</key>
-	<string>Compare your Apple Health history with your bed data and prepare personal sleep reports. Cloud sharing is optional and requires your consent.</string>
+	<string>Compare your sleep history with bed data. You can separately choose workouts, activity and earlier wrist temperature as private context. Cloud sharing requires your explicit consent.</string>
 	<key>NSHealthUpdateUsageDescription</key>
 	<string>Save your selected bed side’s sleep and vitals to Apple Health.</string>
 	<key>NSHomeKitUsageDescription</key>

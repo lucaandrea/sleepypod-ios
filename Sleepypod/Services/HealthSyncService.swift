@@ -104,6 +104,7 @@ final class HealthSyncService {
     private(set) var isSyncing = false
     private(set) var lastSyncSampleCount = 0
     private let ownerRevision: @MainActor () -> [String]
+    private let ownerDataRevision: @MainActor () -> [String]?
     private(set) var rebuildProgress: (done: Int, total: Int)?
     var authorizationError: String?
     /// Personal stage models; when one is active, synced nights are staged by it and its version is in the receipt.
@@ -115,8 +116,9 @@ final class HealthSyncService {
     @ObservationIgnored private var rebuiltKeys = Set<String>()
 
     init(store: any HealthSyncStore = SystemHealthSyncStore(), defaults: UserDefaults = .standard,
-         ownerRevision: @escaping @MainActor () -> [String] = { OwnerConnection.revision }) {
-        self.ownerRevision = ownerRevision
+         ownerRevision: @escaping @MainActor () -> [String] = { OwnerConnection.revision },
+         ownerDataRevision: @escaping @MainActor () -> [String]? = { OwnerDataIdentity.current.revision }) {
+        self.ownerRevision = ownerRevision; self.ownerDataRevision = ownerDataRevision
         self.store = store
         persistence = defaults
         preferences = defaults.data(forKey: "healthSyncPreferences").flatMap { try? JSONDecoder().decode(Preferences.self, from: $0) } ?? Preferences()
@@ -360,7 +362,7 @@ final class HealthSyncService {
 
     /// Returns false if the sync stopped early or any night failed to write, so a rebuild knows not to sweep.
     private func sync(api: SleepypodProtocol, podID: String, side: Side, days: Int, forceRewrite: Bool = false) async -> Bool {
-        guard !PersonalWorkspaceBoundary.isActive else { return false }
+        guard !PersonalWorkspaceBoundary.isActive, ownerDataAvailable else { return false }
         let requestedPreferences = preferences, context = syncContext()
         lastSyncSampleCount = 0; authorizationError = nil
         let end = Date()
@@ -483,7 +485,9 @@ final class HealthSyncService {
     private func syncContext() -> SyncContext {
         .init(owner: ownerRevision(), side: Self.linkedSide(defaults: persistence).rawValue, preferences: preferences, model: stageModels?.activeVersion)
     }
-    private func isCurrent(_ context: SyncContext) -> Bool { !PersonalWorkspaceBoundary.isActive && !Task.isCancelled && enabled && syncContext() == context }
+    private func isCurrent(_ context: SyncContext) -> Bool {
+        !PersonalWorkspaceBoundary.isActive && ownerDataAvailable && !Task.isCancelled && enabled && syncContext() == context
+    }
 
     /// HealthKit replacement versions must increase even within one millisecond or after a clock correction.
     private func nextWriteVersion() -> Int {
@@ -664,12 +668,13 @@ final class HealthSyncService {
 
     /// History reads preserve failures instead of presenting an unreadable Health store as zero nights.
     func analysisSleepSamples(start: Date, end: Date) async throws -> [HKCategorySample] {
+        guard ownerDataAvailable else { throw ControllerIdentityFailure.unavailable }
         guard !PersonalWorkspaceBoundary.isActive, enabled, preferences.readSleep else {
             throw APIError.notSupported("Enable Apple Health sleep history before reading it.")
         }
         let context = ownerRevision()
         let samples = try await store.sleepSamples(start: start, end: end)
-        guard !PersonalWorkspaceBoundary.isActive, context == ownerRevision() else { throw CancellationError() }
+        guard !PersonalWorkspaceBoundary.isActive, ownerDataAvailable, context == ownerRevision() else { throw CancellationError() }
         return samples
     }
 
@@ -678,19 +683,29 @@ final class HealthSyncService {
             String(preferences.readSleep), String(preferences.readVitals)]
     }
 
+    var ownerDataAvailable: Bool { ownerDataRevision() != nil }
+
+    /// Saved learning keeps its original owner; live read/import guards still use the transport context above.
+    var watchReferenceDataContext: [String] {
+        (ownerDataRevision() ?? ["unavailable-owner-data"]) + [Self.linkedSide(defaults: persistence).rawValue,
+            String(enabled), String(preferences.readSleep), String(preferences.readVitals)]
+    }
+
     /// Model reads use the same owner and consent boundary as sleep history, with explicit errors.
     func analysisQuantitySamples(_ type: HKQuantityTypeIdentifier, start: Date, end: Date) async throws -> [HKQuantitySample] {
+        guard ownerDataAvailable else { throw ControllerIdentityFailure.unavailable }
         guard !PersonalWorkspaceBoundary.isActive, enabled, preferences.readVitals, Self.vitalsReadTypes.contains(type) else {
             throw APIError.notSupported("Enable Apple Health vital reading before adding overnight measurements.")
         }
         let context = watchReferenceContext
         let samples = try await store.quantitySamples(type, start: start, end: end)
-        guard !PersonalWorkspaceBoundary.isActive, context == watchReferenceContext else { throw CancellationError() }
+        guard !PersonalWorkspaceBoundary.isActive, ownerDataAvailable, context == watchReferenceContext else { throw CancellationError() }
         return samples
     }
 
     /// Read only the requested Watch metrics, in weekly pages, without exporting the rest of Health.
     func watchReferenceSnapshot(side: Side, days: Int, now: Date = .now) async throws -> HealthWatchSnapshot {
+        guard ownerDataAvailable else { throw ControllerIdentityFailure.unavailable }
         guard !PersonalWorkspaceBoundary.isActive, enabled, store.available, preferences.readSleep || preferences.readVitals,
               side == Self.linkedSide(defaults: persistence), (1...90).contains(days) else {
             throw APIError.notSupported("Enable Health reading for your own bed side before importing Watch data.")
@@ -700,19 +715,19 @@ final class HealthSyncService {
         var samples: [HKSample] = [], start = window.start
         while start < now {
             try Task.checkCancellation()
-            guard context == watchReferenceContext else { throw APIError.serverError(message: "Health settings or the Pod connection changed during reading.") }
+            guard ownerDataAvailable, context == watchReferenceContext else { throw APIError.serverError(message: "Health settings or the Pod connection changed during reading.") }
             let end = min(start.addingTimeInterval(7 * 86400), now)
             if preferences.readSleep { samples += try await store.sleepSamples(start: start, end: end) }
             if preferences.readVitals {
                 for metric in [HKQuantityTypeIdentifier.heartRate, .respiratoryRate, .heartRateVariabilitySDNN] {
                     try Task.checkCancellation()
-                    guard context == watchReferenceContext else { throw APIError.serverError(message: "Health settings or the Pod connection changed during reading.") }
+                    guard ownerDataAvailable, context == watchReferenceContext else { throw APIError.serverError(message: "Health settings or the Pod connection changed during reading.") }
                     samples += try await store.quantitySamples(metric, start: start, end: end)
                 }
             }
             start = end
         }
-        guard context == watchReferenceContext else { throw APIError.serverError(message: "Health settings or the Pod connection changed during reading.") }
+        guard ownerDataAvailable, context == watchReferenceContext else { throw APIError.serverError(message: "Health settings or the Pod connection changed during reading.") }
         return HealthWatchSnapshot.build(samples: samples, window: window)
     }
 
