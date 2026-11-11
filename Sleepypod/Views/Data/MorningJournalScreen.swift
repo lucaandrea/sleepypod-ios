@@ -121,7 +121,7 @@ struct MorningJournalScreen: View {
                     Text("Too cold").tag("cold"); Text("Comfortable").tag("comfortable"); Text("Too warm").tag("warm")
                 }.pickerStyle(.menu).labelsHidden().accessibilityIdentifier("journal.comfort")
                 if let context = draft.contextDraft, let zone = draft.contextTimeZone {
-                    MorningJournalContextEditor(draft: Binding(get: { model.draft?.contextDraft ?? context }, set: model.editContext),
+                    MorningJournalContextEditor(draft: Binding(get: { model.draft?.contextDraft ?? context }, set: { model.editContext($0) }),
                         wakeDate: draft.original.date, timeZone: zone, focus: $focusedField)
                         .disabled(model.page?.contextVersion != 1)
                     if let issue = draft.contextIssue {

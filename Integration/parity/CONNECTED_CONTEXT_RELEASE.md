@@ -50,3 +50,19 @@ Source integration commit: `09af4dc` (plus this documentation-only receipt).
 These are synthetic local checks. Hosted checks, TestFlight, real Health delivery,
 gateway provisioning, workplace/cellular access and physical operation are
 separate acceptance gates. No phone, Pod, routines or household pairings changed.
+
+## Hosted compiler compatibility follow-up
+
+The first consolidated hosted build at `b0c4450` failed before tests: Swift 6.2.4
+in Xcode 26.3 aborted while emitting an actor-isolated conversion thunk for
+`MorningJournalContextDraft` in `MorningJournalScreen`. The compiler stack names
+`SyncCallEmission::setArgs`; this was not a failed application assertion.
+The original log is retained at `/tmp/sleepypod-pr67-everyday-failure.log`.
+
+The context binding now uses an explicit setter closure instead of passing an
+isolated method reference. The same `editContext` method still performs the write.
+A signed arm64/x86_64 Xcode 27.2 build passes. Focused journal model/persistence
+checks passed 23 tests and all five journal interaction scenarios passed on the
+iPhone simulator (`/tmp/SleepypodConnectedContext-compiler-fix.xcresult`). Hosted
+Xcode 26.3 remains the decisive compatibility check. No runtime behavior or test
+requirement was removed.
