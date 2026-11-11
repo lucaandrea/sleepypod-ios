@@ -40,6 +40,17 @@ struct TonightOverview: View {
                         }.font(.footnote)
                     }.frame(maxWidth: .infinity, alignment: .leading).cardStyle()
                     TemporaryCoolingPanel(side: device.selectedSide.primarySide)
+                    NavigationLink {
+                        NightExplanationScreen(side: device.selectedSide.primarySide)
+                    } label: {
+                        HStack {
+                            VStack(alignment: .leading, spacing: 6) {
+                                Text("What happened overnight?").font(.headline)
+                                Text("Temperatures, requests and reasons").font(.footnote).foregroundStyle(Theme.text2)
+                            }.frame(maxWidth: .infinity, alignment: .leading)
+                            Image(systemName: "chevron.right").font(.caption).foregroundStyle(Theme.text2)
+                        }.padding(.vertical, 12).frame(minHeight: 44).contentShape(Rectangle())
+                    }.buttonStyle(.plain).accessibilityIdentifier("tonight.nightHistory")
                 }.frame(maxWidth: 780).frame(maxWidth: .infinity)
             }
             .task(id: scope) {

@@ -23,6 +23,9 @@ on:
       - 'SleepypodUITests/BedCareUITests.swift'
       - 'Sleepypod/**/TemporaryCooling*.swift'
       - 'SleepypodUITests/TemporaryCoolingUITests.swift'
+      - 'Sleepypod/**/NightExplanation*.swift'
+      - 'Sleepypod/**/NightTemperature*.swift'
+      - 'SleepypodUITests/NightExplanationUITests.swift'
       - 'SleepypodFeatures/WatchRecordingAssistant.swift'
       - 'FreeSleepKit/Intelligence/WatchRecordingSummary.swift'
       - 'FreeSleepKit/Intelligence/HealthHistory*.swift'
@@ -46,7 +49,7 @@ jobs:
       fail-fast: false
       matrix:
         form: [iPhone, iPad]
-        suite: [recording, guidance, wake, cooling]
+        suite: [recording, guidance, wake, cooling, night]
     env:
       DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
     steps:
