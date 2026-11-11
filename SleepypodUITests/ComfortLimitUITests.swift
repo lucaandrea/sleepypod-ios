@@ -19,9 +19,7 @@ import XCTest
         reveal(edit, in: app); edit.tap()
         let toggle = app.switches["Enable automatic comfort range"]
         reveal(toggle, in: app)
-        // SwiftUI exposes the full multiline label as the switch frame on iPad.
-        // Tap the trailing thumb, then verify the requested value before saving.
-        toggle.coordinate(withNormalizedOffset: CGVector(dx: 1, dy: 0.5)).withOffset(CGVector(dx: -24, dy: 0)).tap()
+        activate(toggle, in: app)
         let enabled = XCTNSPredicateExpectation(predicate: NSPredicate(format: "value == '1'"), object: toggle)
         XCTAssertEqual(XCTWaiter.wait(for: [enabled], timeout: 5), .completed)
         let save = app.buttons["comfort.limit.save"]
@@ -39,5 +37,21 @@ import XCTest
     private func reveal(_ element: XCUIElement, in app: XCUIApplication) {
         for _ in 0..<20 where !element.isHittable { app.swipeUp(velocity: .slow) }
         XCTAssertTrue(element.isHittable)
+    }
+    private func activate(_ labeledSwitch: XCUIElement, in app: XCUIApplication) {
+        // iOS 26 exposes a labeled row and a separate native switch. Target the
+        // control itself instead of deriving a tap point from the label's frame.
+        let row = labeledSwitch.frame
+        let controls = app.switches.allElementsBoundByIndex.filter {
+            $0.isHittable && $0.frame.width < row.width && row.contains(CGPoint(x: $0.frame.midX, y: $0.frame.midY))
+        }
+        XCTAssertLessThanOrEqual(controls.count, 1, "The comfort row must identify one native switch")
+        if let control = controls.first {
+            control.tap()
+        } else {
+            // Newer SwiftUI runtimes expose only the combined row.
+            labeledSwitch.coordinate(withNormalizedOffset: CGVector(dx: 1, dy: 0.5))
+                .withOffset(CGVector(dx: -24, dy: 0)).tap()
+        }
     }
 }
