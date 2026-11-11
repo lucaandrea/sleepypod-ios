@@ -1,5 +1,5 @@
 import CryptoKit
-import FreeSleepKit
+@testable import FreeSleepKit
 import XCTest
 @testable import Sleepypod
 
@@ -78,5 +78,37 @@ import XCTest
         XCTAssertEqual(reopened.library.schedules?.savedAt, originalSchedules.savedAt)
         transport[3] = "another-owner"
         XCTAssertNil(reopened.library.schedules)
+    }
+
+    func testDaytimeContextPreservesVerifiedOwnerScopeAndWithdrawsInvalidIdentity() throws {
+        let saved = try profile()
+        var transport = original
+        var readable = true
+        var ownerAllowed = true
+        let previousProvider = DaytimeContextWorkspace.ownerRevision
+        defer { DaytimeContextWorkspace.ownerRevision = previousProvider }
+        UnifiedRuntime.configureOwnerIdentity {
+            OwnerDataIdentity.resolve(revision: transport, ownerAllowed: ownerAllowed) {
+                guard readable else { throw ControllerIdentityFailure.unavailable }
+                return saved
+            }.revision
+        }
+        try AppMode.$suppliedBackend.withValue("sleepypod-core") {
+            try PersonalWorkspaceBoundary.$suppliedActive.withValue(false) {
+                let homeScope = try XCTUnwrap(DaytimeContextWorkspace.ownerScope())
+                let legacy = "device-owner|" + (try JSONEncoder().encode(original)).base64EncodedString()
+                XCTAssertEqual(homeScope, legacy, "Existing private context archives remain readable")
+                transport[1] = saved.routes.away.address; transport[2] = "identity.away.invalid"
+                XCTAssertEqual(DaytimeContextWorkspace.ownerScope(), homeScope)
+                readable = false
+                XCTAssertNil(DaytimeContextWorkspace.ownerScope())
+                readable = true
+                XCTAssertEqual(DaytimeContextWorkspace.ownerScope(), homeScope)
+                ownerAllowed = false
+                XCTAssertNil(DaytimeContextWorkspace.ownerScope())
+                ownerAllowed = true; transport[3] = "another-owner"
+                XCTAssertNil(DaytimeContextWorkspace.ownerScope())
+            }
+        }
     }
 }

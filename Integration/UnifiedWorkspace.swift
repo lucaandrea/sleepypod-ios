@@ -3,6 +3,9 @@ import AppIntents
 import BackgroundTasks
 
 public enum UnifiedRuntime {
+    @MainActor public static func configureOwnerIdentity(_ revision: @escaping @MainActor () -> [String]?) {
+        DaytimeContextWorkspace.ownerRevision = revision
+    }
     @MainActor public static func initialize() {
         NativeModelClient.configureSDK()
         FreeSleepShortcuts.updateAppShortcutParameters()

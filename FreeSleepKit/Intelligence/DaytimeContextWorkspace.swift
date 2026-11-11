@@ -7,6 +7,11 @@ import UIKit
 @MainActor @Observable
 final class DaytimeContextWorkspace {
     static let shared = DaytimeContextWorkspace()
+    // The host can preserve logical ownership across authenticated transport changes.
+    static var ownerRevision: @MainActor () -> [String]? = {
+        ["apiBackend", "podURL", "podIPAddress", "ownerConnectionRevision", "household.boundaryRevision"]
+            .map { UserDefaults.standard.string(forKey: $0) ?? "" }
+    }
     static let unreadableArchiveMessage = "Saved daytime context could not be read. You can remove its local copy below, then choose Health data again. The existing archive has not been replaced."
     private var saved = DaytimeContextArchive()
     private var loadedScope: String?
@@ -42,9 +47,8 @@ final class DaytimeContextWorkspace {
 
     static func ownerScope() -> String? {
         guard !PersonalWorkspaceBoundary.isActive, !AppMode.isDemo else { return nil }
-        let values = ["apiBackend", "podURL", "podIPAddress", "ownerConnectionRevision", "household.boundaryRevision"]
-            .map { UserDefaults.standard.string(forKey: $0) ?? "" }
-        guard let encoded = try? JSONEncoder().encode(values) else { return nil }
+        guard let values = ownerRevision(), values.count == 5,
+              let encoded = try? JSONEncoder().encode(values) else { return nil }
         return "device-owner|" + encoded.base64EncodedString()
     }
 

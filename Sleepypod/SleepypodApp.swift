@@ -42,6 +42,7 @@ struct SleepypodApp: App {
         let household = HouseholdWorkspace()
         #endif
         _household = State(initialValue: household)
+        UnifiedRuntime.configureOwnerIdentity { OwnerDataIdentity.current.revision }
         UnifiedRuntime.initialize()
         #if DEBUG
         _ownerRoutes = State(initialValue: OwnerRouteExample.configured() ?? OwnerRouteSession())
