@@ -4,7 +4,8 @@ import UIKit
 @MainActor final class NextAlarmUITests: XCTestCase {
     private func launch(_ scenario: String) -> XCUIApplication {
         continueAfterFailure = false; let app = XCUIApplication()
-        app.launchArguments = ["-apiBackend", "demo", "--demo", "-onboardingComplete", "YES", "-healthSyncEnabled", "NO", "-uiRoute", "", "-temperatureLayout", "cards", "-tempControl", "dial", "-uiNextAlarmScenario", scenario,
+        app.launchArguments = ["-apiBackend", "demo", "--demo", "-onboardingComplete", "YES", "-healthSyncEnabled", "NO", "-uiRoute", "", "-temperatureLayout", "cards", "-tempControl", "dial", "-uiNextAlarmScenario", scenario, "-userDefaultSide", "left",
+            "-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryL",
             "-appearance", UIDevice.current.userInterfaceIdiom == .pad ? "Light" : "Dark"]
         app.launch(); XCTAssertTrue(app.buttons["Tonight"].firstMatch.waitForExistence(timeout: 15))
         reveal(app.buttons["nextAlarm.reload"], app); return app
@@ -23,6 +24,9 @@ import UIKit
     }
     func testChangeTimeSavesOnlyTheSelectedWakeDate() {
         let app = launch("scheduled"), change = app.buttons["nextAlarm.change"]
+        let warming = app.staticTexts["wake.warming"]
+        reveal(warming, app, searchUp: true)
+        XCTAssertTrue(warming.label.contains("6:30"))
         reveal(change, app, searchUp: true); change.tap()
         let picker = app.datePickers["nextAlarm.time"]; reveal(picker, app); picker.tap()
         XCTAssertTrue(app.pickerWheels.firstMatch.waitForExistence(timeout: 4))
@@ -33,6 +37,8 @@ import UIKit
         XCTAssertTrue(app.staticTexts["nextAlarm.notice"].label.contains("One-time change saved"))
         XCTAssertTrue(app.staticTexts["8:00 AM"].exists)
         capture(app, "Occurrence-time-saved")
+        reveal(warming, app, searchUp: true)
+        XCTAssertTrue(warming.label.contains("7:30"))
     }
     func testUncertainSaveReadsBackWithoutRepeatingAndShowsPendingTimerState() {
         let app = launch("lost-save"), skip = app.buttons["nextAlarm.skip"]
@@ -51,23 +57,34 @@ import UIKit
             capture(app, "Occurrence-\(scenario)"); app.terminate()
         }
     }
+    func testPhoneBackupPracticeNeverOffersRealAlarmCreation() {
+        let app = launch("scheduled")
+        let details = app.descendants(matching: .any).matching(identifier: "wake.backup.details").firstMatch
+        reveal(details, app); details.tap()
+        let explanation = app.staticTexts["Connect to your Pod to add a one-time system alarm on this device. Practice mode never schedules a real alert."]
+        reveal(explanation, app)
+        XCTAssertTrue(explanation.isHittable)
+        XCTAssertFalse(app.buttons["wake.backup.add"].exists)
+        XCTAssertFalse(app.buttons["wake.backup.remove"].exists)
+        capture(app, "Wake-backup-practice")
+    }
     func testSettingsOpensNativeNextAlarmForBothSides() {
         continueAfterFailure = false
         let app = XCUIApplication()
-        app.launchArguments = ["-apiBackend", "demo", "--demo", "-onboardingComplete", "YES", "-healthSyncEnabled", "NO", "-uiRoute", "allsettings", "-uiNextAlarmScenario", "scheduled",
-            "-appearance", UIDevice.current.userInterfaceIdiom == .pad ? "Light" : "Dark"]
+        app.launchArguments = ["-apiBackend", "demo", "--demo", "-onboardingComplete", "YES", "-healthSyncEnabled", "NO", "-uiRoute", "allsettings", "-uiNextAlarmScenario", "scheduled", "-userDefaultSide", "left",
+            "-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryL", "-appearance", UIDevice.current.userInterfaceIdiom == .pad ? "Light" : "Dark"]
         app.launch(); XCTAssertTrue(app.navigationBars["Settings"].waitForExistence(timeout: 15))
         let link = app.buttons["Next alarm"]; reveal(link, app); link.tap()
         XCTAssertTrue(app.navigationBars["Next alarm"].waitForExistence(timeout: 5))
-        let left = app.descendants(matching: .any).matching(NSPredicate(format: "label == %@", "NEXT ALARM · LEFT")).firstMatch
-        let right = app.descendants(matching: .any).matching(NSPredicate(format: "label == %@", "NEXT ALARM · RIGHT")).firstMatch
+        let left = app.descendants(matching: .any).matching(NSPredicate(format: "label == %@", "Left wake plan")).firstMatch
+        let right = app.descendants(matching: .any).matching(NSPredicate(format: "label == %@", "Right wake plan")).firstMatch
         XCTAssertTrue(left.waitForExistence(timeout: 3)); XCTAssertTrue(left.isHittable); capture(app, "Occurrence-settings-left")
         reveal(right, app); capture(app, "Occurrence-settings-right")
     }
     private func reveal(_ element: XCUIElement, _ app: XCUIApplication, searchUp: Bool = false) {
         let scroll = app.scrollViews.firstMatch
         for attempt in 0..<45 {
-            let bounds = app.frame.insetBy(dx: 0, dy: app.frame.width > 600 ? 100 : 160)
+            let bounds = app.frame.insetBy(dx: 0, dy: app.frame.width > 600 ? 100 : 120)
             let frame = element.exists ? element.frame : .zero
             if element.exists, element.isHittable, bounds.contains(CGPoint(x: frame.midX, y: frame.midY)) { return }
             let upward = frame.isEmpty ? !(searchUp && attempt < 20) : frame.midY > bounds.midY

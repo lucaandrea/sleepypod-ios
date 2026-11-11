@@ -1,11 +1,14 @@
 import XCTest
+import UIKit
 
 @MainActor
 final class AlarmParityUITests: XCTestCase {
-    private func launch(_ appearance: String = "Dark") -> XCUIApplication {
+    private func launch(_ appearance: String = "Dark", textSize: String = "UICTContentSizeCategoryL") -> XCUIApplication {
+        continueAfterFailure = false
         let app = XCUIApplication()
         app.launchArguments = ["-apiBackend", "demo", "--demo", "-onboardingComplete", "YES", "-appearance", appearance,
-                               "-healthSyncEnabled", "NO", "-uiRoute", "schedule"]
+                               "-healthSyncEnabled", "NO", "-uiRoute", "schedule", "-userDefaultSide", "left",
+                               "-UIPreferredContentSizeCategoryName", textSize]
         app.launch()
         XCTAssertTrue(app.buttons["Schedule options"].waitForExistence(timeout: 15))
         app.buttons["Schedule options"].tap(); app.buttons["Alarms"].tap()
@@ -13,11 +16,17 @@ final class AlarmParityUITests: XCTestCase {
         return app
     }
     private func reveal(_ element: XCUIElement, app: XCUIApplication) {
-        for _ in 0..<18 { if element.isHittable { return }; app.swipeUp() }
+        // A bottom disclosure remains tappable above the sheet's home-indicator area.
+        let viewport = CGRect(x: app.frame.minX, y: app.frame.minY + 100, width: app.frame.width, height: app.frame.height - 150)
+        for _ in 0..<22 {
+            if element.exists, element.isHittable, viewport.contains(CGPoint(x: element.frame.midX, y: element.frame.midY)) { return }
+            if element.exists, element.frame.midY < viewport.midY { app.swipeDown() } else { app.swipeUp() }
+        }
         XCTAssertTrue(element.isHittable)
     }
     private func capture(_ app: XCUIApplication, _ name: String) {
-        let attachment = XCTAttachment(screenshot: app.screenshot()); attachment.name = name; attachment.lifetime = .keepAlways; add(attachment)
+        // Capture the display; app-frame crops can use portrait coordinates after an iPad rotation.
+        let attachment = XCTAttachment(screenshot: XCUIScreen.main.screenshot()); attachment.name = name; attachment.lifetime = .keepAlways; add(attachment)
     }
     func testAlarmCreateSmartWakeSnoozePauseAndDelete() {
         let app = launch()
@@ -25,6 +34,7 @@ final class AlarmParityUITests: XCTestCase {
         XCTAssertTrue(app.navigationBars["New alarm"].waitForExistence(timeout: 3))
         XCTAssertFalse(app.navigationBars.buttons["Save"].isEnabled)
         let weekends = app.buttons["Weekends"]; reveal(weekends, app: app); weekends.tap()
+        reveal(app.descendants(matching: .any).matching(identifier: "alarm.advanced").firstMatch, app: app); app.descendants(matching: .any).matching(identifier: "alarm.advanced").firstMatch.tap()
         let wake = app.buttons["alarm.wakeWindow"]; reveal(wake, app: app); wake.tap(); app.buttons["20 min"].tap()
         let taper = app.buttons["alarm.snoozeTaper"]; reveal(taper, app: app); taper.tap(); app.buttons["40%"].tap()
         capture(app, "Alarm-wake-and-snooze-dark")
@@ -39,6 +49,7 @@ final class AlarmParityUITests: XCTestCase {
         app.navigationBars.buttons["Save"].tap()
         let paused = app.buttons["alarm.edit.102,103"]; XCTAssertTrue(paused.waitForExistence(timeout: 4))
         reveal(paused, app: app); paused.tap()
+        reveal(app.descendants(matching: .any).matching(identifier: "alarm.advanced").firstMatch, app: app); app.descendants(matching: .any).matching(identifier: "alarm.advanced").firstMatch.tap()
         reveal(app.buttons["alarm.wakeWindow"], app: app)
         XCTAssertTrue(app.buttons["alarm.wakeWindow"].label.contains("20 min"))
         reveal(app.buttons["alarm.snoozeTaper"], app: app)
@@ -51,16 +62,26 @@ final class AlarmParityUITests: XCTestCase {
         XCTAssertTrue(app.buttons["alarm.edit.1,2,3,4,5,6,7"].exists, "The existing daily alarm must remain")
     }
     func testAlarmEditorAtCurrentDeviceTextSize() {
-        let app = launch("Light")
+        verifyEditor(textSize: "UICTContentSizeCategoryL")
+    }
+    func testAlarmEditorAtAccessibilityTextSize() {
+        if UIDevice.current.userInterfaceIdiom == .pad { XCUIDevice.shared.orientation = .landscapeLeft }
+        defer { XCUIDevice.shared.orientation = .portrait }
+        verifyEditor(textSize: "UICTContentSizeCategoryAccessibilityXXXL")
+    }
+    private func verifyEditor(textSize: String) {
+        let app = launch("Light", textSize: textSize)
         let original = app.buttons["alarm.edit.1,2,3,4,5,6,7"]; reveal(original, app: app); original.tap()
         XCTAssertTrue(app.navigationBars["Edit alarm"].waitForExistence(timeout: 3))
         capture(app, "Alarm-responsive-top")
+        XCTAssertFalse(app.buttons["alarm.wakeWindow"].exists)
+        reveal(app.staticTexts["TEMPERATURE AT WAKE"], app: app)
+        capture(app, "Alarm-responsive-temperature")
+        reveal(app.descendants(matching: .any).matching(identifier: "alarm.advanced").firstMatch, app: app); app.descendants(matching: .any).matching(identifier: "alarm.advanced").firstMatch.tap()
         reveal(app.buttons["alarm.wakeWindow"], app: app); app.buttons["alarm.wakeWindow"].tap(); app.buttons["30 min"].tap()
         capture(app, "Alarm-responsive-wake")
         reveal(app.buttons["alarm.snoozeTaper"], app: app); app.buttons["alarm.snoozeTaper"].tap(); app.buttons["50%"].tap()
         capture(app, "Alarm-responsive-snooze")
-        reveal(app.staticTexts["TEMPERATURE AT WAKE"], app: app)
-        capture(app, "Alarm-responsive-temperature")
         app.navigationBars.buttons["Cancel"].tap()
     }
     func testNextAlarmWeeklyEditorKeepsWeeklyScopeExplicit() {
@@ -114,7 +135,7 @@ final class AlarmParityUITests: XCTestCase {
             let right = scenario != "both-away"
             let edit = app.buttons["nextAlarm.weekly"]
             showContext(edit, app: app)
-            XCTAssertTrue(app.staticTexts[right ? "NEXT ALARM · RIGHT" : "NEXT ALARM · LEFT"].exists)
+            XCTAssertTrue(app.staticTexts[right ? "Right wake plan" : "Left wake plan"].exists)
             capture(app, "Alarm-context-\(scenario)")
             edit.tap(); XCTAssertTrue(app.navigationBars["Edit alarm"].waitForExistence(timeout: 3))
             app.navigationBars.buttons["Cancel"].tap()

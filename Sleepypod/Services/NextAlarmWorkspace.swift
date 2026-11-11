@@ -4,6 +4,7 @@ import Observation
 @MainActor @Observable final class NextAlarmWorkspace {
     struct Draft { let base: NextAlarmState; var time: String }
     private(set) var current: NextAlarmState?
+    private(set) var receivedAt: Date?
     private(set) var draft: Draft?
     private(set) var busy = false
     private(set) var requiresReload = false
@@ -14,7 +15,14 @@ import Observation
     private var owner: [String] = []
     private var generation = 0
     private var capability = false
-    var canChange: Bool { !busy && !requiresReload && current?.canChange == true }
+    private let now: () -> Date
+    init(now: @escaping () -> Date = Date.init) { self.now = now }
+    var isFresh: Bool {
+        guard owner == OwnerConnection.revision, let receivedAt else { return false }
+        let age = now().timeIntervalSince(receivedAt)
+        return (-5...90).contains(age)
+    }
+    var canChange: Bool { isFresh && !busy && !requiresReload && current?.canChange == true }
     var changedDraft: Bool { draft.map { $0.base.revision != current?.revision } ?? false }
     var canSaveDraft: Bool { canChange && !changedDraft && draft.map { NextAlarmState.validClock($0.time) } == true }
     func configure(client: (any NextAlarmClient)?, side: Side) {
@@ -24,7 +32,7 @@ import Observation
     func invalidate() {
         generation += 1
         if busy { requiresReload = true }
-        busy = false; current = nil
+        busy = false; current = nil; receivedAt = nil
     }
     func load(userInitiated: Bool = false) async {
         guard !busy, !requiresReload || userInitiated, owner == OwnerConnection.revision, !Task.isCancelled else { return }
@@ -36,9 +44,9 @@ import Observation
             guard isCurrent(operation) else { return }
             let value = try await client.read(side: side); try value.validate(side: side)
             guard isCurrent(operation) else { return }
-            capability = true; current = value; requiresReload = false
+            capability = true; current = value; receivedAt = now(); requiresReload = false
             if userInitiated { notice = "Saved alarm loaded. Review it before making another change." }
-        } catch { if isCurrent(operation) { current = nil; self.error = APIError.message(for: error) } }
+        } catch { if isCurrent(operation) { current = nil; receivedAt = nil; self.error = APIError.message(for: error) } }
     }
     func beginTime() { guard canChange, let current, let alarm = current.alarm else { return }; draft = .init(base: current, time: alarm.time); notice = nil }
     func editTime(_ value: String) { guard !busy, draft != nil else { return }; draft?.time = value }
@@ -46,12 +54,12 @@ import Observation
     func saveTime() async -> Bool { guard canSaveDraft, let draft else { return false }; return await send(base: draft.base, action: "time", time: draft.time) }
     func skip() async -> Bool { guard canChange, let current else { return false }; return await send(base: current, action: "skip") }
     func restore() async -> Bool {
-        guard !busy, !requiresReload, let current, current.change != nil else { return false }
+        guard isFresh, !busy, !requiresReload, let current, current.change != nil else { return false }
         return await send(base: current, action: "restore")
     }
     /// Send the displayed occurrence once. An uncertain result always needs an explicit read.
     private func send(base: NextAlarmState, action: String, time: String? = nil) async -> Bool {
-        guard let client, owner == OwnerConnection.revision, !Task.isCancelled else { return false }
+        guard isFresh, let client, owner == OwnerConnection.revision, !Task.isCancelled else { return false }
         let input: NextAlarmWrite
         do { input = try .init(base: base, action: action, time: time) } catch { self.error = error.localizedDescription; return false }
         generation += 1; let operation = generation; busy = true; requiresReload = true; error = nil; notice = nil
@@ -60,7 +68,7 @@ import Observation
             let result = try await client.write(input); try result.validate(side: side, write: true)
             guard isCurrent(operation) else { return false }
             guard result.revision != base.revision else { throw NextAlarmFailure.invalid }
-            current = result; draft = nil; requiresReload = false
+            current = result; receivedAt = now(); draft = nil; requiresReload = false
             notice = result.schedulerUpdated == true ? "One-time change saved on your controller."
                 : "Change saved. Timer registration is pending and has not yet been confirmed."
             return true

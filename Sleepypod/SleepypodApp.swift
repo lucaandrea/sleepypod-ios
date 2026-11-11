@@ -81,6 +81,7 @@ struct SleepypodApp: App {
                 else { ownerContent }
             }
                 .environment(household)
+                .modifier(BackupAlarmLifecycle())
                 .preferredColorScheme(userProfile.appearance.colorScheme)
                 .foregroundStyle(Theme.text1)
                 .tint(Theme.text1)

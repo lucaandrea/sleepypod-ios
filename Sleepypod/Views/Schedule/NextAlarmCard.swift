@@ -31,18 +31,22 @@ private struct OccurrenceAlarmCard: View {
     @AppStorage("podURL") private var address = ""
     @AppStorage("podIPAddress") private var host = ""
     @AppStorage("ownerConnectionRevision") private var ownerRevision = ""
-    private var scope: String { "\(side.rawValue)|\(backend)|\(address)|\(host)|\(ownerRevision)" }
+    @AppStorage("household.boundaryRevision") private var householdRevision = ""
+    private var scope: String { "\(side.rawValue)|\(backend)|\(address)|\(host)|\(ownerRevision)|\(householdRevision)" }
     private var group: AlarmGroup? {
         guard weekly.loaded else { return nil }
         if let ids = model.current?.alarm?.scheduleIds, let match = weekly.groups(side).first(where: { !$0.rows.filter { ids.contains($0.id) }.isEmpty }) { return match }
         return weekly.nextGroup(side, now: .now, timeZone: TimeZone(identifier: settings.timeZone) ?? .current)
     }
     var body: some View {
+        TimelineView(.periodic(from: .now, by: 5)) { _ in card }
+    }
+    private var card: some View {
         VStack(alignment: .leading, spacing: 14) {
-            Eyebrow("NEXT ALARM · \(settings.sideName(for: side).uppercased())")
+            Text("\(settings.sideName(for: side)) wake plan").font(.headline)
             if APIBackend.current.isDemo, DebugRoute.nextAlarmScenario != "normal" { Text("SYNTHETIC ALARM EXAMPLE").font(.caption).foregroundStyle(Theme.amber) }
             if model.busy { ProgressView("Updating alarm…") }
-            if let current = model.current { summary(current) }
+            if let current = model.current, model.isFresh { summary(current) }
             else if !model.busy { Text("Alarm status unavailable").foregroundStyle(Theme.text2) }
             if let error = model.error { Text(error).font(.footnote).foregroundStyle(Theme.amber).accessibilityIdentifier("nextAlarm.error") }
             if let notice = model.notice { Text(notice).font(.footnote).foregroundStyle(Theme.text2).accessibilityIdentifier("nextAlarm.notice") }
@@ -55,6 +59,16 @@ private struct OccurrenceAlarmCard: View {
             Button("Refresh saved alarm", systemImage: "arrow.clockwise") {
                 Task { await weekly.refresh(); await model.load(userInitiated: true) }
             }.disabled(model.busy).accessibilityIdentifier("nextAlarm.reload")
+            DisclosureGroup {
+                VStack(alignment: .leading, spacing: 16) {
+                    PhoneBackupAlarmView(plan: model.isFresh ? model.current : nil, receivedAt: model.receivedAt,
+                        ownerScope: model.isFresh ? BackupAlarmCoordinator.ownerScope() : nil, canEdit: !model.busy && !model.requiresReload)
+                    Divider()
+                    Text("Lights, shades and audio").font(.headline)
+                    Text("This screen confirms the Pod plan and this device’s backup only. Review qualified bedroom routines in Home before relying on other wake devices.")
+                        .font(.footnote).foregroundStyle(Theme.text2)
+                }.padding(.top, 12)
+            } label: { Text("Phone backup and wake devices").frame(minHeight: 44).accessibilityIdentifier("wake.backup.details") }
         }.frame(maxWidth: .infinity, alignment: .leading).cardStyle()
             .task(id: scope) {
                 model.configure(client: weekly.occurrenceClient(timeZone: settings.timeZone, scenario: DebugRoute.nextAlarmScenario), side: side)
@@ -76,8 +90,19 @@ private struct OccurrenceAlarmCard: View {
             if current.state == "skipped", let following = current.followingAt {
                 Text("Following routine alarm: \(current.label(following))").font(.footnote).accessibilityIdentifier("nextAlarm.following")
             }
-            Text("Wake temperature \(TemperatureConversion.displayTemp(Int(alarm.alarmTemperatureF.rounded()), format: settings.temperatureFormat.degreeUnit)) · \(alarm.wakeWindow.formatted()) min wake window")
-                .font(.caption).foregroundStyle(Theme.text2)
+            if current.state == "scheduled", let warming = current.warming {
+                Label("Warming starts \(DisplayTime.clock(NextAlarmState.clock(NextAlarmState.instant(warming.startsAt) ?? .now, timeZone: current.timeZone))) toward \(TemperatureConversion.displayTemp(Int(warming.targetF.rounded()), format: settings.temperatureFormat.degreeUnit))", systemImage: "thermometer.medium")
+                    .font(.subheadline).accessibilityIdentifier("wake.warming")
+                if alarm.wakeWindow > 0 {
+                    Text("Movement can trigger vibration from \(current.label(warming.earliestVibrationAt)); otherwise it starts at the saved wake time.").font(.footnote).foregroundStyle(Theme.text2)
+                }
+                DisclosureGroup("Wake details") {
+                    Text("The warm hold ends \(current.label(warming.endsAt)). These are saved command times; reaching the target and feeling the vibration require a physical check.")
+                        .font(.footnote).foregroundStyle(Theme.text2).padding(.top, 8)
+                }
+            } else if current.state == "scheduled" {
+                Text("Warming time is not confirmed by this controller. Refresh or update the controller to see the exact warm-up plan.").font(.footnote).foregroundStyle(Theme.text2)
+            }
         } else { Text(current.state == "away" ? "This side is away" : "No alarm set").foregroundStyle(Theme.text2) }
         if !current.reason.isEmpty { Text(current.reason).font(.footnote).foregroundStyle(Theme.text2) }
         if let execution = current.execution { Text("Command \(execution). Physical vibration has not been verified.").font(.footnote).foregroundStyle(Theme.amber) }

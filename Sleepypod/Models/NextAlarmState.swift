@@ -11,6 +11,12 @@ enum NextAlarmFailure: LocalizedError, Equatable {
     }
 }
 struct NextAlarmState: Codable, Equatable, Sendable {
+    struct Warming: Codable, Equatable, Sendable {
+        let startsAt: String
+        let endsAt: String
+        let earliestVibrationAt: String
+        let targetF: Double
+    }
     struct Occurrence: Codable, Equatable, Sendable {
         let scheduleIds: [Int]
         let at: String
@@ -41,6 +47,7 @@ struct NextAlarmState: Codable, Equatable, Sendable {
     let acknowledgment: String
     let change: Change?
     let schedulerUpdated: Bool?
+    var warming: Warming?
     /// Keep timestamp strings untouched for the server's exact occurrence preconditions.
     func validate(side: Side, write: Bool = false) throws {
         guard apiVersion == 1, self.side == side, TimeZone(identifier: timeZone) != nil,
@@ -56,6 +63,13 @@ struct NextAlarmState: Codable, Equatable, Sendable {
                   alarm.duration.isFinite, alarm.duration >= 0, alarm.wakeWindow.isFinite, alarm.wakeWindow >= 0, alarm.alarmTemperatureF.isFinite else { throw NextAlarmFailure.invalid }
         } else if ["scheduled", "skipped"].contains(state) || canChange { throw NextAlarmFailure.invalid }
         if let followingAt, Self.instant(followingAt) == nil { throw NextAlarmFailure.invalid }
+        if let warming {
+            guard state == "scheduled", execution == nil, let alarm, let at = Self.instant(alarm.at),
+                  let start = Self.instant(warming.startsAt), let end = Self.instant(warming.endsAt),
+                  let earliest = Self.instant(warming.earliestVibrationAt),
+                  start < at, end > at, earliest >= start, earliest <= at,
+                  warming.targetF.isFinite, (55...110).contains(warming.targetF), warming.targetF == alarm.alarmTemperatureF else { throw NextAlarmFailure.invalid }
+        }
         if let change {
             guard UUID(uuidString: change.revision) != nil, ["active", "expired", "invalidated"].contains(change.status),
                   Self.instant(change.originalAt) != nil, Self.instant(change.expiresAt) != nil,
