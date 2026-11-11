@@ -90,3 +90,36 @@ Both scenarios passed on signed iOS 27.2 phone (69.326 seconds) and iPad (47.251
 seconds) simulators. All eight before-toggle/editor captures were inspected. No
 production view or temperature behavior changed. This local result does not
 replace the required hosted iOS 26 check; its original failure is preserved.
+
+## Consolidated native source validation
+
+The release branch includes the full ancestry of native PRs 60–66 and the
+response-research feature, with recording/menu/comfort test repairs preserved.
+The integrated source at `703b199ea503283db09f6d3fc4e6afebeb739816` passed 1,276
+unit and transport tests on a signed iOS 27.2 iPad simulator, with zero failures
+and nine existing live-service skips. The result bundle is
+`SleepypodCombinedNativeUnits.xcresult`. Strict SwiftLint passed all 594 files.
+Twelve macOS Bash 3.2 build/test script invocations preserved all six UI groups,
+their selectors, signing settings and bounded execution. That script check is
+not a substitute for hosted XCTest.
+
+The final integrated source still needs the exact-head hosted checks. No new
+TestFlight distribution, personal-data import, live controller switch or physical
+qualification is asserted by these local tests.
+
+## Care navigation viewport follow-up
+
+The hosted iPad guidance run at `2be8d83` could not reach Status because its
+settings sheet has a smaller visible scroll viewport than the application window.
+The test now scrolls the containing view and requires a hittable point clear of
+navigation chrome. It retains the bounded search, all destination assertions and
+their original timeouts. Large-text disclosures at the bottom of a page need a
+visible tap point rather than an impossible full-frame inset. No production view
+or hardware behavior changed.
+
+The final focused signed iOS 27.2 runs passed both care scenarios on phone
+(123.487 and 59.304 seconds) and iPad (63.132 and 51.572 seconds). All fourteen
+entry, care, recovery and protection-link captures were opened and inspected.
+The hosted failure and three earlier local helper attempts are retained separately
+from these final `SleepypodCareScrollPhone-v4` and `SleepypodCareScrollPad-v4`
+receipts. Strict lint and whitespace checks passed for the helper.

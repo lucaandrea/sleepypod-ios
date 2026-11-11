@@ -64,7 +64,17 @@ The independent v5 finish review requested two scoped repairs: containing
 multiline labels within native button backgrounds and using an accessible text
 color for practice/error prose in Light Mode. The follow-up uses native rounded
 rectangles and primary text with a separate amber SF Symbol, preserving shared
-Theme assets. The v6 recapture and hosted checks remain pending.
+Theme assets. The final v6 signed iOS 27.2 UI runs passed all four scenarios on both iPhone
+and portrait iPad, with zero failures and zero skips. All 36 captures were opened,
+including normal-size Light ready/unavailable states. The independent focused
+verdict scored F1 and F2 resolved, with no repair-related regression. Shared Theme
+assets were unchanged. Primary text contrast is 17.44:1 in Light and 16.65:1 in Dark.
+This verdict covers the two repairs at the captured simulator scope; it does not
+establish landscape, VoiceOver, physical-device or release qualification.
+
+The response production source at `804f87c` is unchanged in consolidated
+`703b199`; the latter passed 1,276 unit/transport tests, nine existing live-service
+skips, and strict lint of 594 files. Exact-head hosted checks remain required.
 
 No physical phone, live Pod, TestFlight release or prospective response validation
 has been performed for this increment. Neither fitting nor viewing a passing
