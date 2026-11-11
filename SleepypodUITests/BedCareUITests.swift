@@ -8,9 +8,10 @@ import UIKit
         continueAfterFailure = false
         let app = XCUIApplication()
         app.launchArguments = ["--demo", "-apiBackend", "demo", "-onboardingComplete", "YES", "-healthSyncEnabled", "NO",
-                               "-uiRoute", "settings", "-household.personalWorkspaceActive", "NO", "-appearance", large ? "Light" : "Dark"]
-        if large { app.launchArguments += ["-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL"] }
+                               "-uiRoute", "settings", "-household.personalWorkspaceActive", "NO", "-appearance", large ? "Light" : "Dark",
+                               "-UIPreferredContentSizeCategoryName", large ? "UICTContentSizeCategoryAccessibilityXXXL" : "UICTContentSizeCategoryL"]
         app.launch()
+        defer { app.terminate() }
         let status = app.buttons["settings.status"]
         reveal(status, app); capture(large ? "Care-large-entry" : "Care-entry"); status.tap()
         let care = app.buttons["system.care"]; reveal(care, app); care.tap()
@@ -31,11 +32,15 @@ import UIKit
             let protection = app.buttons["care.open.protectionSettings"]
             reveal(protection, app); capture("Care-protection-link"); protection.tap()
             XCTAssertTrue(app.navigationBars["Pump protection"].waitForExistence(timeout: 5))
+            capture("Care-protection-destination")
             app.navigationBars["Pump protection"].buttons.firstMatch.tap()
+            let alerts = app.buttons["care.open.circulation"]; reveal(alerts, app); alerts.tap()
+            XCTAssertTrue(app.navigationBars["Pump alerts"].waitForExistence(timeout: 5))
+            capture("Care-alerts-destination")
+            app.navigationBars["Pump alerts"].buttons.firstMatch.tap()
             let storage = app.buttons["care.open.storage"]; reveal(storage, app); storage.tap()
             XCTAssertTrue(app.navigationBars["Storage"].waitForExistence(timeout: 5))
         }
-        app.terminate()
     }
     private func reveal(_ element: XCUIElement, _ app: XCUIApplication) {
         let appFrame = app.frame

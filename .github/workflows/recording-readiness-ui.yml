@@ -43,10 +43,14 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: everyday-ui-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   ui-bundle:
     name: Build everyday UI bundle
-    runs-on: macos-15-intel
+    runs-on: macos-15
     timeout-minutes: 45
     env:
       DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
@@ -82,7 +86,7 @@ jobs:
   recording:
     name: Everyday checks (${{ matrix.form }}, ${{ matrix.suite }})
     needs: ui-bundle
-    runs-on: macos-15-intel
+    runs-on: macos-15
     timeout-minutes: 75
     strategy:
       fail-fast: false

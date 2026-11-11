@@ -8,9 +8,10 @@ import XCTest
         continueAfterFailure = false
         let app = XCUIApplication()
         app.launchArguments = ["--demo", "-apiBackend", "demo", "-onboardingComplete", "YES", "-healthSyncEnabled", "NO",
-                               "-uiRoute", "sleep", "-household.personalWorkspaceActive", "NO", "-appearance", large ? "Light" : "Dark"]
-        if large { app.launchArguments += ["-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL"] }
+                               "-uiRoute", "sleep", "-household.personalWorkspaceActive", "NO", "-appearance", large ? "Light" : "Dark",
+                               "-UIPreferredContentSizeCategoryName", large ? "UICTContentSizeCategoryAccessibilityXXXL" : "UICTContentSizeCategoryL"]
         app.launch()
+        defer { app.terminate() }
         let title = app.staticTexts["recording.readiness.title"]
         XCTAssertTrue(title.waitForExistence(timeout: 30))
         XCTAssertEqual(XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: NSPredicate(format: "label == %@", "Recording checks are incomplete"), object: title)], timeout: 15), .completed)
@@ -27,7 +28,7 @@ import XCTest
         XCTAssertTrue(disclosureLabel.exists)
         print("Recording disclosure button: \(details.frame); label: \(disclosureLabel.frame)")
         disclosureLabel.coordinate(withNormalizedOffset: .init(dx: 0.5, dy: 0.5)).tap()
-        XCTAssertEqual(details.value as? String, "Expanded")
+        expectExpanded(details, true)
         let storage = app.staticTexts["Recording storage"]
         reveal(storage, in: app)
         XCTAssertTrue(storage.isHittable)
@@ -36,10 +37,28 @@ import XCTest
         reveal(refresh, in: app)
         XCTAssertTrue(refresh.isEnabled)
         XCTAssertGreaterThanOrEqual(refresh.frame.height, 44)
-        capture(large ? "Recording-large-refresh" : "Recording-refresh")
+        let checked = app.staticTexts["recording.readiness.checked"]
+        let previousCheck = checked.label
+        XCTAssertTrue(previousCheck.hasPrefix("Checked "))
         refresh.tap()
+        // Waiting for idle alone can pass when no refresh happened. Require a new completed read.
+        let finished = NSPredicate { _, _ in
+            refresh.isEnabled && !refresh.label.contains("Checking") && checked.exists && checked.label != previousCheck
+        }
+        XCTAssertEqual(XCTWaiter.wait(for: [expectation(for: finished, evaluatedWith: refresh)], timeout: 10), .completed)
+        expectExpanded(details, true)
+        capture(large ? "Recording-large-refresh" : "Recording-refresh")
+        // A fresh read must preserve the user's disclosure state, and one tap must close it.
+        reveal(details, in: app)
+        expectExpanded(details, true)
+        details.staticTexts["Hide recording checks"].coordinate(withNormalizedOffset: .init(dx: 0.5, dy: 0.5)).tap()
+        expectExpanded(details, false)
+        capture(large ? "Recording-large-reclosed" : "Recording-reclosed")
         XCTAssertFalse(app.buttons["Restart piezo processor"].exists)
-        app.terminate()
+    }
+    private func expectExpanded(_ element: XCUIElement, _ expanded: Bool) {
+        let state = NSPredicate(format: "value == %@", expanded ? "Expanded" : "Collapsed")
+        XCTAssertEqual(XCTWaiter.wait(for: [expectation(for: state, evaluatedWith: element)], timeout: 5), .completed)
     }
     private func capture(_ name: String) {
         let shot = XCTAttachment(screenshot: XCUIScreen.main.screenshot())

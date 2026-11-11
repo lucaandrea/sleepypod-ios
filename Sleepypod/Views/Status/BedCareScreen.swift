@@ -5,6 +5,7 @@ struct BedCareScreen: View {
     @State private var model = BedCareWorkspace()
     @State private var refreshRevision = 0
     @State private var recoveryExpanded = false
+    @State private var selectedDestination: BedCareDestination?
 
     var body: some View {
         TimelineView(.periodic(from: .now, by: 1)) { timeline in
@@ -17,6 +18,17 @@ struct BedCareScreen: View {
             }.background(Theme.background)
         }
         .navigationTitle("Bed care")
+        // Keep destination identity outside the periodically refreshed observations.
+        .navigationDestination(item: $selectedDestination) { destination in
+            switch destination {
+            case .thermal: SystemThermalScreen()
+            case .dashboard: PumpAlertsScreen()
+            case .health: SystemHealthScreen()
+            case .storage: SystemStorageScreen()
+            case .databases: SystemDatabaseScreen()
+            case .protection: PumpProtectionSettingsScreen()
+            }
+        }
         .task(id: OwnerConnection.revision + [String(describing: scenePhase), String(refreshRevision)]) {
             model.invalidate()
             guard scenePhase == .active else { return }
@@ -38,7 +50,8 @@ struct BedCareScreen: View {
         let lastID = report.checks.last?.id
         return VStack(alignment: .leading, spacing: 20) {
             ForEach(report.checks) { check in
-                BedCareRow(check: check, current: reportCurrent && check.current(at: date), exportDate: report.exportDate)
+                BedCareRow(check: check, current: reportCurrent && check.current(at: date), exportDate: report.exportDate,
+                           openDestination: { selectedDestination = $0 })
                 if check.id != lastID { Divider() }
             }
         }.padding(20).cardStyle()
@@ -83,6 +96,7 @@ private struct BedCareRow: View {
     let check: BedCare.Check
     let current: Bool
     let exportDate: Date?
+    let openDestination: (BedCareDestination) -> Void
     @State private var expanded = false
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -112,12 +126,14 @@ private struct BedCareRow: View {
                     }.padding(.top, 10)
                 } label: { Text(current ? "See individual checks" : "See last observation").frame(minHeight: 44) }
             }
-            NavigationLink { destination } label: { Label(check.destinationLabel, systemImage: "arrow.right").font(.subheadline).frame(minHeight: 44) }
+            Button { openDestination(BedCareDestination(rawValue: check.destination) ?? .databases) } label: {
+                Label(check.destinationLabel, systemImage: "arrow.right").font(.subheadline).frame(minHeight: 44)
+            }.buttonStyle(.plain)
                 .accessibilityIdentifier("care.open.\(check.id)")
             if check.id == "circulation" {
-                NavigationLink { PumpProtectionSettingsScreen() } label: {
+                Button { openDestination(.protection) } label: {
                     Label("Review protection settings", systemImage: "shield").font(.subheadline).frame(minHeight: 44)
-                }.accessibilityIdentifier("care.open.protectionSettings")
+                }.buttonStyle(.plain).accessibilityIdentifier("care.open.protectionSettings")
             }
         }.frame(maxWidth: .infinity, alignment: .leading)
     }
@@ -130,13 +146,8 @@ private struct BedCareRow: View {
         default: return "questionmark.circle"
         }
     }
-    @ViewBuilder private var destination: some View {
-        switch check.destination {
-        case "thermal": SystemThermalScreen()
-        case "dashboard": PumpAlertsScreen()
-        case "health": SystemHealthScreen()
-        case "storage": SystemStorageScreen()
-        default: SystemDatabaseScreen()
-        }
-    }
+}
+
+private enum BedCareDestination: String, Hashable {
+    case thermal, dashboard, health, storage, databases, protection
 }
