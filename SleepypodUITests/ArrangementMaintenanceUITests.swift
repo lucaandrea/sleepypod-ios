@@ -10,13 +10,14 @@ import XCTest
         XCTAssertTrue(app.staticTexts[mode == "activate" ? "household.assignment" : "maintenance.title"].waitForExistence(timeout: 20))
         return app
     }
-    private func reveal(_ element: XCUIElement, in app: XCUIApplication) {
+    private func reveal(_ element: XCUIElement, in app: XCUIApplication, towardTop: Bool = false) {
         func visible() -> Bool { element.exists && element.isHittable && element.frame.midY > app.frame.minY + 110 && element.frame.midY < app.frame.maxY - 40 }
         for _ in 0..<32 {
             if visible() { break }
-            let up = !element.exists || element.frame.midY > app.frame.maxY - 40
-            app.coordinate(withNormalizedOffset: CGVector(dx: 0.90, dy: up ? 0.78 : 0.28))
-                .press(forDuration: 0.05, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.90, dy: up ? 0.28 : 0.78)))
+            let scrollUp = element.exists ? element.frame.midY > app.frame.maxY - 40 : !towardTop
+            // Scroll through the label column rather than dragging across live switches.
+            app.coordinate(withNormalizedOffset: CGVector(dx: 0.50, dy: scrollUp ? 0.78 : 0.28))
+                .press(forDuration: 0.05, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.50, dy: scrollUp ? 0.28 : 0.78)))
         }
         XCTAssertTrue(visible(), "Unreachable \(element.identifier)")
         XCTAssertGreaterThanOrEqual(element.frame.minX, app.frame.minX)
@@ -26,7 +27,20 @@ import XCTest
         for field in fields {
             let toggle = app.switches["maintenance.confirm.\(field)"]; reveal(toggle, in: app)
             XCTAssertEqual(toggle.value as? String, "0")
-            toggle.coordinate(withNormalizedOffset: CGVector(dx: 0.93, dy: 0.5)).tap()
+            // SwiftUI exposes both a full-width labelled row and its smaller native switch.
+            let bounds = toggle.frame
+            let controls = app.switches.matching(NSPredicate(format: "identifier == ''")).allElementsBoundByIndex
+                .filter { bounds.contains($0.frame) && $0.isHittable }
+            XCTAssertEqual(controls.count, 1, "Expected one native switch for \(field)")
+            controls.first?.tap()
+            let selected = XCTNSPredicateExpectation(predicate: NSPredicate(format: "value == %@", "1"), object: toggle)
+            XCTAssertEqual(XCTWaiter.wait(for: [selected], timeout: 5), .completed, "Confirmation did not register: \(field)")
+        }
+        // Native lists recycle off-screen rows, particularly at accessibility text sizes.
+        for (index, field) in fields.enumerated() {
+            let toggle = app.switches["maintenance.confirm.\(field)"]
+            reveal(toggle, in: app, towardTop: index == 0)
+            XCTAssertEqual(toggle.value as? String, "1", "Confirmation changed while scrolling: \(field)")
         }
     }
     private func tap(_ identifier: String, in app: XCUIApplication) {
