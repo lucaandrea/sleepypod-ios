@@ -203,3 +203,69 @@ signed device classes in `SleepypodConnectionNightUI-iPhone-v12.xcresult` and
 The separate hosted guidance failure occurred before any scenario initialized
 (`Timed out waiting for AX loaded notification`); it is retained as runner
 failure evidence, not reported as a passing check.
+
+## Recording control and hosted runner follow-up (November 11)
+
+The Intel hosted run at `57702aa` still failed the iPad recording disclosure:
+a tap was delivered but its state remained collapsed. The original result is
+retained. The production card no longer places its interactive controls inside
+the one-second `TimelineView`; only freshness/status text updates there. A
+new report with the same attention status does not undo the user's decision to
+close the checks. UI coverage now opens once, refreshes, verifies it stays open,
+then closes once. It retains the original bounds and all recording assertions.
+
+The final local repair passed both recording scenarios on the signed iOS 27.2
+phone simulator (`SleepypodRecordingRepair-phone-v8.xcresult`). The fresh generic
+bundle built arm64 and x86_64; on iPad it passed both recording and both comfort
+scenarios (`SleepypodRecordingRepair-iPad-v9.xcresult`). Sixteen recording captures
+cover open, closed, refreshed and reclosed states in standard dark and maximum
+text light appearances. Earlier helper attempts and the empty-xctestrun attempt
+remain failures, not acceptance receipts.
+
+The two affected UI workflows now use GitHub's supported `macos-15` ARM64 image
+with the same Xcode 26.3 and iOS 26 runtime selection. The general build, unit and
+lint workflow retains `macos-15-intel`. The comfort workflow executes its built
+xctestrun directly, with separate bounded normal/large-text stages. Required
+assertions, both device classes and iOS 26 support are unchanged. Concurrency
+cancels superseded runs of the same PR/ref. This environment change does not
+establish that the new hosted head passes; those results are still required.
+
+Runner source checked: https://github.com/actions/runner-images/blob/main/images/macos/macos-15-arm64-Readme.md.
+No production Pod, account, Health import, TestFlight release or routine changed.
+
+
+## Final recording refresh and care navigation verification
+
+The recording review found that waiting for an idle refresh button could succeed
+without a new read. The corrected scenario captures the prior checked timestamp,
+requires a different completed-read timestamp after one tap, verifies that the
+checks remain expanded and captures that result before one closing tap. The
+standard and maximum-text scenarios passed on both device classes.
+
+The retained hosted iPad care failure at `57702aa` opened Pump alerts after tapping
+Review protection settings. Its captured tap point was on the intended label; this
+was not resolved by scrolling alone. A first local value-link attempt also failed.
+The final implementation keeps an explicit selected destination outside the
+periodically refreshed observations, preserving invalidation when leaving care.
+Protection settings, pump alerts and storage now open through their own explicit
+read-only navigation actions. The tests verify returning between destinations,
+without changing protection settings or issuing a hardware command.
+
+The final generic simulator build passed for arm64 and x86_64. Both signed iOS 27.2
+runs passed all six scenarios, twelve in total, in
+`SleepypodReleaseRepair-phone-v10.xcresult` and
+`SleepypodReleaseRepair-iPad-v10.xcresult`. These cover recording, care and comfort
+at standard and maximum text sizes. All 42 captured states were inspected via
+contact sheets, with representative protection, alert and completed-refresh states
+reopened full size. Strict lint and whitespace checks passed. Old failures and the
+first care value-link attempt remain separate from these acceptance receipts.
+
+No physical controller, personal Health data or distributed app was used. Hosted
+checks of the final revision, distribution and live acceptance remain separate.
+
+Independent native finish review returned `ship` for the care navigation repair
+after all 18 care captures and both result bundles were inspected. A separate
+verdict pass scored the one recording refresh-verification finding resolved after
+all 16 recording captures and both bundles were inspected. These are scoped local
+review verdicts, not whole-release or live-operation approval. The incumbent
+visual system was preserved; no design-system files were changed.
