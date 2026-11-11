@@ -43,19 +43,33 @@ import XCTest
         XCTAssertEqual(note.label, "Felt comfortable after an earlier bedtime."); capture(app, "Learning-journal-light")
         let source = app.buttons["Source and original file"]; reveal(source, in: app); source.tap()
         let export = app.buttons["learning.export"]; reveal(export, in: app); capture(app, "Learning-source-light"); export.tap()
-        let cancel = app.buttons["Cancel"].firstMatch
-        XCTAssertTrue(cancel.waitForExistence(timeout: 10))
         let save = app.buttons["Save"].firstMatch
         let ready = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
             save.exists && save.isHittable && app.frame.contains(save.frame)
         }, object: nil)
         XCTAssertEqual(XCTWaiter.wait(for: [ready], timeout: 10), .completed)
-        capture(app, "Learning-export-destination"); cancel.tap()
+        capture(app, "Learning-export-destination")
+        cancelExport(in: app)
         XCTAssertTrue(app.navigationBars["Saved record"].waitForExistence(timeout: 10))
         XCTAssertFalse(app.staticTexts["learning.exportNotice"].exists)
         app.navigationBars.buttons.element(boundBy: 0).tap()
         reveal(record, in: app); XCTAssertFalse(app.staticTexts["learning.note"].exists)
         record.tap(); XCTAssertTrue(note.waitForExistence(timeout: 10)); app.terminate()
+    }
+    private func cancelExport(in app: XCUIApplication) {
+        let cancel = app.buttons["Cancel"].firstMatch
+        // Files may restore a nested folder. Its root exposes the explicit Cancel action.
+        let browser = app.navigationBars["FullDocumentManagerViewControllerNavigationBar"]
+        for _ in 0..<3 {
+            if cancel.exists && cancel.isHittable { break }
+            let back = browser.buttons["BackButton"]
+            guard back.exists && back.isHittable else { break }
+            back.tap()
+        }
+        capture(app, "Learning-export-cancellation")
+        XCTAssertTrue(cancel.waitForExistence(timeout: 10))
+        XCTAssertTrue(cancel.isHittable)
+        cancel.tap()
     }
     func testEmptyAndUnavailableLibrariesExplainWhatToDo() {
         var app = launch("empty"); openLibrary(app)
