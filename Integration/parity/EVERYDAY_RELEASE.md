@@ -75,3 +75,18 @@ maximum-text editor. The first iPad local failure and hosted failures remain
 retained. This changes test navigation only; it does not alter alarm UI, payloads,
 scheduling or command authority. The separate hosted iPhone wake job stopped
 before running any tests because its simulator destination became unavailable.
+
+## Comfort editor viewport follow-up
+
+The hosted iPhone comfort run at `2be8d83` passed the ordinary editor but its
+maximum-text scenario did not observe the switch turning on. The retained video
+and accessibility tree show a partly visible labeled row; they do not establish
+a product switch defect. The test now requires the full control frame inside the
+usable viewport before its single tap, with bounded bidirectional scrolling. The
+existing five-second enabled-state assertion remains unchanged, and a failure
+retains both a screenshot and the accessibility tree.
+
+Both scenarios passed on signed iOS 27.2 phone (69.326 seconds) and iPad (47.251
+seconds) simulators. All eight before-toggle/editor captures were inspected. No
+production view or temperature behavior changed. This local result does not
+replace the required hosted iOS 26 check; its original failure is preserved.

@@ -19,15 +19,16 @@ import XCTest
         reveal(edit, in: app); edit.tap()
         let toggle = app.switches["Enable automatic comfort range"]
         reveal(toggle, in: app)
+        capture(large ? "Comfort-limit-large-before-toggle" : "Comfort-limit-before-toggle")
         activate(toggle, in: app)
         let enabled = XCTNSPredicateExpectation(predicate: NSPredicate(format: "value == '1'"), object: toggle)
-        XCTAssertEqual(XCTWaiter.wait(for: [enabled], timeout: 5), .completed)
+        let toggled = XCTWaiter.wait(for: [enabled], timeout: 5)
+        if toggled != .completed { capture("Comfort-limit-toggle-failure"); print(app.debugDescription) }
+        XCTAssertEqual(toggled, .completed)
         let save = app.buttons["comfort.limit.save"]
         reveal(save, in: app)
         XCTAssertTrue(save.isEnabled)
-        let screenshot = XCTAttachment(screenshot: app.screenshot())
-        screenshot.name = large ? "Comfort-limit-large-text" : "Comfort-limit-editor"
-        screenshot.lifetime = .keepAlways; add(screenshot)
+        capture(large ? "Comfort-limit-large-text" : "Comfort-limit-editor")
         save.tap()
         let saved = app.staticTexts["68–72°F automatic range"]
         XCTAssertTrue(saved.waitForExistence(timeout: 10))
@@ -35,8 +36,21 @@ import XCTest
         app.terminate()
     }
     private func reveal(_ element: XCUIElement, in app: XCUIApplication) {
-        for _ in 0..<20 where !element.isHittable { app.swipeUp(velocity: .slow) }
-        XCTAssertTrue(element.isHittable)
+        let viewport = CGRect(x: app.frame.minX, y: app.frame.minY + 120, width: app.frame.width, height: app.frame.height - 240)
+        for _ in 0..<30 {
+            // A partly visible row can report hittable while its trailing control is under chrome.
+            if element.exists, element.frame.height > 0, viewport.contains(element.frame), element.isHittable { return }
+            let upward = !element.exists || element.frame.minY >= viewport.minY
+            let lower = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.72))
+            let upper = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.42))
+            (upward ? lower : upper).press(forDuration: 0.05, thenDragTo: upward ? upper : lower, withVelocity: .slow, thenHoldForDuration: 0)
+        }
+        capture("Comfort-limit-unreachable"); print(app.debugDescription)
+        XCTFail("Comfort control is not fully visible: \(element)")
+    }
+    private func capture(_ name: String) {
+        let screenshot = XCTAttachment(screenshot: XCUIScreen.main.screenshot())
+        screenshot.name = name; screenshot.lifetime = .keepAlways; add(screenshot)
     }
     private func activate(_ labeledSwitch: XCUIElement, in app: XCUIApplication) {
         // iOS 26 exposes a labeled row and a separate native switch. Target the
