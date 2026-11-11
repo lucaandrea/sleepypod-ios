@@ -23,6 +23,9 @@ on:
       - 'SleepypodUITests/BedCareUITests.swift'
       - 'Sleepypod/**/TemporaryCooling*.swift'
       - 'SleepypodUITests/TemporaryCoolingUITests.swift'
+      - 'Sleepypod/**/TargetResponse*.swift'
+      - 'SleepypodUITests/TargetResponseUITests.swift'
+      - 'Integration/Fixtures/target-response-example.json'
       - 'Sleepypod/**/NightExplanation*.swift'
       - 'Sleepypod/**/NightTemperature*.swift'
       - 'SleepypodUITests/NightExplanationUITests.swift'
@@ -49,7 +52,7 @@ jobs:
       fail-fast: false
       matrix:
         form: [iPhone, iPad]
-        suite: [recording, guidance, wake, cooling, night]
+        suite: [recording, guidance, wake, cooling, night, response]
     env:
       DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
     steps:
