@@ -10,6 +10,8 @@ struct HealthHistoryCard: View {
         FeatureSection(title: "Health history", eyebrow: "APPLE HEALTH") {
             Text("Read all accessible sleep history, plus daily resting heart rate, HRV and respiration. Sources stay separate; only your selected source is used for sleep analysis.")
                 .foregroundStyle(Theme.text2)
+            NavigationLink("Optional daytime context") { DaytimeContextScreen() }
+                .frame(minHeight: 44).accessibilityIdentifier("context.open")
             Button(workspace.archive.history.sources.isEmpty ? "Connect & read Health history" : "Refresh Health history") {
                 Task { await workspace.importHistory() }
             }.buttonStyle(PrimaryButtonStyle()).disabled(workspace.busy || AppMode.isDemo)

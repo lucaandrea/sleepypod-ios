@@ -94,7 +94,7 @@ import XCTest
 }
 private enum ModelFixture {
     static func document() throws -> RemoteStageModelDocument {
-        let file = try XCTUnwrap(Bundle.main.url(forResource: "stage-model-demo", withExtension: "json"))
+        let file = try XCTUnwrap(Bundle(for: RemoteStageModelTests.self).url(forResource: "stage-model-demo", withExtension: "json"))
         return try RemoteStageModelDocument.read(Data(contentsOf: file))
     }
 }
@@ -116,8 +116,8 @@ private actor ModelMemoryClient: RemoteStageModelClient {
     func preview(side: Side, document: RemoteStageModelDocument?, modelId: Int?, nights: Int) -> RemoteStageModelPreview { .init(version: document?.version, nights: [], pooled: nil, rulesPooled: nil) }
 }
 private final class ModelContractProtocol: URLProtocol, @unchecked Sendable {
-    override static func canInit(with request: URLRequest) -> Bool { ["model-current.invalid", "model-old.invalid"].contains(request.url?.host ?? "") }
-    override static func canonicalRequest(for request: URLRequest) -> URLRequest { request }
+    override class func canInit(with request: URLRequest) -> Bool { ["model-current.invalid", "model-old.invalid"].contains(request.url?.host ?? "") }
+    override class func canonicalRequest(for request: URLRequest) -> URLRequest { request }
     override func startLoading() {
         do {
             let document = try JSONSerialization.jsonObject(with: JSONEncoder().encode(ModelFixture.document()))

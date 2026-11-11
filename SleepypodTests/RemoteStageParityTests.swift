@@ -75,7 +75,7 @@ import XCTest
 
 private enum StageFixture {
     static func defaults() throws -> RemoteStageClassifier {
-        let path = try XCTUnwrap(Bundle.main.url(forResource: "stage-rules-defaults", withExtension: "json"))
+        let path = try XCTUnwrap(Bundle(for: RemoteStageParityTests.self).url(forResource: "stage-rules-defaults", withExtension: "json"))
         return try JSONDecoder().decode(RemoteStageClassifier.self, from: Data(contentsOf: path))
     }
 }
@@ -101,8 +101,8 @@ private actor StageMemoryClient: RemoteStageClient {
     func acknowledge() { if let pending = current.pending { current.classifier = pending.classifier; current.pending = nil } }
 }
 private final class StageContractProtocol: URLProtocol, @unchecked Sendable {
-    override static func canInit(with request: URLRequest) -> Bool { request.url?.host == "stage-contract.invalid" }
-    override static func canonicalRequest(for request: URLRequest) -> URLRequest { request }
+    override class func canInit(with request: URLRequest) -> Bool { request.url?.host == "stage-contract.invalid" }
+    override class func canonicalRequest(for request: URLRequest) -> URLRequest { request }
     override func startLoading() {
         do {
             let rules = try JSONSerialization.jsonObject(with: JSONEncoder().encode(StageFixture.defaults()))

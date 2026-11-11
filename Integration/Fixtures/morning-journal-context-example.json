@@ -1,0 +1,600 @@
+{
+  "synthetic": true,
+  "sourceCommit": "a29b0b5657db1ad6303ab7a7589bcd93f6a540a0",
+  "page": {
+    "apiVersion": 1,
+    "contextVersion": 1,
+    "side": "left",
+    "timeZone": "America/Los_Angeles",
+    "deviceDate": "2026-11-01",
+    "from": "2026-10-03",
+    "through": "2026-11-01",
+    "selected": {
+      "side": "left",
+      "date": "2026-11-01",
+      "revision": "00000000-0000-4000-8000-000000000001",
+      "record": {
+        "side": "left",
+        "date": "2026-11-01",
+        "fields": {
+          "restfulness": 4,
+          "comfort": "warm",
+          "caffeine": true,
+          "alcohol": false,
+          "exercise": true,
+          "notes": "Synthetic habit comparison",
+          "context": {
+            "version": 1,
+            "bedtimeAt": 1793512800000,
+            "caffeine": {
+              "status": "yes",
+              "lastAt": 1793505600000,
+              "amount": 200,
+              "unit": "milligrams"
+            },
+            "alcohol": {
+              "status": "not_logged",
+              "unit": "usStandardDrinks"
+            },
+            "exercise": {
+              "status": "yes",
+              "lastAt": 1793509200000,
+              "amount": 30,
+              "unit": "minutes"
+            },
+            "stress": "higher"
+          }
+        },
+        "timeZone": "America/Los_Angeles",
+        "origin": "sleepypod",
+        "createdAt": 1793563200000,
+        "updatedAt": 1793563200000,
+        "importedAt": null
+      }
+    },
+    "entries": [
+      {
+        "side": "left",
+        "date": "2026-11-01",
+        "revision": "00000000-0000-4000-8000-000000000001",
+        "record": {
+          "side": "left",
+          "date": "2026-11-01",
+          "fields": {
+            "restfulness": 4,
+            "comfort": "warm",
+            "caffeine": true,
+            "alcohol": false,
+            "exercise": true,
+            "notes": "Synthetic habit comparison",
+            "context": {
+              "version": 1,
+              "bedtimeAt": 1793512800000,
+              "caffeine": {
+                "status": "yes",
+                "lastAt": 1793505600000,
+                "amount": 200,
+                "unit": "milligrams"
+              },
+              "alcohol": {
+                "status": "not_logged",
+                "unit": "usStandardDrinks"
+              },
+              "exercise": {
+                "status": "yes",
+                "lastAt": 1793509200000,
+                "amount": 30,
+                "unit": "minutes"
+              },
+              "stress": "higher"
+            }
+          },
+          "timeZone": "America/Los_Angeles",
+          "origin": "sleepypod",
+          "createdAt": 1793563200000,
+          "updatedAt": 1793563200000,
+          "importedAt": null
+        }
+      },
+      {
+        "side": "left",
+        "date": "2026-10-31",
+        "revision": "00000000-0000-4000-8000-000000000002",
+        "record": {
+          "side": "left",
+          "date": "2026-10-31",
+          "fields": {
+            "restfulness": 4,
+            "comfort": "warm",
+            "caffeine": true,
+            "alcohol": false,
+            "exercise": true,
+            "notes": "Synthetic habit comparison",
+            "context": {
+              "version": 1,
+              "bedtimeAt": 1793426400000,
+              "caffeine": {
+                "status": "yes",
+                "lastAt": 1793419200000,
+                "amount": 200,
+                "unit": "milligrams"
+              },
+              "alcohol": {
+                "status": "not_logged",
+                "unit": "usStandardDrinks"
+              },
+              "exercise": {
+                "status": "yes",
+                "lastAt": 1793422800000,
+                "amount": 30,
+                "unit": "minutes"
+              },
+              "stress": "higher"
+            }
+          },
+          "timeZone": "America/Los_Angeles",
+          "origin": "sleepypod",
+          "createdAt": 1793563200000,
+          "updatedAt": 1793563200000,
+          "importedAt": null
+        }
+      },
+      {
+        "side": "left",
+        "date": "2026-10-30",
+        "revision": "00000000-0000-4000-8000-000000000003",
+        "record": {
+          "side": "left",
+          "date": "2026-10-30",
+          "fields": {
+            "restfulness": 4,
+            "comfort": "warm",
+            "caffeine": true,
+            "alcohol": false,
+            "exercise": true,
+            "notes": "Synthetic habit comparison",
+            "context": {
+              "version": 1,
+              "bedtimeAt": 1793340000000,
+              "caffeine": {
+                "status": "yes",
+                "lastAt": 1793332800000,
+                "amount": 200,
+                "unit": "milligrams"
+              },
+              "alcohol": {
+                "status": "not_logged",
+                "unit": "usStandardDrinks"
+              },
+              "exercise": {
+                "status": "yes",
+                "lastAt": 1793336400000,
+                "amount": 30,
+                "unit": "minutes"
+              },
+              "stress": "higher"
+            }
+          },
+          "timeZone": "America/Los_Angeles",
+          "origin": "sleepypod",
+          "createdAt": 1793563200000,
+          "updatedAt": 1793563200000,
+          "importedAt": null
+        }
+      },
+      {
+        "side": "left",
+        "date": "2026-10-29",
+        "revision": "00000000-0000-4000-8000-000000000004",
+        "record": {
+          "side": "left",
+          "date": "2026-10-29",
+          "fields": {
+            "restfulness": 4,
+            "comfort": "warm",
+            "caffeine": true,
+            "alcohol": false,
+            "exercise": true,
+            "notes": "Synthetic habit comparison",
+            "context": {
+              "version": 1,
+              "bedtimeAt": 1793253600000,
+              "caffeine": {
+                "status": "yes",
+                "lastAt": 1793246400000,
+                "amount": 200,
+                "unit": "milligrams"
+              },
+              "alcohol": {
+                "status": "not_logged",
+                "unit": "usStandardDrinks"
+              },
+              "exercise": {
+                "status": "yes",
+                "lastAt": 1793250000000,
+                "amount": 30,
+                "unit": "minutes"
+              },
+              "stress": "higher"
+            }
+          },
+          "timeZone": "America/Los_Angeles",
+          "origin": "sleepypod",
+          "createdAt": 1793563200000,
+          "updatedAt": 1793563200000,
+          "importedAt": null
+        }
+      },
+      {
+        "side": "left",
+        "date": "2026-10-28",
+        "revision": "00000000-0000-4000-8000-000000000005",
+        "record": {
+          "side": "left",
+          "date": "2026-10-28",
+          "fields": {
+            "restfulness": 4,
+            "comfort": "warm",
+            "caffeine": true,
+            "alcohol": false,
+            "exercise": true,
+            "notes": "Synthetic habit comparison",
+            "context": {
+              "version": 1,
+              "bedtimeAt": 1793167200000,
+              "caffeine": {
+                "status": "yes",
+                "lastAt": 1793160000000,
+                "amount": 200,
+                "unit": "milligrams"
+              },
+              "alcohol": {
+                "status": "not_logged",
+                "unit": "usStandardDrinks"
+              },
+              "exercise": {
+                "status": "yes",
+                "lastAt": 1793163600000,
+                "amount": 30,
+                "unit": "minutes"
+              },
+              "stress": "higher"
+            }
+          },
+          "timeZone": "America/Los_Angeles",
+          "origin": "sleepypod",
+          "createdAt": 1793563200000,
+          "updatedAt": 1793563200000,
+          "importedAt": null
+        }
+      },
+      {
+        "side": "left",
+        "date": "2026-10-27",
+        "revision": "00000000-0000-4000-8000-000000000006",
+        "record": {
+          "side": "left",
+          "date": "2026-10-27",
+          "fields": {
+            "restfulness": 4,
+            "comfort": "comfortable",
+            "caffeine": true,
+            "alcohol": false,
+            "exercise": true,
+            "notes": "Synthetic habit comparison",
+            "context": {
+              "version": 1,
+              "bedtimeAt": 1793080800000,
+              "caffeine": {
+                "status": "yes",
+                "lastAt": 1793052000000,
+                "amount": 100,
+                "unit": "milligrams"
+              },
+              "alcohol": {
+                "status": "not_logged",
+                "unit": "usStandardDrinks"
+              },
+              "exercise": {
+                "status": "yes",
+                "lastAt": 1793062800000,
+                "amount": 30,
+                "unit": "minutes"
+              },
+              "stress": "usual"
+            }
+          },
+          "timeZone": "America/Los_Angeles",
+          "origin": "sleepypod",
+          "createdAt": 1793563200000,
+          "updatedAt": 1793563200000,
+          "importedAt": null
+        }
+      },
+      {
+        "side": "left",
+        "date": "2026-10-26",
+        "revision": "00000000-0000-4000-8000-000000000007",
+        "record": {
+          "side": "left",
+          "date": "2026-10-26",
+          "fields": {
+            "restfulness": 4,
+            "comfort": "comfortable",
+            "caffeine": true,
+            "alcohol": false,
+            "exercise": true,
+            "notes": "Synthetic habit comparison",
+            "context": {
+              "version": 1,
+              "bedtimeAt": 1792994400000,
+              "caffeine": {
+                "status": "yes",
+                "lastAt": 1792965600000,
+                "amount": 100,
+                "unit": "milligrams"
+              },
+              "alcohol": {
+                "status": "not_logged",
+                "unit": "usStandardDrinks"
+              },
+              "exercise": {
+                "status": "yes",
+                "lastAt": 1792976400000,
+                "amount": 30,
+                "unit": "minutes"
+              },
+              "stress": "usual"
+            }
+          },
+          "timeZone": "America/Los_Angeles",
+          "origin": "sleepypod",
+          "createdAt": 1793563200000,
+          "updatedAt": 1793563200000,
+          "importedAt": null
+        }
+      },
+      {
+        "side": "left",
+        "date": "2026-10-25",
+        "revision": "00000000-0000-4000-8000-000000000008",
+        "record": {
+          "side": "left",
+          "date": "2026-10-25",
+          "fields": {
+            "restfulness": 4,
+            "comfort": "comfortable",
+            "caffeine": true,
+            "alcohol": false,
+            "exercise": true,
+            "notes": "Synthetic habit comparison",
+            "context": {
+              "version": 1,
+              "bedtimeAt": 1792908000000,
+              "caffeine": {
+                "status": "yes",
+                "lastAt": 1792879200000,
+                "amount": 100,
+                "unit": "milligrams"
+              },
+              "alcohol": {
+                "status": "not_logged",
+                "unit": "usStandardDrinks"
+              },
+              "exercise": {
+                "status": "yes",
+                "lastAt": 1792890000000,
+                "amount": 30,
+                "unit": "minutes"
+              },
+              "stress": "usual"
+            }
+          },
+          "timeZone": "America/Los_Angeles",
+          "origin": "sleepypod",
+          "createdAt": 1793563200000,
+          "updatedAt": 1793563200000,
+          "importedAt": null
+        }
+      },
+      {
+        "side": "left",
+        "date": "2026-10-24",
+        "revision": "00000000-0000-4000-8000-000000000009",
+        "record": {
+          "side": "left",
+          "date": "2026-10-24",
+          "fields": {
+            "restfulness": 4,
+            "comfort": "comfortable",
+            "caffeine": true,
+            "alcohol": false,
+            "exercise": true,
+            "notes": "Synthetic habit comparison",
+            "context": {
+              "version": 1,
+              "bedtimeAt": 1792821600000,
+              "caffeine": {
+                "status": "yes",
+                "lastAt": 1792792800000,
+                "amount": 100,
+                "unit": "milligrams"
+              },
+              "alcohol": {
+                "status": "not_logged",
+                "unit": "usStandardDrinks"
+              },
+              "exercise": {
+                "status": "yes",
+                "lastAt": 1792803600000,
+                "amount": 30,
+                "unit": "minutes"
+              },
+              "stress": "usual"
+            }
+          },
+          "timeZone": "America/Los_Angeles",
+          "origin": "sleepypod",
+          "createdAt": 1793563200000,
+          "updatedAt": 1793563200000,
+          "importedAt": null
+        }
+      },
+      {
+        "side": "left",
+        "date": "2026-10-23",
+        "revision": "00000000-0000-4000-8000-000000000010",
+        "record": {
+          "side": "left",
+          "date": "2026-10-23",
+          "fields": {
+            "restfulness": 4,
+            "comfort": "comfortable",
+            "caffeine": true,
+            "alcohol": false,
+            "exercise": true,
+            "notes": "Synthetic habit comparison",
+            "context": {
+              "version": 1,
+              "bedtimeAt": 1792735200000,
+              "caffeine": {
+                "status": "yes",
+                "lastAt": 1792706400000,
+                "amount": 100,
+                "unit": "milligrams"
+              },
+              "alcohol": {
+                "status": "not_logged",
+                "unit": "usStandardDrinks"
+              },
+              "exercise": {
+                "status": "yes",
+                "lastAt": 1792717200000,
+                "amount": 30,
+                "unit": "minutes"
+              },
+              "stress": "usual"
+            }
+          },
+          "timeZone": "America/Los_Angeles",
+          "origin": "sleepypod",
+          "createdAt": 1793563200000,
+          "updatedAt": 1793563200000,
+          "importedAt": null
+        }
+      }
+    ],
+    "contextPatterns": {
+      "cohorts": [
+        {
+          "side": "left",
+          "origin": "sleepypod",
+          "timeZone": "America/Los_Angeles",
+          "dates": 10,
+          "comparisons": [
+            {
+              "id": "caffeine-time",
+              "label": "Last caffeine relative to bedtime",
+              "withLabel": "Within 6 hours",
+              "withoutLabel": "More than 6 hours before",
+              "withCount": 5,
+              "withoutCount": 5,
+              "excludedCount": 0,
+              "withWarmCount": 5,
+              "withoutWarmCount": 0,
+              "warmRateDifferencePoints": 100,
+              "quantityThreshold": null
+            },
+            {
+              "id": "alcohol-time",
+              "label": "Last drink relative to bedtime",
+              "withLabel": "Within 4 hours",
+              "withoutLabel": "More than 4 hours before",
+              "withCount": 0,
+              "withoutCount": 0,
+              "excludedCount": 10,
+              "withWarmCount": 0,
+              "withoutWarmCount": 0,
+              "warmRateDifferencePoints": null,
+              "quantityThreshold": null
+            },
+            {
+              "id": "exercise-time",
+              "label": "Exercise finished relative to bedtime",
+              "withLabel": "Within 3 hours",
+              "withoutLabel": "More than 3 hours before",
+              "withCount": 5,
+              "withoutCount": 5,
+              "excludedCount": 0,
+              "withWarmCount": 5,
+              "withoutWarmCount": 0,
+              "warmRateDifferencePoints": 100,
+              "quantityThreshold": null
+            },
+            {
+              "id": "meal-time",
+              "label": "Last meal relative to bedtime",
+              "withLabel": "Within 2 hours",
+              "withoutLabel": "More than 2 hours before",
+              "withCount": 0,
+              "withoutCount": 0,
+              "excludedCount": 10,
+              "withWarmCount": 0,
+              "withoutWarmCount": 0,
+              "warmRateDifferencePoints": null,
+              "quantityThreshold": null
+            },
+            {
+              "id": "stress",
+              "label": "Stress compared with your usual day",
+              "withLabel": "Higher",
+              "withoutLabel": "Usual or lower",
+              "withCount": 5,
+              "withoutCount": 5,
+              "excludedCount": 0,
+              "withWarmCount": 5,
+              "withoutWarmCount": 0,
+              "warmRateDifferencePoints": 100,
+              "quantityThreshold": null
+            },
+            {
+              "id": "caffeine-amount",
+              "label": "Caffeine amount",
+              "withLabel": "Above 150 mg",
+              "withoutLabel": "150 mg or below",
+              "withCount": 5,
+              "withoutCount": 5,
+              "excludedCount": 0,
+              "withWarmCount": 5,
+              "withoutWarmCount": 0,
+              "warmRateDifferencePoints": 100,
+              "quantityThreshold": 150
+            },
+            {
+              "id": "exercise-amount",
+              "label": "Exercise duration",
+              "withLabel": "Above 30 min",
+              "withoutLabel": "30 min or below",
+              "withCount": 0,
+              "withoutCount": 10,
+              "excludedCount": 0,
+              "withWarmCount": 0,
+              "withoutWarmCount": 5,
+              "warmRateDifferencePoints": null,
+              "quantityThreshold": 30
+            }
+          ]
+        }
+      ],
+      "note": "Exploratory associations in your reported temperature comfort, not measured sleep or proof of cause. Each result needs five distinct dates in each group within one side, source and time zone. Missing, duplicate, future and after-bedtime observations are excluded. Timing bands are comparison definitions, not recommended limits; amount splits use the median of logged amounts in this range. Other habits, room conditions and schedule changes may explain a difference. These findings do not change the bed."
+    },
+    "patterns": {
+      "recentEntries": 7,
+      "averageRestfulness": 4,
+      "warmCount": 5,
+      "coldCount": 0,
+      "cohorts": [],
+      "note": "Synthetic journal fixture; no bed-presence recordings supplied."
+    }
+  }
+}

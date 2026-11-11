@@ -128,6 +128,12 @@ struct SleepypodApp: App {
                     }
             }
             else if ProcessInfo.processInfo.arguments.contains("--connection-fixture") { ConnectionRecoveryPreview() }
+            else if ProcessInfo.processInfo.arguments.contains("--daytime-context-fixture") {
+                NavigationStack { PodFeatureScreen(.daytimeContext) }
+            }
+            else if ProcessInfo.processInfo.arguments.contains("--journal-context-fixture") {
+                NavigationStack { MorningJournalScreen(side: .left) }
+            }
             else if APIBackend.current.isDemo, UserDefaults.standard.string(forKey: "uiRouteExample") != nil {
                 NavigationStack { OwnerRouteSettingsView() }
             }
