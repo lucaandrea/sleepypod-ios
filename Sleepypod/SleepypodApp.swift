@@ -37,7 +37,7 @@ struct SleepypodApp: App {
         if ProcessInfo.processInfo.arguments.contains("--offline-library-fixture") {
             _offlineLibrary = State(initialValue: OfflineLibrarySession(currentScope: { "offline-ui-example" }))
         }
-        let household = PersonalHistoryPreview.make() ?? ArrangementReviewPreview.make() ?? PersonalRoutinePreview.make() ?? PersonalTemperaturePreview.make() ?? HouseholdPreview.make() ?? HouseholdWorkspace()
+        let household = PersonalLearningPreview.make() ?? ArrangementMaintenancePreview.make() ?? PersonalHistoryPreview.make() ?? ArrangementReviewPreview.make() ?? PersonalRoutinePreview.make() ?? PersonalTemperaturePreview.make() ?? HouseholdPreview.make() ?? HouseholdWorkspace()
         #else
         let household = HouseholdWorkspace()
         #endif

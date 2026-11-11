@@ -18,6 +18,9 @@ import Observation
     private(set) var publication: PersonalRoutineWorkspace?
     private(set) var arrangement: ArrangementReviewWorkspace?
     private(set) var history: PersonalHistoryWorkspace?
+    private(set) var learning: PersonalLearningWorkspace?
+    private(set) var maintenance: ArrangementMaintenanceWorkspace?
+    private(set) var maintenanceChecking = false
     private(set) var recoveryBusy: UUID?
     private let vault: any HouseholdVault
     private let defaults: UserDefaults
@@ -26,6 +29,8 @@ import Observation
     private let routineClient: @Sendable (PersonalBedConnection) -> any PersonalRoutineTransport
     private let arrangementClient: @Sendable (PersonalBedConnection) -> any ArrangementReviewTransport
     private let historyClient: @Sendable (PersonalBedConnection) -> any PersonalHistoryTransport
+    private let learningClient: @Sendable (PersonalBedConnection) -> any PersonalLearningTransport
+    private let maintenanceClient: @Sendable (PersonalBedConnection) -> any ArrangementMaintenanceTransport
     private let capability: @MainActor () async throws -> Bool
     private var ownerGateScope: [String]?
     private let ownerEndpoint: @MainActor () -> URL?
@@ -33,6 +38,7 @@ import Observation
     private let secret: @MainActor () throws -> String
     private var generation = 0
     private var storageLoaded = false
+    private var foreground = true
 
     init(vault: any HouseholdVault = HouseholdKeychainVault(), defaults: UserDefaults = .standard,
          client: @escaping @Sendable (URL) -> any HouseholdTransport = { HouseholdHTTPClient(endpoint: $0) },
@@ -40,12 +46,15 @@ import Observation
          routineClient: @escaping @Sendable (PersonalBedConnection) -> any PersonalRoutineTransport = { PersonalRoutineHTTPClient(connection: $0) },
          arrangementClient: @escaping @Sendable (PersonalBedConnection) -> any ArrangementReviewTransport = { ArrangementReviewHTTPClient(connection: $0) },
          historyClient: @escaping @Sendable (PersonalBedConnection) -> any PersonalHistoryTransport = { PersonalHistoryHTTPClient(connection: $0) },
+         learningClient: @escaping @Sendable (PersonalBedConnection) -> any PersonalLearningTransport = { PersonalLearningHTTPClient(connection: $0) },
+         maintenanceClient: @escaping @Sendable (PersonalBedConnection) -> any ArrangementMaintenanceTransport = { ArrangementMaintenanceHTTPClient(connection: $0) },
          capability: @escaping @MainActor () async throws -> Bool = { try await HouseholdPreparationCapability.load() },
          ownerEndpoint: @escaping @MainActor () -> URL? = { OwnerConnection.endpoint },
          ownerKey: @escaping @MainActor (URL) -> String = { UnifiedRuntime.savedKey(for: $0.absoluteString) },
          secret: @escaping @MainActor () throws -> String = { try HouseholdKeychainVault.secret() }) {
         self.vault = vault; self.defaults = defaults; self.client = client; self.personalClient = personalClient; self.routineClient = routineClient
-        self.arrangementClient = arrangementClient; self.historyClient = historyClient
+        self.arrangementClient = arrangementClient; self.historyClient = historyClient; self.maintenanceClient = maintenanceClient
+        self.learningClient = learningClient
         self.capability = capability; self.ownerEndpoint = ownerEndpoint; self.ownerKey = ownerKey; self.secret = secret
         active = defaults.bool(forKey: PersonalWorkspaceBoundary.preferenceKey)
         do { state = try vault.load(); storageLoaded = true } catch { self.error = HouseholdFailure.storage.localizedDescription }
@@ -56,7 +65,8 @@ import Observation
         (selected?.draftPreferencesRevision != nil && selected?.draftPreferencesRevision != preferences?.revision)
             || (selected?.draftRoutinesRevision != nil && selected?.draftRoutinesRevision != routines?.revision)
     }
-    var maySave: Bool { active && session != nil && !busy && pending == nil && preferences != nil && routines != nil && !needsDraftReview }
+    var requiresMaintenance: Bool { maintenanceChecking || maintenance.map { $0.entered || !$0.loaded } == true }
+    var maySave: Bool { active && foreground && !requiresMaintenance && session != nil && !busy && pending == nil && preferences != nil && routines != nil && !needsDraftReview }
     func reviewDrafts(keep: Bool) {
         guard pending == nil, let record = selected, let preferences, let routines else { return }
         do {
@@ -103,7 +113,7 @@ import Observation
     }
     /// Returning to a retained installation-owner key requires the device owner's authentication.
     func returnToOwner(authenticate: (() async throws -> Bool)? = nil) async {
-        guard !busy, canReturnToOwner else { return }
+        guard !busy, !requiresMaintenance, canReturnToOwner else { return }
         do {
             let accepted: Bool
             if let authenticate { accepted = try await authenticate() }
@@ -154,23 +164,30 @@ import Observation
     }
 
     func refresh() async {
-        guard active, !busy else { return }
+        guard active, foreground, !busy else { return }
+        if let maintenance, maintenance.entered { await maintenance.refresh(); return }
         if !storageLoaded {
             do { state = try vault.load(); storageLoaded = true }
             catch { self.error = HouseholdFailure.storage.localizedDescription; return }
         }
         guard let record = selected else { return }
         let operation = generation; busy = true; error = nil
-        defer { if operation == generation { busy = false } }
+        maintenanceChecking = session?.capabilities.arrangementMaintenance == true
+        defer { if operation == generation { busy = false; maintenanceChecking = false } }
         do {
             let value: HouseholdSession = try await read("household/session", record: record)
             try value.validate(); try check(operation, record.id)
             if let previous = record.identity, previous.identity != value.identity { throw HouseholdFailure.changedIdentity }
-            if session != value { arrangement?.invalidate(); arrangement = nil; history?.invalidate(); history = nil }
+            if session != value { arrangement?.invalidate(); arrangement = nil; history?.invalidate(); history = nil; learning?.invalidate(); learning = nil }
             session = value
             try update(record.id) { saved in
                 saved.identity = value
                 if saved.pending?.kind == .setup || saved.pending?.kind == .join { saved.pending = nil }
+            }
+            configureMaintenance(record: record, session: value)
+            if let maintenance {
+                await maintenance.refresh(); try check(operation, record.id)
+                guard maintenance.loaded, !maintenance.entered else { clearOrdinary(); return }
             }
             let personal: HouseholdPreferencesResponse = try await read("me/preferences", record: record)
             try personal.validate(for: value); try check(operation, record.id)
@@ -191,9 +208,10 @@ import Observation
             configurePublication(record: record, session: value)
             configureArrangement(record: record, session: value)
             configureHistory(record: record, session: value)
+            configureLearning(record: record, session: value)
             notice = pending == nil ? "Personal account refreshed. Routine drafts do not run the bed." : "Saved state refreshed. An earlier request still needs review; retrying uses the same request."
         } catch {
-            guard operation == generation else { return }
+            guard foreground, operation == generation else { return }
             clearVisible()
             if error as? HouseholdFailure == .authentication, record.identity != nil { try? forget(record.id) }
             self.error = (error as? HouseholdFailure ?? .invalid).localizedDescription
@@ -253,7 +271,7 @@ import Observation
 
     /// A manual retry reuses the durable request and credential; never rotate after an unknown result.
     func retryPending() async {
-        guard active, !busy, let record = selected, let pending = record.pending else { return }
+        guard active, foreground, !requiresMaintenance, !busy, let record = selected, let pending = record.pending else { return }
         let operation = generation; busy = true; error = nil; notice = nil
         defer { if operation == generation { busy = false } }
         do {
@@ -348,7 +366,7 @@ import Observation
         return try JSONDecoder().decode(Value.self, from: data)
     }
     private func check(_ operation: Int, _ id: UUID) throws {
-        guard active, operation == generation, state.selected == id, !Task.isCancelled else { throw HouseholdFailure.changedIdentity }
+        guard active, foreground, operation == generation, state.selected == id, !Task.isCancelled else { throw HouseholdFailure.changedIdentity }
     }
     private func update(_ id: UUID, change: (inout HouseholdConnectionRecord) throws -> Void) throws {
         var next = state
@@ -360,11 +378,53 @@ import Observation
         do { try vault.save(next); state = next } catch { throw HouseholdFailure.storage }
     }
     private func clearVisible() {
+        maintenance?.invalidate(); maintenance = nil; maintenanceChecking = false
+        clearOrdinary()
+        session = nil; busy = false; error = nil; notice = nil; recoveryBusy = nil
+    }
+    /// Dispose assigned controls and private editors without losing an unresolved maintenance operation.
+    private func clearOrdinary() {
         temperature?.invalidate(); temperature = nil
         publication?.invalidate(); publication = nil
         arrangement?.invalidate(); arrangement = nil
         history?.invalidate(); history = nil
-        session = nil; preferences = nil; routines = nil; devices = []; invitations = []; busy = false; error = nil; notice = nil; recoveryBusy = nil
+        learning?.invalidate(); learning = nil
+        preferences = nil; routines = nil; devices = []; invitations = []
+    }
+
+    func sceneChanged(active: Bool) async {
+        foreground = active
+        if active { await refresh() }
+        else {
+            generation += 1; busy = false
+            maintenance?.background(); clearOrdinary()
+        }
+    }
+
+    private func configureMaintenance(record: HouseholdConnectionRecord, session: HouseholdSession) {
+        guard session.role == "owner", session.capabilities.arrangementMaintenance == true else {
+            maintenance?.invalidate(); maintenance = nil; return
+        }
+        if let maintenance, maintenance.connection.id == record.id, maintenance.connection.session.identity == session.identity { return }
+        maintenance?.invalidate(); clearOrdinary()
+        let connection = PersonalBedConnection(id: record.id, endpoint: record.endpoint, token: record.deviceSecret, session: session)
+        maintenance = ArrangementMaintenanceWorkspace(connection: connection, client: maintenanceClient(connection), reviews: arrangementClient(connection), permitted: { [weak self] in
+            guard let self else { return false }
+            return self.active && self.foreground && self.state.selected == record.id && self.session?.identity == session.identity
+        }, entered: { [weak self] in
+            guard let self, self.active, self.state.selected == record.id, self.session?.identity == session.identity else { return }
+            self.clearOrdinary()
+        }, finished: { [weak self] in
+            guard let self, self.active, self.state.selected == record.id, self.session?.identity == session.identity else { return }
+            self.maintenance?.invalidate(); self.maintenance = nil
+            self.clearOrdinary(); self.maintenanceChecking = true
+            Task { await self.refresh() }
+        }, revoked: { [weak self] in
+            guard let self, self.active, self.state.selected == record.id, self.session?.identity == session.identity else { return }
+            self.clearVisible()
+            do { try self.forget(record.id); self.error = HouseholdFailure.authentication.localizedDescription }
+            catch { self.error = HouseholdFailure.storage.localizedDescription }
+        })
     }
 
     var controlRecoveries: [PersonalControlTombstone] {
@@ -567,6 +627,21 @@ import Observation
         history = PersonalHistoryWorkspace(connection: connection, client: historyClient(connection), permitted: { [weak self] in
             guard let self else { return false }
             return self.active && self.generation == operation && self.state.selected == record.id && self.session == session
+        }, revoked: { [weak self] in
+            guard let self, self.generation == operation, self.state.selected == record.id else { return }
+            self.clearVisible()
+            do { try self.forget(record.id); self.error = HouseholdFailure.authentication.localizedDescription }
+            catch { self.error = HouseholdFailure.storage.localizedDescription }
+        })
+    }
+    private func configureLearning(record: HouseholdConnectionRecord, session: HouseholdSession) {
+        if let learning, !learning.isInvalidated, learning.connection.id == record.id, learning.connection.session == session { return }
+        learning?.invalidate()
+        let operation = generation
+        let connection = PersonalBedConnection(id: record.id, endpoint: record.endpoint, token: record.deviceSecret, session: session)
+        learning = PersonalLearningWorkspace(connection: connection, client: learningClient(connection), permitted: { [weak self] in
+            guard let self else { return false }
+            return self.active && self.foreground && self.generation == operation && self.state.selected == record.id && self.session == session && !self.requiresMaintenance
         }, revoked: { [weak self] in
             guard let self, self.generation == operation, self.state.selected == record.id else { return }
             self.clearVisible()

@@ -88,7 +88,11 @@ import XCTest
         reveal(left, in: app); left.tap(); capture(app, "Arrangement-scaled-side-picker")
         let propose = app.buttons["arrangement.propose"]; reveal(propose, in: app); XCTAssertFalse(propose.isEnabled)
         let preserve = app.switches["arrangement.preserveWeek"]; reveal(preserve, in: app, upward: false)
-        preserve.coordinate(withNormalizedOffset: CGVector(dx: 0.95, dy: 0.5)).tap(); XCTAssertEqual(preserve.value as? String, "1")
+        // XCTest may expose the switch alone or its complete label row; target the control center in either layout.
+        preserve.coordinate(withNormalizedOffset: CGVector(dx: 1, dy: 0.5))
+            .withOffset(CGVector(dx: -min(25, preserve.frame.width / 2), dy: 0)).tap()
+        let enabled = XCTNSPredicateExpectation(predicate: NSPredicate(format: "value == %@", "1"), object: preserve)
+        XCTAssertEqual(XCTWaiter.wait(for: [enabled], timeout: 5), .completed)
         reveal(propose, in: app); XCTAssertTrue(propose.isEnabled); capture(app, "Arrangement-owner-large-text-proposal"); propose.tap()
         let notice = app.staticTexts["arrangement.notice"]; reveal(notice, in: app, upward: false)
         XCTAssertTrue(notice.label.contains("Review prepared"))
