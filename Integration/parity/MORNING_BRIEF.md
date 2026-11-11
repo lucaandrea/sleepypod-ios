@@ -74,10 +74,21 @@ paragraph's actual visible safe area; app layout did not change. Earlier failed
 harness receipts are retained, including combined accessibility labels and a
 maximum-text question capture that had scrolled past the field.
 
-The review packet contains 58 original captures across phone and tablet: dark
+The review packet contains 60 original captures across phone and tablet: dark
 and light, normal and maximum text, complete/sparse/missing comparison, missing
 experiment, expanded evidence, active keyboard, sharing destination and saved
-follow-up. Builder inspection is complete; independent finish review is pending.
+follow-up. Separate chart/import notes preserve the complete maximum-text
+explanation. The final phone note captures are from v14 and the tablet notes
+from v13; the final harness uses exact paragraph alignment only on the phone.
+The signed v16 harness build and lint pass. Earlier rejected evidence is retained.
+
+A fresh independent full review opened all 60 originals and returned **ship**
+with no required corrections. This is a simulator/source verdict, not physical
+delivery or release acceptance. Tonight integration was inspected in source;
+the visual matrix covers the brief detail and related states. The reviewer noted
+two inherited, nonblocking treatments: tablet answer metadata says “on this
+iPhone,” and the shared native field placeholder is faint. The review did not
+certify a measured placeholder contrast ratio or a full theme/text-size product.
 The extension preserves the incumbent Theme, system typography, navigation and
 report components. No new design system or HTML/CSS detector is involved.
 
