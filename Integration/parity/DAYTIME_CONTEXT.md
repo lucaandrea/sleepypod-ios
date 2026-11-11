@@ -69,11 +69,14 @@ identity isolation, explicit consent, account changes, device locking, cancellat
 deletion during import and failed-read preservation. Simulator practice states are
 explicitly labeled examples and cannot request Health access or delete real data.
 
-This increment is the import and inspection foundation. Context-to-comfort
-associations, journal timing/quantity, held-out predictive evaluation and any
-reviewed control policy remain separate improvements; no association or beneficial
-bed adjustment is claimed merely because context was imported. Actual Watch
-permission, locked-device behavior and delivery require physical verification.
+This increment is the import and inspection foundation. The separate
+[journal context](JOURNAL_CONTEXT.md) implementation adds optional timing,
+quantity and descriptive comfort comparisons. Linking Health context to comfort,
+held-out predictive evaluation and any reviewed control policy remain separate
+improvements; no beneficial bed adjustment is claimed merely because context was
+imported. Actual Watch permission, locked-device behavior and delivery require
+physical verification. [Combined connection/context validation](CONNECTED_CONTEXT_RELEASE.md)
+also records stable archive ownership across verified Home/Away transport changes.
 
 ## Local validation receipt — November 10, 2026
 

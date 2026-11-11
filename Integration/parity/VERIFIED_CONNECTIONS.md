@@ -74,9 +74,10 @@ changed during this implementation.
 
 ## Remaining access work
 
-This change verifies before saving one explicit connection. It does not yet
-automatically select local/remote routes. The controller identity endpoint in Core
-PR 96 is a separate foundation for verifying explicitly enrolled alternatives.
-That identity is a logical installation UUID, not physical-device attestation.
-Automatic route selection, account-specific alternatives, remote gateway setup,
-and work-network/cellular/physical qualification remain separate acceptance gates.
+The initial increment above verified one explicit connection. The subsequent
+[verified route selection](VERIFIED_ROUTE_SELECTION.md) now adds owner enrollment
+and automatic foreground recovery. The [combined validation receipt](CONNECTED_CONTEXT_RELEASE.md)
+covers its integration with daytime context and the journal. Core PR 96 supplies
+the logical installation UUID; it is not physical-device attestation. Personal
+account alternatives, remote gateway setup and work-network/cellular/physical
+qualification remain separate acceptance gates.
