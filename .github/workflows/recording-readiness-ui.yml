@@ -34,6 +34,10 @@ on:
       - 'FreeSleepKit/Intelligence/HealthHistory*.swift'
       - 'FreeSleepKit/Intelligence/IntelligenceWorkspace.swift'
       - 'Integration/UnifiedWorkspace.swift'
+      - 'Sleepypod/**/OwnerConnection*.swift'
+      - 'Sleepypod/Networking/FreeSleepClient.swift'
+      - 'Sleepypod/Networking/SleepypodCoreClient.swift'
+      - 'SleepypodUITests/OwnerConnectionEnrollmentUITests.swift'
       - 'Sleepypod/SleepypodApp.swift'
       - 'Sleepypod/Views/Shared/OfflineLibraryScreen.swift'
       - '.github/workflows/recording-readiness-ui.yml'
@@ -88,7 +92,7 @@ jobs:
       fail-fast: false
       matrix:
         form: [iPhone, iPad]
-        suite: [recording, guidance, wake, cooling, night, response]
+        suite: [recording, guidance, wake, cooling, night, response, connection]
     env:
       DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
     steps:

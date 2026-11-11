@@ -124,6 +124,9 @@ struct SleepypodApp: App {
                     }
             }
             else if ProcessInfo.processInfo.arguments.contains("--connection-fixture") { ConnectionRecoveryPreview() }
+            else if APIBackend.current.isDemo, UserDefaults.standard.string(forKey: "uiConnectionExample") != nil {
+                NavigationStack { OwnerConnectionView() }
+            }
             else { ContentView() }
             #else
             ContentView()
