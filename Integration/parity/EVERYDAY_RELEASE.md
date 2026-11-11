@@ -57,3 +57,21 @@ rejects an empty array expansion with `set -u`. Shared signing arguments now
 keep that array nonempty. All six build/test invocations were verified through
 a recording `xcodebuild` stub under `/bin/bash`; original selectors, signing and
 time limits remain unchanged. This script check does not replace hosted UI tests.
+
+## Menu readiness and return-scroll follow-up
+
+The hosted iPad wake run at `2be8d83` attempted the Alarms menu item before its
+presentation supplied a usable frame. The test now requires a finite, nonempty,
+hittable menu element before tapping, retaining the navigation assertion and its
+existing five-second bound. A focused local run then exposed a separate return-
+scroll error: the offscreen Test vibration control was absent from SwiftUI's lazy
+accessibility tree, so scrolling continued in the wrong direction. The helper now
+uses the known return direction when no frame exists. Failure captures and the
+accessibility tree are retained if either check fails.
+
+All three affected scenarios passed on both signed iOS 27.2 phone and iPad
+simulators: create/smart wake/snooze/test/Stop/pause/delete, regular editor, and
+maximum-text editor. The first iPad local failure and hosted failures remain
+retained. This changes test navigation only; it does not alter alarm UI, payloads,
+scheduling or command authority. The separate hosted iPhone wake job stopped
+before running any tests because its simulator destination became unavailable.

@@ -11,17 +11,34 @@ final class AlarmParityUITests: XCTestCase {
                                "-UIPreferredContentSizeCategoryName", textSize]
         app.launch()
         XCTAssertTrue(app.buttons["Schedule options"].waitForExistence(timeout: 15))
-        app.buttons["Schedule options"].tap(); app.buttons["Alarms"].tap()
-        XCTAssertTrue(app.navigationBars["Alarms"].waitForExistence(timeout: 5))
+        app.buttons["Schedule options"].tap()
+        let alarms = app.buttons["Alarms"]
+        // Menu elements may exist with a zero frame while the presentation is animating.
+        let ready = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+            guard alarms.exists else { return false }
+            let frame = alarms.frame
+            return frame.width > 0 && frame.height > 0 && frame.minX.isFinite && frame.minY.isFinite && alarms.isHittable
+        }, object: nil)
+        XCTAssertEqual(XCTWaiter.wait(for: [ready], timeout: 10), .completed)
+        alarms.tap()
+        let opened = app.navigationBars["Alarms"].waitForExistence(timeout: 5)
+        if !opened { capture(app, "Alarm-navigation-failure"); print(app.debugDescription) }
+        XCTAssertTrue(opened)
         return app
     }
-    private func reveal(_ element: XCUIElement, app: XCUIApplication) {
+    private func reveal(_ element: XCUIElement, app: XCUIApplication, towardTop: Bool = false) {
         // A bottom disclosure remains tappable above the sheet's home-indicator area.
         let viewport = CGRect(x: app.frame.minX, y: app.frame.minY + 100, width: app.frame.width, height: app.frame.height - 150)
         for _ in 0..<22 {
             if element.exists, element.isHittable, viewport.contains(CGPoint(x: element.frame.midX, y: element.frame.midY)) { return }
-            if element.exists, element.frame.midY < viewport.midY { app.swipeDown() } else { app.swipeUp() }
+            if element.exists {
+                if element.frame.midY < viewport.midY { app.swipeDown() } else { app.swipeUp() }
+            } else if towardTop {
+                // Lazy offscreen elements may have no accessibility frame until scrolled back.
+                app.swipeDown()
+            } else { app.swipeUp() }
         }
+        capture(app, "Alarm-control-unreachable"); print(app.debugDescription)
         XCTAssertTrue(element.isHittable)
     }
     private func capture(_ app: XCUIApplication, _ name: String) {
@@ -38,7 +55,7 @@ final class AlarmParityUITests: XCTestCase {
         let wake = app.buttons["alarm.wakeWindow"]; reveal(wake, app: app); wake.tap(); app.buttons["20 min"].tap()
         let taper = app.buttons["alarm.snoozeTaper"]; reveal(taper, app: app); taper.tap(); app.buttons["40%"].tap()
         capture(app, "Alarm-wake-and-snooze-dark")
-        let test = app.buttons["Test vibration"]; reveal(test, app: app); test.tap()
+        let test = app.buttons["Test vibration"]; reveal(test, app: app, towardTop: true); test.tap()
         let stop = app.buttons["alarm.test.stop.editor"]; reveal(stop, app: app); stop.tap()
         app.navigationBars.buttons["Save"].tap()
         let created = app.buttons["alarm.edit.100,101"]; XCTAssertTrue(created.waitForExistence(timeout: 4)); reveal(created, app: app)
