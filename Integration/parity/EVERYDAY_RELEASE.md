@@ -41,3 +41,13 @@ flowchart LR
 
 These are source and simulator receipts, not TestFlight or physical qualification.
 No Pod routine, live adaptation mode, side assignment or Apple Home pairing changed.
+
+## Hosted suite grouping
+
+The first consolidated iPhone run at `579aaa4` reached its 30-minute UI step
+limit after six scenarios passed; no assertion failed before timeout. The iPad
+runner separately failed to initialize Accessibility before executing tests.
+Both failures remain in run 42936859716. The same selectors now run in recording,
+guidance and wake groups on both device classes, with the existing 30-minute
+per-step guard. `scripts/verify-everyday-ui.sh list <group>` makes the complete
+selector inventory reviewable. No scenario or assertion was removed.

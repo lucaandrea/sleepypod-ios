@@ -29,6 +29,7 @@ on:
       - 'Sleepypod/SleepypodApp.swift'
       - 'Sleepypod/Views/Shared/OfflineLibraryScreen.swift'
       - '.github/workflows/recording-readiness-ui.yml'
+      - 'scripts/verify-everyday-ui.sh'
   workflow_dispatch:
 
 permissions:
@@ -36,13 +37,14 @@ permissions:
 
 jobs:
   recording:
-    name: Recording checks (${{ matrix.form }})
+    name: Everyday checks (${{ matrix.form }}, ${{ matrix.suite }})
     runs-on: macos-15-intel
     timeout-minutes: 75
     strategy:
       fail-fast: false
       matrix:
         form: [iPhone, iPad]
+        suite: [recording, guidance, wake]
     env:
       DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
     steps:
@@ -60,46 +62,18 @@ jobs:
           printf 'RECORDING_SIM_ID=%s\n' "$RECORDING_SIM_ID" >> "$GITHUB_ENV"
       - name: Build UI tests
         timeout-minutes: 30
-        run: |
-          xcodebuild build-for-testing -project Sleepypod.xcodeproj -scheme Sleepypod \
-            -destination "platform=iOS Simulator,id=$RECORDING_SIM_ID" \
-            -derivedDataPath "$RUNNER_TEMP/RecordingBuild" \
-            -only-testing:SleepypodUITests/RecordingReadinessUITests \
-            -only-testing:SleepypodUITests/WatchRecordingUITests \
-            -only-testing:SleepypodUITests/LearningJourneyUITests \
-            -only-testing:SleepypodUITests/TonightUITests \
-            -only-testing:SleepypodUITests/AlarmParityUITests/testAlarmCreateSmartWakeSnoozePauseAndDelete \
-            -only-testing:SleepypodUITests/AlarmParityUITests/testAlarmEditorAtCurrentDeviceTextSize \
-            -only-testing:SleepypodUITests/AlarmParityUITests/testAlarmEditorAtAccessibilityTextSize \
-            -only-testing:SleepypodUITests/NextAlarmUITests \
-            -only-testing:SleepypodUITests/BedCareUITests \
-            CODE_SIGNING_ALLOWED=YES CODE_SIGN_IDENTITY=-
+        run: bash scripts/verify-everyday-ui.sh build "${{ matrix.suite }}"
       - name: Boot simulator
         timeout-minutes: 15
         run: xcrun simctl bootstatus "$RECORDING_SIM_ID" -b
-      - name: Verify recording readiness
+      - name: Verify everyday scenarios
         timeout-minutes: 30
-        run: |
-          xcodebuild test-without-building -project Sleepypod.xcodeproj -scheme Sleepypod \
-            -destination "platform=iOS Simulator,id=$RECORDING_SIM_ID" \
-            -derivedDataPath "$RUNNER_TEMP/RecordingBuild" \
-            -only-testing:SleepypodUITests/RecordingReadinessUITests \
-            -only-testing:SleepypodUITests/WatchRecordingUITests \
-            -only-testing:SleepypodUITests/LearningJourneyUITests \
-            -only-testing:SleepypodUITests/TonightUITests \
-            -only-testing:SleepypodUITests/AlarmParityUITests/testAlarmCreateSmartWakeSnoozePauseAndDelete \
-            -only-testing:SleepypodUITests/AlarmParityUITests/testAlarmEditorAtCurrentDeviceTextSize \
-            -only-testing:SleepypodUITests/AlarmParityUITests/testAlarmEditorAtAccessibilityTextSize \
-            -only-testing:SleepypodUITests/NextAlarmUITests \
-            -only-testing:SleepypodUITests/BedCareUITests \
-            -resultBundlePath "$RUNNER_TEMP/Recording.xcresult" \
-            -collect-test-diagnostics never -parallel-testing-enabled NO \
-            CODE_SIGNING_ALLOWED=YES CODE_SIGN_IDENTITY=-
+        run: bash scripts/verify-everyday-ui.sh test "${{ matrix.suite }}"
       - name: Preserve screenshots and results
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: recording-readiness-${{ matrix.form }}
+          name: everyday-${{ matrix.form }}-${{ matrix.suite }}
           path: ${{ runner.temp }}/Recording.xcresult
           if-no-files-found: ignore
           retention-days: 7
