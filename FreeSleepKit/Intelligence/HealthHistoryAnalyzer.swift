@@ -8,6 +8,15 @@ enum HealthHistoryAnalyzer {
         return date < noon ? calendar.date(byAdding: .day, value: -1, to: noon) ?? noon : noon
     }
     static func build(samples: [HistoricalSleepSample], now: Date, timeZone: TimeZone) -> HealthHistory {
+        let all = groupedSources(samples: samples, now: now, timeZone: timeZone)
+        // Union Watch intervals across devices, without adding the same sleep twice or mixing third-party sources.
+        let watch = samples.filter(\.recordedByWatch).map { sample in
+            var result = sample; result.sourceID = "apple-watch"; result.sourceName = "Apple Watch"; return result
+        }
+        return HealthHistory(importedAt: now, timeZone: timeZone.identifier, sources: all.sources, ignoredSamples: all.ignored,
+                             watchNights: groupedSources(samples: watch, now: now, timeZone: timeZone).sources.first?.nights ?? [])
+    }
+    private static func groupedSources(samples: [HistoricalSleepSample], now: Date, timeZone: TimeZone) -> (sources: [HealthHistory.Source], ignored: Int) {
         var calendar = Calendar(identifier: .gregorian); calendar.timeZone = timeZone
         var grouped: [String: [Date: [HistoricalSleepSample]]] = [:]
         var names: [String: String] = [:]
@@ -43,7 +52,7 @@ enum HealthHistoryAnalyzer {
         sources.sort { first, second in
             first.nights.count == second.nights.count ? first.id < second.id : first.nights.count > second.nights.count
         }
-        return HealthHistory(importedAt: now, timeZone: timeZone.identifier, sources: sources, ignoredSamples: ignored)
+        return (sources, ignored)
     }
     static func median(_ values: [Double]) -> Double? {
         let values = values.filter(\.isFinite).sorted()
