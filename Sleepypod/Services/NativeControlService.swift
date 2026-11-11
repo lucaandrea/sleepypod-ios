@@ -14,12 +14,17 @@ import Foundation
     }
     func history() throws -> [NativeControlAttempt] { Array(try ledger.read(scope: owner()).reversed()) }
     /// Persist first, POST once, then only read this immutable ID. An uncertain result is never replayed.
-    func submit(_ action: NativeControlAction) async throws -> NativeControlAttempt {
+    func submit(_ action: NativeControlAction, validateBeforeSubmit: @MainActor () throws -> Void = {}) async throws -> NativeControlAttempt {
         let scope = owner(); try check(scope)
         try action.validate()
         let transport = try client(); try await transport.available(); try check(scope)
         let previous = try ledger.read(scope: scope)
         guard action.isStopping || !previous.contains(where: { $0.needsReview && $0.request.action.family == action.family }) else { throw NativeControlFailure.unresolved }
+        // Cancel may resolve an uncertain start, but must not replay its own uncertain return.
+        if action.kind == "cooling.cancel", previous.contains(where: {
+            $0.needsReview && $0.request.action.kind == "cooling.cancel" && $0.request.action.coolingId == action.coolingId
+        }) { throw NativeControlFailure.unresolved }
+        try validateBeforeSubmit()
         let request = try NativeControlRequest(action: action)
         try ledger.append(request, scope: scope)
         // No suspension between the durable claim and dispatch: another invocation sees the claim.

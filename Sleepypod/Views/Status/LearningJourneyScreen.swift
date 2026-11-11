@@ -84,6 +84,7 @@ struct LearningJourneyScreen: View {
             }
             learningCard(.temperature(demo ? nil : workspace.thermal(at: now)), icon: "thermometer.medium", color: Theme.green) {
                 NavigationLink("Review temperature learning") { PersonalComfortDestination(side: side) }.accessibilityIdentifier("learning.temperature")
+                NavigationLink("Study small target changes") { TargetResponseScreen(side: side) }.accessibilityIdentifier("learning.response")
             }
             if let error = workspace.stageError { Text(error).font(.footnote).foregroundStyle(Theme.amber) }
             if let error = workspace.thermalError { Text(error).font(.footnote).foregroundStyle(Theme.amber) }
