@@ -5,6 +5,7 @@ protocol PersonalJournalTransport: Sendable {
     func read(date: String) async throws -> PersonalJournalPage
     func write(_ input: PersonalJournalWrite) async throws -> PersonalJournalResult
     func receipt(requestId: String) async throws -> PersonalJournalResult
+    func patterns(range: PersonalJournalRange) async throws -> PersonalJournalPatterns
 }
 
 struct PersonalJournalHTTPClient: PersonalJournalTransport {
@@ -29,6 +30,11 @@ struct PersonalJournalHTTPClient: PersonalJournalTransport {
     func receipt(requestId: String) async throws -> PersonalJournalResult {
         guard HouseholdValidation.identifier(requestId) else { throw HouseholdFailure.invalid }
         return try .decodeExact(await request("me/journal/requests/\(requestId)"))
+    }
+    func patterns(range: PersonalJournalRange) async throws -> PersonalJournalPatterns {
+        try range.validate()
+        guard connection.session.capabilities.personalJournalPatterns == true else { throw HouseholdFailure.unavailable }
+        return try .decodeExact(await request("me/journal/patterns", query: [.init(name: "from", value: range.from), .init(name: "through", value: range.through)]))
     }
     private func request(_ path: String, query: [URLQueryItem] = [], body: Data? = nil) async throws -> Data {
         guard try HouseholdHTTPClient.endpoint(connection.endpoint.absoluteString) == connection.endpoint,

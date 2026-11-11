@@ -72,6 +72,8 @@ struct PersonalJournalScreen: View {
                 } footer: {
                     Text("Drafts stay only on this screen. Save before leaving or switching apps; private content is cleared when this screen is hidden.")
                 }
+                PersonalJournalPatternsSection(model: model.comparisons, wakeDate: selected.date, today: model.page?.today ?? selected.date)
+                    .id(selected.date)
             } else if model.enabled {
                 Section { Button(model.busy ? "Opening check-in…" : "Open my check-in") { Task { await model.open() } }
                     .disabled(model.busy).accessibilityIdentifier("personalJournal.open") }

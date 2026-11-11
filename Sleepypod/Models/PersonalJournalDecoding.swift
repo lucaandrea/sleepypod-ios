@@ -2,6 +2,20 @@ import Foundation
 
 /// Keep the native projection as narrow as the person-owned API, including nested habit fields.
 enum PersonalJournalDecoding {
+    static func patterns(_ data: Data) throws {
+        guard let object = try JSONSerialization.jsonObject(with: data) as? [String: Any] else { throw HouseholdFailure.invalid }
+        try keys(object, ["version", "generatedAt", "scope", "interpretation", "query", "source", "minimumDatesPerGroup", "cohorts", "note"])
+        try keys(object["scope"], ["podId", "householdId", "accountId", "sleeperId", "sessionRevision", "householdRevision", "assignmentRevision"])
+        try keys(object["query"], ["from", "through"])
+        guard let cohorts = object["cohorts"] as? [[String: Any]], cohorts.count <= 90 else { throw HouseholdFailure.invalid }
+        for cohort in cohorts {
+            try keys(cohort, ["timeZone", "dates", "comparisons"])
+            guard let comparisons = cohort["comparisons"] as? [[String: Any]], (5...8).contains(comparisons.count) else { throw HouseholdFailure.invalid }
+            for comparison in comparisons {
+                try keys(comparison, ["id", "label", "withLabel", "withoutLabel", "withCount", "withoutCount", "excludedCount", "withWarmCount", "withoutWarmCount", "warmRateDifferencePoints", "quantityThreshold"])
+            }
+        }
+    }
     static func check(_ data: Data, receipt: Bool) throws {
         guard let object = try JSONSerialization.jsonObject(with: data) as? [String: Any] else { throw HouseholdFailure.invalid }
         let common: Set<String> = ["version", "generatedAt", "scope", "interpretation"]

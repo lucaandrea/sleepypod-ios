@@ -45,6 +45,13 @@ struct PersonalJournalDraft: Equatable {
     private let now: @MainActor () -> Date
     private var generation = 0
     private var checkingAccess = false
+    @ObservationIgnored lazy var comparisons = PersonalJournalPatternsWorkspace(connection: connection, client: client,
+        permitted: { [weak self] in
+            guard let self else { return false }
+            return enabled && page != nil && !busy && pending == nil
+        }, invalidated: { [weak self] failure in
+            guard let self else { return }; fail(failure, operation: generation)
+        })
     init(connection: PersonalBedConnection, client: any PersonalJournalTransport,
          permitted: @escaping @MainActor () -> Bool = { true }, revoked: @escaping @MainActor () -> Void = {},
          now: @escaping @MainActor () -> Date = { .now }) {
@@ -66,7 +73,7 @@ struct PersonalJournalDraft: Equatable {
         if dirty { return "Unsaved changes to your check-in" }
         return selected?.record == nil ? "No saved check-in for this morning" : "Your saved check-in"
     }
-    func suspend() { generation += 1; page = nil; draft = nil; dirty = false; pending = nil; busy = false; error = nil; notice = nil }
+    func suspend() { comparisons.clear(); generation += 1; page = nil; draft = nil; dirty = false; pending = nil; busy = false; error = nil; notice = nil }
     func invalidate() { isInvalidated = true; suspend() }
     func edit(_ value: PersonalJournalDraft) {
         guard editable, draft != nil else { return }
@@ -92,6 +99,7 @@ struct PersonalJournalDraft: Equatable {
         let fields: MorningJournalFields?
         do { fields = remove ? nil : try validatedFields() }
         catch { self.error = error.localizedDescription; return }
+        comparisons.clear()
         generation += 1; let operation = generation; busy = true; error = nil; notice = nil
         defer { finish(operation) }
         do {

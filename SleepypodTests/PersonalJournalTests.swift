@@ -67,6 +67,7 @@ actor PersonalJournalTestServer: PersonalJournalTransport {
     }
     func release() { continuation?.resume(); continuation = nil }
     func session() async throws -> HouseholdSession { account }
+    func patterns(range: PersonalJournalRange) async throws -> PersonalJournalPatterns { throw HouseholdFailure.unavailable }
     func read(date: String) async throws -> PersonalJournalPage {
         reads.append(date)
         let result = PersonalJournalPage(version: 1, generatedAt: page.generatedAt, scope: page.scope, interpretation: page.interpretation,

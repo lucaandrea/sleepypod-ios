@@ -59,6 +59,24 @@ import XCTest
             XCTAssertEqual(PersonalJournalProtocol.count, 1)
         }
     }
+    func testPatternsUseOnlyBoundedReadRouteAndPersonalCredential() async throws {
+        let client = try client(PersonalPatternsFixtures.session()), response = try PersonalPatternsFixtures.data()
+        PersonalJournalProtocol.set { request in
+            XCTAssertEqual(request.url?.path, "/api/v1/me/journal/patterns")
+            XCTAssertEqual(request.url?.query, "from=2026-11-01&through=2026-11-10")
+            XCTAssertEqual(request.httpMethod, "GET"); XCTAssertNil(request.httpBody)
+            XCTAssertEqual(request.value(forHTTPHeaderField: "Authorization"), "Bearer \(client.connection.token)")
+            XCTAssertEqual(request.value(forHTTPHeaderField: "X-Sleepypod-Sleeper-Id"), client.connection.session.selfSleeperId)
+            return .init(body: response)
+        }
+        let result = try await client.patterns(range: PersonalPatternsFixtures.range)
+        try result.validate(for: client.connection.session, range: PersonalPatternsFixtures.range)
+        XCTAssertEqual(PersonalJournalProtocol.count, 1)
+        PersonalJournalProtocol.set { _ in XCTFail("Invalid request reached network"); return .init() }
+        do { _ = try await client.patterns(range: .init(from: "2026-01-01", through: "2026-11-10")); XCTFail("Unbounded request") } catch {}
+        do { _ = try await self.client().patterns(range: PersonalPatternsFixtures.range); XCTFail("Missing capability") } catch {}
+        XCTAssertEqual(PersonalJournalProtocol.count, 0)
+    }
 }
 
 private final class PersonalJournalProtocol: URLProtocol, @unchecked Sendable {
