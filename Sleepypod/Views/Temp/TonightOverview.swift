@@ -39,6 +39,7 @@ struct TonightOverview: View {
                                 .font(.caption).foregroundStyle(Theme.text2).fixedSize(horizontal: false, vertical: true)
                         }.font(.footnote)
                     }.frame(maxWidth: .infinity, alignment: .leading).cardStyle()
+                    TemporaryCoolingPanel(side: device.selectedSide.primarySide)
                 }.frame(maxWidth: 780).frame(maxWidth: .infinity)
             }
             .task(id: scope) {

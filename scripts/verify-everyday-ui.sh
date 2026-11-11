@@ -3,13 +3,16 @@ set -euo pipefail
 
 # Keep the same phone/tablet scenarios in bounded groups on the hosted runner.
 mode="${1:?Choose build, test or list}"
-suite="${2:?Choose recording, guidance or wake}"
+suite="${2:?Choose recording, guidance, wake or cooling}"
 case "$suite" in
   recording)
     selectors=(SleepypodUITests/RecordingReadinessUITests SleepypodUITests/WatchRecordingUITests)
     ;;
   guidance)
     selectors=(SleepypodUITests/LearningJourneyUITests SleepypodUITests/TonightUITests SleepypodUITests/BedCareUITests)
+    ;;
+  cooling)
+    selectors=(SleepypodUITests/TemporaryCoolingUITests)
     ;;
   wake)
     selectors=(
