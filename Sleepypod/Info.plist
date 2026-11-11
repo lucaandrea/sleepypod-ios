@@ -24,6 +24,8 @@
 	<string>Save your selected bed side’s sleep and vitals to Apple Health.</string>
 	<key>NSHomeKitUsageDescription</key>
 	<string>Access your Apple Home scenes and the connected bed bridge.</string>
+	<key>NSAlarmKitUsageDescription</key>
+	<string>Add an optional one-time iPhone or iPad backup for your selected Pod wake-up. It can sound through Silent mode and Focus. Existing Clock alarms stay unchanged.</string>
 	<key>NSLocalNetworkUsageDescription</key>
 	<string>sleepypod connects to your sleep pod on the local network to control temperature, view sensor data, and track sleep.</string>
 	<key>NSMicrophoneUsageDescription</key>

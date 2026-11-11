@@ -1,0 +1,102 @@
+{
+  "synthetic": true,
+  "sourceCommit": "b80c73f981dc033e862753753aaa7cbffe29f790",
+  "now": 1794312000000,
+  "status": {
+    "apiVersion": 1,
+    "side": "left",
+    "generatedAt": 1794312000000,
+    "completeNights": 20,
+    "requiredNights": 20,
+    "datasetHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "canTrain": true,
+    "activationAvailable": false,
+    "reason": "Illustrative model evaluation; these are not personal measurements.",
+    "evidence": {
+      "apiVersion": 1,
+      "policy": "acknowledged-small-step-v1",
+      "generatedAt": 1794312000000,
+      "side": "left",
+      "attribution": "physical_zone_only",
+      "status": "read",
+      "reviewedNights": 23,
+      "responseNights": 20,
+      "coolingWindows": 40,
+      "warmingWindows": 40,
+      "requiredNights": 20,
+      "datasetHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "modelAvailable": false,
+      "activationAvailable": false,
+      "exclusions": [],
+      "exclusionsTruncated": false,
+      "reason": "Display fixture"
+    },
+    "model": {
+      "version": "target-response-ridge-v1",
+      "purpose": "observed-water-response",
+      "mode": "research_preview",
+      "attribution": "physical_zone_only",
+      "side": "left",
+      "createdAt": 1794311940000,
+      "sourceLastAt": 1794225600000,
+      "datasetHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "configuration": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "trainingDates": [
+        "2026-10-01",
+        "2026-10-02",
+        "2026-10-03",
+        "2026-10-04",
+        "2026-10-05",
+        "2026-10-06",
+        "2026-10-07",
+        "2026-10-08",
+        "2026-10-09",
+        "2026-10-10"
+      ],
+      "calibrationDates": [
+        "2026-10-11",
+        "2026-10-12",
+        "2026-10-13",
+        "2026-10-14",
+        "2026-10-15"
+      ],
+      "validationDates": [
+        "2026-10-16",
+        "2026-10-17",
+        "2026-10-18",
+        "2026-10-19",
+        "2026-10-20"
+      ],
+      "id": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "current": true,
+      "horizons": [
+        {
+          "minutes": 15,
+          "errorBandF": 0.4,
+          "validation": {
+            "modelMaeF": 0.2,
+            "persistenceMaeF": 0.7,
+            "simpleMaeF": 0.6,
+            "trendMaeF": 0.8,
+            "intervalCoverage": 0.9,
+            "supportedFraction": 1,
+            "passes": true
+          }
+        },
+        {
+          "minutes": 30,
+          "errorBandF": 0.4,
+          "validation": {
+            "modelMaeF": 0.2,
+            "persistenceMaeF": 0.7,
+            "simpleMaeF": 0.6,
+            "trendMaeF": 0.8,
+            "intervalCoverage": 0.9,
+            "supportedFraction": 1,
+            "passes": true
+          }
+        }
+      ]
+    }
+  }
+}

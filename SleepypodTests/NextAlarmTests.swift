@@ -25,6 +25,41 @@ import XCTest
             XCTAssertThrowsError(try value.validate(side: .left))
         }
     }
+    func testOptionalWarmingMetadataRejectsWrongOrderTemperatureAndState() throws {
+        var value = try example("scheduled")
+        XCTAssertNotNil(value.warming, "The fixture must exercise Core's canonical warm-up response")
+        // Missing optional metadata from older controllers remains readable.
+        var legacy = try XCTUnwrap(JSONSerialization.jsonObject(with: JSONEncoder().encode(value)) as? [String: Any])
+        legacy.removeValue(forKey: "warming")
+        let oldController = try JSONDecoder().decode(NextAlarmState.self, from: JSONSerialization.data(withJSONObject: legacy))
+        XCTAssertNil(oldController.warming)
+        XCTAssertNoThrow(try oldController.validate(side: .left))
+        value.warming = .init(startsAt: "2026-10-26T06:30:00Z", endsAt: "2026-10-26T07:16:00Z", earliestVibrationAt: "2026-10-26T07:00:00Z", targetF: try XCTUnwrap(value.alarm?.alarmTemperatureF))
+        XCTAssertNoThrow(try value.validate(side: .left))
+        var attempted = try example("unknown"); attempted.warming = value.warming
+        XCTAssertThrowsError(try attempted.validate(side: .left))
+        value.warming = .init(startsAt: "2026-10-26T07:30:00Z", endsAt: "2026-10-26T07:16:00Z", earliestVibrationAt: "2026-10-26T07:00:00Z", targetF: try XCTUnwrap(value.alarm?.alarmTemperatureF))
+        XCTAssertThrowsError(try value.validate(side: .left))
+        var skipped = try example("skipped"); skipped.warming = value.warming
+        XCTAssertThrowsError(try skipped.validate(side: .left))
+        value.warming = .init(startsAt: "2026-10-26T06:30:00Z", endsAt: "2026-10-26T07:16:00Z", earliestVibrationAt: "2026-10-26T07:00:00Z", targetF: 200)
+        XCTAssertThrowsError(try value.validate(side: .left))
+    }
+    func testSyntheticTimeChangePreservesCanonicalWarmupIntervals() async throws {
+        let client = SyntheticNextAlarmClient(scenario: "scheduled")
+        let before = try await client.read(side: .left)
+        let changed = try await client.write(NextAlarmWrite(base: before, action: "time", time: "09:15"))
+        try changed.validate(side: .left)
+        let source = try example("changed")
+        let sourceWarmup = try XCTUnwrap(source.warming), changedWarmup = try XCTUnwrap(changed.warming)
+        let sourceAt = try XCTUnwrap(source.alarm.flatMap { NextAlarmState.instant($0.at) })
+        let changedAt = try XCTUnwrap(changed.alarm.flatMap { NextAlarmState.instant($0.at) })
+        for (original, updated) in [(sourceWarmup.startsAt, changedWarmup.startsAt), (sourceWarmup.endsAt, changedWarmup.endsAt), (sourceWarmup.earliestVibrationAt, changedWarmup.earliestVibrationAt)] {
+            XCTAssertEqual(try XCTUnwrap(NextAlarmState.instant(original)).timeIntervalSince(sourceAt),
+                           try XCTUnwrap(NextAlarmState.instant(updated)).timeIntervalSince(changedAt))
+        }
+        XCTAssertEqual(changed.alarm?.time, "09:15")
+    }
     func testWritesPreserveExactRevisionAndTimestampStringsWithOnlyActionFields() throws {
         let base = try example("scheduled"), skipped = try example("skipped")
         let requests = [try NextAlarmWrite(base: base, action: "skip"), try NextAlarmWrite(base: base, action: "time", time: "08:00"), try NextAlarmWrite(base: skipped, action: "restore")]
@@ -82,7 +117,21 @@ import XCTest
         let operation = Task { await model.skip() }; operation.cancel(); let cancelled = await operation.value; XCTAssertFalse(cancelled)
         let old = UserDefaults.standard.string(forKey: "ownerConnectionRevision"); defer { UserDefaults.standard.set(old, forKey: "ownerConnectionRevision") }
         UserDefaults.standard.set(UUID().uuidString, forKey: "ownerConnectionRevision")
+        XCTAssertFalse(model.isFresh); XCTAssertFalse(model.canChange)
         let changed = await model.skip(); XCTAssertFalse(changed); let count = await client.writeCount; XCTAssertEqual(count, 0)
+    }
+    func testExpiredReceiptCannotCreateSkipOrRestoreCommands() async throws {
+        let clock = AlarmReceiptClock(), client = NextAlarmTestClient(scenario: "scheduled")
+        let model = NextAlarmWorkspace(now: { clock.now })
+        model.configure(client: client, side: .left); await model.load()
+        XCTAssertTrue(model.isFresh); XCTAssertTrue(model.canChange)
+        clock.now.addTimeInterval(91)
+        XCTAssertFalse(model.isFresh); XCTAssertFalse(model.canChange)
+        let skipped = await model.skip(); XCTAssertFalse(skipped)
+        let restored = await model.restore(); XCTAssertFalse(restored)
+        let count = await client.writeCount; XCTAssertEqual(count, 0)
+        await model.load(userInitiated: true); XCTAssertTrue(model.isFresh)
+        clock.now.addTimeInterval(-6); XCTAssertFalse(model.isFresh)
     }
     func testOrdinaryDemoReadsSameWeeklyRowsAndCannotSaveOneTimeCommands() async throws {
         let weekly = DemoAlarmClient(scenario: "normal"), client = DemoNextAlarmClient(weekly: weekly, timeZone: "America/Los_Angeles")
@@ -117,3 +166,5 @@ private actor NextAlarmTestClient: NextAlarmClient {
     func waitUntilHeld() async { while continuation == nil { await Task.yield() } }
     func release() { continuation?.resume(); continuation = nil }
 }
+
+@MainActor private final class AlarmReceiptClock { var now = Date() }

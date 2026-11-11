@@ -21,6 +21,8 @@ struct HealthHistory: Codable, Sendable, Equatable {
     var timeZone: String
     var sources: [Source]
     var ignoredSamples: Int
+    /// Nil identifies an older import without device provenance; empty means no Watch sleep was returned.
+    var watchNights: [Night]?
     static let empty = Self(importedAt: .distantPast, timeZone: TimeZone.current.identifier, sources: [], ignoredSamples: 0)
 }
 
@@ -31,4 +33,5 @@ struct HistoricalSleepSample: Sendable {
     var sourceID: String
     var sourceName: String
     var stage: Stage
+    var recordedByWatch = false
 }

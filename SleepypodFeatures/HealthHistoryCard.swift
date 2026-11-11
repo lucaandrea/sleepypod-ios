@@ -21,9 +21,10 @@ struct HealthHistoryCard: View {
                 }.disabled(workspace.busy)
                 Text("Last refreshed \(workspace.archive.history.importedAt.formatted(date: .abbreviated, time: .shortened)).")
                     .font(.caption).foregroundStyle(Theme.text2)
-                Toggle("Refresh history when I open sleepypod", isOn: $workspace.refreshHistory).tint(Theme.green)
-                Text("New records update your baseline at most once every six hours while the app is open. This does not generate or send cloud reports automatically.")
+                Toggle("Automatic history refresh", isOn: $workspace.refreshHistory).tint(Theme.green)
+                Text("Check for new records at most every 30 minutes in the morning and every six hours otherwise, when iOS allows. Refreshing history does not retrain a model or generate a cloud report.")
                     .font(.caption).foregroundStyle(Theme.text2)
+                NavigationLink("Watch recording assistant") { WatchRecordingAssistantScreen() }
                 LazyVGrid(columns: Array(repeating: GridItem(.flexible(), alignment: .leading), count: dynamicTypeSize.isAccessibilitySize ? 1 : 2), spacing: 12) {
                     historyMetric("Recorded days", value: (selected?.nights.count ?? 0).formatted(), symbol: "calendar", color: Theme.cool)
                     historyMetric("Last 28 days", value: recent.count.formatted(), symbol: "moon.stars", color: Theme.green)

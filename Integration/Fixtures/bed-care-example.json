@@ -1,0 +1,621 @@
+{
+  "synthetic": true,
+  "sourceCommit": "0c05b29b61388e228eb899090aa24c5fe7546451",
+  "now": 1794340800000,
+  "cases": {
+    "observed": {
+      "apiVersion": 1,
+      "generatedAt": 1794340800000,
+      "checks": [
+        {
+          "id": "water",
+          "title": "Water & priming",
+          "state": "checked",
+          "detail": "The Pod does not report low water. Priming is not running.",
+          "nextStep": "No refill is indicated by this reading. Open thermal diagnostics if delivery feels wrong.",
+          "observedAt": 1794340795000,
+          "destination": "thermal",
+          "evidence": [],
+          "expiresAt": 1794340825000
+        },
+        {
+          "id": "circulation",
+          "title": "Circulation protection",
+          "state": "checked",
+          "detail": "Protection is enabled and no active circulation protection is recorded. This does not verify pump flow or rule out a leak.",
+          "nextStep": "If you notice wetness, unusual noise or poor temperature delivery, inspect the bed and review thermal diagnostics.",
+          "observedAt": 1794340800000,
+          "destination": "dashboard",
+          "evidence": [
+            {
+              "title": "Automatic protection",
+              "detail": "Enabled in the saved settings. This is not a physical pump test."
+            }
+          ],
+          "expiresAt": 1794340830000
+        },
+        {
+          "id": "recording",
+          "title": "Sensors & recording services",
+          "state": "unknown",
+          "detail": "Some recording sources have not been verified.",
+          "nextStep": "Review the individual checks before changing calibration or restarting a service.",
+          "observedAt": 1794340800000,
+          "destination": "health",
+          "evidence": [
+            {
+              "title": "Presence sensor",
+              "detail": "Not verified: No trustworthy current check is available. Open recording diagnostics and check the cover connection and presence calibration."
+            },
+            {
+              "title": "Heartbeat and movement signal",
+              "detail": "Not verified: No trustworthy current check is available. Check the sensor connection in recording diagnostics. Missing signal cannot establish sleep stages."
+            },
+            {
+              "title": "Recording processor",
+              "detail": "Not verified: No trustworthy current check is available. Open recording diagnostics to inspect the sleep detector before another night."
+            },
+            {
+              "title": "Vitals processor",
+              "detail": "Not verified: No trustworthy current check is available. Open recording diagnostics to inspect why heart rate and breathing estimates are not updating."
+            },
+            {
+              "title": "Configuration database",
+              "detail": "Not verified: No trustworthy current check is available. Open database diagnostics. Preserve a backup before maintenance."
+            },
+            {
+              "title": "Saved recording access",
+              "detail": "Checked: The sleep-record table answers a read query."
+            },
+            {
+              "title": "Recent presence interruptions",
+              "detail": "Not verified: Not enough monitoring history to assess repeated interruptions."
+            }
+          ],
+          "expiresAt": 1794340830000
+        },
+        {
+          "id": "storage",
+          "title": "Recording storage",
+          "state": "checked",
+          "detail": "512 MB available on the recording filesystem.",
+          "nextStep": "Review storage and preserve a backup before removing files. This check never deletes recordings.",
+          "observedAt": 1794340800000,
+          "destination": "storage",
+          "evidence": [],
+          "expiresAt": 1794340830000
+        },
+        {
+          "id": "backup",
+          "title": "Backup & recovery",
+          "state": "checked",
+          "detail": "The server recorded a backup export. Download completion, an off-Pod copy and a successful restore are not verified.",
+          "nextStep": "Download a current backup in Databases, keep it privately on another device, and verify the archive before maintenance.",
+          "observedAt": 1794340800000,
+          "destination": "databases",
+          "evidence": [],
+          "expiresAt": 1794340830000
+        }
+      ],
+      "lastExportAt": 1794254400000
+    },
+    "attention": {
+      "apiVersion": 1,
+      "generatedAt": 1794340800000,
+      "checks": [
+        {
+          "id": "water",
+          "title": "Water & priming",
+          "state": "attention",
+          "detail": "The Pod reports low water.",
+          "nextStep": "Follow the refill instructions for your exact Pod model. Inspect for visible wetness or kinked hoses if refills are unusually frequent.",
+          "observedAt": 1794340795000,
+          "destination": "thermal",
+          "evidence": [],
+          "expiresAt": 1794340825000
+        },
+        {
+          "id": "circulation",
+          "title": "Circulation protection",
+          "state": "attention",
+          "detail": "Left has an active circulation protection.",
+          "nextStep": "Review the pump alert and its recovery instructions. This check does not dismiss protection or restart circulation.",
+          "observedAt": 1794340800000,
+          "destination": "dashboard",
+          "evidence": [
+            {
+              "title": "Automatic protection",
+              "detail": "Enabled in the saved settings. This is not a physical pump test."
+            }
+          ],
+          "expiresAt": 1794340830000
+        },
+        {
+          "id": "recording",
+          "title": "Sensors & recording services",
+          "state": "unknown",
+          "detail": "Some recording sources have not been verified.",
+          "nextStep": "Review the individual checks before changing calibration or restarting a service.",
+          "observedAt": 1794340800000,
+          "destination": "health",
+          "evidence": [
+            {
+              "title": "Presence sensor",
+              "detail": "Not verified: No trustworthy current check is available. Open recording diagnostics and check the cover connection and presence calibration."
+            },
+            {
+              "title": "Heartbeat and movement signal",
+              "detail": "Not verified: No trustworthy current check is available. Check the sensor connection in recording diagnostics. Missing signal cannot establish sleep stages."
+            },
+            {
+              "title": "Recording processor",
+              "detail": "Not verified: No trustworthy current check is available. Open recording diagnostics to inspect the sleep detector before another night."
+            },
+            {
+              "title": "Vitals processor",
+              "detail": "Not verified: No trustworthy current check is available. Open recording diagnostics to inspect why heart rate and breathing estimates are not updating."
+            },
+            {
+              "title": "Configuration database",
+              "detail": "Not verified: No trustworthy current check is available. Open database diagnostics. Preserve a backup before maintenance."
+            },
+            {
+              "title": "Saved recording access",
+              "detail": "Checked: The sleep-record table answers a read query."
+            },
+            {
+              "title": "Recent presence interruptions",
+              "detail": "Not verified: Not enough monitoring history to assess repeated interruptions."
+            }
+          ],
+          "expiresAt": 1794340830000
+        },
+        {
+          "id": "storage",
+          "title": "Recording storage",
+          "state": "checked",
+          "detail": "512 MB available on the recording filesystem.",
+          "nextStep": "Review storage and preserve a backup before removing files. This check never deletes recordings.",
+          "observedAt": 1794340800000,
+          "destination": "storage",
+          "evidence": [],
+          "expiresAt": 1794340830000
+        },
+        {
+          "id": "backup",
+          "title": "Backup & recovery",
+          "state": "checked",
+          "detail": "The server recorded a backup export. Download completion, an off-Pod copy and a successful restore are not verified.",
+          "nextStep": "Download a current backup in Databases, keep it privately on another device, and verify the archive before maintenance.",
+          "observedAt": 1794340800000,
+          "destination": "databases",
+          "evidence": [],
+          "expiresAt": 1794340830000
+        }
+      ],
+      "lastExportAt": 1794254400000
+    },
+    "priming": {
+      "apiVersion": 1,
+      "generatedAt": 1794340800000,
+      "checks": [
+        {
+          "id": "water",
+          "title": "Water & priming",
+          "state": "busy",
+          "detail": "The Pod reports that priming is in progress.",
+          "nextStep": "Let the current priming cycle finish; do not start another.",
+          "observedAt": 1794340795000,
+          "destination": "thermal",
+          "evidence": [],
+          "expiresAt": 1794340825000
+        },
+        {
+          "id": "circulation",
+          "title": "Circulation protection",
+          "state": "checked",
+          "detail": "Protection is enabled and no active circulation protection is recorded. This does not verify pump flow or rule out a leak.",
+          "nextStep": "If you notice wetness, unusual noise or poor temperature delivery, inspect the bed and review thermal diagnostics.",
+          "observedAt": 1794340800000,
+          "destination": "dashboard",
+          "evidence": [
+            {
+              "title": "Automatic protection",
+              "detail": "Enabled in the saved settings. This is not a physical pump test."
+            }
+          ],
+          "expiresAt": 1794340830000
+        },
+        {
+          "id": "recording",
+          "title": "Sensors & recording services",
+          "state": "unknown",
+          "detail": "Some recording sources have not been verified.",
+          "nextStep": "Review the individual checks before changing calibration or restarting a service.",
+          "observedAt": 1794340800000,
+          "destination": "health",
+          "evidence": [
+            {
+              "title": "Presence sensor",
+              "detail": "Not verified: No trustworthy current check is available. Open recording diagnostics and check the cover connection and presence calibration."
+            },
+            {
+              "title": "Heartbeat and movement signal",
+              "detail": "Not verified: No trustworthy current check is available. Check the sensor connection in recording diagnostics. Missing signal cannot establish sleep stages."
+            },
+            {
+              "title": "Recording processor",
+              "detail": "Not verified: No trustworthy current check is available. Open recording diagnostics to inspect the sleep detector before another night."
+            },
+            {
+              "title": "Vitals processor",
+              "detail": "Not verified: No trustworthy current check is available. Open recording diagnostics to inspect why heart rate and breathing estimates are not updating."
+            },
+            {
+              "title": "Configuration database",
+              "detail": "Not verified: No trustworthy current check is available. Open database diagnostics. Preserve a backup before maintenance."
+            },
+            {
+              "title": "Saved recording access",
+              "detail": "Checked: The sleep-record table answers a read query."
+            },
+            {
+              "title": "Recent presence interruptions",
+              "detail": "Not verified: Not enough monitoring history to assess repeated interruptions."
+            }
+          ],
+          "expiresAt": 1794340830000
+        },
+        {
+          "id": "storage",
+          "title": "Recording storage",
+          "state": "checked",
+          "detail": "512 MB available on the recording filesystem.",
+          "nextStep": "Review storage and preserve a backup before removing files. This check never deletes recordings.",
+          "observedAt": 1794340800000,
+          "destination": "storage",
+          "evidence": [],
+          "expiresAt": 1794340830000
+        },
+        {
+          "id": "backup",
+          "title": "Backup & recovery",
+          "state": "checked",
+          "detail": "The server recorded a backup export. Download completion, an off-Pod copy and a successful restore are not verified.",
+          "nextStep": "Download a current backup in Databases, keep it privately on another device, and verify the archive before maintenance.",
+          "observedAt": 1794340800000,
+          "destination": "databases",
+          "evidence": [],
+          "expiresAt": 1794340830000
+        }
+      ],
+      "lastExportAt": 1794254400000
+    },
+    "unknown": {
+      "apiVersion": 1,
+      "generatedAt": 1794340800000,
+      "checks": [
+        {
+          "id": "water",
+          "title": "Water & priming",
+          "state": "unknown",
+          "detail": "No current water reading is available.",
+          "nextStep": "Check the Pod connection before deciding whether to refill or prime.",
+          "observedAt": null,
+          "destination": "thermal",
+          "evidence": [],
+          "expiresAt": null
+        },
+        {
+          "id": "circulation",
+          "title": "Circulation protection",
+          "state": "unknown",
+          "detail": "Protection settings or current state could not be verified.",
+          "nextStep": "If you notice wetness, unusual noise or poor temperature delivery, inspect the bed and review thermal diagnostics.",
+          "observedAt": null,
+          "destination": "dashboard",
+          "evidence": [
+            {
+              "title": "Automatic protection",
+              "detail": "The saved protection setting could not be read."
+            }
+          ],
+          "expiresAt": null
+        },
+        {
+          "id": "recording",
+          "title": "Sensors & recording services",
+          "state": "unknown",
+          "detail": "Some recording sources have not been verified.",
+          "nextStep": "Review the individual checks before changing calibration or restarting a service.",
+          "observedAt": null,
+          "destination": "health",
+          "evidence": [],
+          "expiresAt": null
+        },
+        {
+          "id": "storage",
+          "title": "Recording storage",
+          "state": "unknown",
+          "detail": "Space on the recording filesystem could not be checked.",
+          "nextStep": "Review storage and preserve a backup before removing files. This check never deletes recordings.",
+          "observedAt": null,
+          "destination": "storage",
+          "evidence": [],
+          "expiresAt": null
+        },
+        {
+          "id": "backup",
+          "title": "Backup & recovery",
+          "state": "unknown",
+          "detail": "No valid backup-export date is recorded.",
+          "nextStep": "Download a current backup in Databases, keep it privately on another device, and verify the archive before maintenance.",
+          "observedAt": 1794340800000,
+          "destination": "databases",
+          "evidence": [],
+          "expiresAt": 1794340830000
+        }
+      ],
+      "lastExportAt": null
+    },
+    "protectionDisabled": {
+      "apiVersion": 1,
+      "generatedAt": 1794340800000,
+      "checks": [
+        {
+          "id": "water",
+          "title": "Water & priming",
+          "state": "checked",
+          "detail": "The Pod does not report low water. Priming is not running.",
+          "nextStep": "No refill is indicated by this reading. Open thermal diagnostics if delivery feels wrong.",
+          "observedAt": 1794340795000,
+          "destination": "thermal",
+          "evidence": [],
+          "expiresAt": 1794340825000
+        },
+        {
+          "id": "circulation",
+          "title": "Circulation protection",
+          "state": "attention",
+          "detail": "Automatic pump-stall protection is turned off.",
+          "nextStep": "If you notice wetness, unusual noise or poor temperature delivery, inspect the bed and review thermal diagnostics.",
+          "observedAt": 1794340800000,
+          "destination": "dashboard",
+          "evidence": [
+            {
+              "title": "Automatic protection",
+              "detail": "Disabled in the saved settings. Review the protection settings before deciding whether to enable them; this page never changes them."
+            }
+          ],
+          "expiresAt": 1794340830000
+        },
+        {
+          "id": "recording",
+          "title": "Sensors & recording services",
+          "state": "unknown",
+          "detail": "Some recording sources have not been verified.",
+          "nextStep": "Review the individual checks before changing calibration or restarting a service.",
+          "observedAt": 1794340800000,
+          "destination": "health",
+          "evidence": [
+            {
+              "title": "Presence sensor",
+              "detail": "Not verified: No trustworthy current check is available. Open recording diagnostics and check the cover connection and presence calibration."
+            },
+            {
+              "title": "Heartbeat and movement signal",
+              "detail": "Not verified: No trustworthy current check is available. Check the sensor connection in recording diagnostics. Missing signal cannot establish sleep stages."
+            },
+            {
+              "title": "Recording processor",
+              "detail": "Not verified: No trustworthy current check is available. Open recording diagnostics to inspect the sleep detector before another night."
+            },
+            {
+              "title": "Vitals processor",
+              "detail": "Not verified: No trustworthy current check is available. Open recording diagnostics to inspect why heart rate and breathing estimates are not updating."
+            },
+            {
+              "title": "Configuration database",
+              "detail": "Not verified: No trustworthy current check is available. Open database diagnostics. Preserve a backup before maintenance."
+            },
+            {
+              "title": "Saved recording access",
+              "detail": "Checked: The sleep-record table answers a read query."
+            },
+            {
+              "title": "Recent presence interruptions",
+              "detail": "Not verified: Not enough monitoring history to assess repeated interruptions."
+            }
+          ],
+          "expiresAt": 1794340830000
+        },
+        {
+          "id": "storage",
+          "title": "Recording storage",
+          "state": "checked",
+          "detail": "512 MB available on the recording filesystem.",
+          "nextStep": "Review storage and preserve a backup before removing files. This check never deletes recordings.",
+          "observedAt": 1794340800000,
+          "destination": "storage",
+          "evidence": [],
+          "expiresAt": 1794340830000
+        },
+        {
+          "id": "backup",
+          "title": "Backup & recovery",
+          "state": "checked",
+          "detail": "The server recorded a backup export. Download completion, an off-Pod copy and a successful restore are not verified.",
+          "nextStep": "Download a current backup in Databases, keep it privately on another device, and verify the archive before maintenance.",
+          "observedAt": 1794340800000,
+          "destination": "databases",
+          "evidence": [],
+          "expiresAt": 1794340830000
+        }
+      ],
+      "lastExportAt": 1794254400000
+    },
+    "protectionUnknown": {
+      "apiVersion": 1,
+      "generatedAt": 1794340800000,
+      "checks": [
+        {
+          "id": "water",
+          "title": "Water & priming",
+          "state": "checked",
+          "detail": "The Pod does not report low water. Priming is not running.",
+          "nextStep": "No refill is indicated by this reading. Open thermal diagnostics if delivery feels wrong.",
+          "observedAt": 1794340795000,
+          "destination": "thermal",
+          "evidence": [],
+          "expiresAt": 1794340825000
+        },
+        {
+          "id": "circulation",
+          "title": "Circulation protection",
+          "state": "unknown",
+          "detail": "Protection settings or current state could not be verified.",
+          "nextStep": "If you notice wetness, unusual noise or poor temperature delivery, inspect the bed and review thermal diagnostics.",
+          "observedAt": null,
+          "destination": "dashboard",
+          "evidence": [
+            {
+              "title": "Automatic protection",
+              "detail": "The saved protection setting could not be read."
+            }
+          ],
+          "expiresAt": null
+        },
+        {
+          "id": "recording",
+          "title": "Sensors & recording services",
+          "state": "unknown",
+          "detail": "Some recording sources have not been verified.",
+          "nextStep": "Review the individual checks before changing calibration or restarting a service.",
+          "observedAt": 1794340800000,
+          "destination": "health",
+          "evidence": [
+            {
+              "title": "Presence sensor",
+              "detail": "Not verified: No trustworthy current check is available. Open recording diagnostics and check the cover connection and presence calibration."
+            },
+            {
+              "title": "Heartbeat and movement signal",
+              "detail": "Not verified: No trustworthy current check is available. Check the sensor connection in recording diagnostics. Missing signal cannot establish sleep stages."
+            },
+            {
+              "title": "Recording processor",
+              "detail": "Not verified: No trustworthy current check is available. Open recording diagnostics to inspect the sleep detector before another night."
+            },
+            {
+              "title": "Vitals processor",
+              "detail": "Not verified: No trustworthy current check is available. Open recording diagnostics to inspect why heart rate and breathing estimates are not updating."
+            },
+            {
+              "title": "Configuration database",
+              "detail": "Not verified: No trustworthy current check is available. Open database diagnostics. Preserve a backup before maintenance."
+            },
+            {
+              "title": "Saved recording access",
+              "detail": "Checked: The sleep-record table answers a read query."
+            },
+            {
+              "title": "Recent presence interruptions",
+              "detail": "Not verified: Not enough monitoring history to assess repeated interruptions."
+            }
+          ],
+          "expiresAt": 1794340830000
+        },
+        {
+          "id": "storage",
+          "title": "Recording storage",
+          "state": "checked",
+          "detail": "512 MB available on the recording filesystem.",
+          "nextStep": "Review storage and preserve a backup before removing files. This check never deletes recordings.",
+          "observedAt": 1794340800000,
+          "destination": "storage",
+          "evidence": [],
+          "expiresAt": 1794340830000
+        },
+        {
+          "id": "backup",
+          "title": "Backup & recovery",
+          "state": "checked",
+          "detail": "The server recorded a backup export. Download completion, an off-Pod copy and a successful restore are not verified.",
+          "nextStep": "Download a current backup in Databases, keep it privately on another device, and verify the archive before maintenance.",
+          "observedAt": 1794340800000,
+          "destination": "databases",
+          "evidence": [],
+          "expiresAt": 1794340830000
+        }
+      ],
+      "lastExportAt": 1794254400000
+    },
+    "expired": {
+      "apiVersion": 1,
+      "generatedAt": 1794340740000,
+      "checks": [
+        {
+          "id": "water",
+          "title": "Water & priming",
+          "state": "unknown",
+          "detail": "No current water reading is available.",
+          "nextStep": "Check the Pod connection before deciding whether to refill or prime.",
+          "observedAt": null,
+          "destination": "thermal",
+          "evidence": [],
+          "expiresAt": null
+        },
+        {
+          "id": "circulation",
+          "title": "Circulation protection",
+          "state": "checked",
+          "detail": "Protection is enabled and no active circulation protection is recorded. This does not verify pump flow or rule out a leak.",
+          "nextStep": "If you notice wetness, unusual noise or poor temperature delivery, inspect the bed and review thermal diagnostics.",
+          "observedAt": 1794340740000,
+          "destination": "dashboard",
+          "evidence": [
+            {
+              "title": "Automatic protection",
+              "detail": "Enabled in the saved settings. This is not a physical pump test."
+            }
+          ],
+          "expiresAt": 1794340770000
+        },
+        {
+          "id": "recording",
+          "title": "Sensors & recording services",
+          "state": "unknown",
+          "detail": "Some recording sources have not been verified.",
+          "nextStep": "Review the individual checks before changing calibration or restarting a service.",
+          "observedAt": null,
+          "destination": "health",
+          "evidence": [],
+          "expiresAt": null
+        },
+        {
+          "id": "storage",
+          "title": "Recording storage",
+          "state": "unknown",
+          "detail": "Space on the recording filesystem could not be checked.",
+          "nextStep": "Review storage and preserve a backup before removing files. This check never deletes recordings.",
+          "observedAt": null,
+          "destination": "storage",
+          "evidence": [],
+          "expiresAt": null
+        },
+        {
+          "id": "backup",
+          "title": "Backup & recovery",
+          "state": "checked",
+          "detail": "The server recorded a backup export. Download completion, an off-Pod copy and a successful restore are not verified.",
+          "nextStep": "Download a current backup in Databases, keep it privately on another device, and verify the archive before maintenance.",
+          "observedAt": 1794340740000,
+          "destination": "databases",
+          "evidence": [],
+          "expiresAt": 1794340770000
+        }
+      ],
+      "lastExportAt": 1794254400000
+    }
+  }
+}

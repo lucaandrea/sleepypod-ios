@@ -218,6 +218,8 @@ struct SleepScreen: View {
                         .background(Theme.card, in: RoundedRectangle(cornerRadius: 16))
                 }.buttonStyle(.plain).accessibilityIdentifier("sleep.personalReports")
                 RecordingReadinessCard()
+                WatchRecordingAssistantLink()
+                LearningJourneyLink()
                 periodContent
                 dataFooter
             }.padding(.horizontal, 16).padding(.bottom, 24)

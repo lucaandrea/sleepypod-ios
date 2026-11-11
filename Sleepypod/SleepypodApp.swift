@@ -81,6 +81,7 @@ struct SleepypodApp: App {
                 else { ownerContent }
             }
                 .environment(household)
+                .modifier(BackupAlarmLifecycle())
                 .preferredColorScheme(userProfile.appearance.colorScheme)
                 .foregroundStyle(Theme.text1)
                 .tint(Theme.text1)
@@ -107,7 +108,8 @@ struct SleepypodApp: App {
         }
         .backgroundTask(.appRefresh(HealthSyncService.backgroundTaskID)) { [healthSync] in
             // Queue the next wake-up first so a sync that runs out of time doesn't end the chain.
-            HealthSyncService.scheduleBackgroundSync()
+            HealthSyncService.scheduleBackgroundSync(after: 30 * 60)
+            await UnifiedRuntime.refreshPersonalHealth()
             await healthSync.syncInBackground()
         }
     }
@@ -188,7 +190,7 @@ struct ContentView: View {
             TabView(selection: $selectedTab) {
                 Tab(value: "temp") {
                     TempScreen()
-                } label: { tabLabel("Temp", "thermometer.medium") }
+                } label: { tabLabel("Tonight", "thermometer.medium") }
                 Tab(value: "schedule") {
                     if isConnected { ScheduleScreen() }
                     else { OfflineLibraryScreen(page: .schedule) }
@@ -314,6 +316,10 @@ struct ContentView: View {
             guard scenePhase == .active, !isDemo else { connectionPath.stop(); return }
             connectionPath.start(onPermission: { deviceManager.localNetworkAccessDenied = $0 }) { deviceManager.networkRouteChanged() }
             await UnifiedRuntime.refreshHealth()
+            while !Task.isCancelled {
+                do { try await Task.sleep(for: .seconds(60)) } catch { return }
+                await UnifiedRuntime.refreshPersonalHealth()
+            }
         }
         .onDisappear { connectionPath.stop() }
         .onChange(of: scenePhase) {
@@ -326,8 +332,8 @@ struct ContentView: View {
                     sensorStream.disconnect()
                 }
             }
-            if scenePhase == .background && healthSync.enabled && !isDemo {
-                HealthSyncService.scheduleBackgroundSync()
+            if scenePhase == .background && (healthSync.enabled || UnifiedRuntime.automaticHistoryRefresh) && !isDemo {
+                HealthSyncService.scheduleBackgroundSync(after: 30 * 60)
             }
         }
         .onChange(of: deviceManager.isConnected) {

@@ -126,7 +126,7 @@ final class MarketingTour: XCTestCase {
 
         // Back to the bed
         chooseControl("Dial")
-        tap(app.tabBars.buttons["Temp"], hold: 2.2)
+        tap(app.tabBars.buttons["Tonight"], hold: 2.2)
         end()
     }
 
