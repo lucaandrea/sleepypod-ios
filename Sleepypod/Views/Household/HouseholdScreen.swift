@@ -60,6 +60,14 @@ struct HouseholdScreen: View {
                              : "Personal recordings are not enabled on this controller.")
                             .font(.footnote).foregroundStyle(Theme.text2).accessibilityIdentifier("history.availability")
                     }
+                    Section("Your saved learning") {
+                        NavigationLink("Browse saved learning", value: "learning")
+                            .disabled(model.learning?.enabled != true).accessibilityIdentifier("learning.accountLink")
+                        Text(model.learning?.enabled == true
+                             ? "Private check-ins, notes and historical models preserved when you change sides."
+                             : "The saved-learning library is not enabled on this controller.")
+                            .font(.footnote).foregroundStyle(Theme.text2).accessibilityIdentifier("learning.availability")
+                    }
                     Section("Future bed arrangement") {
                         NavigationLink("Shared side review", value: "arrangement")
                             .disabled(model.arrangement?.enabled != true).accessibilityIdentifier("arrangement.accountLink")
@@ -134,6 +142,7 @@ struct HouseholdScreen: View {
                     else if route == "routines" { HouseholdRoutineWeek().id(session.namespace) }
                     else if route == "publication", let publication = model.publication { PersonalRoutineReviewScreen(model: publication, unit: model.draftPreferences.displayUnit).id(session.namespace) }
                     else if route == "history", let history = model.history { PersonalHistoryScreen(model: history).id(ObjectIdentifier(history)) }
+                    else if route == "learning", let learning = model.learning { PersonalLearningScreen(model: learning).id(ObjectIdentifier(learning)) }
                     else if route == "arrangement", let arrangement = model.arrangement {
                         ArrangementReviewScreen(model: arrangement, maintenance: model.maintenance, close: { model.signOut() }).id(ObjectIdentifier(arrangement))
                     }
@@ -156,7 +165,12 @@ struct HouseholdScreen: View {
                 Button("Cancel", role: .cancel) { revokeDevice = nil }
             } message: { Text("\(revokeDevice?.name ?? "This device") will lose personal-account access. This does not move the bed or change its schedules.") }
         }
-        .onChange(of: scenePhase) { if scenePhase != .active { revealedCode = nil } }
+        .onChange(of: scenePhase) {
+            if scenePhase != .active {
+                revealedCode = nil
+                if navigation.contains("learning") { navigation = [] }
+            }
+        }
         .onChange(of: model.session?.context) { revealedCode = nil; navigation = [] }
     }
     @ViewBuilder private var publicationRecovery: some View {

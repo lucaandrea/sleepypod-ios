@@ -1,0 +1,134 @@
+{
+  "synthetic": true,
+  "sourceRevision": "68760eca8738b8719986f3e47d60ba63c2a9ef96",
+  "session": {
+    "apiVersion": 1,
+    "featureVersion": 1,
+    "podId": "00000000-0000-4000-8000-000000000001",
+    "householdId": "00000000-0000-4000-8000-000000000002",
+    "accountId": "00000000-0000-4000-8000-000000000003",
+    "selfSleeperId": "00000000-0000-4000-8000-000000000004",
+    "role": "owner",
+    "membership": "active",
+    "sessionRevision": 1,
+    "householdRevision": 1,
+    "assignmentRevision": 1,
+    "arrangement": {
+      "mode": "solo-anywhere",
+      "effectiveAt": "2026-10-29T22:00:00.000Z"
+    },
+    "self": {
+      "displayName": "Example owner",
+      "zones": [
+        "left",
+        "right"
+      ],
+      "assignment": "solo"
+    },
+    "capabilities": {
+      "manageInvitations": true,
+      "manageOwnDevices": true,
+      "personalPreferences": true,
+      "personalRoutineDrafts": true,
+      "activateArrangement": false,
+      "personalControls": false,
+      "personalLearningArchive": true,
+      "personalHistory": false,
+      "healthImport": false,
+      "cloudAnalysis": false
+    }
+  },
+  "archiveId": "30000000-0000-4000-8000-000000000001",
+  "recordId": "30000000-0000-4000-8000-000000000002",
+  "archives": {
+    "version": 1,
+    "generatedAt": 1794384001000,
+    "scope": {
+      "podId": "00000000-0000-4000-8000-000000000001",
+      "householdId": "00000000-0000-4000-8000-000000000002",
+      "accountId": "00000000-0000-4000-8000-000000000003",
+      "sleeperId": "00000000-0000-4000-8000-000000000004",
+      "sessionRevision": 1,
+      "householdRevision": 1,
+      "assignmentRevision": 1
+    },
+    "interpretation": "historical_custody_not_training_approval",
+    "query": {
+      "before": null,
+      "limit": 20
+    },
+    "archives": [
+      {
+        "archiveId": "30000000-0000-4000-8000-000000000001",
+        "capturedAt": 1794384000000,
+        "sourceSide": "left",
+        "timeZone": "America/Los_Angeles",
+        "recordCount": 1,
+        "payloadBytes": 437,
+        "contentHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "attribution": "operator_custody_unreviewed",
+        "activation": "historical_only"
+      }
+    ],
+    "nextCursor": null
+  },
+  "records": {
+    "version": 1,
+    "generatedAt": 1794384001000,
+    "scope": {
+      "podId": "00000000-0000-4000-8000-000000000001",
+      "householdId": "00000000-0000-4000-8000-000000000002",
+      "accountId": "00000000-0000-4000-8000-000000000003",
+      "sleeperId": "00000000-0000-4000-8000-000000000004",
+      "sessionRevision": 1,
+      "householdRevision": 1,
+      "assignmentRevision": 1
+    },
+    "interpretation": "historical_custody_not_training_approval",
+    "query": {
+      "archiveId": "30000000-0000-4000-8000-000000000001",
+      "after": 0,
+      "limit": 20
+    },
+    "archiveId": "30000000-0000-4000-8000-000000000001",
+    "contentHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "records": [
+      {
+        "recordId": "30000000-0000-4000-8000-000000000002",
+        "ordinal": 1,
+        "sourceTable": "journal_entries",
+        "sourceSide": "left",
+        "kind": "personal",
+        "payloadBytes": 437,
+        "redacted": false,
+        "recordedDate": "2026-10-30"
+      }
+    ],
+    "nextOrdinal": null
+  },
+  "detail": {
+    "version": 1,
+    "generatedAt": 1794384001000,
+    "scope": {
+      "podId": "00000000-0000-4000-8000-000000000001",
+      "householdId": "00000000-0000-4000-8000-000000000002",
+      "accountId": "00000000-0000-4000-8000-000000000003",
+      "sleeperId": "00000000-0000-4000-8000-000000000004",
+      "sessionRevision": 1,
+      "householdRevision": 1,
+      "assignmentRevision": 1
+    },
+    "interpretation": "historical_custody_not_training_approval",
+    "recordId": "30000000-0000-4000-8000-000000000002",
+    "archiveId": "30000000-0000-4000-8000-000000000001",
+    "sourceTable": "journal_entries",
+    "sourceSide": "left",
+    "kind": "personal",
+    "attribution": "operator_custody_unreviewed",
+    "activation": "historical_only",
+    "payloadHash": "2c5bf45b8a0658a2ae4750c854c5d93423df9e3878957ed9255b5a82e9729480",
+    "encoding": "sqlite_row_json_text",
+    "payload": "{\"side\":\"left\",\"local_date\":\"2026-10-30\",\"revision\":\"30000000-0000-4000-8000-000000000002\",\"record\":\"{\\\"side\\\":\\\"left\\\",\\\"date\\\":\\\"2026-10-30\\\",\\\"timeZone\\\":\\\"America/Los_Angeles\\\",\\\"origin\\\":\\\"sleepypod\\\",\\\"createdAt\\\":null,\\\"updatedAt\\\":null,\\\"importedAt\\\":null,\\\"fields\\\":{\\\"restfulness\\\":4,\\\"comfort\\\":\\\"comfortable\\\",\\\"caffeine\\\":false,\\\"alcohol\\\":false,\\\"exercise\\\":true,\\\"notes\\\":\\\"Felt comfortable after an earlier bedtime.\\\"}}\"}",
+    "redacted": false
+  }
+}
