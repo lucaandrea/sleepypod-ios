@@ -13,27 +13,43 @@ import XCTest
         app.launch()
         let title = app.staticTexts["recording.readiness.title"]
         XCTAssertTrue(title.waitForExistence(timeout: 30))
+        XCTAssertEqual(XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: NSPredicate(format: "label == %@", "Recording checks are incomplete"), object: title)], timeout: 15), .completed)
         reveal(title, in: app)
         XCTAssertEqual(title.label, "Recording checks are incomplete")
         XCTAssertGreaterThanOrEqual(title.frame.minX, 0)
         XCTAssertLessThanOrEqual(title.frame.maxX, app.frame.maxX)
         let details = app.buttons["recording.readiness.details"]
-        reveal(details, in: app); details.tap()
+        reveal(details, in: app)
+        capture(large ? "Recording-large-closed" : "Recording-closed")
+        details.tap()
+        XCTAssertEqual(details.value as? String, "Expanded")
         let storage = app.staticTexts["Recording storage"]
         reveal(storage, in: app)
         XCTAssertTrue(storage.isHittable)
-        let shot = XCTAttachment(screenshot: app.screenshot())
-        shot.name = large ? "Recording-large-text" : "Recording-checks"
-        shot.lifetime = .keepAlways; add(shot)
+        capture(large ? "Recording-large-text" : "Recording-checks")
         let refresh = app.buttons["recording.readiness.refresh"]
         reveal(refresh, in: app)
         XCTAssertTrue(refresh.isEnabled)
+        XCTAssertGreaterThanOrEqual(refresh.frame.height, 44)
+        capture(large ? "Recording-large-refresh" : "Recording-refresh")
         refresh.tap()
         XCTAssertFalse(app.buttons["Restart piezo processor"].exists)
         app.terminate()
     }
+    private func capture(_ name: String) {
+        let shot = XCTAttachment(screenshot: XCUIScreen.main.screenshot())
+        shot.name = name; shot.lifetime = .keepAlways; add(shot)
+    }
     private func reveal(_ element: XCUIElement, in app: XCUIApplication) {
-        for _ in 0..<18 where !element.isHittable { app.swipeUp(velocity: .slow) }
-        XCTAssertTrue(element.isHittable)
+        // Check geometry before asking XCTest for a hit point on an offscreen element.
+        for _ in 0..<32 {
+            if element.exists {
+                let frame = element.frame
+                if frame.height > 0, frame.midY > 125, frame.midY < app.frame.maxY - 110 { return }
+                if frame.midY <= 125 { app.swipeDown(velocity: .slow); continue }
+            }
+            app.swipeUp(velocity: .slow)
+        }
+        XCTFail("Recording control could not be brought into view: \(element)")
     }
 }

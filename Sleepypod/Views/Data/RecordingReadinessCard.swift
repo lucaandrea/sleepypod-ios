@@ -42,7 +42,16 @@ struct RecordingReadinessCard: View {
                     .font(.footnote).foregroundStyle(Theme.text2)
             }
             if let report {
-                DisclosureGroup(status == .unavailable ? "See last successful check" : "See recording checks", isExpanded: $expanded) {
+                Button { expanded.toggle() } label: {
+                    HStack(alignment: .firstTextBaseline) {
+                        Text(status == .unavailable ? "See last successful check" : "See recording checks")
+                            .fixedSize(horizontal: false, vertical: true)
+                        Spacer(minLength: 12)
+                        Image(systemName: expanded ? "chevron.down" : "chevron.right").imageScale(.small).accessibilityHidden(true)
+                    }.frame(maxWidth: .infinity, minHeight: 44, alignment: .leading).contentShape(Rectangle())
+                }.buttonStyle(.plain).accessibilityValue(expanded ? "Expanded" : "Collapsed")
+                    .accessibilityIdentifier("recording.readiness.details")
+                if expanded {
                     VStack(alignment: .leading, spacing: 16) {
                         Text("Checked \(report.checkedDate.formatted(date: .abbreviated, time: .standard))")
                             .font(.caption).foregroundStyle(Theme.text2)
@@ -55,10 +64,11 @@ struct RecordingReadinessCard: View {
                             }.frame(maxWidth: .infinity, alignment: .leading)
                         }
                     }.padding(.top, 12)
-                }.accessibilityIdentifier("recording.readiness.details")
+                }
             }
-            Button(model.loading ? "Checking…" : "Check again", systemImage: "arrow.clockwise") { refreshRevision += 1 }
-                .disabled(model.loading).frame(minHeight: 44).accessibilityIdentifier("recording.readiness.refresh")
+            Button { refreshRevision += 1 } label: {
+                Label(model.loading ? "Checking…" : "Check again", systemImage: "arrow.clockwise").frame(minHeight: 44)
+            }.disabled(model.loading).accessibilityIdentifier("recording.readiness.refresh")
             NavigationLink("Open recording diagnostics") { SystemHealthScreen() }
                 .font(.subheadline).frame(minHeight: 44)
         }.frame(maxWidth: .infinity, alignment: .leading).cardStyle()
