@@ -94,7 +94,9 @@ import XCTest
         let renewed = try EnrolledOwnerRoutes(routes: previous.routes, currentRevision: awayRevision, previous: previous)
         XCTAssertEqual(renewed.originalRevision, revision)
         let different = try profile()
-        XCTAssertThrowsError(try EnrolledOwnerRoutes(routes: different.routes, currentRevision: awayRevision, previous: previous))
+        XCTAssertThrowsError(try EnrolledOwnerRoutes(routes: different.routes, currentRevision: awayRevision, previous: previous)) { error in
+            guard case ControllerIdentityFailure.differentSavedInstallation = error else { return XCTFail("Expected a changed saved controller") }
+        }
     }
 
     func testCorruptEncryptedProfileIsUnavailableRatherThanUnconfigured() throws {

@@ -12,13 +12,20 @@ import Foundation
         // Validate the complete shape before either origin can receive a request.
         _ = try VerifiedOwnerRoutes(installationID: UUID(), credentialRevision: credentialRevision, home: home, away: away, now: now)
         try Task.checkCancellation()
-        let homeID = try await readIdentity(home)
+        let homeID = try await read(home, connection: .home, identity: readIdentity)
         try Task.checkCancellation()
         guard isCurrent() else { throw ControllerIdentityFailure.changedCredentials }
-        let awayID = try await readIdentity(away)
+        let awayID = try await read(away, connection: .away, identity: readIdentity)
         try Task.checkCancellation()
         guard isCurrent() else { throw ControllerIdentityFailure.changedCredentials }
         guard homeID == awayID else { throw ControllerIdentityFailure.differentInstallation }
         return try VerifiedOwnerRoutes(installationID: homeID, credentialRevision: credentialRevision, home: home, away: away, now: now)
+    }
+
+    private static func read(_ candidate: OwnerConnectionCandidate, connection: OwnerRouteCheckFailure.Connection,
+                             identity: (OwnerConnectionCandidate) async throws -> UUID) async throws -> UUID {
+        do { return try await identity(candidate) }
+        catch is CancellationError { throw CancellationError() }
+        catch { throw OwnerRouteCheckFailure(connection: connection, error: error) }
     }
 }

@@ -1,8 +1,8 @@
-# Verified route selection foundation
+# Verified home and away connections
 
-This is tested source for explicit home/away enrollment and read-only selection.
-It is **not connected to the app's saved connection or polling lifecycle yet**.
-No remote gateway, phone connection, Pod setting, or controller command changed.
+Explicit home/away enrollment now connects to foreground read-only recovery and
+the app's saved transport. This is source and simulator evidence. No remote
+gateway, physical phone connection, Pod setting, or controller command changed.
 
 ## Identity and credentials
 
@@ -56,12 +56,11 @@ after access/TLS/identity errors. The signed generic simulator build passed for
 arm64 and x86_64; runtime evidence is the arm64 phone simulator. Strict lint
 passed.
 
-Before enabling selection, integrate encrypted profile persistence, explicit
-enrollment UI, transport cancellation and reconnection, and stable identity
-scopes for the offline library, reports, learning and app-owned backup alarms.
-A route change must neither erase a valid backup alarm nor expose another
-account's data. Unacknowledged hardware operations must never replay. Verify
-work-network/cellular access and actual device behavior separately.
+The following sections record the later encrypted persistence, enrollment UI,
+transport recovery and stable identity work. A route change must neither erase
+a valid backup alarm nor expose another account's data. Unacknowledged hardware
+operations must never replay. Work-network/cellular access and actual device
+behavior still require separate verification.
 
 ## Encrypted profile and identity anchor
 
@@ -79,7 +78,7 @@ may retain that anchor only for the same verified installation. This metadata is
 now used by the owner offline library, Health device identity, saved learning
 contexts and app-owned backup alarm. Live requests still retain the changing
 transport revision, so an old response cannot publish through a new connection.
-Automatic connection lifecycle integration remains separate work.
+Automatic lifecycle integration was still pending at this checkpoint.
 
 Six profile tests passed alongside the 14 identity/selection tests in
 `SleepypodRouteProfile-v2.xcresult` (20 total). They cover encrypted-at-rest
@@ -106,3 +105,65 @@ fixture failure because it used an HTTP public hostname; replacing the fixture
 with a local address preserved the production HTTPS requirement. The generic
 simulator build and strict lint passed. These tests do not establish remote
 gateway, physical phone, alarm delivery or Pod behavior.
+
+## Foreground enrollment and recovery
+
+`OwnerRouteSession` verifies both addresses before storing the encrypted profile
+and the alternate origin's Keychain entry. It cannot replace the active key as
+an enrollment side effect. A failed profile write restores the previous alternate
+key. Existing connections without a credential revision receive one while their
+original data/alarm identity remains anchored to the earlier saved connection.
+
+The Home and away form exposes verification, pause/resume, secure key entry,
+optional streams and actionable Home/Away-specific errors. Backgrounding clears
+typed keys and invalidates unfinished reads. While the form is open, automatic
+recovery cannot replace its feedback or transport. Dismissal resumes recovery.
+
+`OwnerRouteLifecycle` observes foreground network changes and checks every 30
+seconds. A successful alternative selects its existing credential and replaces
+the managers' transport, invalidating old requests and drafts. It sends no bed
+commands and never retries an unacknowledged mutation. Personal workspaces and
+other backends remain outside this owner-only lifecycle.
+
+The away address still needs a separately provisioned authenticated HTTPS
+gateway. Enrollment does not establish a tunnel or bypass a workplace VPN.
+Automatic fallback refuses authentication, certificate and identity failures;
+the same controller UUID is not physical hardware attestation.
+
+### Validation, 11 November 2026
+
+The initial 37 focused unit tests passed, then all four form scenarios passed on
+signed iOS 27.2 iPhone and iPad simulators in `SleepypodRoutes-v3.xcresult` and
+`SleepypodRoutes-iPad-v3.xcresult`. The complete pre-copy-review regression passed
+1,327 tests with nine existing live-service skips and zero failures in
+`SleepypodRoutes-regression-v4.xcresult`.
+
+The independent review found ambiguous errors when two addresses were present.
+Verification now retains the failed Home/Away role, offers matching recovery and
+keeps raw server error text out of the message. Different controllers prompt the
+user to enter two addresses for the same controller and confirm that nothing was
+saved. The new failure cases retain cancellation semantics and stop before any
+further verification or persistence. The revised iPad result
+`SleepypodRoutes-iPad-v5.xcresult` passed 25 focused unit tests and four UI tests.
+
+Earlier failed receipts are retained: the v2 UI fixture used keys shorter than
+the real validator permits; v3 fixed only the synthetic credentials and added
+fixture-readiness assertions. A v4 test compile failure compared whole candidate
+values without Equatable conformance; v5 compares their explicit endpoints.
+No production validation or success assertion was relaxed.
+
+
+The final route unit/transport regression passed 1,330 tests with nine existing
+live-service skips in `SleepypodRoutes-regression-v6.xcresult`. Final phone and
+pad UI bundles (`SleepypodRoutes-iPhone-v7.xcresult` and
+`SleepypodRoutes-iPad-v7.xcresult`) each passed all four scenarios. The v5 phone
+capture exposed a clipped final sentence despite an AX-frame pass; measured
+message height now drives the final scroll, and the complete v7 pixels were
+inspected rather than relying only on accessibility geometry. Normal dark and
+maximum-text light states, including iPad landscape, remain in the review packet.
+
+The independent verdict pass scored the listed Home/Away recovery-copy and
+visibility correction resolved (`ship`). It inspected all 18 v7 raw captures and
+both landscape derivatives and independently confirmed four UI passes per class.
+That verdict covers the correction and captured outcomes, not remote access,
+physical hardware or a released build. The incumbent design system is preserved.

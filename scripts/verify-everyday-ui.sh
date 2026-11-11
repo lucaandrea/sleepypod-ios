@@ -22,7 +22,7 @@ case "$suite" in
     selectors=(SleepypodUITests/TargetResponseUITests)
     ;;
   connection)
-    selectors=(SleepypodUITests/OwnerConnectionEnrollmentUITests)
+    selectors=(SleepypodUITests/OwnerConnectionEnrollmentUITests SleepypodUITests/OwnerRouteSettingsUITests)
     ;;
   night)
     selectors=(SleepypodUITests/NightExplanationUITests)

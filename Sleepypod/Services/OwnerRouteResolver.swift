@@ -31,7 +31,7 @@ import Observation
                 let identity = try await readIdentity(candidate)
                 try Task.checkCancellation()
                 guard operation == generation, isCurrent() else { return false }
-                guard identity == profile.installationID else { throw ControllerIdentityFailure.differentInstallation }
+                guard identity == profile.installationID else { throw ControllerIdentityFailure.differentSavedInstallation }
                 // The callback only switches local transport; it must never retry a bed command.
                 if candidate.endpoint.absoluteString != currentAddress {
                     do { try activate(candidate) }

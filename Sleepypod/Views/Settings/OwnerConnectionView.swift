@@ -28,6 +28,17 @@ struct OwnerConnectionView: View {
         ScrollViewReader { proxy in
         ScrollView {
             VStack(spacing: 22) {
+                if APIBackend.current == .sleepypodCore, !PersonalWorkspaceBoundary.isActive {
+                    NavigationLink { OwnerRouteSettingsView() } label: {
+                        HStack {
+                            VStack(alignment: .leading, spacing: 6) {
+                                Text("Home and away").font(.headline)
+                                Text("Connect automatically using verified addresses").font(.footnote).foregroundStyle(Theme.text2)
+                            }.frame(maxWidth: .infinity, alignment: .leading)
+                            Image(systemName: "chevron.right").font(.footnote).accessibilityHidden(true)
+                        }.frame(minHeight: 44).padding(.vertical, 8)
+                    }.buttonStyle(.plain).accessibilityIdentifier("connection.routes")
+                }
                 #if DEBUG
                 if example != nil {
                     Text("Example · simulated connection").font(.footnote)

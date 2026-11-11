@@ -30,6 +30,7 @@ struct SleepypodApp: App {
     @State private var watchMotion = WatchMotionReceiver()
     @State private var snoreCapture = SnoreCaptureService()
     @State private var offlineLibrary = OfflineLibrarySession()
+    @State private var ownerRoutes: OwnerRouteSession
 
     init() {
         #if DEBUG
@@ -43,11 +44,14 @@ struct SleepypodApp: App {
         _household = State(initialValue: household)
         UnifiedRuntime.initialize()
         #if DEBUG
+        _ownerRoutes = State(initialValue: OwnerRouteExample.configured() ?? OwnerRouteSession())
         if APIBackend.current.isDemo && ProcessInfo.processInfo.arguments.contains("--reset-base-preferences") {
             for key in ["mattress", "simple", "instantPresets", "linked", "cards", "scope"] {
                 UserDefaults.standard.removeObject(forKey: "base.\(key)")
             }
         }
+        #else
+        _ownerRoutes = State(initialValue: OwnerRouteSession())
         #endif
         let client = APIBackend.current.createClient()
         let device = DeviceManager(api: client)
@@ -124,6 +128,9 @@ struct SleepypodApp: App {
                     }
             }
             else if ProcessInfo.processInfo.arguments.contains("--connection-fixture") { ConnectionRecoveryPreview() }
+            else if APIBackend.current.isDemo, UserDefaults.standard.string(forKey: "uiRouteExample") != nil {
+                NavigationStack { OwnerRouteSettingsView() }
+            }
             else if APIBackend.current.isDemo, UserDefaults.standard.string(forKey: "uiConnectionExample") != nil {
                 NavigationStack { OwnerConnectionView() }
             }
@@ -138,6 +145,7 @@ struct SleepypodApp: App {
             .environment(homeRoom).environment(bedroom).environment(healthSync).environment(nativeActions)
             .environment(stageModels).environment(nightAnomalies).environment(watchMotion).environment(snoreCapture)
             .environment(offlineLibrary)
+            .environment(ownerRoutes)
     }
 }
 
@@ -324,6 +332,7 @@ struct ContentView: View {
                 await UnifiedRuntime.refreshPersonalHealth()
             }
         }
+        .modifier(OwnerRouteLifecycle())
         .onDisappear { connectionPath.stop() }
         .onChange(of: scenePhase) {
             if !isDemo {

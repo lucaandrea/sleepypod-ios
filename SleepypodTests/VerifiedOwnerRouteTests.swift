@@ -49,6 +49,50 @@ import XCTest
         }
     }
 
+    func testEnrollmentIdentifiesTheFailedConnectionWithoutTryingPastItsFailure() async throws {
+        let candidates = try candidates(), identity = UUID()
+        for failedConnection in [OwnerRouteCheckFailure.Connection.home, .away] {
+            for failure in [APIError.invalidResponse(statusCode: 401), .networkError(URLError(.timedOut)),
+                            .networkError(URLError(.serverCertificateUntrusted))] {
+                var reads: [String] = []
+                do {
+                    _ = try await OwnerRouteVerification.verify(home: candidates.home, away: candidates.away,
+                        currentAddress: candidates.home.endpoint.absoluteString, credentialRevision: revision, now: now,
+                        isCurrent: { true }, readIdentity: { candidate in
+                            reads.append(candidate.endpoint.absoluteString)
+                            if (candidate.endpoint == candidates.home.endpoint) == (failedConnection == .home) { throw failure }
+                            return identity
+                        })
+                    XCTFail("Failed verification must not create a profile")
+                } catch let scoped as OwnerRouteCheckFailure {
+                    XCTAssertEqual(scoped.connection, failedConnection)
+                    XCTAssertTrue(scoped.localizedDescription.hasPrefix(failedConnection.rawValue + " connection"))
+                    XCTAssertTrue(scoped.localizedDescription.contains("saved setup is unchanged"))
+                    XCTAssertEqual(reads, failedConnection == .home
+                        ? [candidates.home.endpoint.absoluteString] : [candidates.home.endpoint.absoluteString, candidates.away.endpoint.absoluteString])
+                }
+            }
+        }
+    }
+
+    func testScopedRecoveryDoesNotEchoServerErrorDetailsOrMislabelAnAwayNetwork() {
+        let privateFailure = NSError(domain: "test", code: 1, userInfo: [NSLocalizedDescriptionKey: "private-server-response"])
+        XCTAssertFalse(OwnerRouteCheckFailure(connection: .home, error: privateFailure).localizedDescription.contains("private-server-response"))
+        let awayFailure = OwnerRouteCheckFailure(connection: .away, error: URLError(.cannotConnectToHost)).localizedDescription
+        XCTAssertTrue(awayFailure.contains("HTTPS")); XCTAssertTrue(awayFailure.contains("gateway"))
+        XCTAssertFalse(awayFailure.contains("home Wi-Fi"))
+    }
+
+    func testEnrollmentCancellationRemainsCancellation() async throws {
+        let candidates = try candidates()
+        do {
+            _ = try await OwnerRouteVerification.verify(home: candidates.home, away: candidates.away,
+                currentAddress: candidates.home.endpoint.absoluteString, credentialRevision: revision, now: now,
+                isCurrent: { true }, readIdentity: { _ in throw CancellationError() })
+            XCTFail("Cancelled enrollment must stop")
+        } catch { XCTAssertTrue(error is CancellationError) }
+    }
+
     func testShapeAndCredentialChangesFailBeforeSendingCredentials() async throws {
         let candidates = try candidates(), profile = try profile(candidates)
         for address in ["https://other.routes.invalid", ""] {
