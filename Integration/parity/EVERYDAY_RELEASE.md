@@ -145,3 +145,21 @@ The complete simulator test build passed for arm64 and x86_64; all eleven Watch
 comparison tests passed on the signed arm64 phone simulator. Reconstruction,
 compiled-presentation, strict lint and whitespace checks passed. This is not an
 x86_64 runtime result; the hosted Intel suite remains the runtime check.
+
+## Reusable hosted test bundle
+
+The everyday workflow now builds the signed simulator products once, then runs the
+same six bounded screen groups on iPhone and iPad from that workflow's artifact.
+Each consumer verifies the checked-out Git revision and Xcode version before
+extracting the bundle. The selectors, test assertions, signing settings, boot
+limits and 30-minute scenario-step limits remain unchanged. Failed result bundles
+are still retained independently for every group.
+
+A recording `xcodebuild` stub under macOS `/bin/bash` verified all twelve legacy
+build/test invocations unchanged, all six shared-bundle selector/guard combinations,
+the complete UI-test build selector and four invalid-input rejection cases.
+`SleepypodRelocatedDaytime-v1.xcresult` confirms an archived, relocated arm64 bundle
+actually ran the four off/empty/unavailable/unreadable states successfully (one
+XCTest scenario, 35.781 seconds). This proves local relocation, not hosted Intel
+compatibility or an observed CI speed improvement; the hosted workflow remains
+an independent required check.
