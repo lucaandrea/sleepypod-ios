@@ -28,11 +28,13 @@ if [[ "$mode" == list ]]; then
   printf '%s\n' "${selectors[@]}"
   exit 0
 fi
+# macOS ships Bash 3.2, where an empty array expansion fails under nounset.
+extras=(CODE_SIGNING_ALLOWED=YES CODE_SIGN_IDENTITY=-)
 case "$mode" in
-  build) action=build-for-testing; extras=() ;;
+  build) action=build-for-testing ;;
   test)
     action=test-without-building
-    extras=(-resultBundlePath "${RUNNER_TEMP:?}/Recording.xcresult" -collect-test-diagnostics never -parallel-testing-enabled NO)
+    extras+=(-resultBundlePath "${RUNNER_TEMP:?}/Recording.xcresult" -collect-test-diagnostics never -parallel-testing-enabled NO)
     ;;
   *) printf 'Unknown mode: %s\n' "$mode" >&2; exit 2 ;;
 esac
@@ -41,4 +43,4 @@ for selector in "${selectors[@]}"; do arguments+=("-only-testing:$selector"); do
 xcodebuild "$action" -project Sleepypod.xcodeproj -scheme Sleepypod \
   -destination "platform=iOS Simulator,id=${RECORDING_SIM_ID:?}" \
   -derivedDataPath "${RUNNER_TEMP:?}/RecordingBuild" \
-  "${arguments[@]}" "${extras[@]}" CODE_SIGNING_ALLOWED=YES CODE_SIGN_IDENTITY=-
+  "${arguments[@]}" "${extras[@]}"

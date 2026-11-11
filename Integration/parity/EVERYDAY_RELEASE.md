@@ -51,3 +51,9 @@ Both failures remain in run 42936859716. The same selectors now run in recording
 guidance and wake groups on both device classes, with the existing 30-minute
 per-step guard. `scripts/verify-everyday-ui.sh list <group>` makes the complete
 selector inventory reviewable. No scenario or assertion was removed.
+
+The first sharded iPad guidance job stopped before Xcode because macOS Bash 3.2
+rejects an empty array expansion with `set -u`. Shared signing arguments now
+keep that array nonempty. All six build/test invocations were verified through
+a recording `xcodebuild` stub under `/bin/bash`; original selectors, signing and
+time limits remain unchanged. This script check does not replace hosted UI tests.
