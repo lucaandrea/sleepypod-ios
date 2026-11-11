@@ -163,3 +163,33 @@ actually ran the four off/empty/unavailable/unreadable states successfully (one
 XCTest scenario, 35.781 seconds). This proves local relocation, not hosted Intel
 compatibility or an observed CI speed improvement; the hosted workflow remains
 an independent required check.
+
+## Hosted interaction follow-up — 11 November 2026 UTC
+
+Run 42965672278 at `6189c92` exposed three distinct test-navigation problems:
+the iPad recording disclosure's activation point hit its diagnostics child;
+bed-care scrolling used screen coordinates for a centered sheet; and cooling
+scrolling could drag the temperature dial. The tests now target the visible
+disclosure label and each actual scroll container's margin. A stable Status
+identifier avoids relying on the accessibility label's punctuation. Phone sheets
+retain their changing-detent swipe behavior and current content bounds.
+
+The delayed cooling fixture no longer races a fixed 20-second sleep against a
+slow hosted runner. A DEBUG-only, explicit demo action releases its suspended
+reply after the test inspects the pending state. Cancellation resumes the wait
+with an error. The fixture has no Pod transport, and the control is absent from
+release builds. Pending controls must remain unavailable even when the state
+report expires; no assertion permits repeating a mutation.
+
+Both signed iOS 27.2 device classes passed all seven affected scenarios (bed care,
+recording and cooling), 14 total, in `SleepypodEverydayRepair-iPhone-v5.xcresult`
+and `SleepypodEverydayRepair-iPad-v5.xcresult`. The final generic arm64/x86_64
+build and strict lint passed. The final pending-request assertion was rerun on
+both devices in `SleepypodCoolingPending-iPhone-v6.xcresult` and the corresponding
+iPad result: two passed. Original hosted and local failures remain retained.
+
+The hosted iPhone response group separately passed all four scenarios, then
+failed while GitHub's artifact service timed out five times. That upload failure
+is not a failed response-model assertion, but the workflow still needs a green
+exact-revision run before merge. No physical-device or deployed acceptance is
+implied by these source and simulator results.

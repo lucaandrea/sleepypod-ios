@@ -7,6 +7,9 @@ struct TemporaryCoolingPanel: View {
     @Environment(\.scenePhase) private var scenePhase
     @State private var workspace = TemporaryCoolingWorkspace()
     @State private var preview: TemporaryCooling.Proposal?
+    #if DEBUG
+    @State private var testExample: TemporaryCoolingExample?
+    #endif
     private var scope: [String] { OwnerConnection.revision + [side.rawValue, String(describing: scenePhase)] }
     private var format: TemperatureFormat { settings.temperatureFormat == .relative ? .fahrenheit : settings.temperatureFormat }
 
@@ -64,6 +67,13 @@ struct TemporaryCoolingPanel: View {
                 if let notice = workspace.notice {
                     Text(notice).font(.footnote).foregroundStyle(Theme.text2).accessibilityIdentifier("cooling.notice")
                 }
+                #if DEBUG
+                if APIBackend.current.isDemo, UserDefaults.standard.bool(forKey: "uiCoolingDelayed"),
+                   testExample != nil, workspace.busy {
+                    Button("Complete simulated reply") { Task { await testExample?.completeReply() } }
+                        .frame(minHeight: 44).accessibilityIdentifier("cooling.example.reply")
+                }
+                #endif
                 if workspace.attempt?.needsReview == true {
                     Button("Check last request") { Task { await workspace.checkRequest() } }
                         .disabled(workspace.busy).frame(minHeight: 44).accessibilityIdentifier("cooling.check")
@@ -105,6 +115,7 @@ struct TemporaryCoolingPanel: View {
         #if DEBUG
         if APIBackend.current.isDemo, UserDefaults.standard.bool(forKey: "uiCoolingExample") {
             let example = TemporaryCoolingExample(unconfirmed: UserDefaults.standard.bool(forKey: "uiCoolingLost"), delayed: UserDefaults.standard.bool(forKey: "uiCoolingDelayed"))
+            testExample = example
             let controls = NativeControlService(ledger: .init(directory: nil), client: { example }, live: { APIBackend.current.isDemo })
             workspace.configure(side: side, client: example, controls: controls)
             return

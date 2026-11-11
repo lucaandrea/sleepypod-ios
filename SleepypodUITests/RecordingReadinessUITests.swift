@@ -21,7 +21,12 @@ import XCTest
         let details = app.buttons["recording.readiness.details"]
         reveal(details, in: app)
         capture(large ? "Recording-large-closed" : "Recording-closed")
-        details.tap()
+        // Some hosted runtimes return the diagnostics link as this button's activation point.
+        // Tap the visible disclosure label, then retain the same expanded/content assertions.
+        let disclosureLabel = details.staticTexts["See recording checks"]
+        XCTAssertTrue(disclosureLabel.exists)
+        print("Recording disclosure button: \(details.frame); label: \(disclosureLabel.frame)")
+        disclosureLabel.coordinate(withNormalizedOffset: .init(dx: 0.5, dy: 0.5)).tap()
         XCTAssertEqual(details.value as? String, "Expanded")
         let storage = app.staticTexts["Recording storage"]
         reveal(storage, in: app)

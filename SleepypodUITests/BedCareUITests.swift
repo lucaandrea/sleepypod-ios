@@ -11,7 +11,7 @@ import UIKit
                                "-uiRoute", "settings", "-household.personalWorkspaceActive", "NO", "-appearance", large ? "Light" : "Dark"]
         if large { app.launchArguments += ["-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL"] }
         app.launch()
-        let status = app.buttons.containing(NSPredicate(format: "label BEGINSWITH %@", "Status,")).firstMatch
+        let status = app.buttons["settings.status"]
         reveal(status, app); capture(large ? "Care-large-entry" : "Care-entry"); status.tap()
         let care = app.buttons["system.care"]; reveal(care, app); care.tap()
         XCTAssertTrue(app.navigationBars["Bed care"].waitForExistence(timeout: 10))
@@ -38,22 +38,35 @@ import UIKit
         app.terminate()
     }
     private func reveal(_ element: XCUIElement, _ app: XCUIApplication) {
+        let appFrame = app.frame
+        let initialContainer = scrollContainer(for: element, in: app)
+        let initialFrame = initialContainer.frame
+        let centeredSheet = initialFrame.width < appFrame.width * 0.8
+        let navigationBottom = app.navigationBars.allElementsBoundByIndex
+            .filter { $0.frame.intersects(initialFrame) && $0.isHittable }.map(\.frame.maxY).max()
         for _ in 0..<24 {
+            let container = centeredSheet ? initialContainer : scrollContainer(for: element, in: app)
             // iPad settings are a centered sheet: screen bounds do not describe its visible content.
-            let container = scrollContainer(for: element, in: app)
-            let navigationBottom = app.navigationBars.allElementsBoundByIndex
-                .filter { $0.frame.intersects(container.frame) && $0.isHittable }.map(\.frame.maxY).max() ?? app.frame.minY
-            let contentTop = max(app.frame.minY + 120, navigationBottom + 12)
-            let screenContent = CGRect(x: app.frame.minX, y: contentTop,
-                                       width: app.frame.width, height: app.frame.maxY - 40 - contentTop)
+            let contentTop = max(appFrame.minY + 120, (navigationBottom ?? container.frame.minY) + 12)
+            let screenContent = CGRect(x: appFrame.minX, y: contentTop,
+                                       width: appFrame.width, height: appFrame.maxY - 40 - contentTop)
             let viewport = container.frame.insetBy(dx: 0, dy: 24).intersection(screenContent)
-            if element.exists, element.frame.height > 0 {
+            let frame = element.exists ? element.frame : .zero
+            if frame.height > 0 {
                 // Large-text disclosure labels can extend beyond the viewport even with a clear tap point.
-                let visible = viewport.contains(CGPoint(x: element.frame.midX, y: element.frame.midY))
+                let visible = viewport.contains(CGPoint(x: frame.midX, y: frame.midY))
                 if visible, element.isHittable { return }
             }
-            let upward = !element.exists || element.frame.midY >= viewport.minY
-            if upward { container.swipeUp() } else { container.swipeDown() }
+            let upward = frame.isEmpty || frame.midY >= viewport.minY
+            if centeredSheet {
+                // A centered iPad sheet needs a drag within its own content margin.
+                let start = container.coordinate(withNormalizedOffset: .init(dx: 0.03, dy: upward ? 0.8 : 0.2))
+                let end = container.coordinate(withNormalizedOffset: .init(dx: 0.03, dy: upward ? 0.2 : 0.8))
+                start.press(forDuration: 0.1, thenDragTo: end)
+            } else {
+                // Phone sheets change detents during scrolling; keep the native swipe gesture.
+                if upward { container.swipeUp() } else { container.swipeDown() }
+            }
         }
         capture("Care-unreachable"); print(app.debugDescription)
         XCTFail("Could not reach care control: \(element)")

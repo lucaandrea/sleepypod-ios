@@ -75,7 +75,7 @@ struct SettingsSheet: View {
                                 RowValue(status.totalCount > 0 ? "\(status.healthyCount)/\(status.totalCount)" : "—", mono: true,
                                          color: status.totalCount == 0 ? Theme.text2 : status.healthyCount == status.totalCount ? Theme.green : Theme.amber)
                             }
-                        }
+                        }.accessibilityIdentifier("settings.status")
                         Button { showModels = true } label: {
                             SettingsRow("Intelligence models", subtitle: "Evidence, learning and readiness", icon: "brain", iconColor: Theme.purple, chevron: true)
                         }.accessibilityIdentifier("settings.models")

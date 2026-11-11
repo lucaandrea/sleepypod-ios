@@ -7,6 +7,7 @@ actor TemporaryCoolingExample: TemporaryCoolingClient, NativeControlClient {
     let delayed: Bool
     private var lease: TemporaryCooling.Lease?
     private var receipts: [UUID: NativeControlReceipt] = [:]
+    private var pendingReply: CheckedContinuation<Void, Error>?
     init(unconfirmed: Bool = false, delayed: Bool = false) { self.unconfirmed = unconfirmed; self.delayed = delayed }
     func available() {}
     func read(side: Side) -> TemporaryCooling {
@@ -19,7 +20,7 @@ actor TemporaryCoolingExample: TemporaryCoolingClient, NativeControlClient {
             lease: lease, physicalVerification: "unverified")
     }
     func submit(_ request: NativeControlRequest) async throws -> NativeControlReceipt {
-        if delayed { try await Task.sleep(for: .seconds(20)) }
+        if delayed { try await waitForReply() }
         try request.validate()
         guard let side = request.action.side, let identifier = request.action.coolingId else { throw NativeControlFailure.invalid }
         if request.action.kind == "cooling.start", let scope = request.action.expectedScope, let expiry = request.action.expectedExpiresAt {
@@ -37,6 +38,17 @@ actor TemporaryCoolingExample: TemporaryCoolingClient, NativeControlClient {
     func read(_ request: NativeControlRequest) throws -> NativeControlReceipt {
         guard !unconfirmed, let result = receipts[request.requestId] else { throw NativeControlFailure.unavailable }
         return result
+    }
+    // The test advances the simulated response after observing pending UI, regardless of runner speed.
+    func completeReply() { pendingReply?.resume(); pendingReply = nil }
+    private func cancelReply() { pendingReply?.resume(throwing: CancellationError()); pendingReply = nil }
+    private func waitForReply() async throws {
+        try await withTaskCancellationHandler {
+            try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+                if Task.isCancelled { continuation.resume(throwing: CancellationError()) }
+                else { pendingReply = continuation }
+            }
+        } onCancel: { Task { await self.cancelReply() } }
     }
 }
 #endif
