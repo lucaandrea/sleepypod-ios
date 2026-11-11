@@ -123,3 +123,25 @@ entry, care, recovery and protection-link captures were opened and inspected.
 The hosted failure and three earlier local helper attempts are retained separately
 from these final `SleepypodCareScrollPhone-v4` and `SleepypodCareScrollPad-v4`
 receipts. Strict lint and whitespace checks passed for the helper.
+
+## Learning navigation and import reconstruction
+
+The retained hosted phone guidance failure at `2be8d83` reported the learning
+entry as hittable while its center was above the navigation bar's visible edge.
+The helper now requires a usable center point below navigation chrome and scrolls
+in either direction, retaining its 35-attempt bound and ten-second destination
+assertion. The regular and maximum-text scenarios passed on signed iOS 27.2 phone
+(26.630 and 72.445 seconds) and iPad (20.331 and 40.404 seconds). All sixteen entry,
+stage, temperature and refresh captures were opened. Earlier failures remain
+separate receipts; no production view or learning behavior changed.
+
+The pinned Free Sleep reconstruction check also exposed five existing Health
+history changes missing from the integration overlay. The patch now reproduces
+the current imported source exactly, without modifying either source checkout.
+The broader dual-architecture test build exposed an overloaded numeric map in
+`WatchComparisonTests`; explicit intermediate types retain the same 96 fixture
+records and all assertions while removing unnecessary compiler inference work.
+The complete simulator test build passed for arm64 and x86_64; all eleven Watch
+comparison tests passed on the signed arm64 phone simulator. Reconstruction,
+compiled-presentation, strict lint and whitespace checks passed. This is not an
+x86_64 runtime result; the hosted Intel suite remains the runtime check.

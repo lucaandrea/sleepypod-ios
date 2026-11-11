@@ -12,7 +12,8 @@ import XCTest
         if large { app.launchArguments += ["-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL"] }
         app.launch()
         let open = app.buttons["learning.open"]
-        XCTAssertTrue(open.waitForExistence(timeout: 30)); reveal(open, in: app); open.tap()
+        XCTAssertTrue(open.waitForExistence(timeout: 30)); reveal(open, in: app)
+        shot(app, name: large ? "Learning-large-entry" : "Learning-entry"); open.tap()
         let side = app.segmentedControls["learning.side"]
         XCTAssertTrue(side.waitForExistence(timeout: 10)); reveal(side, in: app); side.buttons["Right"].tap()
         let stage = app.buttons["learning.stages"]
@@ -39,8 +40,18 @@ import XCTest
         app.terminate()
     }
     private func reveal(_ element: XCUIElement, in app: XCUIApplication) {
-        for _ in 0..<35 where !element.isHittable { app.swipeUp(velocity: .slow) }
-        XCTAssertTrue(element.isHittable)
+        for _ in 0..<35 {
+            let navigationBottom = app.navigationBars.allElementsBoundByIndex.filter(\.isHittable).map(\.frame.maxY).max() ?? app.frame.minY
+            let top = max(app.frame.minY + 120, navigationBottom + 12)
+            let viewport = CGRect(x: app.frame.minX, y: top, width: app.frame.width, height: app.frame.maxY - 40 - top)
+            if element.exists, element.frame.height > 0,
+               viewport.contains(CGPoint(x: element.frame.midX, y: element.frame.midY)), element.isHittable { return }
+            // A partially visible row under the navigation bar may still report itself as hittable.
+            if element.exists, element.frame.midY < viewport.minY { app.swipeDown(velocity: .slow) }
+            else { app.swipeUp(velocity: .slow) }
+        }
+        shot(app, name: "Learning-unreachable"); print(app.debugDescription)
+        XCTFail("Could not reach learning control: \(element)")
     }
     private func shot(_ app: XCUIApplication, name: String) {
         let attachment = XCTAttachment(screenshot: app.screenshot())
