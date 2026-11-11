@@ -3,7 +3,7 @@ set -euo pipefail
 
 # Keep the same phone/tablet scenarios in bounded groups on the hosted runner.
 mode="${1:?Choose build, test or list}"
-suite="${2:?Choose recording, guidance, wake, cooling, night, response, connection, later-wake or all}"
+suite="${2:?Choose recording, guidance, morning, wake, cooling, night, response, connection, later-wake or all}"
 case "$suite" in
   all)
     [[ "$mode" == build ]] || { printf 'The all selector is only for building the shared bundle.\n' >&2; exit 2; }
@@ -14,6 +14,9 @@ case "$suite" in
     ;;
   guidance)
     selectors=(SleepypodUITests/LearningJourneyUITests SleepypodUITests/TonightUITests SleepypodUITests/BedCareUITests)
+    ;;
+  morning)
+    selectors=(SleepypodUITests/MorningBriefUITests)
     ;;
   cooling)
     selectors=(SleepypodUITests/TemporaryCoolingUITests)

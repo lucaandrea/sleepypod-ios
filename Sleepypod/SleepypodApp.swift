@@ -135,6 +135,7 @@ struct SleepypodApp: App {
             else if ProcessInfo.processInfo.arguments.contains("--journal-context-fixture") {
                 NavigationStack { MorningJournalScreen(side: .left) }
             }
+            else if ProcessInfo.processInfo.arguments.contains("--morning-brief-fixture") { MorningBriefExample() }
             else if APIBackend.current.isDemo, UserDefaults.standard.string(forKey: "uiRouteExample") != nil {
                 NavigationStack { OwnerRouteSettingsView() }
             }

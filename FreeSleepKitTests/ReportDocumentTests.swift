@@ -2,6 +2,31 @@ import XCTest
 @testable import FreeSleepKit
 
 final class ReportDocumentTests: XCTestCase {
+    func testExperimentRetainsTheActualSuggestionAndItsEvaluationEvidence() throws {
+        let text = "### Summary\nPrior observation.\n### One experiment to consider\nTry one routine change. [health.recent]\n#### Evaluate\nCompare your comfort notes.\n### Uncertainty\nKeep this in the original report."
+        let document = ReportDocument(text: text, facts: [.init(id: "health.recent", text: "Three recorded days")])
+        let experiment = try XCTUnwrap(document.experiment)
+        XCTAssertEqual(experiment.blocks.map(\.text), ["Try one routine change.", "Evaluate", "Compare your comfort notes."])
+        XCTAssertEqual(experiment.blocks.first?.evidence, ["health.recent"])
+        XCTAssertTrue(document.blocks.contains { $0.text == "Keep this in the original report." })
+    }
+    func testExperimentRequiresAnUnambiguousExplicitSection() {
+        for text in [
+            "Try changing your bedtime.",
+            "### Optional experiments\nOne. Two.",
+            "### One optional experiment\n### Uncertainty\nUnknown.",
+            "### One optional experiment\nFirst.\n### One experiment to consider\nSecond.",
+            "```\n### One optional experiment\nThis is a literal example.\n```"
+        ] { XCTAssertNil(ReportDocument(text: text, facts: []).experiment) }
+        let legacy = ReportDocument(text: "### One optional experiment\n1. Keep a consistent routine.\n2. Compare three mornings.", facts: [])
+        XCTAssertEqual(legacy.experiment?.blocks.count, 2)
+    }
+    func testAnOversizedProposalIsNeverTruncatedIntoADifferentRecommendation() {
+        let text = "### One experiment to consider\n" + String(repeating: "A condition. ", count: 110)
+        let document = ReportDocument(text: text, facts: [])
+        XCTAssertNil(document.experiment)
+        XCTAssertTrue(document.blocks.last!.text.hasSuffix("A condition."))
+    }
     func testTablesAndCodeAreStructuredAndNeverCitationBadges() {
         let document = ReportDocument(text: "| Metric | Value |\n| --- | ---: |\n| Sleep | 7h |\n\n```\n# literal\n[health.sleep]\n```", facts: [.init(id: "health.sleep", text: "Seven hours")])
         XCTAssertEqual(document.blocks.map(\.kind), [.table, .code])
