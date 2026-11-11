@@ -30,7 +30,10 @@ final class NightAnomalyStore {
     var sources: [String] { Array(Set(nights.map(\.sourceID))).sorted { sourceName($0) < sourceName($1) } }
     var candidates: [NightAnomalyObservation] { nights.filter { $0.sourceID == selectedSource } }
     var selected: [NightAnomalyObservation] { candidates.filter { reviewed[$0.id] == $0.reviewToken } }
-    var canTrain: Bool { loaded && !busy && selected.count >= NightAnomalyModel.minimumNights && !PersonalWorkspaceBoundary.isActive }
+    var canTrain: Bool {
+        loaded && !busy && selected.count >= NightAnomalyModel.minimumNights
+            && !PersonalWorkspaceBoundary.isActive && OwnerDataIdentity.current != .unavailable
+    }
     var status: String { busy ? "Working locally" : model == nil ? "Needs reviewed nights" : verified ? "Baseline ready" : "Refresh to verify" }
     func sourceName(_ source: String) -> String { nights.first { $0.sourceID == source }?.sourceName ?? "Health source" }
 
@@ -49,6 +52,7 @@ final class NightAnomalyStore {
     func refresh(health: HealthSyncService, calendar: Calendar, expectedScope: String, now: Date = .now) async {
         activate(scope: expectedScope)
         guard !busy, !APIBackend.current.isDemo, !PersonalWorkspaceBoundary.isActive else { return }
+        guard health.ownerDataAvailable else { message = "Unlock this device and verify its saved connection before reading personal nights."; return }
         let operation = UUID(); generation = operation; busy = true; verified = false; assessment = nil; message = nil
         defer { if generation == operation { busy = false } }
         do {

@@ -1,4 +1,3 @@
-import CryptoKit
 import Foundation
 import FreeSleepKit
 import Observation
@@ -6,7 +5,8 @@ import Observation
 /// Tracks one app-owned alarm. Persist its ID before asking iOS, so an interrupted
 /// request can be inspected/cancelled later instead of creating a duplicate.
 @MainActor @Observable final class BackupAlarmCoordinator {
-    static let shared = BackupAlarmCoordinator(client: SystemBackupAlarmClient())
+    static let shared = BackupAlarmCoordinator(client: SystemBackupAlarmClient(),
+        identityAvailable: { OwnerDataIdentity.current.canReconcileOwnership })
     private(set) var record: BackupAlarmRecord?
     private(set) var systemState: String?
     private(set) var checkedAt: Date?
@@ -14,14 +14,16 @@ import Observation
     private(set) var message: String?
     private let client: any BackupAlarmClient
     private let currentOwner: @MainActor () -> String?
+    private let identityAvailable: @MainActor () -> Bool
     private let read: () throws -> BackupAlarmRecord?
     private let persist: (BackupAlarmRecord?) throws -> Void
     private let now: () -> Date
 
     init(client: any BackupAlarmClient, owner: @escaping @MainActor () -> String? = BackupAlarmCoordinator.ownerScope,
+         identityAvailable: @escaping @MainActor () -> Bool = { true },
          read: (() throws -> BackupAlarmRecord?)? = nil,
          persist: ((BackupAlarmRecord?) throws -> Void)? = nil, now: @escaping () -> Date = Date.init) {
-        self.client = client; currentOwner = owner; self.now = now
+        self.client = client; currentOwner = owner; self.identityAvailable = identityAvailable; self.now = now
         let store = PrivateSnapshotStore(namespace: "wake-backup-v1")
         self.read = read ?? { try store.read(BackupAlarmRecord.self, scope: "this-device") }
         self.persist = persist ?? { value in
@@ -31,14 +33,17 @@ import Observation
 
     static func ownerScope() -> String? {
         guard APIBackend.current == .sleepypodCore, !PersonalWorkspaceBoundary.isActive else { return nil }
-        let bytes = (try? JSONEncoder().encode(OwnerConnection.revision)) ?? Data()
-        return SHA256.hash(data: bytes).map { String(format: "%02x", $0) }.joined()
+        return OwnerDataIdentity.current.phoneBackupScope
     }
 
     /// Reads the operating system, not a cached successful scheduling response.
     func refresh() {
         guard !busy else { return }
         record = nil; systemState = nil; checkedAt = nil; message = nil
+        guard identityAvailable() else {
+            message = "Your saved connection identity is unavailable. The existing phone backup has not been changed. Unlock this device and check the connection again."
+            return
+        }
         do {
             guard let saved = try read() else { return }
             try saved.validate()
@@ -55,7 +60,7 @@ import Observation
 
     func schedule(plan: NextAlarmState, receivedAt: Date?, expectedOwner: String?) async {
         guard !busy else { return }
-        guard let owner = currentOwner(), owner == expectedOwner else {
+        guard identityAvailable(), let owner = currentOwner(), owner == expectedOwner else {
             message = BackupAlarmFailure.changed.localizedDescription
             return
         }
@@ -65,7 +70,7 @@ import Observation
         do {
             _ = try BackupAlarmPolicy.candidate(plan, receivedAt: receivedAt, now: now())
             guard try await client.requestAccess() else { throw BackupAlarmFailure.access }
-            guard currentOwner() == owner, !Task.isCancelled else { throw BackupAlarmFailure.changed }
+            guard identityAvailable(), currentOwner() == owner, !Task.isCancelled else { throw BackupAlarmFailure.changed }
             let at = try BackupAlarmPolicy.candidate(plan, receivedAt: receivedAt, now: now())
             if let existing = try read() {
                 try existing.validate()
@@ -82,6 +87,11 @@ import Observation
             do { try persist(pending) } catch { throw BackupAlarmFailure.storage }
             record = pending; pendingRecord = pending
             try await client.schedule(id: pending.id, at: at)
+            guard identityAvailable() else {
+                record = nil
+                message = "The connection identity became unavailable during scheduling. Your saved phone backup is unchanged; check it again after unlocking this device."
+                return
+            }
             guard currentOwner() == owner, !Task.isCancelled else {
                 try cancelStored(pending); record = nil
                 throw BackupAlarmFailure.changed
@@ -91,6 +101,11 @@ import Observation
             systemState = "scheduled"; checkedAt = now()
             message = "iOS confirms this one-time backup. It has not been physically tested."
         } catch {
+            guard identityAvailable() else {
+                record = nil
+                message = "The connection identity is unavailable. The saved phone backup was kept for recovery; unlock this device and check it again."
+                return
+            }
             if currentOwner() != owner || Task.isCancelled {
                 record = nil
                 if let pendingRecord {

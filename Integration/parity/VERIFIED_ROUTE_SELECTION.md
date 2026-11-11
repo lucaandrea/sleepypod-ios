@@ -76,12 +76,33 @@ unavailable-state error rather than pretending no profile exists.
 Disabling automatic selection retains the original identity anchor so that the
 eventual integration can preserve valid history and phone alarms. Re-enrollment
 may retain that anchor only for the same verified installation. This metadata is
-not yet used by the app's live history, alarm or connection lifecycle; those
-consumers must distinguish an unavailable identity read from a known owner change
-before cancellation or data migration.
+now used by the owner offline library, Health device identity, saved learning
+contexts and app-owned backup alarm. Live requests still retain the changing
+transport revision, so an old response cannot publish through a new connection.
+Automatic connection lifecycle integration remains separate work.
 
 Six profile tests passed alongside the 14 identity/selection tests in
 `SleepypodRouteProfile-v2.xcresult` (20 total). They cover encrypted-at-rest
 relaunch, both origins, personal workspace denial, changed keys/account/backend,
 disabled selection, same-installation re-enrollment and corrupt ciphertext. The
 signed generic simulator build and strict lint passed again for this addition.
+
+## Stable data and alarm ownership
+
+`OwnerDataIdentity` distinguishes a verified owner, a known departure and an
+unavailable encrypted profile. Unavailable storage withholds personal reads and
+new alarm writes without cancelling the existing alarm or erasing history.
+A persisted expectation marker also distinguishes an unexpectedly missing
+enrolled profile from a connection that has never enrolled alternatives.
+Disabling selection retains the original data identity. A real owner/account
+change still isolates personal records and reconciles the old backup alarm.
+
+`SleepypodRouteIdentity-v5.xcresult` passed **1,315 unit/framework tests with nine
+existing skips and zero failures** on the signed phone simulator. Regressions
+cover home/away and relaunch continuity, encrypted-profile loss, credential
+changes, unavailable identity during accepted/lost alarm replies, and unchanged
+transport cancellation around Health reads. The earlier v4 run retained one
+fixture failure because it used an HTTP public hostname; replacing the fixture
+with a local address preserved the production HTTPS requirement. The generic
+simulator build and strict lint passed. These tests do not establish remote
+gateway, physical phone, alarm delivery or Pod behavior.

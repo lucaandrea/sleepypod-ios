@@ -8,15 +8,22 @@ import XCTest
     private let awayKey = "synthetic-away-profile-credential-not-real"
     private var directory: URL!
     private var encrypted: PrivateSnapshotStore!
+    private var defaults: UserDefaults!
+    private var defaultsName: String!
     private let revision = ["sleepypod-core", "http://10.0.0.123:3000", "10.0.0.123", "owner-revision", "owner-boundary"]
 
     override func setUp() async throws {
         directory = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
         let encryptionKey = SymmetricKey(size: .bits256)
         encrypted = .init(directory: directory, namespace: "profile-test", encryptionKey: { encryptionKey })
+        defaultsName = UUID().uuidString
+        defaults = UserDefaults(suiteName: defaultsName)
     }
 
-    override func tearDown() async throws { try? FileManager.default.removeItem(at: directory) }
+    override func tearDown() async throws {
+        try? FileManager.default.removeItem(at: directory)
+        defaults.removePersistentDomain(forName: defaultsName)
+    }
 
     private func key(_ address: String) -> String { address == revision[1] ? homeKey : awayKey }
 
@@ -28,11 +35,11 @@ import XCTest
     }
 
     func testEncryptedRelaunchRetainsOriginalIdentityAcrossVerifiedOrigins() throws {
-        let saved = try profile(), store = OwnerRouteProfileStore(store: encrypted, ownerAllowed: { true })
+        let saved = try profile(), store = OwnerRouteProfileStore(store: encrypted, defaults: defaults, ownerAllowed: { true })
         try store.save(saved, revision: revision, key: key)
         var awayRevision = revision
         awayRevision[1] = saved.routes.away.address; awayRevision[2] = "away.profile.invalid"
-        let reopened = try OwnerRouteProfileStore(store: encrypted, ownerAllowed: { true }).load(revision: awayRevision, key: key)
+        let reopened = try OwnerRouteProfileStore(store: encrypted, defaults: defaults, ownerAllowed: { true }).load(revision: awayRevision, key: key)
         XCTAssertEqual(reopened?.originalRevision, revision)
         XCTAssertEqual(reopened, saved)
         for file in try FileManager.default.contentsOfDirectory(at: directory, includingPropertiesForKeys: nil) {
@@ -46,7 +53,7 @@ import XCTest
     func testPersonalWorkspaceAndChangedKeysWithdrawTheProfile() throws {
         let saved = try profile()
         var ownerAllowed = true
-        let store = OwnerRouteProfileStore(store: encrypted, ownerAllowed: { ownerAllowed })
+        let store = OwnerRouteProfileStore(store: encrypted, defaults: defaults, ownerAllowed: { ownerAllowed })
         try store.save(saved, revision: revision, key: key)
         ownerAllowed = false
         XCTAssertThrowsError(try store.load(revision: revision, key: key))
@@ -57,7 +64,7 @@ import XCTest
     }
 
     func testUnrelatedOriginsBackendsAndAccountBoundariesDoNotLoad() throws {
-        let saved = try profile(), store = OwnerRouteProfileStore(store: encrypted, ownerAllowed: { true })
+        let saved = try profile(), store = OwnerRouteProfileStore(store: encrypted, defaults: defaults, ownerAllowed: { true })
         try store.save(saved, revision: revision, key: key)
         for (index, replacement) in [(0, "free-sleep"), (1, "https://other.profile.invalid"), (4, "other-person-boundary")] {
             var changed = revision; changed[index] = replacement
@@ -69,7 +76,7 @@ import XCTest
     }
 
     func testDisablingRoutingPreservesTheSameDataIdentity() throws {
-        let saved = try profile(), store = OwnerRouteProfileStore(store: encrypted, ownerAllowed: { true })
+        let saved = try profile(), store = OwnerRouteProfileStore(store: encrypted, defaults: defaults, ownerAllowed: { true })
         try store.save(saved, revision: revision, key: key)
         let disabled = try store.setEnabled(false, revision: revision, key: key)
         XCTAssertFalse(disabled.routes.enabled)
@@ -91,10 +98,20 @@ import XCTest
     }
 
     func testCorruptEncryptedProfileIsUnavailableRatherThanUnconfigured() throws {
-        let store = OwnerRouteProfileStore(store: encrypted, ownerAllowed: { true })
+        let store = OwnerRouteProfileStore(store: encrypted, defaults: defaults, ownerAllowed: { true })
         try store.save(profile(), revision: revision, key: key)
         let file = try XCTUnwrap(FileManager.default.contentsOfDirectory(at: directory, includingPropertiesForKeys: nil).first)
         try Data("corrupt encrypted profile".utf8).write(to: file)
         XCTAssertThrowsError(try store.load(revision: revision, key: key))
+    }
+
+    func testMissingPreviouslyEnrolledFileCannotBecomeAnUnconfiguredOwner() throws {
+        let store = OwnerRouteProfileStore(store: encrypted, defaults: defaults, ownerAllowed: { true })
+        XCTAssertNil(try store.load(revision: revision, key: key))
+        try store.save(profile(), revision: revision, key: key)
+        try encrypted.remove(scope: revision[3])
+        XCTAssertThrowsError(try store.load(revision: revision, key: key))
+        var replacement = revision; replacement[3] = "new-explicit-owner-connection"
+        XCTAssertNil(try store.load(revision: replacement, key: key))
     }
 }

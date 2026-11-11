@@ -123,6 +123,63 @@ import XCTest
         client.values = [.init(id: saved.id, at: saved.at.addingTimeInterval(60), state: "scheduled")]
         model.refresh(); XCTAssertEqual(model.systemState, "mismatch"); XCTAssertEqual(client.schedules, 1)
     }
+
+    func testUnavailableConnectionIdentityPreservesAlarmAndDoesNotPermitReplacement() async throws {
+        let client = BackupTestClient(), storage = BackupTestStorage(), current = try plan()
+        let model = BackupAlarmCoordinator(client: client, owner: { storage.identityAvailable ? storage.owner : nil },
+            identityAvailable: { storage.identityAvailable }, read: { storage.record }, persist: { storage.record = $0 }, now: { storage.now })
+        storage.now = try XCTUnwrap(NextAlarmState.instant(current.alarm!.at)).addingTimeInterval(-3600)
+        await model.schedule(plan: current, receivedAt: storage.now, expectedOwner: storage.owner)
+        let saved = storage.record
+        storage.identityAvailable = false
+        model.refresh()
+        XCTAssertEqual(storage.record, saved); XCTAssertEqual(client.cancels, 0)
+        XCTAssertNil(model.record); XCTAssertNil(model.checkedAt)
+        await model.schedule(plan: current, receivedAt: storage.now, expectedOwner: storage.owner)
+        XCTAssertEqual(client.schedules, 1); XCTAssertEqual(client.cancels, 0)
+        storage.identityAvailable = true; model.refresh()
+        XCTAssertEqual(model.systemState, "scheduled"); XCTAssertEqual(model.record, saved)
+        storage.owner = nil; model.refresh()
+        XCTAssertEqual(client.cancels, 1); XCTAssertNil(storage.record)
+    }
+
+    func testIdentityUnavailableDuringAcceptedOrUncertainWriteRetainsRecoverableAlarm() async throws {
+        for uncertain in [false, true] {
+            let client = BackupTestClient(), storage = BackupTestStorage(), current = try plan()
+            let model = BackupAlarmCoordinator(client: client, owner: { storage.identityAvailable ? storage.owner : nil },
+                identityAvailable: { storage.identityAvailable }, read: { storage.record }, persist: { storage.record = $0 }, now: { storage.now })
+            storage.now = try XCTUnwrap(NextAlarmState.instant(current.alarm!.at)).addingTimeInterval(-3600)
+            client.beforeSchedule = { _, _ in storage.identityAvailable = false }
+            client.loseAcknowledgment = uncertain
+            await model.schedule(plan: current, receivedAt: storage.now, expectedOwner: storage.owner)
+            XCTAssertNotNil(storage.record); XCTAssertEqual(client.schedules, 1); XCTAssertEqual(client.cancels, 0)
+            XCTAssertNil(model.systemState)
+            storage.identityAvailable = true; model.refresh()
+            XCTAssertEqual(model.systemState, "scheduled"); XCTAssertEqual(client.schedules, 1)
+        }
+    }
+
+    func testVerifiedRoutesKeepOneExistingBackupWithoutRescheduling() async throws {
+        let client = BackupTestClient(), storage = BackupTestStorage(), current = try plan()
+        let original = ["sleepypod-core", "http://10.0.0.124:3000", "10.0.0.124", "owner", "boundary"]
+        let home = try OwnerConnectionCandidate(address: original[1], streamAddress: "", backend: .sleepypodCore, token: "synthetic-home-key-at-least-32-characters")
+        let away = try OwnerConnectionCandidate(address: "https://away.invalid", streamAddress: "", backend: .sleepypodCore, token: "synthetic-away-key-at-least-32-characters")
+        let profile = try EnrolledOwnerRoutes(routes: .init(installationID: UUID(), credentialRevision: original[3], home: home, away: away, now: .now), currentRevision: original)
+        storage.transport = original
+        let identity: @MainActor () -> OwnerDataIdentity = {
+            .resolve(revision: storage.transport, ownerAllowed: true) { profile }
+        }
+        let model = BackupAlarmCoordinator(client: client, owner: { identity().phoneBackupScope },
+            identityAvailable: { identity().canReconcileOwnership }, read: { storage.record }, persist: { storage.record = $0 }, now: { storage.now })
+        storage.now = try XCTUnwrap(NextAlarmState.instant(current.alarm!.at)).addingTimeInterval(-3600)
+        await model.schedule(plan: current, receivedAt: storage.now, expectedOwner: identity().phoneBackupScope)
+        let saved = storage.record
+        storage.transport[1] = away.endpoint.absoluteString; storage.transport[2] = "away.invalid"
+        model.refresh()
+        XCTAssertEqual(model.record, saved); XCTAssertEqual(model.systemState, "scheduled")
+        await model.schedule(plan: current, receivedAt: storage.now, expectedOwner: identity().phoneBackupScope)
+        XCTAssertEqual(client.schedules, 1); XCTAssertEqual(client.cancels, 0)
+    }
 }
 
 @MainActor private final class BackupTestStorage {
@@ -130,6 +187,8 @@ import XCTest
     var owner: String? = String(repeating: "a", count: 64)
     var now = Date()
     var failWrite = false
+    var identityAvailable = true
+    var transport: [String] = []
 }
 @MainActor private final class BackupTestClient: BackupAlarmClient {
     var access = true
