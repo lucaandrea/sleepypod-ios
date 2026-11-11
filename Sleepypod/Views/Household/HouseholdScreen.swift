@@ -60,6 +60,14 @@ struct HouseholdScreen: View {
                              : "Personal recordings are not enabled on this controller.")
                             .font(.footnote).foregroundStyle(Theme.text2).accessibilityIdentifier("history.availability")
                     }
+                    Section("Your morning check-in") {
+                        NavigationLink("Open your check-in", value: "journal")
+                            .disabled(model.journal?.enabled != true).accessibilityIdentifier("personalJournal.accountLink")
+                        Text(model.journal?.enabled == true
+                             ? "Private comfort, restfulness and optional habits, whichever side you slept on."
+                             : "Personal check-ins are not enabled on this controller.")
+                            .font(.footnote).foregroundStyle(Theme.text2)
+                    }
                     Section("Your saved learning") {
                         NavigationLink("Browse saved learning", value: "learning")
                             .disabled(model.learning?.enabled != true).accessibilityIdentifier("learning.accountLink")
@@ -142,6 +150,7 @@ struct HouseholdScreen: View {
                     else if route == "routines" { HouseholdRoutineWeek().id(session.namespace) }
                     else if route == "publication", let publication = model.publication { PersonalRoutineReviewScreen(model: publication, unit: model.draftPreferences.displayUnit).id(session.namespace) }
                     else if route == "history", let history = model.history { PersonalHistoryScreen(model: history).id(ObjectIdentifier(history)) }
+                    else if route == "journal", let journal = model.journal { PersonalJournalScreen(model: journal).id(ObjectIdentifier(journal)) }
                     else if route == "learning", let learning = model.learning { PersonalLearningScreen(model: learning).id(ObjectIdentifier(learning)) }
                     else if route == "arrangement", let arrangement = model.arrangement {
                         ArrangementReviewScreen(model: arrangement, maintenance: model.maintenance, close: { model.signOut() }).id(ObjectIdentifier(arrangement))
@@ -168,7 +177,7 @@ struct HouseholdScreen: View {
         .onChange(of: scenePhase) {
             if scenePhase != .active {
                 revealedCode = nil
-                if navigation.contains("learning") { navigation = [] }
+                if navigation.contains("learning") || navigation.contains("journal") { navigation = [] }
             }
         }
         .onChange(of: model.session?.context) { revealedCode = nil; navigation = [] }

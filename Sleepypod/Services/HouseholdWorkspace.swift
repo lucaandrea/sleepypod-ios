@@ -19,6 +19,7 @@ import Observation
     private(set) var arrangement: ArrangementReviewWorkspace?
     private(set) var history: PersonalHistoryWorkspace?
     private(set) var learning: PersonalLearningWorkspace?
+    private(set) var journal: PersonalJournalWorkspace?
     private(set) var maintenance: ArrangementMaintenanceWorkspace?
     private(set) var maintenanceChecking = false
     private(set) var recoveryBusy: UUID?
@@ -30,6 +31,7 @@ import Observation
     private let arrangementClient: @Sendable (PersonalBedConnection) -> any ArrangementReviewTransport
     private let historyClient: @Sendable (PersonalBedConnection) -> any PersonalHistoryTransport
     private let learningClient: @Sendable (PersonalBedConnection) -> any PersonalLearningTransport
+    private let journalClient: @Sendable (PersonalBedConnection) -> any PersonalJournalTransport
     private let maintenanceClient: @Sendable (PersonalBedConnection) -> any ArrangementMaintenanceTransport
     private let capability: @MainActor () async throws -> Bool
     private var ownerGateScope: [String]?
@@ -47,6 +49,7 @@ import Observation
          arrangementClient: @escaping @Sendable (PersonalBedConnection) -> any ArrangementReviewTransport = { ArrangementReviewHTTPClient(connection: $0) },
          historyClient: @escaping @Sendable (PersonalBedConnection) -> any PersonalHistoryTransport = { PersonalHistoryHTTPClient(connection: $0) },
          learningClient: @escaping @Sendable (PersonalBedConnection) -> any PersonalLearningTransport = { PersonalLearningHTTPClient(connection: $0) },
+         journalClient: @escaping @Sendable (PersonalBedConnection) -> any PersonalJournalTransport = { PersonalJournalHTTPClient(connection: $0) },
          maintenanceClient: @escaping @Sendable (PersonalBedConnection) -> any ArrangementMaintenanceTransport = { ArrangementMaintenanceHTTPClient(connection: $0) },
          capability: @escaping @MainActor () async throws -> Bool = { try await HouseholdPreparationCapability.load() },
          ownerEndpoint: @escaping @MainActor () -> URL? = { OwnerConnection.endpoint },
@@ -54,7 +57,7 @@ import Observation
          secret: @escaping @MainActor () throws -> String = { try HouseholdKeychainVault.secret() }) {
         self.vault = vault; self.defaults = defaults; self.client = client; self.personalClient = personalClient; self.routineClient = routineClient
         self.arrangementClient = arrangementClient; self.historyClient = historyClient; self.maintenanceClient = maintenanceClient
-        self.learningClient = learningClient
+        self.learningClient = learningClient; self.journalClient = journalClient
         self.capability = capability; self.ownerEndpoint = ownerEndpoint; self.ownerKey = ownerKey; self.secret = secret
         active = defaults.bool(forKey: PersonalWorkspaceBoundary.preferenceKey)
         do { state = try vault.load(); storageLoaded = true } catch { self.error = HouseholdFailure.storage.localizedDescription }
@@ -178,7 +181,7 @@ import Observation
             let value: HouseholdSession = try await read("household/session", record: record)
             try value.validate(); try check(operation, record.id)
             if let previous = record.identity, previous.identity != value.identity { throw HouseholdFailure.changedIdentity }
-            if session != value { arrangement?.invalidate(); arrangement = nil; history?.invalidate(); history = nil; learning?.invalidate(); learning = nil }
+            if session != value { arrangement?.invalidate(); arrangement = nil; history?.invalidate(); history = nil; learning?.invalidate(); learning = nil; journal?.invalidate(); journal = nil }
             session = value
             try update(record.id) { saved in
                 saved.identity = value
@@ -209,6 +212,7 @@ import Observation
             configureArrangement(record: record, session: value)
             configureHistory(record: record, session: value)
             configureLearning(record: record, session: value)
+            configureJournal(record: record, session: value)
             notice = pending == nil ? "Personal account refreshed. Routine drafts do not run the bed." : "Saved state refreshed. An earlier request still needs review; retrying uses the same request."
         } catch {
             guard foreground, operation == generation else { return }
@@ -388,7 +392,7 @@ import Observation
         publication?.invalidate(); publication = nil
         arrangement?.invalidate(); arrangement = nil
         history?.invalidate(); history = nil
-        learning?.invalidate(); learning = nil
+        learning?.invalidate(); learning = nil; journal?.invalidate(); journal = nil
         preferences = nil; routines = nil; devices = []; invitations = []
     }
 
@@ -640,6 +644,21 @@ import Observation
         let operation = generation
         let connection = PersonalBedConnection(id: record.id, endpoint: record.endpoint, token: record.deviceSecret, session: session)
         learning = PersonalLearningWorkspace(connection: connection, client: learningClient(connection), permitted: { [weak self] in
+            guard let self else { return false }
+            return self.active && self.foreground && self.generation == operation && self.state.selected == record.id && self.session == session && !self.requiresMaintenance
+        }, revoked: { [weak self] in
+            guard let self, self.generation == operation, self.state.selected == record.id else { return }
+            self.clearVisible()
+            do { try self.forget(record.id); self.error = HouseholdFailure.authentication.localizedDescription }
+            catch { self.error = HouseholdFailure.storage.localizedDescription }
+        })
+    }
+    private func configureJournal(record: HouseholdConnectionRecord, session: HouseholdSession) {
+        if let journal, !journal.isInvalidated, journal.connection.id == record.id, journal.connection.session == session { return }
+        journal?.invalidate()
+        let operation = generation
+        let connection = PersonalBedConnection(id: record.id, endpoint: record.endpoint, token: record.deviceSecret, session: session)
+        journal = PersonalJournalWorkspace(connection: connection, client: journalClient(connection), permitted: { [weak self] in
             guard let self else { return false }
             return self.active && self.foreground && self.generation == operation && self.state.selected == record.id && self.session == session && !self.requiresMaintenance
         }, revoked: { [weak self] in
