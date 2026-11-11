@@ -3,17 +3,28 @@ import Foundation
 /// Explicit simulator examples translate Core's generated packet together. They
 /// have no network transport, durable storage or operating-system alarm client.
 enum LaterWakeExample {
+    @MainActor private static var backups: [String: BackupAlarmCoordinator] = [:]
+    @MainActor private static var clients: [String: SyntheticLaterWakeClient] = [:]
+    @MainActor static func client(scenario: String, side: Side) -> SyntheticLaterWakeClient {
+        let key = scenario + side.rawValue
+        if let client = clients[key] { return client }
+        let client = SyntheticLaterWakeClient(scenario: scenario); clients[key] = client
+        return client
+    }
     static func data() throws -> Data {
         guard let path = Bundle.main.url(forResource: "later-wake-example", withExtension: "json") else { throw NextAlarmFailure.invalid }
         return try Data(contentsOf: path)
     }
     @MainActor static func companionIfRequested() -> LaterWakeCompanion? {
         guard APIBackend.current.isDemo, DebugRoute.nextAlarmScenario.hasPrefix("later-") else { return nil }
+        let scenario = DebugRoute.nextAlarmScenario, owner = String(repeating: "d", count: 64)
+        if let backup = backups[scenario] { return LaterWakeCompanion(backup: backup, owner: { owner }, isPractice: true) }
         let storage = LaterWakeMemoryBackup()
-        storage.refuse = DebugRoute.nextAlarmScenario == "later-phone-failure"
-        let owner = String(repeating: "d", count: 64)
+        storage.refuse = scenario == "later-phone-failure"
+        storage.disappearAfterConfirmation = scenario == "later-phone-missing"
         let backup = BackupAlarmCoordinator(client: storage, owner: { owner }, read: { storage.record }, persist: { storage.record = $0 })
-        return LaterWakeCompanion(backup: backup, owner: { owner })
+        backups[scenario] = backup
+        return LaterWakeCompanion(backup: backup, owner: { owner }, isPractice: true)
     }
 }
 
@@ -39,6 +50,7 @@ actor SyntheticLaterWakeClient: LaterWakeClient {
         return current
     }
     func previewLater(_ input: LaterWakeRequest) async throws -> LaterWakePacket {
+        if scenario == "later-preview-rejected" { throw NextAlarmFailure.unavailable("The controller could not preview this wake. Refresh the saved alarm and try again.") }
         guard let current, input.expectedRevision == current.revision,
               let original = current.alarm.flatMap({ NextAlarmState.instant($0.at) }),
               let minutes = AlarmDraft.clockMinutes(input.time) else { throw NextAlarmFailure.conflict }
@@ -120,9 +132,15 @@ actor SyntheticLaterWakeClient: LaterWakeClient {
 @MainActor private final class LaterWakeMemoryBackup: BackupAlarmClient {
     var record: BackupAlarmRecord?
     var refuse = false
+    var disappearAfterConfirmation = false
+    private var confirmedOnce = false
     private var values: [BackupSystemAlarm] = []
     func requestAccess() async throws -> Bool { !refuse }
-    func alarms() throws -> [BackupSystemAlarm] { values }
+    func alarms() throws -> [BackupSystemAlarm] {
+        if disappearAfterConfirmation, confirmedOnce { values = [] }
+        if !values.isEmpty { confirmedOnce = true }
+        return values
+    }
     func schedule(id: UUID, at: Date) async throws { values.append(.init(id: id, at: at, state: "scheduled")) }
     func cancel(id: UUID) throws { values.removeAll { $0.id == id } }
 }

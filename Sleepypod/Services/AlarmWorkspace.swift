@@ -29,10 +29,10 @@ final class AlarmWorkspace {
         error = nil; commandError = nil; notice = nil; testingSides = []
         schemaSnooze = false
     }
-    func occurrenceClient(timeZone: String, scenario: String = "normal") -> (any NextAlarmClient)? {
+    func occurrenceClient(timeZone: String, scenario: String = "normal", side: Side = .left) -> (any NextAlarmClient)? {
         if demo {
             if scenario == "normal" { return DemoNextAlarmClient(weekly: api, timeZone: timeZone) }
-            if scenario.hasPrefix("later-") { return SyntheticLaterWakeClient(scenario: scenario) }
+            if scenario.hasPrefix("later-") { return LaterWakeExample.client(scenario: scenario, side: side) }
             return SyntheticNextAlarmClient(scenario: scenario)
         }
         return (try? CoreRESTClient.configured()).map { CoreNextAlarmClient(transport: $0) }

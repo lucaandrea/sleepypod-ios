@@ -20,14 +20,17 @@ import Observation
     private(set) var outcome: Outcome?
     private(set) var error: String?
     private(set) var busy = false
-    private let backup: BackupAlarmCoordinator
+    let backup: BackupAlarmCoordinator
+    let isPractice: Bool
+    var ownerScope: String? { currentOwner() }
     private let currentOwner: @MainActor () -> String?
+    private var outcomeOwner: String?
     private var generation = 0
     private var connection: [String] = []
 
     init(backup: BackupAlarmCoordinator = .shared,
-         owner: @escaping @MainActor () -> String? = BackupAlarmCoordinator.ownerScope) {
-        self.backup = backup; currentOwner = owner
+         owner: @escaping @MainActor () -> String? = BackupAlarmCoordinator.ownerScope, isPractice: Bool = false) {
+        self.backup = backup; currentOwner = owner; self.isPractice = isPractice
     }
     func setPhone(_ value: Bool) {
         guard !busy else { return }
@@ -71,12 +74,32 @@ import Observation
             outcome = .init(plan: saved, phone: .unchanged, phoneMessage: nil)
             return
         }
+        outcomeOwner = review.owner
         outcome = .init(plan: saved, phone: .unconfirmed, phoneMessage: "Checking the phone backup…")
         await backup.schedule(plan: saved, receivedAt: model.receivedAt, expectedOwner: review.owner, expectation: phone)
         guard isCurrent(operation) else { return }
         let confirmed = backup.systemState == "scheduled" && backup.record?.owner == review.owner
             && backup.record?.side == saved.side && backup.record?.at == saved.alarm.flatMap { NextAlarmState.instant($0.at) }
         outcome = .init(plan: saved, phone: confirmed ? .confirmed : .unconfirmed, phoneMessage: backup.message)
+    }
+    /// The Pod receipt is historical; the phone portion must reflect its latest system check.
+    func reconciledOutcome(now: Date) -> Outcome? {
+        guard let outcome, outcome.phone != .unchanged else { return outcome }
+        let age = backup.checkedAt.map { now.timeIntervalSince($0) }
+        let matches = outcomeOwner == currentOwner() && backup.record?.owner == outcomeOwner
+            && backup.record?.side == outcome.plan.side
+            && backup.record?.at == outcome.plan.alarm.flatMap { NextAlarmState.instant($0.at) }
+        let confirmed = matches && !backup.busy && backup.systemState == "scheduled"
+            && age.map { (-5...60).contains($0) } == true
+        let message: String
+        if confirmed { message = "iOS confirms this one-time backup. Physical alert delivery has not been tested." }
+        else if backup.busy { message = "Checking the current phone backup…" }
+        else if backup.systemState == "missing" { message = "iOS no longer lists this backup. It has not been recreated." }
+        else if backup.systemState == "mismatch" || (backup.record != nil && !matches) {
+            message = "The current phone backup differs from this saved Pod wake. Check it below."
+        } else if let notice = backup.message, backup.systemState != "scheduled" { message = notice }
+        else { message = "The current phone backup is not verified. Check it below before relying on it." }
+        return .init(plan: outcome.plan, phone: confirmed ? .confirmed : .unconfirmed, phoneMessage: message)
     }
     private func isCurrent(_ operation: Int) -> Bool {
         generation == operation && connection == OwnerConnection.revision && !Task.isCancelled

@@ -36,7 +36,8 @@ import UIKit
     func testInvalidTimeAndExpiredPreviewKeepSaveUnavailable() {
         let app = launch("later-expired")
         let button = app.buttons["laterWake.preview"].firstMatch; reveal(button, app); button.tap()
-        let error = app.staticTexts["nextAlarm.error"].firstMatch; reveal(error, app)
+        let error = app.descendants(matching: .any).matching(identifier: "laterWake.error").firstMatch
+        XCTAssertTrue(error.waitForExistence(timeout: 5)); XCTAssertTrue(error.isHittable)
         XCTAssertTrue(error.label.contains("later time")); capture(app, "Later-invalid-time")
         preview(app)
         let expired = app.descendants(matching: .any).matching(identifier: "laterWake.expired").firstMatch
@@ -46,7 +47,7 @@ import UIKit
     func testLostReplyRequiresReadbackWithoutReplay() {
         let app = launch("later-lost"); preview(app)
         let save = app.buttons["laterWake.save"].firstMatch; reveal(save, app); save.tap()
-        let error = app.staticTexts["nextAlarm.error"].firstMatch; reveal(error, app)
+        let error = app.descendants(matching: .any).matching(identifier: "laterWake.error").firstMatch; reveal(error, app)
         XCTAssertTrue(error.label.contains("may already have been saved")); capture(app, "Later-unknown")
         let refresh = app.buttons["nextAlarm.reload"].firstMatch; reveal(refresh, app); refresh.tap()
         let changed = app.descendants(matching: .any).matching(identifier: "laterWake.changed").firstMatch
@@ -84,6 +85,64 @@ import UIKit
         preview(app)
         let warming = app.staticTexts["laterWake.warming"].firstMatch; reveal(warming, app); capture(app, "Later-large-times")
         let save = app.buttons["laterWake.save"].firstMatch; reveal(save, app); XCTAssertTrue(save.isEnabled); capture(app, "Later-large-action")
+    }
+    func testPreviewFailureIsVisibleAtActionWithLargeText() {
+        for scenario in ["later-normal", "later-preview-rejected"] {
+            let app = launch(scenario, large: true)
+            if scenario == "later-preview-rejected" {
+                let choice = app.buttons["laterWake.add60"].firstMatch; reveal(choice, app); choice.tap()
+            }
+            let action = app.buttons["laterWake.preview"].firstMatch; reveal(action, app); action.tap()
+            let error = app.descendants(matching: .any).matching(identifier: "laterWake.error").firstMatch
+            XCTAssertTrue(error.waitForExistence(timeout: 5)); XCTAssertTrue(error.isHittable)
+            capture(app, "Later-large-error-\(scenario)")
+            XCTAssertFalse(app.buttons["laterWake.save"].exists)
+            app.terminate()
+        }
+    }
+    func testRestoreBoundarySurvivesReopeningAndBackground() {
+        let app = saveWithPhone()
+        XCUIDevice.shared.press(.home); app.activate()
+        XCTAssertTrue(app.navigationBars["Next alarm"].waitForExistence(timeout: 10))
+        let boundary = app.staticTexts["laterWake.restoreBoundary"].firstMatch
+        reveal(boundary, app); capture(app, "Later-restore-after-background")
+        app.navigationBars["Next alarm"].buttons["Settings"].tap()
+        let link = app.buttons["Next alarm"]; reveal(link, app); link.tap()
+        XCTAssertTrue(app.navigationBars["Next alarm"].waitForExistence(timeout: 5))
+        reveal(boundary, app); capture(app, "Later-restore-after-reopen")
+        let begin = app.buttons["laterWake.begin"].firstMatch; reveal(begin, app); begin.tap()
+        let close = app.buttons["laterWake.close"].firstMatch; reveal(close, app); close.tap()
+        reveal(boundary, app); capture(app, "Later-restore-after-review")
+        let restore = app.buttons["nextAlarm.restore"].firstMatch; reveal(restore, app); restore.tap()
+        let notice = app.staticTexts["nextAlarm.notice"].firstMatch; reveal(notice, app)
+        XCTAssertTrue(notice.label.contains("phone backup is unchanged"))
+        let details = app.buttons["wake.backup.details"].firstMatch; reveal(details, app); details.tap()
+        let mismatch = app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH %@", "This backup differs")).firstMatch
+        reveal(mismatch, app); capture(app, "Later-restored-phone-differs")
+    }
+    func testPhoneRemovalAndMissingCheckWithdrawConfirmation() {
+        for scenario in ["later-normal", "later-phone-missing"] {
+            let app = saveWithPhone(scenario)
+            let details = app.buttons["wake.backup.details"].firstMatch; reveal(details, app); details.tap()
+            if scenario == "later-normal" {
+                let remove = app.buttons["wake.backup.remove"].firstMatch; reveal(remove, app); remove.tap()
+            } else {
+                let check = app.buttons["wake.backup.check"].firstMatch; reveal(check, app); check.tap()
+            }
+            reveal(details, app); details.tap()
+            let title = app.staticTexts["Phone backup not confirmed"].firstMatch; reveal(title, app)
+            XCTAssertFalse(app.staticTexts["Phone backup scheduled"].exists)
+            XCTAssertTrue(app.staticTexts["Later wake saved on the Pod"].exists)
+            capture(app, "Later-current-phone-\(scenario)")
+            app.terminate()
+        }
+    }
+    private func saveWithPhone(_ scenario: String = "later-normal") -> XCUIApplication {
+        let app = launch(scenario), toggle = app.switches["laterWake.phone"].firstMatch
+        reveal(toggle, app); toggle.tap(); preview(app)
+        let save = app.buttons["laterWake.save"].firstMatch; reveal(save, app); save.tap()
+        let title = app.staticTexts["Phone backup scheduled"].firstMatch; reveal(title, app)
+        return app
     }
     private func preview(_ app: XCUIApplication) {
         let choice = app.buttons["laterWake.add60"].firstMatch; reveal(choice, app); choice.tap()

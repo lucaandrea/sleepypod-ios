@@ -141,6 +141,9 @@ import Observation
             current = result; receivedAt = now(); draft = nil; requiresReload = false
             notice = result.schedulerUpdated == true ? "One-time change saved on your controller."
                 : "Change saved. Timer registration is pending and has not yet been confirmed."
+            if action == "restore" {
+                notice = (notice ?? "") + " Any phone backup is unchanged. Open Phone backup and wake devices to compare it with the restored Pod plan."
+            }
             return true
         } catch {
             if isCurrent(operation) { self.error = APIError.message(for: error) + " Refresh the saved alarm before retrying." }

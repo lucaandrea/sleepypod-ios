@@ -8,6 +8,8 @@ struct LaterWakeReview: View {
     let temperatureUnit: TemperatureFormat
     let now: Date
     @Environment(\.dynamicTypeSize) private var typeSize
+    @AccessibilityFocusState private var errorFocused: Bool
+    private var inlineError: String? { companion.error ?? model.error }
     private var busy: Bool { model.busy || companion.busy }
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
@@ -36,9 +38,11 @@ struct LaterWakeReview: View {
                 Text("The phone backup was not changed because the Pod save was not confirmed. Check both plans after refreshing.")
                     .font(.footnote).foregroundStyle(Theme.text2)
             }
-            if let error = companion.error { message(error, id: "laterWake.error") }
             if let review = companion.review, review.packet == model.laterDraft?.packet {
                 proposal(review)
+            }
+            if let error = inlineError {
+                message(error, id: "laterWake.error").accessibilityFocused($errorFocused)
             }
             Button(companion.review == nil ? "Preview changes" : "Refresh preview", systemImage: "doc.text.magnifyingglass") {
                 Task { await companion.preview(model) }
@@ -52,7 +56,7 @@ struct LaterWakeReview: View {
             }
             Button("Close review") { companion.clearReview(); model.closeLater() }
                 .disabled(busy).frame(minHeight: 44).accessibilityIdentifier("laterWake.close")
-        }
+        }.onChange(of: inlineError) { errorFocused = inlineError != nil }
     }
     private var picker: some View {
         DatePicker("Later wake time", selection: clock, displayedComponents: .hourAndMinute)

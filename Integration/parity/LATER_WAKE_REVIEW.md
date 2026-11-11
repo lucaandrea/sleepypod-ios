@@ -66,8 +66,15 @@ and use memory-only companion alarms; they are not an independent schedule polic
   inspection also corrected the inverse Save-label color and stacked quick choices
   at accessibility text sizes. All six corrected UI scenarios pass on both phone and tablet. Test-only capture
   positioning reruns also pass on each device (restoration v6; phone review v7).
-  All 40 selected originals are retained in `.impeccable/review/later-wake-native-finish/`;
-  independent finish review is in progress. CI includes a separate bounded
-  `later-wake` group on both devices.
+  The initial 40 originals and full review are retained in
+  `.impeccable/review/later-wake-native-initial-review/`. CI includes a separate
+  bounded `later-wake` group on both devices.
+- The independent full review requested three corrections: action-local preview
+  errors, persistent Pod-only restoration guidance and current phone-alarm
+  reconciliation. The bounded correction passed 1,400 model/application tests
+  with the same nine skips and all nine UI scenarios on each device. The reviewer
+  opened all 56 fresh captures in `.impeccable/review/later-wake-native-finish/`
+  and scored F1–F3 resolved (ship at that scope). Physical VoiceOver announcements
+  and real system alarm delivery were not exercised.
 
 No physical Pod or iPhone was changed. There is no TestFlight delivery claim.

@@ -179,6 +179,43 @@ import XCTest
         companion.invalidate(); model.invalidate(); await client.release(); await operation.value
         XCTAssertNil(companion.outcome); XCTAssertEqual(phone.schedules, 0); XCTAssertTrue(model.requiresReload)
     }
+    func testPhoneResultReconcilesRemovalMissingMismatchStalenessAndOwnerChanges() async throws {
+        for state in ["removed", "missing", "mismatch", "stale", "owner"] {
+            let fixture = try LaterWakeTestFixture(), client = LaterWakeTestClient(fixture: fixture)
+            let phone = BackupTestClient(), storage = BackupTestStorage(); storage.now = fixture.now
+            let backup = BackupAlarmCoordinator(client: phone, owner: { storage.owner }, read: { storage.record }, persist: { storage.record = $0 }, now: { storage.now })
+            let companion = LaterWakeCompanion(backup: backup, owner: { storage.owner }), model = NextAlarmWorkspace(now: { fixture.now })
+            model.configure(client: client, side: .left); await model.load(); model.beginLater(); model.editLaterTime("09:00")
+            companion.setPhone(true); await companion.preview(model); await companion.apply(model)
+            XCTAssertEqual(companion.reconciledOutcome(now: storage.now)?.phone, .confirmed)
+            switch state {
+            case "removed": backup.cancel()
+            case "missing": phone.values = []; backup.refresh()
+            case "mismatch":
+                let original = try XCTUnwrap(phone.values.first)
+                phone.values = [.init(id: original.id, at: try XCTUnwrap(original.at).addingTimeInterval(60), state: "scheduled")]; backup.refresh()
+            case "stale": storage.now.addTimeInterval(61)
+            default: storage.owner = String(repeating: "b", count: 64)
+            }
+            let result = try XCTUnwrap(companion.reconciledOutcome(now: storage.now))
+            XCTAssertEqual(result.phone, .unconfirmed, state); XCTAssertEqual(result.plan, fixture.saved)
+            XCTAssertFalse(result.phoneMessage?.contains("iOS confirms") == true)
+            XCTAssertEqual(phone.schedules, 1, "Reconciliation never recreates an alarm")
+        }
+    }
+    func testClosingReviewWithdrawsReceiptButPreservesTrackedBackupForReconciliation() async throws {
+        let fixture = try LaterWakeTestFixture(), client = LaterWakeTestClient(fixture: fixture)
+        let phone = BackupTestClient(), storage = BackupTestStorage(); storage.now = fixture.now
+        let backup = BackupAlarmCoordinator(client: phone, owner: { storage.owner }, read: { storage.record }, persist: { storage.record = $0 }, now: { storage.now })
+        let companion = LaterWakeCompanion(backup: backup, owner: { storage.owner }), model = NextAlarmWorkspace(now: { fixture.now })
+        model.configure(client: client, side: .left); await model.load(); model.beginLater(); model.editLaterTime("09:00")
+        companion.setPhone(true); await companion.preview(model); await companion.apply(model)
+        let saved = try XCTUnwrap(storage.record)
+        companion.invalidate(); model.invalidate(); await model.load(); backup.refresh()
+        XCTAssertNil(companion.outcome); XCTAssertEqual(backup.record, saved); XCTAssertEqual(backup.systemState, "scheduled")
+        XCTAssertEqual(model.current?.change, fixture.saved.change)
+        XCTAssertEqual(phone.schedules, 1); XCTAssertEqual(phone.cancels, 0)
+    }
     func testLateReplyAfterLeavingCannotPublishOrEnableAnotherSave() async throws {
         let fixture = try LaterWakeTestFixture(), client = LaterWakeTestClient(fixture: fixture)
         let model = NextAlarmWorkspace(now: { fixture.now })

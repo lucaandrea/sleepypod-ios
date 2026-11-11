@@ -5,7 +5,8 @@ struct PhoneBackupAlarmView: View {
     let receivedAt: Date?
     let ownerScope: String?
     let canEdit: Bool
-    @State private var backup = BackupAlarmCoordinator.shared
+    var backup = BackupAlarmCoordinator.shared
+    var practice = false
     @State private var confirmReplacement = false
     @State private var replacement: ReviewedBackup?
     @State private var reviewMessage: String?
@@ -19,17 +20,18 @@ struct PhoneBackupAlarmView: View {
         return record.side == plan.side && plan.state == "scheduled" && record.at == plan.alarm.flatMap { NextAlarmState.instant($0.at) }
     }
     private var eligible: Bool {
-        guard canEdit, let ownerScope, ownerScope == BackupAlarmCoordinator.ownerScope(), let plan else { return false }
+        guard canEdit, let ownerScope, ownerScope == (practice ? ownerScope : BackupAlarmCoordinator.ownerScope()), let plan else { return false }
         return (try? BackupAlarmPolicy.candidate(plan, receivedAt: receivedAt, now: .now)) != nil
     }
     private var confirmed: Bool { matches && backup.systemState == "scheduled" }
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             Label("Phone backup", systemImage: "iphone.radiowaves.left.and.right").font(.headline)
-            if APIBackend.current.isDemo {
+            if APIBackend.current.isDemo && !practice {
                 Text("Connect to your Pod to add a one-time system alarm on this device. Practice mode never schedules a real alert.")
                     .font(.subheadline).foregroundStyle(Theme.text2)
             } else {
+                if practice { Text("Practice phone alarm. No system alert is scheduled.").font(.footnote).foregroundStyle(Theme.text2) }
                 if let record = backup.record {
                     Text("\(record.side.rawValue.capitalized) · \(record.at.formatted(date: .abbreviated, time: .shortened))")
                         .font(.subheadline.weight(.semibold))
@@ -53,13 +55,13 @@ struct PhoneBackupAlarmView: View {
                         .disabled(backup.busy).frame(minHeight: 44).accessibilityIdentifier("wake.backup.remove")
                 }
                 Button("Check phone alarm", systemImage: "arrow.clockwise") { backup.refresh() }
-                    .disabled(backup.busy).frame(minHeight: 44)
+                    .disabled(backup.busy).frame(minHeight: 44).accessibilityIdentifier("wake.backup.check")
                 if backup.busy { ProgressView("Checking phone alarm…") }
                 if let message = backup.message { Text(message).font(.footnote).foregroundStyle(Theme.text2) }
                 if let reviewMessage { Text(reviewMessage).font(.footnote).foregroundStyle(Theme.amber) }
             }
         }
-        .task { if !APIBackend.current.isDemo { backup.refresh() } }
+        .task { if !APIBackend.current.isDemo || practice { backup.refresh() } }
         .confirmationDialog("Replace the saved phone backup?", isPresented: $confirmReplacement, presenting: replacement) { reviewed in
             Button("Replace backup") {
                 guard plan?.revision == reviewed.plan.revision else {
