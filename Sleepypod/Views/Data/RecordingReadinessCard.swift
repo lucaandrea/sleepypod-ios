@@ -1,0 +1,75 @@
+import SwiftUI
+
+struct RecordingReadinessCard: View {
+    @Environment(\.scenePhase) private var scenePhase
+    @State private var model = RecordingReadinessWorkspace()
+    @State private var expanded = false
+    @State private var refreshRevision = 0
+
+    var body: some View {
+        TimelineView(.periodic(from: .now, by: 1)) { timeline in
+            content(at: timeline.date)
+        }
+        .task(id: OwnerConnection.revision + [String(describing: scenePhase), String(refreshRevision)]) {
+            model.invalidate()
+            guard scenePhase == .active else { return }
+            let client: (any RecordingReadinessClient)?
+            if APIBackend.current.isDemo { client = DemoRecordingReadinessClient() }
+            else if APIBackend.current == .sleepypodCore, let transport = try? CoreRESTClient.configured() {
+                client = CoreRecordingReadinessClient(transport: transport)
+            } else { client = nil }
+            model.configure(client: client)
+            repeat {
+                await model.refresh()
+                do { try await Task.sleep(for: .seconds(30)) } catch { return }
+            } while !Task.isCancelled
+        }
+        .onDisappear { model.invalidate() }
+    }
+
+    private func content(at date: Date) -> some View {
+        let report = model.report
+        let status = report?.status(at: date) ?? .unavailable
+        return VStack(alignment: .leading, spacing: 12) {
+            if APIBackend.current.isDemo { Text("DEMO · simulated recording checks").font(.caption).foregroundStyle(Theme.amber) }
+            Label(title(for: status), systemImage: status == .ready ? "checkmark.circle" : status == .attention ? "exclamationmark.triangle" : "questionmark.circle")
+                .font(.headline).foregroundStyle(status == .ready ? Theme.green : status == .attention ? Theme.amber : Theme.text1)
+                .accessibilityIdentifier("recording.readiness.title")
+            Text("Current Pod checks cover recording equipment, not sleep quality or Watch imports.")
+                .font(.footnote).foregroundStyle(Theme.text2)
+            if status == .unavailable {
+                Text(model.error ?? "Reconnect to check the sensors and storage. A saved result cannot confirm that recording is working now.")
+                    .font(.footnote).foregroundStyle(Theme.text2)
+            }
+            if let report {
+                DisclosureGroup(status == .unavailable ? "See last successful check" : "See recording checks", isExpanded: $expanded) {
+                    VStack(alignment: .leading, spacing: 16) {
+                        Text("Checked \(report.checkedDate.formatted(date: .abbreviated, time: .standard))")
+                            .font(.caption).foregroundStyle(Theme.text2)
+                        ForEach(report.checks) { check in
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(check.title).font(.subheadline.weight(.semibold))
+                                Text(check.statusLabel).font(.caption).foregroundStyle(Theme.text2)
+                                Text(check.detail).font(.footnote)
+                                if let next = check.nextStep { Text(next).font(.footnote).foregroundStyle(Theme.amber) }
+                            }.frame(maxWidth: .infinity, alignment: .leading)
+                        }
+                    }.padding(.top, 12)
+                }.accessibilityIdentifier("recording.readiness.details")
+            }
+            Button(model.loading ? "Checking…" : "Check again", systemImage: "arrow.clockwise") { refreshRevision += 1 }
+                .disabled(model.loading).frame(minHeight: 44).accessibilityIdentifier("recording.readiness.refresh")
+            NavigationLink("Open recording diagnostics") { SystemHealthScreen() }
+                .font(.subheadline).frame(minHeight: 44)
+        }.frame(maxWidth: .infinity, alignment: .leading).cardStyle()
+            .onChange(of: status) { _, next in if next == .attention { expanded = true } }
+    }
+    private func title(for status: RecordingReadiness.Status) -> String {
+        switch status {
+        case .ready: "Recording checks are ready"
+        case .attention: "Recording needs attention"
+        case .unknown: "Recording checks are incomplete"
+        case .unavailable: model.loading ? "Checking recording readiness…" : "Recording check unavailable"
+        }
+    }
+}
