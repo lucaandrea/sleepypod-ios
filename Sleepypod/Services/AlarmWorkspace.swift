@@ -32,6 +32,7 @@ final class AlarmWorkspace {
     func occurrenceClient(timeZone: String, scenario: String = "normal") -> (any NextAlarmClient)? {
         if demo {
             if scenario == "normal" { return DemoNextAlarmClient(weekly: api, timeZone: timeZone) }
+            if scenario.hasPrefix("later-") { return SyntheticLaterWakeClient(scenario: scenario) }
             return SyntheticNextAlarmClient(scenario: scenario)
         }
         return (try? CoreRESTClient.configured()).map { CoreNextAlarmClient(transport: $0) }

@@ -202,6 +202,7 @@
 		2A1ADD73627428CD731550CB /* ImportedHistoryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F475C5F8B0851603A252716B /* ImportedHistoryTests.swift */; };
 		2A38C84761DF49BE55376BC6 /* OwnerDataIdentity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9694964CA8E02CD6DF16AFCB /* OwnerDataIdentity.swift */; };
 		2A3A65A9CD5D825CF998EB9C /* NextAlarmState.swift in Sources */ = {isa = PBXBuildFile; fileRef = FDB832F844B0B5839F3CA127 /* NextAlarmState.swift */; };
+		AA284B42F20D7029A3C41002 /* LaterWakePreview.swift in Sources */ = {isa = PBXBuildFile; fileRef = 90F3D2DB321E9CCCF66C2089 /* LaterWakePreview.swift */; };
 		2AA2C39695CCD86A2A6F7174 /* BackupAlarm.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF182758CB9CA87F5C311481 /* BackupAlarm.swift */; };
 		2AD530E6E855654ED7732627 /* PumpAlertTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8FC4FF66F1F45BA06C95D4CB /* PumpAlertTests.swift */; };
 		2AD63C6E25E024A68656A1A2 /* ArchivePushTransportTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99FD73B30CDEAF314F338D71 /* ArchivePushTransportTests.swift */; };
@@ -224,6 +225,7 @@
 		2E22A4F7D4457E0B1B6C3F8E /* TemperatureApplicationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77DDC296F3584E3D14B3E92A /* TemperatureApplicationTests.swift */; };
 		2E6E1D635A1B986005680E3A /* BasePreset.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A08F6C5E20C3A3AC36D4FA9 /* BasePreset.swift */; };
 		2ED3E60D307CDB1CCE629A7E /* NextAlarmTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C91C38D0EBFF44D19A8ED9C8 /* NextAlarmTests.swift */; };
+		5B7A2026B19AD7D392F964BB /* LaterWakeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A82267E8628DD860D1FF7C6 /* LaterWakeTests.swift */; };
 		2EED4029D7C70CD542EB905E /* ConnectionRecoveryPreview.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC8B0075B7423B33F9FFD15A /* ConnectionRecoveryPreview.swift */; };
 		2F804937E48AE4E3830B4411 /* AnalysisMeasurementsCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2B486CF812A3E547CB73349 /* AnalysisMeasurementsCard.swift */; };
 		2F8C901425580A8B1EAA0FB5 /* AlarmTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE4C32B3BEF3B1F294F1B61E /* AlarmTests.swift */; };
@@ -297,6 +299,7 @@
 		3DFDAB12B3B8D6A706E6B622 /* TemperatureReading.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5A0007889086EDCF7843E2F /* TemperatureReading.swift */; };
 		3E0011F24B443A0ACFE67875 /* AlarmPreview.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0BA1C0C75C7FBCDED8307EF /* AlarmPreview.swift */; };
 		3E086AB862CF59920E907350 /* NextAlarmWorkspace.swift in Sources */ = {isa = PBXBuildFile; fileRef = E11748C0C9A9A7D7147F59EE /* NextAlarmWorkspace.swift */; };
+		F7A00C8ED4AA4E4FCEE29BB0 /* LaterWakeCompanion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 994B5153B42278CB8B5888CE /* LaterWakeCompanion.swift */; };
 		3E3EF391BB425FCDC01CF036 /* SystemScheduler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 969A25C49742B985A6A0E9FE /* SystemScheduler.swift */; };
 		3E56B2C2DC519FB9C7EC442E /* NightAnomalyObservation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C0F7A97EBEEC701711F19E2 /* NightAnomalyObservation.swift */; };
 		3E8E15E83AA3FE2B8D9310C4 /* DemoBiometricReferencesClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = B17291A501970D9B35120E33 /* DemoBiometricReferencesClient.swift */; };
@@ -313,6 +316,7 @@
 		41ABC8E47CC260C579F94617 /* HealthWatchImportWorkspace.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1B20256BE057E20C7C18517 /* HealthWatchImportWorkspace.swift */; };
 		42668BFA4D377D5F6C4CD74A /* StageTrainingCoverage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38B2D25F478433F471DA0284 /* StageTrainingCoverage.swift */; };
 		4267B7BCD3FFD3076D3DD217 /* next-alarm-example.json in Resources */ = {isa = PBXBuildFile; fileRef = F6369BF88219F295E9D58265 /* next-alarm-example.json */; };
+		64CFA5E709F95A03E7C8297D /* later-wake-example.json in Resources */ = {isa = PBXBuildFile; fileRef = 143114F26D2B015F43E2D443 /* later-wake-example.json */; };
 		436AD2DCD07E3B8DE0915143 /* CoreProcessStatus.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91C6128256D4A43903D6F314 /* CoreProcessStatus.swift */; };
 		4404A87E81694EB9F0B32156 /* BiometricValidatedTransportTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3E9CB215C9FBDDE4110ABDE /* BiometricValidatedTransportTests.swift */; };
 		445A29A567E3F62B1E979CEA /* EpisodeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99C4810DA1E86D88448F08CF /* EpisodeTests.swift */; };
@@ -387,6 +391,7 @@
 		54C4391903B730F389926303 /* HomeRoomTransportTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A58BD3EE1C5B47277EFC3D08 /* HomeRoomTransportTests.swift */; };
 		5553CE62560A485C1A6A1F8B /* ReportDocument.swift in Sources */ = {isa = PBXBuildFile; fileRef = E97601A772A3DCC43D536352 /* ReportDocument.swift */; };
 		559AA2ABEB253005B0BD1525 /* NextAlarmUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 606843814A97634D3882BA38 /* NextAlarmUITests.swift */; };
+		25C5C19FA1E810A815C30C03 /* LaterWakeUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 446DCDD91A192939F171B9E0 /* LaterWakeUITests.swift */; };
 		55D361C9EF646ED965655B4E /* TemperatureOwnershipView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A3345146AD765FA7255F3CE /* TemperatureOwnershipView.swift */; };
 		55E1C893D52DDCFC49C2DA85 /* TemporaryCooling.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEDEDC2A4B3374B7924544BB /* TemporaryCooling.swift */; };
 		56001586FBF4B9E932D31D33 /* PersonalRoutineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4BEF712E961B38D2CDB1D06E /* PersonalRoutineTests.swift */; };
@@ -406,6 +411,7 @@
 		59D63C6FB621C08C2D068AA7 /* NotificationRelay.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3B44F02B272682A83840CA4 /* NotificationRelay.swift */; };
 		59F63D9F223D60F457B5079A /* PumpAlert.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E0716D0C9CB55312A5DB0AA /* PumpAlert.swift */; };
 		5A56F26A4BFA6D44A991954D /* NextAlarmCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = CBDB9228E397155D6A65BA7A /* NextAlarmCard.swift */; };
+		4CAC36F62F44F6EC9A87BAD4 /* LaterWakeReview.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1FD3B935DCC1414DF30FC445 /* LaterWakeReview.swift */; };
 		5AB89293F8E10DB66EE85F3B /* PositionBedScene.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8521D9B186F99326B1A55C38 /* PositionBedScene.swift */; };
 		5AB907BC54C64ED264A83D9A /* BiometricNumericReport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 715AE6B64478B03B4BAE795D /* BiometricNumericReport.swift */; };
 		5B15BA30113F5E85BEC1F806 /* PersonalRoutineWorkspace.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22B3944494E8D9E5EF757907 /* PersonalRoutineWorkspace.swift */; };
@@ -682,6 +688,7 @@
 		9496F7BC085B1DCB11E60660 /* PodSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96ACD1084CFC2D0ECC040FBB /* PodSettings.swift */; };
 		9510ADBCCAF28616AF77501F /* SleeperPreferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = 023E92CA40DBE0C567E104D5 /* SleeperPreferences.swift */; };
 		9684ADC4F847572B038ED62F /* NextAlarmExample.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28FC9DDC6AD616C339CF497A /* NextAlarmExample.swift */; };
+		80507A5E21D3A79082EEA7FF /* LaterWakeExample.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EB1E40A38EC885719828EE8 /* LaterWakeExample.swift */; };
 		96F882D4DBD970241CE1ED10 /* SensorCalibration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A7AC5CA1E92F78CC28D9D74 /* SensorCalibration.swift */; };
 		96F9C41EB08ABACF8D9E09C1 /* SleepScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D36319CCA9F03AAB322E21E /* SleepScreen.swift */; };
 		973057A320F93ADB75C7CF75 /* WatchReferenceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E680FE49CE4B0098203FE9D4 /* WatchReferenceTests.swift */; };
@@ -1371,6 +1378,7 @@
 		28B18A65851DC1ECBF64BA79 /* system-database-fixture.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "system-database-fixture.json"; sourceTree = "<group>"; };
 		28BE19B40BFF1F08905E85ED /* PumpProtectionClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PumpProtectionClient.swift; sourceTree = "<group>"; };
 		28FC9DDC6AD616C339CF497A /* NextAlarmExample.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NextAlarmExample.swift; sourceTree = "<group>"; };
+		5EB1E40A38EC885719828EE8 /* LaterWakeExample.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaterWakeExample.swift; sourceTree = "<group>"; };
 		2941CA088FC1C77B69F36D60 /* DeviceManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceManager.swift; sourceTree = "<group>"; };
 		295C867DF528905A55668F52 /* APIBackend.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIBackend.swift; sourceTree = "<group>"; };
 		2962AFAD738050DFD79C86CC /* StageLanes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StageLanes.swift; sourceTree = "<group>"; };
@@ -1622,6 +1630,7 @@
 		60268D28EFA9848812E43477 /* AutomationExpressionEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutomationExpressionEditor.swift; sourceTree = "<group>"; };
 		60371A2BA7D1AC125C1024F3 /* PersonalRoutineTransportTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersonalRoutineTransportTests.swift; sourceTree = "<group>"; };
 		606843814A97634D3882BA38 /* NextAlarmUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NextAlarmUITests.swift; sourceTree = "<group>"; };
+		446DCDD91A192939F171B9E0 /* LaterWakeUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaterWakeUITests.swift; sourceTree = "<group>"; };
 		608B3D3016DB8F9B56AE624B /* CurveWorkspace.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CurveWorkspace.swift; sourceTree = "<group>"; };
 		612F0D89547762AA9076CF3F /* JournalWorkspace.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JournalWorkspace.swift; sourceTree = "<group>"; };
 		61694C472F1666CC66CC4916 /* SetBasePresetIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SetBasePresetIntent.swift; sourceTree = "<group>"; };
@@ -2070,6 +2079,7 @@
 		C8E5A5B71A359E0DB0ABD98A /* DaytimeContext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DaytimeContext.swift; sourceTree = "<group>"; };
 		C8FBD63DEB8260C40E916B77 /* RemoteStageModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteStageModel.swift; sourceTree = "<group>"; };
 		C91C38D0EBFF44D19A8ED9C8 /* NextAlarmTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NextAlarmTests.swift; sourceTree = "<group>"; };
+		9A82267E8628DD860D1FF7C6 /* LaterWakeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaterWakeTests.swift; sourceTree = "<group>"; };
 		C94AAD9590DCD67ADC082B19 /* PersonalRoutineClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersonalRoutineClient.swift; sourceTree = "<group>"; };
 		C94EFDC6A092C06FBF9A8244 /* SystemDashboardNightCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemDashboardNightCard.swift; sourceTree = "<group>"; };
 		CA285063B478D15CFADA625C /* OwnerRouteSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OwnerRouteSettingsView.swift; sourceTree = "<group>"; };
@@ -2081,6 +2091,7 @@
 		CBB1266A8757919C478EEBD5 /* HouseholdWorkspace.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HouseholdWorkspace.swift; sourceTree = "<group>"; };
 		CBB476004D5F07B28A270325 /* RecordingReadiness.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordingReadiness.swift; sourceTree = "<group>"; };
 		CBDB9228E397155D6A65BA7A /* NextAlarmCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NextAlarmCard.swift; sourceTree = "<group>"; };
+		1FD3B935DCC1414DF30FC445 /* LaterWakeReview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaterWakeReview.swift; sourceTree = "<group>"; };
 		CBDF7FD7FA4E05DAAD700E42 /* SleeperPreferencesWorkspace.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SleeperPreferencesWorkspace.swift; sourceTree = "<group>"; };
 		CC068C9648F9353C05B68782 /* PersonalHistoryScope.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersonalHistoryScope.swift; sourceTree = "<group>"; };
 		CCB9B2C20054DF2DEFE406E5 /* TempBackdrop.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TempBackdrop.swift; sourceTree = "<group>"; };
@@ -2164,6 +2175,7 @@
 		E0F14C7A4B6C837B173C5EFA /* TemperatureCurve.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemperatureCurve.swift; sourceTree = "<group>"; };
 		E1064563111F4FAC6338E69F /* SleeperPreferencesScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SleeperPreferencesScreen.swift; sourceTree = "<group>"; };
 		E11748C0C9A9A7D7147F59EE /* NextAlarmWorkspace.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NextAlarmWorkspace.swift; sourceTree = "<group>"; };
+		994B5153B42278CB8B5888CE /* LaterWakeCompanion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaterWakeCompanion.swift; sourceTree = "<group>"; };
 		E1290A763C0D136CAB955774 /* ArrangementReviewPreview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArrangementReviewPreview.swift; sourceTree = "<group>"; };
 		E152E058D4B193B3FD0F1D0D /* FirstBootTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirstBootTests.swift; sourceTree = "<group>"; };
 		E1B20256BE057E20C7C18517 /* HealthWatchImportWorkspace.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthWatchImportWorkspace.swift; sourceTree = "<group>"; };
@@ -2269,6 +2281,7 @@
 		F5A0007889086EDCF7843E2F /* TemperatureReading.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemperatureReading.swift; sourceTree = "<group>"; };
 		F5AA964ED15308C9874321CF /* BiometricProfilesScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiometricProfilesScreen.swift; sourceTree = "<group>"; };
 		F6369BF88219F295E9D58265 /* next-alarm-example.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "next-alarm-example.json"; sourceTree = "<group>"; };
+		143114F26D2B015F43E2D443 /* later-wake-example.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "later-wake-example.json"; sourceTree = "<group>"; };
 		F63D97596C1E062CB7C4917A /* WatchMotionFile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchMotionFile.swift; sourceTree = "<group>"; };
 		F674C877D90BBF81018C4614 /* LegacyBaseScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LegacyBaseScreen.swift; sourceTree = "<group>"; };
 		F68A45D3025A7B3031AC9FCF /* SystemDashboardTransportTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemDashboardTransportTests.swift; sourceTree = "<group>"; };
@@ -2300,6 +2313,7 @@
 		FD234A844F3B8AEA151C5CD2 /* SetPowerIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SetPowerIntent.swift; sourceTree = "<group>"; };
 		FD447FF1A23F1C1DC3985C9F /* BiometricObservationUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiometricObservationUITests.swift; sourceTree = "<group>"; };
 		FDB832F844B0B5839F3CA127 /* NextAlarmState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NextAlarmState.swift; sourceTree = "<group>"; };
+		90F3D2DB321E9CCCF66C2089 /* LaterWakePreview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaterWakePreview.swift; sourceTree = "<group>"; };
 		FDD5B43DE60D61E70E5B77F4 /* PersonalHistoryTestSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersonalHistoryTestSupport.swift; sourceTree = "<group>"; };
 		FDDB2F55FD8111AA8E426B27 /* DevicePreferences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DevicePreferences.swift; sourceTree = "<group>"; };
 		FDE65A971AE8963DE74E57C3 /* SystemDashboardScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemDashboardScreen.swift; sourceTree = "<group>"; };
@@ -2945,7 +2959,9 @@
 				A09AB27CAED28D861EB241DC /* NativeCommandExample.swift */,
 				2F207B7B5E95F12A55ABBFDC /* NativeControl.swift */,
 				28FC9DDC6AD616C339CF497A /* NextAlarmExample.swift */,
+				5EB1E40A38EC885719828EE8 /* LaterWakeExample.swift */,
 				FDB832F844B0B5839F3CA127 /* NextAlarmState.swift */,
+				90F3D2DB321E9CCCF66C2089 /* LaterWakePreview.swift */,
 				0C0F7A97EBEEC701711F19E2 /* NightAnomalyObservation.swift */,
 				842DCCEECCBD8792DD231D8B /* NightAnomalyReviewBatch.swift */,
 				F35675DFC80B6998C6396DBC /* NightExplanation.swift */,
@@ -3115,6 +3131,7 @@
 				C2C017B8BC615F90EA8903DA /* NativeSleepEvidenceTests.swift */,
 				26149D422D4EB5ACD548A5A8 /* NextAlarmRESTTests.swift */,
 				C91C38D0EBFF44D19A8ED9C8 /* NextAlarmTests.swift */,
+				9A82267E8628DD860D1FF7C6 /* LaterWakeTests.swift */,
 				05C987EB94E17C0EA23DE7A5 /* NightAnomalyHealthTests.swift */,
 				5E2A70B6DFEECCCE30DDF59E /* NightAnomalyTests.swift */,
 				4EC3B8F1C56DDA3D2679A9FC /* NightExplanationTests.swift */,
@@ -3268,6 +3285,7 @@
 				35E52ECF2A638D9C9BFF0A90 /* NativeAlarmsView.swift */,
 				7DF5733665E37FBF472E9E51 /* NativeCurvesView.swift */,
 				CBDB9228E397155D6A65BA7A /* NextAlarmCard.swift */,
+				1FD3B935DCC1414DF30FC445 /* LaterWakeReview.swift */,
 				2EFD212CB1C1A249CAD940C8 /* PhaseBlockView.swift */,
 				1C50FF8716C5CFE55C3CDF2E /* PhoneBackupAlarmView.swift */,
 				D70A40AFFB3AAD37B22CE373 /* ProfilePickerView.swift */,
@@ -3383,6 +3401,7 @@
 				9E7639C55B3275C0FED15F30 /* NativeSleepEvidence.swift */,
 				D26CF0F3D077D5DEF9A54526 /* NativeVitalEvidence.swift */,
 				E11748C0C9A9A7D7147F59EE /* NextAlarmWorkspace.swift */,
+				994B5153B42278CB8B5888CE /* LaterWakeCompanion.swift */,
 				A233647AF85AF571FFEE5D01 /* NightAnomalyDataset.swift */,
 				EBD09933498F740E5D437B8F /* NightAnomalyHealthReader.swift */,
 				FCCDA5E3ECF0211BDF36430A /* NightAnomalyModel.swift */,
@@ -3643,6 +3662,7 @@
 				891A86BBAF938DD824549117 /* NativeHealthUITests.swift */,
 				AD7A7E9A62F45407BDEB0DA1 /* NativeReportsUITests.swift */,
 				606843814A97634D3882BA38 /* NextAlarmUITests.swift */,
+				446DCDD91A192939F171B9E0 /* LaterWakeUITests.swift */,
 				90AD6E50622C896CF3507682 /* NightExplanationUITests.swift */,
 				8E07F05739B7B948A42DC3F1 /* NightPhaseUITests.swift */,
 				AD1C3068439ADDB9F1C71C8D /* OfflineLibraryUITests.swift */,
@@ -3754,6 +3774,7 @@
 				A7B6FA54CC7D7E0DBDCC1A98 /* morning-journal-context-example.json */,
 				110483FEEA314BE6E4A42408 /* morning-journal-example.json */,
 				F6369BF88219F295E9D58265 /* next-alarm-example.json */,
+				143114F26D2B015F43E2D443 /* later-wake-example.json */,
 				3CA3A75C380B39919A3C1299 /* night-explanation-example.json */,
 				F482424FAE76D8F0EF1DE219 /* personal-comfort-example.json */,
 				0E23CB9F6C9D8E491046686C /* personal-controls-v1.json */,
@@ -3999,6 +4020,7 @@
 				A1E565CD6264AFB27E08DAD6 /* morning-journal-context-example.json in Resources */,
 				0C2984B86A2BFA8069E5EDC3 /* morning-journal-example.json in Resources */,
 				4267B7BCD3FFD3076D3DD217 /* next-alarm-example.json in Resources */,
+				64CFA5E709F95A03E7C8297D /* later-wake-example.json in Resources */,
 				6B6D9B580DFC590C6BAD252A /* night-explanation-example.json in Resources */,
 				1201459B0B50A7E1250D248B /* openapi.json in Resources */,
 				3912498D85903E2113F360C3 /* personal-comfort-example.json in Resources */,
@@ -4197,6 +4219,7 @@
 				D4E1F0A0B36B7AF4C6556E06 /* NativeSleepEvidenceTests.swift in Sources */,
 				09B2667D5E0E3F504B606261 /* NextAlarmRESTTests.swift in Sources */,
 				2ED3E60D307CDB1CCE629A7E /* NextAlarmTests.swift in Sources */,
+				5B7A2026B19AD7D392F964BB /* LaterWakeTests.swift in Sources */,
 				1D36AB2A6E0319FCE55B9A6F /* NightAnomalyHealthTests.swift in Sources */,
 				73B9C5B9C7095F46E822F873 /* NightAnomalyTests.swift in Sources */,
 				E830609FAD19753F7815D878 /* NightExplanationTests.swift in Sources */,
@@ -4337,6 +4360,7 @@
 				EEBC703B153A685B794C2688 /* NativeHealthUITests.swift in Sources */,
 				D0302767558981143024CAB1 /* NativeReportsUITests.swift in Sources */,
 				559AA2ABEB253005B0BD1525 /* NextAlarmUITests.swift in Sources */,
+				25C5C19FA1E810A815C30C03 /* LaterWakeUITests.swift in Sources */,
 				08F22BE2705752D75FD68897 /* NightExplanationUITests.swift in Sources */,
 				FA9BF489D77187DE740784A9 /* NightPhaseUITests.swift in Sources */,
 				0C09D7688F4CF4FA15F40576 /* OfflineLibraryUITests.swift in Sources */,
@@ -4846,10 +4870,14 @@
 				F43BF3B62EDC47A374D18F81 /* NativeVitalEvidence.swift in Sources */,
 				4F23A22B92487D961740E6D2 /* NetworkSettingsScreen.swift in Sources */,
 				5A56F26A4BFA6D44A991954D /* NextAlarmCard.swift in Sources */,
+				4CAC36F62F44F6EC9A87BAD4 /* LaterWakeReview.swift in Sources */,
 				52694411F911D9C0292BDFB4 /* NextAlarmClient.swift in Sources */,
 				9684ADC4F847572B038ED62F /* NextAlarmExample.swift in Sources */,
+				80507A5E21D3A79082EEA7FF /* LaterWakeExample.swift in Sources */,
 				2A3A65A9CD5D825CF998EB9C /* NextAlarmState.swift in Sources */,
+				AA284B42F20D7029A3C41002 /* LaterWakePreview.swift in Sources */,
 				3E086AB862CF59920E907350 /* NextAlarmWorkspace.swift in Sources */,
+				F7A00C8ED4AA4E4FCEE29BB0 /* LaterWakeCompanion.swift in Sources */,
 				527C417D4B97BBB82C5D5578 /* NightAnomalyDataset.swift in Sources */,
 				105F7171A9BA436CD27D2028 /* NightAnomalyHealthReader.swift in Sources */,
 				4801E86D21DC8493A2D73FE2 /* NightAnomalyModel.swift in Sources */,

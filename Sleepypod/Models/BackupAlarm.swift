@@ -16,6 +16,11 @@ struct BackupAlarmRecord: Codable, Equatable, Sendable {
     }
 }
 
+enum BackupAlarmExpectation: Equatable, Sendable {
+    case absent
+    case existing(BackupAlarmRecord)
+}
+
 struct BackupSystemAlarm: Equatable, Sendable {
     let id: UUID
     let at: Date?
@@ -23,7 +28,7 @@ struct BackupSystemAlarm: Equatable, Sendable {
 }
 
 enum BackupAlarmFailure: LocalizedError {
-    case invalid, stale, access, changed, storage
+    case invalid, stale, access, changed, storage, reviewedAlarmChanged
     var errorDescription: String? {
         switch self {
         case .invalid: "This phone's saved backup could not be verified."
@@ -31,6 +36,7 @@ enum BackupAlarmFailure: LocalizedError {
         case .access: "Allow alarms for sleepypod in Settings to add a phone backup."
         case .changed: "The connected account or Pod changed. No new backup was confirmed."
         case .storage: "The backup receipt could not be saved. No new alarm was requested."
+        case .reviewedAlarmChanged: "The phone backup changed or could not be verified. Review the phone alarm again before replacing it."
         }
     }
 }

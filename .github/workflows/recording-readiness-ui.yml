@@ -16,6 +16,9 @@ on:
       - 'Sleepypod/**/BackupAlarm*.swift'
       - 'Sleepypod/**/SystemBackupAlarmClient.swift'
       - 'Sleepypod/**/NextAlarm*.swift'
+      - 'Sleepypod/**/LaterWake*.swift'
+      - 'SleepypodUITests/LaterWakeUITests.swift'
+      - 'Integration/Fixtures/later-wake-example.json'
       - 'SleepypodUITests/AlarmParityUITests.swift'
       - 'SleepypodUITests/NextAlarmUITests.swift'
       - 'Sleepypod/**/BedCare*.swift'
@@ -100,7 +103,7 @@ jobs:
       fail-fast: false
       matrix:
         form: [iPhone, iPad]
-        suite: [recording, guidance, wake, cooling, night, response, connection]
+        suite: [recording, guidance, wake, cooling, night, response, connection, later-wake]
     env:
       DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
     steps:

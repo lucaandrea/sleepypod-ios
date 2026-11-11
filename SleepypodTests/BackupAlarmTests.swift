@@ -159,6 +159,33 @@ import XCTest
         }
     }
 
+    func testLaterReviewIsReadOnlyAndRejectsAnotherOccurrenceOrMissingSystemAlarm() async throws {
+        let (model, client, storage) = fixture(), current = try plan()
+        storage.now = try XCTUnwrap(NextAlarmState.instant(current.alarm!.at)).addingTimeInterval(-3600)
+        XCTAssertEqual(try model.reviewLaterWake(plan: current, receivedAt: storage.now, expectedOwner: storage.owner), .absent)
+        await model.schedule(plan: current, receivedAt: storage.now, expectedOwner: storage.owner)
+        let saved = try XCTUnwrap(storage.record)
+        XCTAssertEqual(try model.reviewLaterWake(plan: current, receivedAt: storage.now, expectedOwner: storage.owner), .existing(saved))
+        let changed = try XCTUnwrap(NextAlarmExample.load().cases["changed"])
+        XCTAssertThrowsError(try model.reviewLaterWake(plan: changed, receivedAt: storage.now, expectedOwner: storage.owner))
+        client.values = []
+        XCTAssertThrowsError(try model.reviewLaterWake(plan: current, receivedAt: storage.now, expectedOwner: storage.owner))
+        XCTAssertEqual(storage.record, saved); XCTAssertEqual(client.schedules, 1); XCTAssertEqual(client.cancels, 0)
+    }
+    func testConditionalReplacementChecksBeforeAndAfterPermissionWithoutRemovingAnotherAlarm() async throws {
+        let (model, client, storage) = fixture(), current = try plan()
+        storage.now = try XCTUnwrap(NextAlarmState.instant(current.alarm!.at)).addingTimeInterval(-3600)
+        await model.schedule(plan: current, receivedAt: storage.now, expectedOwner: storage.owner)
+        let original = try XCTUnwrap(storage.record)
+        await model.schedule(plan: current, receivedAt: storage.now, expectedOwner: storage.owner, expectation: .absent)
+        XCTAssertEqual(client.schedules, 1); XCTAssertEqual(client.cancels, 0)
+        client.onAccess = { client.values = [.init(id: original.id, at: original.at.addingTimeInterval(60), state: "scheduled")] }
+        let changed = try XCTUnwrap(NextAlarmExample.load().cases["changed"])
+        await model.schedule(plan: changed, receivedAt: storage.now, expectedOwner: storage.owner, expectation: .existing(original))
+        XCTAssertEqual(storage.record, original); XCTAssertEqual(client.schedules, 1); XCTAssertEqual(client.cancels, 0)
+        XCTAssertTrue(model.message?.contains("phone backup changed") == true)
+    }
+
     func testVerifiedRoutesKeepOneExistingBackupWithoutRescheduling() async throws {
         let client = BackupTestClient(), storage = BackupTestStorage(), current = try plan()
         let original = ["sleepypod-core", "http://10.0.0.124:3000", "10.0.0.124", "owner", "boundary"]
@@ -182,7 +209,7 @@ import XCTest
     }
 }
 
-@MainActor private final class BackupTestStorage {
+@MainActor final class BackupTestStorage {
     var record: BackupAlarmRecord?
     var owner: String? = String(repeating: "a", count: 64)
     var now = Date()
@@ -190,7 +217,7 @@ import XCTest
     var identityAvailable = true
     var transport: [String] = []
 }
-@MainActor private final class BackupTestClient: BackupAlarmClient {
+@MainActor final class BackupTestClient: BackupAlarmClient {
     var access = true
     var values: [BackupSystemAlarm] = []
     var schedules = 0

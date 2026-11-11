@@ -26,6 +26,7 @@ private struct OccurrenceAlarmCard: View {
     @Environment(\.scenePhase) private var phase
     @Environment(\.dynamicTypeSize) private var typeSize
     @State private var model = NextAlarmWorkspace()
+    @State private var companion = LaterWakeExample.companionIfRequested() ?? LaterWakeCompanion()
     @State private var editing: AlarmDraft?
     @AppStorage("apiBackend") private var backend = ""
     @AppStorage("podURL") private var address = ""
@@ -39,30 +40,32 @@ private struct OccurrenceAlarmCard: View {
         return weekly.nextGroup(side, now: .now, timeZone: TimeZone(identifier: settings.timeZone) ?? .current)
     }
     var body: some View {
-        TimelineView(.periodic(from: .now, by: 5)) { _ in card }
+        TimelineView(.periodic(from: .now, by: 5)) { context in card(now: context.date) }
     }
-    private var card: some View {
+    private func card(now: Date) -> some View {
         VStack(alignment: .leading, spacing: 14) {
             Text("\(settings.sideName(for: side)) wake plan").font(.headline)
             if APIBackend.current.isDemo, DebugRoute.nextAlarmScenario != "normal" { Text("SYNTHETIC ALARM EXAMPLE").font(.caption).foregroundStyle(Theme.amber) }
-            if model.busy { ProgressView("Updating alarm…") }
+            if model.busy || companion.busy { ProgressView("Updating wake plan…") }
             if let current = model.current, model.isFresh { summary(current) }
             else if !model.busy { Text("Alarm status unavailable").foregroundStyle(Theme.text2) }
-            if let error = model.error { Text(error).font(.footnote).foregroundStyle(Theme.amber).accessibilityIdentifier("nextAlarm.error") }
+            if let error = model.error { Text(error).font(.footnote).foregroundStyle(Theme.text1).accessibilityIdentifier("nextAlarm.error") }
             if let notice = model.notice { Text(notice).font(.footnote).foregroundStyle(Theme.text2).accessibilityIdentifier("nextAlarm.notice") }
             if let draft = model.draft { timeEditor(draft) }
+            if let draft = model.laterDraft { LaterWakeReview(model: model, companion: companion, draft: draft, temperatureUnit: settings.temperatureFormat.degreeUnit, now: now) }
+            if model.isFresh, let outcome = companion.outcome, outcome.plan.revision == model.current?.revision { LaterWakeResultView(outcome: outcome) }
             if weekly.loaded {
                 Button(group == nil ? "Add alarm" : "Weekly schedule", systemImage: "calendar") {
                     editing = group.map(AlarmDraft.init(group:)) ?? AlarmDraft(sides: [side])
-                }.disabled(model.busy || weekly.saving).accessibilityIdentifier("nextAlarm.weekly")
+                }.disabled(model.busy || companion.busy || model.laterDraft != nil || weekly.saving).accessibilityIdentifier("nextAlarm.weekly")
             }
             Button("Refresh saved alarm", systemImage: "arrow.clockwise") {
                 Task { await weekly.refresh(); await model.load(userInitiated: true) }
-            }.disabled(model.busy).accessibilityIdentifier("nextAlarm.reload")
+            }.disabled(model.busy || companion.busy).accessibilityIdentifier("nextAlarm.reload")
             DisclosureGroup {
                 VStack(alignment: .leading, spacing: 16) {
                     PhoneBackupAlarmView(plan: model.isFresh ? model.current : nil, receivedAt: model.receivedAt,
-                        ownerScope: model.isFresh ? BackupAlarmCoordinator.ownerScope() : nil, canEdit: !model.busy && !model.requiresReload)
+                        ownerScope: model.isFresh ? BackupAlarmCoordinator.ownerScope() : nil, canEdit: !model.busy && !companion.busy && model.laterDraft == nil && !model.requiresReload)
                     Divider()
                     Text("Lights, shades and audio").font(.headline)
                     Text("This screen confirms the Pod plan and this device’s backup only. Review qualified bedroom routines in Home before relying on other wake devices.")
@@ -71,15 +74,16 @@ private struct OccurrenceAlarmCard: View {
             } label: { Text("Phone backup and wake devices").frame(minHeight: 44).accessibilityIdentifier("wake.backup.details") }
         }.frame(maxWidth: .infinity, alignment: .leading).cardStyle()
             .task(id: scope) {
+                companion.invalidate()
                 model.configure(client: weekly.occurrenceClient(timeZone: settings.timeZone, scenario: DebugRoute.nextAlarmScenario), side: side)
                 await weekly.refresh(); await model.load()
                 while !Task.isCancelled {
                     do { try await Task.sleep(for: .seconds(30)) } catch { return }
-                    if phase == .active { await model.load() }
+                    if phase == .active, !companion.busy { await model.load() }
                 }
             }
-            .onChange(of: phase) { if phase == .active { Task { await model.load() } } else { model.invalidate() } }
-            .onDisappear { model.invalidate() }
+            .onChange(of: phase) { if phase == .active { Task { await model.load() } } else { model.invalidate(); companion.invalidate() } }
+            .onDisappear { model.invalidate(); companion.invalidate() }
             .sheet(item: $editing, onDismiss: { Task { await weekly.refresh(); await schedule.fetchSchedules(); await model.load(userInitiated: true) } }) { NativeAlarmEditor(initial: $0) }
     }
     @ViewBuilder private func summary(_ current: NextAlarmState) -> some View {
@@ -111,16 +115,24 @@ private struct OccurrenceAlarmCard: View {
                 .font(.caption).foregroundStyle(Theme.text2)
         }
         if current.alarm != nil {
+            if current.state == "scheduled", current.warming != nil {
+                Button("Wake later once", systemImage: "sun.horizon") { companion.invalidate(); model.beginLater() }
+                    .disabled(!model.canBeginLater || companion.busy).frame(minHeight: 44).accessibilityIdentifier("laterWake.begin")
+            }
             if current.state != "skipped" {
                 Button("Skip this alarm", systemImage: "bell.slash") { Task { _ = await model.skip() } }
-                    .disabled(!model.canChange || model.draft != nil).accessibilityIdentifier("nextAlarm.skip")
+                    .disabled(!model.canChange || companion.busy || model.draft != nil || model.laterDraft != nil).accessibilityIdentifier("nextAlarm.skip")
             }
             Button("Change this time", systemImage: "clock") { model.beginTime() }
-                .disabled(!model.canChange || model.draft != nil).accessibilityIdentifier("nextAlarm.change")
+                .disabled(!model.canChange || companion.busy || model.draft != nil || model.laterDraft != nil).accessibilityIdentifier("nextAlarm.change")
         }
         if current.change != nil {
+            if let outcome = companion.outcome, outcome.plan.revision == current.revision, outcome.phone != .unchanged {
+                Text("Restoring the Pod routine leaves the phone backup unchanged. Check Phone backup and wake devices below before relying on it.")
+                    .font(.footnote).foregroundStyle(Theme.text2)
+            }
             Button(current.alarm == nil ? "Clear expired change" : "Restore routine alarm", systemImage: "arrow.uturn.backward") { Task { _ = await model.restore() } }
-                .disabled(model.busy || model.requiresReload || model.draft != nil).accessibilityIdentifier("nextAlarm.restore")
+                .disabled(model.busy || companion.busy || model.requiresReload || model.draft != nil || model.laterDraft != nil).accessibilityIdentifier("nextAlarm.restore")
         }
     }
     private func timeEditor(_ draft: NextAlarmWorkspace.Draft) -> some View {

@@ -2,10 +2,29 @@ import XCTest
 @testable import Sleepypod
 
 @MainActor final class NextAlarmRESTTests: XCTestCase {
-    private func client(_ host: String) -> (CoreNextAlarmClient, URLSession) {
+    private func client(_ host: String, now: Date = .now) -> (CoreNextAlarmClient, URLSession) {
         let configuration = URLSessionConfiguration.ephemeral; configuration.protocolClasses = [NextAlarmRequestProtocol.self]
         let session = URLSession(configuration: configuration)
-        return (.init(transport: .init(endpoint: URL(string: "https://\(host)")!, session: session)), session)
+        return (.init(transport: .init(endpoint: URL(string: "https://\(host)")!, session: session), now: { now }), session)
+    }
+    func testLaterWakeUsesAdvertisedFixedRoutesAndEchoesTheExactReviewedObject() async throws {
+        let fixture = try LaterWakeTestFixture()
+        let (client, session) = client("later-contract.invalid", now: fixture.now); defer { session.invalidateAndCancel() }
+        try await client.laterAvailable()
+        let packet = try await client.previewLater(fixture.input)
+        let saved = try await client.applyLater(packet)
+        XCTAssertEqual(saved, fixture.saved)
+    }
+    func testLaterWakeRejectsUnsupportedCapabilityAndInconsistentPreview() async throws {
+        let fixture = try LaterWakeTestFixture()
+        for host in ["later-unsupported.invalid", "later-invalid.invalid"] {
+            let (client, session) = client(host, now: fixture.now); defer { session.invalidateAndCancel() }
+            do {
+                if host.contains("unsupported") { try await client.laterAvailable() }
+                else { _ = try await client.previewLater(fixture.input) }
+                XCTFail("Unverified later-wake source must be rejected")
+            } catch { XCTAssertFalse(error.localizedDescription.contains("PRIVATE")) }
+        }
     }
     func testContractFixedRoutesQueryAndExactActionBodies() async throws {
         let (client, session) = client("alarm-contract.invalid"); defer { session.invalidateAndCancel() }
@@ -49,8 +68,21 @@ private final class NextAlarmRequestProtocol: URLProtocol, @unchecked Sendable {
                 status = code; payload = ["message": "PRIVATE response data"]
             } else if url.path == "/api/v1/capabilities" {
                 valid = valid && request.httpMethod == "GET" && query.isEmpty
-                payload = ["apiVersion": 1, "features": ["nextAlarmOverride": ["implemented": true, "runtime": "ready"]],
-                    "endpoints": ["nextAlarm": host.contains("unsupported") ? "https://external.invalid/next" : "/api/v1/alarm/next", "alarmOverride": "/api/v1/alarm/override"]]
+                payload = ["apiVersion": 1, "features": ["nextAlarmOverride": ["implemented": true, "runtime": "ready"], "laterAlarmPreview": ["implemented": true, "runtime": "ready"]],
+                    "endpoints": ["nextAlarm": host.contains("unsupported") ? "https://external.invalid/next" : "/api/v1/alarm/next", "alarmOverride": "/api/v1/alarm/override",
+                        "laterAlarmPreview": host.contains("unsupported") ? "https://external.invalid/preview" : "/api/v1/alarm/later-preview", "laterAlarmApply": "/api/v1/alarm/later-apply"]]
+            } else if url.path == "/api/v1/alarm/later-preview", request.httpMethod == "POST" {
+                let fixture = try LaterWakeTestFixture()
+                let input = try JSONDecoder().decode(LaterWakeRequest.self, from: body())
+                valid = valid && query.isEmpty && input == fixture.input
+                payload = try JSONSerialization.jsonObject(with: fixture.previewData) as! [String: Any]
+                if host == "later-invalid.invalid" { payload["weeklyScheduleChanged"] = true }
+            } else if url.path == "/api/v1/alarm/later-apply", request.httpMethod == "POST" {
+                let fixture = try LaterWakeTestFixture(), fields = try JSONSerialization.jsonObject(with: body()) as! [String: Any]
+                let expected = try JSONSerialization.jsonObject(with: fixture.previewData) as! NSDictionary
+                let received = fields["preview"] as? NSDictionary
+                valid = valid && query.isEmpty && Set(fields.keys) == ["preview"] && expected == received
+                payload = try object(fixture.saved)
             } else if url.path == "/api/v1/alarm/next", request.httpMethod == "GET" {
                 valid = valid && query == ["side": "left"]
                 payload = try object(examples["scheduled"]!)
