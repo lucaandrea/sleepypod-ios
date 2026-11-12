@@ -10,26 +10,73 @@ on:
       - 'SleepypodUITests/Household*.swift'
       - 'Sleepypod/Views/Settings/SettingsSheet.swift'
       - '.github/workflows/control-practice-ui.yml'
+      - 'scripts/verify-practice-ui.sh'
   workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
-  practice:
-    name: Control practice (${{ matrix.form }})
-    runs-on: macos-15-intel
-    timeout-minutes: 65
-    strategy:
-      fail-fast: false
-      matrix:
-        form: [iPhone, iPad]
+  ui-bundle:
+    name: Build practice UI bundle
+    runs-on: macos-15
+    timeout-minutes: 45
     env:
       DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
     steps:
       - uses: actions/checkout@v4
         with:
           lfs: true
+      - name: Build all UI tests once
+        timeout-minutes: 30
+        run: bash scripts/verify-practice-ui.sh build all
+      - name: Archive signed products and source revision
+        run: |
+          mkdir -p "$RUNNER_TEMP/PracticeBundle"
+          ditto -c -k --keepParent "$RUNNER_TEMP/PracticeBuild/Build/Products" "$RUNNER_TEMP/PracticeBundle/Products.zip"
+          git rev-parse HEAD > "$RUNNER_TEMP/PracticeBundle/source-revision.txt"
+          xcodebuild -version > "$RUNNER_TEMP/PracticeBundle/xcode-version.txt"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: practice-ui-bundle
+          path: ${{ runner.temp }}/PracticeBundle
+          if-no-files-found: error
+          retention-days: 7
+          compression-level: 0
+  practice:
+    name: Practice checks (${{ matrix.form }}, ${{ matrix.suite }})
+    needs: ui-bundle
+    runs-on: macos-15
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      # Bound each group without dropping any phone or tablet scenario.
+      max-parallel: 2
+      matrix:
+        form: [iPhone, iPad]
+        suite: [journey, accessibility, invitations]
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+      - uses: actions/download-artifact@v4
+        with:
+          name: practice-ui-bundle
+          path: ${{ runner.temp }}/PracticeBundle
+      - name: Restore same-revision UI test bundle
+        run: |
+          test "$(cat "$RUNNER_TEMP/PracticeBundle/source-revision.txt")" = "$(git rev-parse HEAD)"
+          xcodebuild -version > "$RUNNER_TEMP/current-xcode-version.txt"
+          cmp "$RUNNER_TEMP/PracticeBundle/xcode-version.txt" "$RUNNER_TEMP/current-xcode-version.txt"
+          ditto -x -k "$RUNNER_TEMP/PracticeBundle/Products.zip" "$RUNNER_TEMP/PracticeBundle"
+          PRACTICE_TEST_RUN=$(python3 -c '
+          import pathlib, sys
+          matches = list(pathlib.Path(sys.argv[1]).glob("*.xctestrun"))
+          if len(matches) != 1: sys.exit("Expected exactly one shared UI test run")
+          print(matches[0])' "$RUNNER_TEMP/PracticeBundle/Products")
+          printf 'PRACTICE_TEST_RUN=%s\n' "$PRACTICE_TEST_RUN" >> "$GITHUB_ENV"
       - name: Select simulator
         run: |
           PRACTICE_SIM_ID=$(xcrun simctl list devices available --json | python3 -c '
@@ -39,30 +86,17 @@ jobs:
           if not matches: sys.exit("Requested iOS 26 simulator is unavailable")
           print(matches[0])' '${{ matrix.form }}')
           printf 'PRACTICE_SIM_ID=%s\n' "$PRACTICE_SIM_ID" >> "$GITHUB_ENV"
-      - name: Build practice tests
-        timeout-minutes: 30
-        run: |
-          xcodebuild build-for-testing -project Sleepypod.xcodeproj -scheme Sleepypod \
-            -destination "platform=iOS Simulator,id=$PRACTICE_SIM_ID" \
-            -derivedDataPath "$RUNNER_TEMP/PracticeBuild" CODE_SIGNING_ALLOWED=NO
       - name: Boot simulator
         timeout-minutes: 15
         run: xcrun simctl bootstatus "$PRACTICE_SIM_ID" -b
       - name: Verify practice and personal invitations
         timeout-minutes: 20
-        run: |
-          xcodebuild test-without-building -project Sleepypod.xcodeproj -scheme Sleepypod \
-            -destination "platform=iOS Simulator,id=$PRACTICE_SIM_ID" \
-            -derivedDataPath "$RUNNER_TEMP/PracticeBuild" \
-            -only-testing:SleepypodUITests/ControlPracticeUITests \
-            -only-testing:SleepypodUITests/HouseholdPreparationUITests \
-            -resultBundlePath "$RUNNER_TEMP/Practice.xcresult" \
-            -collect-test-diagnostics never -parallel-testing-enabled NO CODE_SIGNING_ALLOWED=NO
+        run: bash scripts/verify-practice-ui.sh test "${{ matrix.suite }}"
       - name: Preserve screenshots and results
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: control-practice-${{ matrix.form }}
-          path: ${{ runner.temp }}/Practice.xcresult
+          name: practice-${{ matrix.form }}-${{ matrix.suite }}
+          path: ${{ runner.temp }}/Practice-${{ matrix.suite }}.xcresult
           if-no-files-found: ignore
           retention-days: 7

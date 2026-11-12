@@ -4387,7 +4387,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "set -eu\nSDK_MANIFEST=\"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/AIProxy_AIProxy.bundle/PrivacyInfo.xcprivacy\"\nif [ -f \"$SDK_MANIFEST\" ]; then\n  cp \"${SRCROOT}/FreeSleepKit/Resources/PrivacyInfo.xcprivacy\" \"$SDK_MANIFEST\"\n  plutil -lint \"$SDK_MANIFEST\"\nfi\n";
+			shellScript = "/bin/sh \"${SRCROOT}/scripts/apply-provider-privacy.sh\"\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 

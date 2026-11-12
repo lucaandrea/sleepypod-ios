@@ -37,6 +37,9 @@ jobs:
           CODE_SIGNING_ALLOWED=NO
           -quiet
 
+      - name: Verify build support scripts
+        run: python3 -m unittest discover -s scripts/tests -p 'test_*.py' -v
+
       # A cold Intel simulator build can take over 17 minutes. Give compilation
       # its own budget so it cannot consume the regression suite's run time.
       - name: Build simulator test bundle
