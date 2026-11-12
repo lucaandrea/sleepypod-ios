@@ -84,3 +84,22 @@ missed interaction from a stale button snapshot. It never retries the tap,
 preselects consent or removes the original send/withdraw assertions. Hosted
 acceptance remains pending; this diagnostic correction is not a claimed product
 fix or a passing result.
+
+### Combined quiet and Watch source
+
+The release branch now retains both PR 76's Watch controls and PR 77's quiet
+controls as merge parents. The Xcode project merge retains all 20 new quiet
+objects, all 38 new Watch objects and every source/resource/group membership
+from both branches. The first-match factory includes quiet before the prior
+fixtures, preserving its original priority without the compiler's long chain.
+Every currently open feature PR head is an ancestor of this combined revision.
+
+Application revision `655d87a78c14f325727ff76e3a23d36262561755` passes **1,626
+application/framework tests**, with nine existing live-service skips and zero
+failures. Signed simulator build-for-testing, unsigned physical-iOS Release
+compilation including the Watch target, strict SwiftLint across 676 files,
+seven build-support tests, all workflow YAML, six recording-workflow shell
+blocks and whitespace checks pass. The unchanged local iPad sharing suite also
+passed all five cases before the consent diagnostics change. The affected
+combined phone/tablet UI suites are being verified separately; their final
+results and hosted iOS 26.2 checks remain release gates.
