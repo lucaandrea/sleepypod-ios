@@ -19,7 +19,7 @@ permissions:
 jobs:
   ui-bundle:
     name: Build practice UI bundle
-    runs-on: macos-15
+    runs-on: macos-15-intel
     timeout-minutes: 45
     env:
       DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
@@ -46,7 +46,7 @@ jobs:
   practice:
     name: Practice checks (${{ matrix.form }}, ${{ matrix.suite }})
     needs: ui-bundle
-    runs-on: macos-15
+    runs-on: macos-15-intel
     timeout-minutes: 45
     strategy:
       fail-fast: false

@@ -99,6 +99,12 @@ struct HouseholdScreen: View {
                              : "Personal check-ins are not enabled on this controller.")
                             .font(.footnote).foregroundStyle(Theme.text2)
                     }
+                    Section("Comfort comparisons") {
+                        NavigationLink("Compare nearby settings", value: "experiments")
+                            .disabled(model.experiments?.enabled != true).accessibilityIdentifier("experiments.personalLink")
+                        Text("Review scheduled nights, keep your wake routine, and compare your own morning comfort.")
+                            .font(.footnote).foregroundStyle(Theme.text2)
+                    }
                     Section("Your saved learning") {
                         NavigationLink("Browse saved learning", value: "learning")
                             .disabled(model.learning?.enabled != true).accessibilityIdentifier("learning.accountLink")
@@ -186,6 +192,7 @@ struct HouseholdScreen: View {
                     else if route == "history", let history = model.history { PersonalHistoryScreen(model: history).id(ObjectIdentifier(history)) }
                     else if route == "quiet", let quiet = model.quiet { PersonalQuietScreen(model: quiet).id(ObjectIdentifier(quiet)) }
                     else if route == "journal", let journal = model.journal { PersonalJournalScreen(model: journal).id(ObjectIdentifier(journal)) }
+                    else if route == "experiments", let experiments = model.experiments { ComfortExperimentsScreen(model: experiments).id(ObjectIdentifier(experiments)) }
                     else if route == "learning", let learning = model.learning { PersonalLearningScreen(model: learning).id(ObjectIdentifier(learning)) }
                     else if route == "arrangement", let arrangement = model.arrangement {
                         ArrangementReviewScreen(model: arrangement, maintenance: model.maintenance, close: { model.signOut() }).id(ObjectIdentifier(arrangement))

@@ -157,6 +157,7 @@ struct SleepypodApp: App {
                         else { await offlineLibrary.refresh(client: MockClient(), timeZone: "America/Los_Angeles") }
                     }
             }
+            else if ProcessInfo.processInfo.arguments.contains("--comfort-experiments-fixture") { ComfortExperimentPreview() }
             else if ProcessInfo.processInfo.arguments.contains("--connection-fixture") { ConnectionRecoveryPreview() }
             else if ProcessInfo.processInfo.arguments.contains("--daytime-context-fixture") {
                 NavigationStack { PodFeatureScreen(.daytimeContext) }

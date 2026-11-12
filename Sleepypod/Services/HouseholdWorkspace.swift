@@ -22,6 +22,8 @@ import Observation
     private(set) var personalHealth: PersonalHealthWorkspace?
     private(set) var learning: PersonalLearningWorkspace?
     private(set) var journal: PersonalJournalWorkspace?
+    private(set) var experiments: ComfortExperimentWorkspace?
+    private var experimentConnection: PersonalBedConnection?
     private(set) var quiet: PersonalQuietWorkspace?
     private(set) var maintenance: ArrangementMaintenanceWorkspace?
     private(set) var maintenanceChecking = false
@@ -37,6 +39,7 @@ import Observation
     private let historyClient: @Sendable (PersonalBedConnection) -> any PersonalHistoryTransport
     private let learningClient: @Sendable (PersonalBedConnection) -> any PersonalLearningTransport
     private let quietClient: @Sendable (PersonalBedConnection) -> any PersonalQuietTransport
+    private let experimentClient: @Sendable (PersonalBedConnection) -> any ComfortExperimentTransport
     private let journalClient: @Sendable (PersonalBedConnection) -> any PersonalJournalTransport
     private let maintenanceClient: @Sendable (PersonalBedConnection) -> any ArrangementMaintenanceTransport
     private let capability: @MainActor () async throws -> Bool
@@ -57,6 +60,7 @@ import Observation
          historyClient: @escaping @Sendable (PersonalBedConnection) -> any PersonalHistoryTransport = { PersonalHistoryHTTPClient(connection: $0) },
          learningClient: @escaping @Sendable (PersonalBedConnection) -> any PersonalLearningTransport = { PersonalLearningHTTPClient(connection: $0) },
          journalClient: @escaping @Sendable (PersonalBedConnection) -> any PersonalJournalTransport = { PersonalJournalHTTPClient(connection: $0) },
+         experimentClient: @escaping @Sendable (PersonalBedConnection) -> any ComfortExperimentTransport = { ComfortExperimentHTTPClient(account: .personal($0)) },
          quietClient: @escaping @Sendable (PersonalBedConnection) -> any PersonalQuietTransport = { PersonalQuietHTTPClient(connection: $0) },
          maintenanceClient: @escaping @Sendable (PersonalBedConnection) -> any ArrangementMaintenanceTransport = { ArrangementMaintenanceHTTPClient(connection: $0) },
          capability: @escaping @MainActor () async throws -> Bool = { try await HouseholdPreparationCapability.load() },
@@ -67,6 +71,7 @@ import Observation
         self.healthSnapshots = healthSnapshots
         self.vault = vault; self.defaults = defaults; self.client = client; self.personalClient = personalClient; self.routineClient = routineClient
         self.arrangementClient = arrangementClient; self.historyClient = historyClient; self.maintenanceClient = maintenanceClient
+        self.experimentClient = experimentClient
         self.learningClient = learningClient; self.journalClient = journalClient; self.quietClient = quietClient
         self.capability = capability; self.ownerEndpoint = ownerEndpoint; self.ownerKey = ownerKey; self.secret = secret
         active = defaults.bool(forKey: PersonalWorkspaceBoundary.preferenceKey)
@@ -223,6 +228,7 @@ import Observation
             configureHistory(record: record, session: value)
             configureLearning(record: record, session: value)
             configureJournal(record: record, session: value)
+            configureExperiments(record: record, session: value)
             configureQuiet(record: record, session: value)
             notice = pending == nil ? "Personal account refreshed. Routine drafts do not run the bed." : "Saved state refreshed. An earlier request still needs review; retrying uses the same request."
         } catch {
@@ -417,7 +423,11 @@ import Observation
     }
     /// Dispose assigned controls and private editors without losing an unresolved maintenance operation.
     private func clearOrdinary(preservingQuiet: Bool = false) {
-        if preservingQuiet { quiet?.suspend() } else { quiet?.invalidate(); quiet = nil }
+        if preservingQuiet {
+            quiet?.suspend(); experiments?.suspend()
+        } else {
+            quiet?.invalidate(); quiet = nil; experiments?.invalidate(); experiments = nil; experimentConnection = nil
+        }
         personalHealth?.invalidate(); personalHealth = nil
         temperature?.invalidate(); temperature = nil
         publication?.invalidate(); publication = nil
@@ -745,6 +755,24 @@ import Observation
             return self.active && self.foreground && self.generation == operation && self.state.selected == record.id && self.session == session && !self.requiresMaintenance
         }, revoked: { [weak self] in
             guard let self, self.generation == operation, self.state.selected == record.id else { return }
+            self.clearVisible()
+            do { try self.forget(record.id); self.error = HouseholdFailure.authentication.localizedDescription }
+            catch { self.error = HouseholdFailure.storage.localizedDescription }
+        })
+    }
+    private func configureExperiments(record: HouseholdConnectionRecord, session: HouseholdSession) {
+        if let existing = experimentConnection, let experiments, !experiments.invalidated,
+           existing.id == record.id, existing.endpoint == record.endpoint, existing.token == record.deviceSecret, existing.session == session { return }
+        experiments?.invalidate(); experiments = nil; experimentConnection = nil
+        guard session.capabilities.comfortExperiments == true else { return }
+        let connection = PersonalBedConnection(id: record.id, endpoint: record.endpoint, token: record.deviceSecret, session: session)
+        experimentConnection = connection
+        experiments = ComfortExperimentWorkspace(client: experimentClient(connection), permitted: { [weak self] in
+            guard let self else { return false }
+            return self.active && self.foreground && self.state.selected == record.id && self.session == session
+                && self.selected?.deviceSecret == record.deviceSecret && self.selected?.endpoint == record.endpoint && !self.requiresMaintenance
+        }, revoked: { [weak self] in
+            guard let self, self.active, self.state.selected == record.id, self.session == session else { return }
             self.clearVisible()
             do { try self.forget(record.id); self.error = HouseholdFailure.authentication.localizedDescription }
             catch { self.error = HouseholdFailure.storage.localizedDescription }
