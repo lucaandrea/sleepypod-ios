@@ -6,6 +6,14 @@
 	<array>
 		<dict>
 			<key>CFBundleURLName</key>
+			<string>com.lucaandrea.freesleep.widgets</string>
+			<key>CFBundleURLSchemes</key>
+			<array><string>sleepypod-widget</string></array>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+		</dict>
+		<dict>
+			<key>CFBundleURLName</key>
 			<string>com.lucaandrea.freesleep.bedtime</string>
 			<key>CFBundleURLSchemes</key>
 			<array><string>sleepypod-bedtime</string></array>

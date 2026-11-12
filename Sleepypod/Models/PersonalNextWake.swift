@@ -21,6 +21,14 @@ struct PersonalNextWake: Codable, Equatable, Sendable {
 }
 
 @MainActor enum BedRemoteWakeSummary {
+    static func occurrence(_ plan: NextAlarmState, now: Date = .now) -> BedRemoteWake? {
+        guard plan.state == "scheduled", plan.execution == nil, let alarm = plan.alarm,
+              let at = NextAlarmState.instant(alarm.at) else { return nil }
+        let wake = BedRemoteWake(side: plan.side.rawValue, at: at, timeZone: plan.timeZone,
+            warmingAt: plan.warming.flatMap { NextAlarmState.instant($0.startsAt) }, targetF: plan.warming?.targetF,
+            vibrationSeconds: alarm.duration)
+        return wake.valid(checkedAt: now) ? wake : nil
+    }
     static func text(_ plan: NextAlarmState) -> String {
         let summary = NativeActionSession.alarmSummary(plan)
         guard plan.state == "scheduled", plan.execution == nil, let alarm = plan.alarm else { return summary }

@@ -72,7 +72,8 @@ import FreeSleepKit
             assignment: sides.count == 2 ? "Both sides" : "\(sides[0].displayName) side", zones: zones,
             nextAlarm: alarm.map(BedRemoteWakeSummary.text) ?? "Next alarm unavailable. Check it on iPhone.",
             canAdjust: canAdjust, canStop: true,
-            explanation: canAdjust ? "Manual temperature hold · 30 minutes" : "Refresh readings and check water or priming on iPhone.")
+            explanation: canAdjust ? "Manual temperature hold · 30 minutes" : "Refresh readings and check water or priming on iPhone.",
+            wake: alarm.flatMap { BedRemoteWakeSummary.occurrence($0, now: now) })
         try snapshot.validate()
         reviewed = [snapshot.lease: .init(settings: settings, sides: sides, target: zones.map(\.requestedF))]
         return .init(context: expected, snapshot: snapshot)

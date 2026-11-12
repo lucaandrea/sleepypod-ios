@@ -31,6 +31,7 @@ struct SleepypodApp: App {
     @State private var snoreCapture = SnoreCaptureService()
     @State private var offlineLibrary = OfflineLibrarySession()
     @State private var ownerRoutes: OwnerRouteSession
+    @State private var bedWidgets: BedWidgetSession
 
     init() {
         #if DEBUG
@@ -83,6 +84,11 @@ struct SleepypodApp: App {
         let watch = WatchMotionReceiver(remote: remote)
         watch.activate()
         _watchMotion = State(initialValue: watch)
+        // Keep widget reads separate from the Watch's reviewed command lease.
+        let widgetOwner = OwnerBedRemoteSource(selected: { device.isLinked ? Side.allCases : device.selectedSide.sides }, controls: {
+            try NativeControlService(ledger: .persistent(), client: { try CoreNativeControlClient(transport: .configured()) })
+        })
+        _bedWidgets = State(initialValue: BedWidgetSession(source: PhoneBedRemoteSource(household: household, owner: widgetOwner)))
         let bridge = actions.bridge
         AppDependencyManager.shared.add(dependency: bridge)
     }
@@ -113,6 +119,8 @@ struct SleepypodApp: App {
                 .environment(household)
                 .modifier(BedtimeRitualLifecycle(household: household))
                 .modifier(BackupAlarmLifecycle())
+                .modifier(BedWidgetLifecycle(session: bedWidgets,
+                    accountContext: household.remoteContext + [String(describing: deviceManager.selectedSide), String(deviceManager.isLinked)]))
                 .preferredColorScheme(userProfile.appearance.colorScheme)
                 .foregroundStyle(Theme.text1)
                 .tint(Theme.text1)
@@ -158,6 +166,7 @@ struct SleepypodApp: App {
                         else { await offlineLibrary.refresh(client: MockClient(), timeZone: "America/Los_Angeles") }
                     }
             }
+            else if ProcessInfo.processInfo.arguments.contains("--bed-widget-fixture") { BedWidgetPreview() }
             else if ProcessInfo.processInfo.arguments.contains("--comfort-experiments-fixture") { ComfortExperimentPreview() }
             else if ProcessInfo.processInfo.arguments.contains("--connection-fixture") { ConnectionRecoveryPreview() }
             else if ProcessInfo.processInfo.arguments.contains("--daytime-context-fixture") {
@@ -273,6 +282,7 @@ struct ContentView: View {
                 selectedTab = "temp"
             }
             .onReceive(NotificationCenter.default.publisher(for: .leaveDemoMode)) { _ in leaveDemoMode() }
+            .onReceive(NotificationCenter.default.publisher(for: .openBedWidget)) { _ in selectedTab = "temp" }
             .onReceive(NotificationCenter.default.publisher(for: .showSleepRecord)) { notification in
                 guard let record = notification.object as? SleepRecord, let side = Side(rawValue: record.side) else { return }
                 metricsManager.selectedSide = side

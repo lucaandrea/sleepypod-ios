@@ -23,7 +23,12 @@ import Foundation
         let (session, model) = try await household.prepareRemoteTemperature()
         guard expected == context, let bed = model.bed else { throw BedRemoteFailure.changed }
         let nextAlarm: String
-        do { nextAlarm = BedRemoteWakeSummary.text(try await household.readRemoteWake(for: bed).plan) }
+        var wake: BedRemoteWake?
+        do {
+            let plan = try await household.readRemoteWake(for: bed).plan
+            nextAlarm = BedRemoteWakeSummary.text(plan)
+            wake = BedRemoteWakeSummary.occurrence(plan)
+        }
         catch let failure as HouseholdFailure where [.changedIdentity, .authentication, .forbidden, .conflict, .invalid].contains(failure) { throw failure }
         catch { nextAlarm = "Next wake unavailable. Open your personal account on iPhone and refresh the current plan." }
         guard expected == context else { throw BedRemoteFailure.changed }
@@ -37,7 +42,7 @@ import Foundation
             person: session.person.displayName, assignment: session.assignmentLabel, zones: zones,
             nextAlarm: nextAlarm,
             canAdjust: model.canAdjust, canStop: model.canStopPower && model.canStopVibration,
-            explanation: model.canAdjust ? "Manual temperature hold · 30 minutes" : "Check the bed or pending commands on iPhone.")
+            explanation: model.canAdjust ? "Manual temperature hold · 30 minutes" : "Check the bed or pending commands on iPhone.", wake: wake)
         try snapshot.validate()
         personal = (snapshot.lease, model, bed)
         return .init(context: expected, snapshot: snapshot)

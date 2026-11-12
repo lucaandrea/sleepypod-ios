@@ -58,6 +58,7 @@ targets:
     platform: iOS
     sources:
       - path: Sleepypod
+      - path: WidgetPresentation
       - path: SleepypodUI
       - path: Shared
       - path: Integration/Fixtures
@@ -76,11 +77,13 @@ targets:
     dependencies:
       - target: FreeSleepKit
       - target: SleepypodWatch
+      - target: SleepypodWidgets
     entitlements:
       path: Sleepypod/Sleepypod.entitlements
       properties:
         com.apple.developer.healthkit: true
         com.apple.developer.homekit: true
+        com.apple.security.application-groups: [group.com.lucaandrea.freesleep.widgets]
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.lucaandrea.freesleep
@@ -99,6 +102,40 @@ targets:
           CODE_SIGN_STYLE: Manual
           CODE_SIGN_IDENTITY: Apple Distribution
           PROVISIONING_PROFILE_SPECIFIER: Free Sleep App Store 2026
+
+  SleepypodWidgets:
+    type: app-extension
+    platform: iOS
+    sources:
+      - path: SleepypodWidgets
+      - path: WidgetPresentation
+      - path: Shared/BedWidget
+      - path: Shared/BedRemote.swift
+    entitlements:
+      path: SleepypodWidgets/SleepypodWidgets.entitlements
+      properties:
+        com.apple.security.application-groups: [group.com.lucaandrea.freesleep.widgets]
+    info:
+      path: SleepypodWidgets/Info.plist
+      properties:
+        CFBundleDisplayName: Bed status
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.widgetkit-extension
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.lucaandrea.freesleep.widgets
+        PRODUCT_NAME: SleepypodWidgets
+        INFOPLIST_KEY_CFBundleDisplayName: Bed status
+        APPLICATION_EXTENSION_API_ONLY: true
+        SKIP_INSTALL: true
+        TARGETED_DEVICE_FAMILY: "1,2"
+        CODE_SIGN_STYLE: Automatic
+        DEVELOPMENT_TEAM: 9FNNQ6J269
+      configs:
+        Release:
+          CODE_SIGN_STYLE: Manual
+          CODE_SIGN_IDENTITY: Apple Distribution
+          PROVISIONING_PROFILE_SPECIFIER: Free Sleep Widgets App Store 2026
 
   SleepypodWatch:
     type: application

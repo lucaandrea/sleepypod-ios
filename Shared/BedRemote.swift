@@ -45,6 +45,7 @@ struct BedRemoteSnapshot: Codable, Equatable, Sendable {
     let canAdjust: Bool
     let canStop: Bool
     let explanation: String?
+    var wake: BedRemoteWake?
 
     var targetF: Int? {
         guard let target = zones.first?.requestedF, zones.allSatisfy({ $0.requestedF == target }) else { return nil }
@@ -65,7 +66,37 @@ struct BedRemoteSnapshot: Codable, Equatable, Sendable {
                   && ($0.measuredF.map { $0.isFinite && (32...140).contains($0) } ?? true)
                   && ($0.requestedF.map { (55...110).contains($0) } ?? true) }),
               observationAt.map({ $0.timeIntervalSince1970.isFinite && $0 <= receivedAt }) ?? true,
+              wake.map({ $0.valid(checkedAt: receivedAt) }) ?? true,
               !canAdjust || (readingsFresh(at: receivedAt) && canStop) else { throw BedRemoteFailure.invalid }
+    }
+}
+
+/// An absolute occurrence avoids retaining relative phrases such as "tomorrow" across midnight.
+struct BedRemoteWake: Codable, Equatable, Sendable {
+    let side: String
+    let at: Date
+    let timeZone: String
+    let warmingAt: Date?
+    let targetF: Double?
+    let vibrationSeconds: Double
+
+    func valid(checkedAt: Date) -> Bool {
+        ["left", "right"].contains(side) && TimeZone(identifier: timeZone) != nil
+            && at.timeIntervalSince1970.isFinite && at > checkedAt && at.timeIntervalSince(checkedAt) <= 8 * 86_400
+            && vibrationSeconds.isFinite && (0...3_600).contains(vibrationSeconds)
+            && (warmingAt == nil) == (targetF == nil)
+            && (warmingAt.map { $0.timeIntervalSince1970.isFinite && $0 < at } ?? true)
+            && (targetF.map { $0.isFinite && (55...110).contains($0) } ?? true)
+    }
+    var timeLabel: String { format(at, date: false) }
+    var dateLabel: String { format(at, date: true) }
+    var warmingLabel: String? { warmingAt.map { format($0, date: false) } }
+    private func format(_ instant: Date, date: Bool) -> String {
+        let formatter = DateFormatter()
+        formatter.timeZone = TimeZone(identifier: timeZone)
+        formatter.dateStyle = date ? .medium : .none
+        formatter.timeStyle = date ? .none : .short
+        return formatter.string(from: instant)
     }
 }
 
