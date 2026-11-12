@@ -67,6 +67,9 @@ struct SettingsSheet: View {
                         NavigationLink { HouseholdPreparationEntry() } label: {
                             SettingsRow("Personal account", subtitle: "Preferences and routine drafts", icon: "person.crop.circle", iconColor: Theme.text1, chevron: true)
                         }.accessibilityIdentifier("settings.personalAccount")
+                        NavigationLink { ControlPracticeScreen(guideURL: OwnerConnection.endpoint?.appending(path: "guide/marissa.html")) } label: {
+                            SettingsRow("Practice the controls", subtitle: "Temperature, alarms and Stop", icon: "hand.tap", iconColor: Theme.text1, chevron: true)
+                        }.accessibilityIdentifier("settings.practice")
                         NavigationLink { OwnerConnectionView() } label: {
                             SettingsRow("Pod connection", icon: "network", iconColor: Theme.text1, chevron: true)
                         }.accessibilityIdentifier("settings.connection")
@@ -300,6 +303,9 @@ struct AllSettingsScreen: View {
                 }
                 GroupedSection("CONNECTIONS") {
                     GroupedCard {
+                        NavigationLink { ControlPracticeScreen(guideURL: OwnerConnection.endpoint?.appending(path: "guide/marissa.html")) } label: {
+                            SettingsRow("Practice the controls", subtitle: "Temperature, alarms and Stop", icon: "hand.tap", tile: true, chevron: true)
+                        }.accessibilityIdentifier("settings.practice")
                         NavigationLink { HouseholdPreparationEntry() } label: {
                             SettingsRow("Personal account", subtitle: "Preferences and routine drafts", icon: "person.crop.circle", iconColor: Theme.text1, chevron: true)
                         }.accessibilityIdentifier("settings.personalAccount")

@@ -35,6 +35,11 @@ struct HouseholdScreen: View {
                 feedback
                 controlRecovery
                 publicationRecovery
+                Section("Learn the controls") {
+                    NavigationLink("Practice temperature, alarms and Stop", value: "practice")
+                        .accessibilityIdentifier("household.practice")
+                    Text("Try example settings before using the bed. No real controls or alarms change.").font(.footnote).foregroundStyle(Theme.text2)
+                }
                 if let session = model.session {
                     Section("Your private drafts") {
                         NavigationLink("Comfort preferences", value: "preferences")
@@ -145,7 +150,8 @@ struct HouseholdScreen: View {
                 Button("Refresh", systemImage: "arrow.clockwise") { Task { await model.refresh() } }.disabled(model.busy || model.selected == nil)
             } }
             .navigationDestination(for: String.self) { route in
-                if let session = model.session {
+                if route == "practice" { ControlPracticeScreen(guideURL: model.selected?.endpoint.appending(path: "guide/marissa.html")) }
+                else if let session = model.session {
                     if route == "preferences" { HouseholdPreferencesEditor().id(session.namespace + String(model.preferences?.revision ?? 0)) }
                     else if route == "routines" { HouseholdRoutineWeek().id(session.namespace) }
                     else if route == "publication", let publication = model.publication { PersonalRoutineReviewScreen(model: publication, unit: model.draftPreferences.displayUnit).id(session.namespace) }
@@ -157,7 +163,7 @@ struct HouseholdScreen: View {
                     }
                 }
             }
-            .sheet(item: $connectionForm) { kind in NavigationStack { HouseholdConnectionForm(kind: kind) } }
+            .sheet(item: $connectionForm) { kind in NavigationStack { HouseholdConnectionForm(kind: kind) }.presentationDetents([.large]) }
             .alert("Erase all local personal data?", isPresented: $eraseLocalData) {
                 Button("Erase local personal data", role: .destructive) { model.erasePersonalLocalData() }
                 Button("Cancel", role: .cancel) { }
@@ -247,7 +253,10 @@ struct HouseholdScreen: View {
                     if let code = model.invitationCode(invitation.id), let expiry = SensorObservation.date(invitation.expiresAt), expiry > .now {
                         if revealedCode == invitation.id {
                             Text(code).font(.caption.monospaced()).textSelection(.enabled).privacySensitive()
-                            ShareLink("Share invitation", item: "Join my sleepypod personal workspace at \(model.selected?.endpoint.absoluteString ?? ""). Invitation: \(code)")
+                            if let endpoint = model.selected?.endpoint, let link = HouseholdInvitationLink.url(endpoint: endpoint, invitation: code) {
+                                ShareLink("Share invitation link", item: link)
+                                Text("Open in a browser, or paste the complete link into the app’s Join account screen.").font(.footnote).foregroundStyle(Theme.text2)
+                            }
                             Button("Hide invitation") { revealedCode = nil }
                         } else { Button("Show invitation") { revealedCode = invitation.id } }
                         Button("Revoke invitation", role: .destructive) { Task { await model.revoke(invitationId: invitation.id) } }.disabled(!model.maySave)
@@ -255,49 +264,5 @@ struct HouseholdScreen: View {
                 }.padding(.vertical, 4)
             }
         }
-    }
-}
-
-struct HouseholdConnectionForm: View {
-    enum Kind: String, Identifiable { case owner, join; var id: String { rawValue } }
-    let kind: Kind
-    @Environment(HouseholdWorkspace.self) private var model
-    @Environment(\.dismiss) private var dismiss
-    @State private var address = ""
-    @State private var name = ""
-    @State private var deviceName = "My iPhone"
-    @State private var invitation = ""
-    @State private var sourceSide: Side = .left
-    @State private var reviewed = false
-    var body: some View {
-        Form {
-            Section {
-                TextField("Controller address", text: $address).textContentType(.URL).textInputAutocapitalization(.never).autocorrectionDisabled()
-                    .disabled(kind == .owner).accessibilityIdentifier("household.address")
-                TextField("Your name", text: $name).textContentType(.givenName).accessibilityIdentifier("household.name")
-                TextField("Device name", text: $deviceName).accessibilityIdentifier("household.deviceName")
-                if kind == .join { SecureField("Invitation", text: $invitation).textInputAutocapitalization(.never).autocorrectionDisabled().accessibilityIdentifier("household.invitation") }
-                else {
-                    Picker("Current solo routine side", selection: $sourceSide) { Text("Left").tag(Side.left); Text("Right").tag(Side.right) }
-                    Text("Confirms the side currently providing your solo routine. Personal drafts start separately; your active routine and bed operation stay unchanged.").font(.footnote)
-                }
-            }
-            Section {
-                Toggle(kind == .join ? "I understand this prepares an unassigned account" : "I understand these are personal drafts", isOn: $reviewed)
-                Text("Routine drafts, side assignment, controls, sleep history and Health remain separate. Pairing another device with your own-device invitation keeps the same personal account.").font(.footnote).foregroundStyle(Theme.text2)
-                Button(kind == .owner ? "Prepare account" : "Join account") {
-                    Task {
-                        await model.start(address: address, name: name, deviceName: deviceName, invitation: kind == .join ? invitation : nil, sourceSide: sourceSide)
-                        invitation = ""
-                        if model.pending != nil || model.session != nil { dismiss() }
-                    }
-                }.disabled(model.busy || !reviewed || name.trimmingCharacters(in: .whitespaces).isEmpty || address.isEmpty)
-                if let error = model.error { Text(error).font(.footnote).foregroundStyle(Theme.amber) }
-            }
-        }.scrollContentBackground(.hidden).background(Theme.background)
-            .navigationTitle(kind == .owner ? "Prepare account" : "Join account").navigationBarTitleDisplayMode(.inline)
-            .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() }.disabled(model.busy) } }
-            .onAppear { if kind == .owner { address = OwnerConnection.displayAddress } }
-            .interactiveDismissDisabled(model.busy)
     }
 }
