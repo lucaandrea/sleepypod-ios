@@ -11,6 +11,7 @@ struct TargetResponseScreen: View {
     @AppStorage("podIPAddress") private var host = ""
     @AppStorage("household.boundaryRevision") private var boundary = ""
     @State private var workspace = TargetResponseWorkspace()
+    @State private var predictive = PredictiveTargetWorkspace()
     private var scope: String { "\(owner)|\(backend)|\(endpoint)|\(host)|\(boundary)|\(side)|\(phase)" }
 
     var body: some View {
@@ -55,6 +56,8 @@ struct TargetResponseScreen: View {
                             }
                         }
                         if let notice = workspace.notice { Text(notice).font(.footnote).foregroundStyle(Theme.text2) }
+                        Divider()
+                        PredictiveTargetSection(workspace: predictive)
                     }
                     Divider()
                     Text("Reading evidence and evaluating predictions leave your bed settings unchanged. Model fitting stays on your Pod; cloud AI is not used.")
@@ -66,6 +69,7 @@ struct TargetResponseScreen: View {
             .buttonBorderShape(.roundedRectangle(radius: 16))
             .task(id: scope) {
                 workspace.invalidate()
+                predictive.invalidate()
                 guard phase == .active, !PersonalWorkspaceBoundary.isActive else { return }
                 let client: (any TargetResponseClient)?
                 if APIBackend.current.isDemo {
@@ -74,12 +78,14 @@ struct TargetResponseScreen: View {
                     mode = UserDefaults.standard.string(forKey: "uiTargetResponseMode") ?? "ready"
                     #endif
                     client = TargetResponseExample(mode: mode)
+                    predictive.configure(client: PredictiveTargetExample(unavailable: mode == "unavailable"), side: side)
                 } else if APIBackend.current == .sleepypodCore, let transport = try? CoreRESTClient.configured() {
                     client = CoreTargetResponseClient(transport: transport)
+                    predictive.configure(client: CorePredictiveTargetClient(transport: transport), side: side)
                 } else { client = nil }
                 workspace.configure(client: client, side: side)
             }
-            .onDisappear { workspace.invalidate() }
+            .onDisappear { workspace.invalidate(); predictive.invalidate() }
     }
 
     private func evidence(_ status: TargetResponseResearch) -> some View {

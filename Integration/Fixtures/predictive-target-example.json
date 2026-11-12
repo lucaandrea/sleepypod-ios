@@ -1,0 +1,86 @@
+{
+  "synthetic": true,
+  "sourceCommit": "990c1aa4bcae77bffb97ff877474cc072904b0cf",
+  "preview": {
+    "apiVersion": 1,
+    "policy": "bounded-water-tracking-v1",
+    "side": "left",
+    "generatedAt": 1800000000000,
+    "mode": "research_preview",
+    "activationAvailable": false,
+    "objective": "bounded-routine-water-target",
+    "disposition": "candidate",
+    "currentTargetF": 70,
+    "desiredWaterF": 70,
+    "proposedTargetF": 69,
+    "expiresAt": 1800000015000,
+    "minimumF": 69,
+    "maximumF": 72,
+    "comparisons": [
+      {
+        "targetF": 70,
+        "kind": "hold",
+        "predictions": [
+          {
+            "minutes": 15,
+            "waterF": 73,
+            "lowerF": 72.75,
+            "upperF": 73.25
+          },
+          {
+            "minutes": 30,
+            "waterF": 73,
+            "lowerF": 72.75,
+            "upperF": 73.25
+          }
+        ],
+        "bestErrorF": 2.75,
+        "worstErrorF": 3.25,
+        "reason": "Artificial conditional water estimates, not personal observations."
+      },
+      {
+        "targetF": 69,
+        "kind": "step",
+        "predictions": [
+          {
+            "minutes": 15,
+            "waterF": 70.5,
+            "lowerF": 70.25,
+            "upperF": 70.75
+          },
+          {
+            "minutes": 30,
+            "waterF": 70.5,
+            "lowerF": 70.25,
+            "upperF": 70.75
+          }
+        ],
+        "bestErrorF": 0.25,
+        "worstErrorF": 0.75,
+        "reason": "Artificial conditional water estimates, not personal observations."
+      },
+      {
+        "targetF": 71,
+        "kind": "step",
+        "predictions": [
+          {
+            "minutes": 15,
+            "waterF": 74,
+            "lowerF": 73.75,
+            "upperF": 74.25
+          },
+          {
+            "minutes": 30,
+            "waterF": 74,
+            "lowerF": 73.75,
+            "upperF": 74.25
+          }
+        ],
+        "bestErrorF": 3.75,
+        "worstErrorF": 4.25,
+        "reason": "Artificial conditional water estimates, not personal observations."
+      }
+    ],
+    "reason": "One nearby target has a better water-tracking range at both horizons, including a penalty for changing. This is an experiment candidate, not a comfort benefit or an applied adjustment."
+  }
+}
