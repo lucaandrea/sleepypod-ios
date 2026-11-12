@@ -25,6 +25,7 @@ struct ComfortExperimentDetailSections: View {
                  : permissionEnded ? "Saved comparison · control ended"
                  : model.execution?.state == "admitted" ? "Scheduled comparison" : "Comparison saved")
                 .font(.title2.bold()).accessibilityIdentifier("experiments.status")
+                .id("experiments.status")
             HStack(spacing: 16) {
                 target(plan.context.baselineF, title: "Usual setting")
                 target(plan.variantF, title: "Comparison")
@@ -78,6 +79,7 @@ struct ComfortExperimentDetailSections: View {
                 if let review = execution.review {
                     Text("Allow these scheduled adjustments?").font(.headline).accessibilityFocused($controlFocused)
                         .accessibilityIdentifier("experiments.controlReview")
+                        .id("experiments.controlReview")
                     Text("Affects \(review.sides.map { $0.rawValue.capitalized }.joined(separator: " and ")). Each scheduled night uses its assigned \(plan.context.baselineF)°F or \(plan.variantF)°F setting. Wake warming and vibration keep their separate schedule.")
                     Text("Ordinary personal adaptation pauses during this comparison. Safety and manual changes can still withhold adjustments.")
                         .font(.footnote).foregroundStyle(Theme.text2)

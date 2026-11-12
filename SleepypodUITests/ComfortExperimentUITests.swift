@@ -39,6 +39,7 @@ import XCTest
         let button = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "experiments.saved.")).firstMatch
         reveal(button, in: app); button.tap()
         XCTAssertTrue(app.staticTexts["experiments.status"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.staticTexts["experiments.status"].isHittable, "Opening a comparison brings its summary into view")
     }
     func testSavePlanReviewControlThenStop() {
         let app = launch("empty")

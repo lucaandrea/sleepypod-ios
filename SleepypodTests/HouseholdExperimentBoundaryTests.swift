@@ -56,6 +56,16 @@ import FreeSleepKit
 }
 
 @MainActor final class ComfortExperimentPreviewTests: XCTestCase {
+    func testPracticeControlReviewKeepsOneMinuteLifetimeAcrossClockTicks() async throws {
+        let clock = AdvancingExperimentClock()
+        let server = try ComfortExperimentPreviewServer(mode: "ready", elapsed: { clock.next() })
+        let workspace = ComfortExperimentWorkspace(client: server, now: { server.baseDate.addingTimeInterval(1) })
+        await workspace.open(); await workspace.select(try XCTUnwrap(workspace.library?.experiments.first?.id))
+        await workspace.reviewControl()
+        let review = try XCTUnwrap(workspace.execution?.review, workspace.error ?? "Review unavailable")
+        XCTAssertEqual(review.expiresAt - review.createdAt, 60_000)
+        XCTAssertTrue(workspace.canConfirmControl)
+    }
     func testPracticePlanningAndAuthorizationRemainSeparate() async throws {
         let server = try ComfortExperimentPreviewServer(mode: "empty")
         let workspace = ComfortExperimentWorkspace(client: server, now: { server.baseDate.addingTimeInterval(1) })
@@ -84,5 +94,15 @@ import FreeSleepKit
         XCTAssertEqual(workspace.detail?.record.feedback.first?.comfort, 7, workspace.error ?? "Missing feedback")
         XCTAssertEqual(workspace.detail?.record.feedback.first?.unwantedAdjustments, 2)
         XCTAssertEqual(workspace.detail?.comparison.arms.variant.usable, 0)
+    }
+}
+
+private final class AdvancingExperimentClock: @unchecked Sendable {
+    private let lock = NSLock()
+    private var elapsed: TimeInterval = 0
+    func next() -> TimeInterval {
+        lock.lock(); defer { lock.unlock() }
+        elapsed += 0.01
+        return elapsed
     }
 }

@@ -14,8 +14,7 @@ struct ComfortExperimentPreview: View {
             do {
                 let mode = UserDefaults.standard.string(forKey: "uiExperimentScenario") ?? "ready"
                 let server = try ComfortExperimentPreviewServer(mode: mode)
-                let start = Date()
-                model = ComfortExperimentWorkspace(client: server, now: { server.baseDate.addingTimeInterval(Date().timeIntervalSince(start)) })
+                model = ComfortExperimentWorkspace(client: server, now: { server.currentDate })
             } catch { failure = "The isolated comparison fixture could not be read." }
         }
     }
@@ -23,7 +22,8 @@ struct ComfortExperimentPreview: View {
 
 actor ComfortExperimentPreviewServer: ComfortExperimentTransport {
     nonisolated let baseDate: Date
-    private let wallStart = Date()
+    private let elapsed: @Sendable () -> TimeInterval
+    nonisolated var currentDate: Date { baseDate.addingTimeInterval(elapsed()) }
     private let accessValue: ComfortExperimentAccess
     private let mode: String
     private let cases: [String: Data]
@@ -31,7 +31,9 @@ actor ComfortExperimentPreviewServer: ComfortExperimentTransport {
     private var execution: [String: Any]
     private var hasSaved: Bool
     private var lost = false
-    init(mode: String) throws {
+    init(mode: String, elapsed: (@Sendable () -> TimeInterval)? = nil) throws {
+        let start = Date()
+        self.elapsed = elapsed ?? { Date().timeIntervalSince(start) }
         self.mode = mode; hasSaved = mode != "empty"
         guard let url = Bundle.main.url(forResource: "comfort-experiments-v1", withExtension: "json"),
               let root = try JSONSerialization.jsonObject(with: Data(contentsOf: url)) as? [String: Any],
@@ -46,7 +48,7 @@ actor ComfortExperimentPreviewServer: ComfortExperimentTransport {
         baseDate = Date(timeIntervalSince1970: generatedAt.doubleValue / 1000)
         accessValue = .init(scope: detail.scope, revision: ["simulator-only"], execution: true)
     }
-    private var timestamp: Int64 { Int64(baseDate.addingTimeInterval(Date().timeIntervalSince(wallStart)).timeIntervalSince1970 * 1000) }
+    private var timestamp: Int64 { Int64(currentDate.timeIntervalSince1970 * 1000) }
     func access() async throws -> ComfortExperimentAccess { accessValue }
     func request(_ action: ComfortExperimentRequest) async throws -> Data {
         if mode == "loading" { try await Task.sleep(for: .seconds(60)) }
@@ -70,7 +72,9 @@ actor ComfortExperimentPreviewServer: ComfortExperimentTransport {
             if mode == "unqualified" || mode == "ownerUnqualified" { throw ComfortExperimentFailure.reason("Finish the attended checks and review seven matching nights before allowing overnight comparisons.") }
             execution = try object("controlReview")
             var review = try nested(execution, "review")
-            review["createdAt"] = timestamp; review["expiresAt"] = timestamp + 60_000; execution["review"] = review
+            // Both boundaries use one instant so clock ticks cannot extend the review.
+            let issuedAt = timestamp
+            review["createdAt"] = issuedAt; review["expiresAt"] = issuedAt + 60_000; execution["review"] = review
             result = execution
         case .confirmControl:
             execution = try object("admitted"); result = execution

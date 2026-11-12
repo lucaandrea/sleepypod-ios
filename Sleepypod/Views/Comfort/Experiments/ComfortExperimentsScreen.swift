@@ -9,80 +9,88 @@ struct ComfortExperimentsScreen: View {
     @State private var variant = 69
     @AccessibilityFocusState private var focused: String?
     var body: some View {
-        Form {
-            if synthetic { Section { Label("Practice data · no bed commands", systemImage: "flask").foregroundStyle(Theme.amber) } }
-            if model.busy { Section { ProgressView("Checking your comparison…") } }
-            if let error = model.error {
-                Section {
-                    Text(error).accessibilityFocused($focused, equals: "error").accessibilityIdentifier("experiments.error")
-                    if let detail = model.detail, model.execution?.state == "not_admitted" {
-                        Text(detail.scope.kind == "personal"
-                             ? "Ask your household owner to open Autopilot → Personal comfort. Qualification & activation contains the attended checks. Under Preview night reports, they can open each matching night and choose Review this night. Your saved comparison stays available."
-                             : "Open Autopilot → Personal comfort. Qualification & activation contains the attended checks. Under Preview night reports, open each matching night and choose Review this night. Your saved comparison stays available.")
-                            .font(.footnote).foregroundStyle(Theme.text2).accessibilityIdentifier("experiments.qualificationHelp")
+        ScrollViewReader { proxy in
+            Form {
+                if synthetic { Section { Label("Practice data · no bed commands", systemImage: "flask").foregroundStyle(Theme.amber) } }
+                if model.busy { Section { ProgressView("Checking your comparison…") } }
+                if let error = model.error {
+                    Section {
+                        Text(error).accessibilityFocused($focused, equals: "error").accessibilityIdentifier("experiments.error")
+                        if let detail = model.detail, model.execution?.state == "not_admitted" {
+                            Text(detail.scope.kind == "personal"
+                                 ? "Ask your household owner to open Autopilot → Personal comfort. Qualification & activation contains the attended checks. Under Preview night reports, they can open each matching night and choose Review this night. Your saved comparison stays available."
+                                 : "Open Autopilot → Personal comfort. Qualification & activation contains the attended checks. Under Preview night reports, open each matching night and choose Review this night. Your saved comparison stays available.")
+                                .font(.footnote).foregroundStyle(Theme.text2).accessibilityIdentifier("experiments.qualificationHelp")
+                        }
+                    }
+                }
+                if let notice = model.notice { Section { Text(notice).accessibilityIdentifier("experiments.notice") } }
+                if model.pending != nil {
+                    Section { action("Check saved result", id: "reconcile") { await model.reconcile() } }
+                } else if let review = model.review {
+                    Section("Review your comparison") {
+                        Text("\(review.plan.context.baselineF)°F and \(review.plan.variantF)°F").font(.title2.bold())
+                            .accessibilityFocused($focused, equals: "review").accessibilityIdentifier("experiments.review")
+                        Text("16 scheduled nights, including settling nights. Your wake routine stays separate.")
+                        Text("Saving this plan does not change your bed temperature.").font(.footnote).foregroundStyle(Theme.text2)
+                    }
+                    ComfortExperimentScheduleSection(plan: review.plan)
+                    Section {
+                        action("Save comparison plan", id: "save", enabled: model.canConfirmPlan) { await model.savePlan() }
+                        Button("Keep editing") { model.discardReview(); Task { await model.open() } }.disabled(model.busy)
+                        Text("Review expires in \(model.secondsRemaining) seconds.").font(.footnote).foregroundStyle(Theme.text2)
+                    }
+                } else if let detail = model.detail {
+                    ComfortExperimentDetailSections(model: model, detail: detail)
+                    Section { action("Back to comparisons", id: "library") { await model.open() } }
+                } else if let library = model.library {
+                    Section {
+                        Text("Find your more comfortable setting").font(.title2.bold()).accessibilityIdentifier("experiments.library")
+                        Text("Compare two nearby settings, then tell us how you felt each morning. Your alarm keeps its own warming and vibration.")
+                    }
+                    Section("Saved comparisons") {
+                        if library.experiments.isEmpty { Text("Your first comparison starts with a review of the nights and temperatures.").foregroundStyle(Theme.text2) }
+                        ForEach(library.experiments) { item in
+                            Button { Task { await model.select(item.id) } } label: {
+                                VStack(alignment: .leading, spacing: 6) {
+                                    Text("\(item.baselineF)°F and \(item.variantF)°F").font(.headline)
+                                    Text("From \(item.firstNightDate) · \(item.status == "stopped" ? "Stopped" : "Open saved plan")").font(.subheadline).foregroundStyle(Theme.text2)
+                                    if !item.contextCurrent { Text("Routine or assignment needs checking").font(.footnote).foregroundStyle(Theme.amber) }
+                                }.padding(.vertical, 4)
+                            }.disabled(model.busy).accessibilityIdentifier("experiments.saved.\(item.id)")
+                        }
+                        if library.nextId != nil { action("Older comparisons", id: "older") { await model.open(older: true) } }
+                    }
+                    if let context = library.availability.context {
+                        Section("Plan a comparison") {
+                            Text("Your scheduled setting is \(context.baselineF)°F. Your overnight range is \(context.minimumF)–\(context.maximumF)°F.")
+                                .font(.footnote).foregroundStyle(Theme.text2)
+                            DatePicker("First night", selection: $firstDate, displayedComponents: .date).environment(\.timeZone, .gmt)
+                                .accessibilityIdentifier("experiments.firstDate")
+                            Picker("Compare with", selection: $variant) {
+                                ForEach(variants(context), id: \.self) { Text("\($0)°F").tag($0) }
+                            }.accessibilityIdentifier("experiments.variant")
+                            action("Review scheduled nights", id: "preview", enabled: !library.experiments.contains { $0.status == "planned" }) {
+                                await model.preview(.init(firstNightDate: MorningJournalDates.key(firstDate, timeZone: "GMT"), variantF: variant))
+                            }
+                            if library.experiments.contains(where: { $0.status == "planned" }) {
+                                Text("Open or stop your existing comparison before starting another.").font(.footnote).foregroundStyle(Theme.text2)
+                            }
+                        }.disabled(model.busy)
+                    } else { Section("Before you begin") { Text(library.availability.reason) } }
+                    Section { action("Refresh comparisons", id: "refresh") { await model.open() } }
+                } else {
+                    Section {
+                        Text("Review nearby settings and keep your wake plan intact.")
+                        action("Open comparisons", id: "open", enabled: model.enabled) { await model.open() }
                     }
                 }
             }
-            if let notice = model.notice { Section { Text(notice).accessibilityIdentifier("experiments.notice") } }
-            if model.pending != nil {
-                Section { action("Check saved result", id: "reconcile") { await model.reconcile() } }
-            } else if let review = model.review {
-                Section("Review your comparison") {
-                    Text("\(review.plan.context.baselineF)°F and \(review.plan.variantF)°F").font(.title2.bold())
-                        .accessibilityFocused($focused, equals: "review").accessibilityIdentifier("experiments.review")
-                    Text("16 scheduled nights, including settling nights. Your wake routine stays separate.")
-                    Text("Saving this plan does not change your bed temperature.").font(.footnote).foregroundStyle(Theme.text2)
-                }
-                ComfortExperimentScheduleSection(plan: review.plan)
-                Section {
-                    action("Save comparison plan", id: "save", enabled: model.canConfirmPlan) { await model.savePlan() }
-                    Button("Keep editing") { model.discardReview(); Task { await model.open() } }.disabled(model.busy)
-                    Text("Review expires in \(model.secondsRemaining) seconds.").font(.footnote).foregroundStyle(Theme.text2)
-                }
-            } else if let detail = model.detail {
-                ComfortExperimentDetailSections(model: model, detail: detail)
-                Section { action("Back to comparisons", id: "library") { await model.open() } }
-            } else if let library = model.library {
-                Section {
-                    Text("Find your more comfortable setting").font(.title2.bold()).accessibilityIdentifier("experiments.library")
-                    Text("Compare two nearby settings, then tell us how you felt each morning. Your alarm keeps its own warming and vibration.")
-                }
-                Section("Saved comparisons") {
-                    if library.experiments.isEmpty { Text("Your first comparison starts with a review of the nights and temperatures.").foregroundStyle(Theme.text2) }
-                    ForEach(library.experiments) { item in
-                        Button { Task { await model.select(item.id) } } label: {
-                            VStack(alignment: .leading, spacing: 6) {
-                                Text("\(item.baselineF)°F and \(item.variantF)°F").font(.headline)
-                                Text("From \(item.firstNightDate) · \(item.status == "stopped" ? "Stopped" : "Open saved plan")").font(.subheadline).foregroundStyle(Theme.text2)
-                                if !item.contextCurrent { Text("Routine or assignment needs checking").font(.footnote).foregroundStyle(Theme.amber) }
-                            }.padding(.vertical, 4)
-                        }.disabled(model.busy).accessibilityIdentifier("experiments.saved.\(item.id)")
-                    }
-                    if library.nextId != nil { action("Older comparisons", id: "older") { await model.open(older: true) } }
-                }
-                if let context = library.availability.context {
-                    Section("Plan a comparison") {
-                        Text("Your scheduled setting is \(context.baselineF)°F. Your overnight range is \(context.minimumF)–\(context.maximumF)°F.")
-                            .font(.footnote).foregroundStyle(Theme.text2)
-                        DatePicker("First night", selection: $firstDate, displayedComponents: .date).environment(\.timeZone, .gmt)
-                            .accessibilityIdentifier("experiments.firstDate")
-                        Picker("Compare with", selection: $variant) {
-                            ForEach(variants(context), id: \.self) { Text("\($0)°F").tag($0) }
-                        }.accessibilityIdentifier("experiments.variant")
-                        action("Review scheduled nights", id: "preview", enabled: !library.experiments.contains { $0.status == "planned" }) {
-                            await model.preview(.init(firstNightDate: MorningJournalDates.key(firstDate, timeZone: "GMT"), variantF: variant))
-                        }
-                        if library.experiments.contains(where: { $0.status == "planned" }) {
-                            Text("Open or stop your existing comparison before starting another.").font(.footnote).foregroundStyle(Theme.text2)
-                        }
-                    }.disabled(model.busy)
-                } else { Section("Before you begin") { Text(library.availability.reason) } }
-                Section { action("Refresh comparisons", id: "refresh") { await model.open() } }
-            } else {
-                Section {
-                    Text("Review nearby settings and keep your wake plan intact.")
-                    action("Open comparisons", id: "open", enabled: model.enabled) { await model.open() }
-                }
+            .onChange(of: model.detail?.record.plan.id) { _, value in
+                if value != nil { proxy.scrollTo("experiments.status", anchor: .top) }
+            }
+            .onChange(of: model.execution?.review?.id) { _, value in
+                if value != nil { proxy.scrollTo("experiments.controlReview", anchor: .top) }
             }
         }
         .privacySensitive().scrollContentBackground(.hidden).background(Theme.background)
