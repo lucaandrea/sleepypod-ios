@@ -187,9 +187,10 @@ import FreeSleepKit
 }
 
 @MainActor final class HouseholdTestVault: HouseholdVault {
-    var state = HouseholdVaultState(), reject = false
-    func load() throws -> HouseholdVaultState { state }
-    func save(_ state: HouseholdVaultState) throws { if reject { throw HouseholdFailure.storage }; self.state = state }
+    var state = HouseholdVaultState(), reject = false, rejectLoad = false
+    var saveCount = 0
+    func load() throws -> HouseholdVaultState { if rejectLoad { throw HouseholdFailure.storage }; return state }
+    func save(_ state: HouseholdVaultState) throws { if reject { throw HouseholdFailure.storage }; self.state = state; saveCount += 1 }
 }
 
 actor HouseholdTestServer: HouseholdTransport {

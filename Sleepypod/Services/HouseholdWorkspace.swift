@@ -120,9 +120,7 @@ import Observation
         UnifiedRuntime.suspendPersonalBackgroundWork()
         OwnerConnection.session.getAllTasks { tasks in tasks.forEach { $0.cancel() } }
         clearVisible()
-        if !storageLoaded {
-            do { state = try vault.load(); storageLoaded = true } catch { self.error = HouseholdFailure.storage.localizedDescription }
-        }
+        try? loadStorageIfNeeded()
         configureOfflineLibrary()
     }
     /// Returning to a retained installation-owner key requires the device owner's authentication.
@@ -180,10 +178,7 @@ import Observation
     func refresh() async {
         guard active, foreground, !busy else { return }
         if let maintenance, maintenance.entered { await maintenance.refresh(); return }
-        if !storageLoaded {
-            do { state = try vault.load(); storageLoaded = true }
-            catch { self.error = HouseholdFailure.storage.localizedDescription; return }
-        }
+        do { try loadStorageIfNeeded() } catch { return }
         guard let record = selected else { return }
         configureOfflineLibrary()
         let operation = generation; busy = true; error = nil
@@ -397,6 +392,17 @@ import Observation
         var next = state
         guard let index = next.connections.firstIndex(where: { $0.id == id }) else { throw HouseholdFailure.changedIdentity }
         try change(&next.connections[index]); try persist(next)
+    }
+    /// Retry an initially locked vault without replacing saved identity or receipts on failure.
+    private func loadStorageIfNeeded() throws {
+        guard !storageLoaded else { return }
+        do {
+            let saved = try vault.load()
+            state = saved; storageLoaded = true; error = nil
+        } catch {
+            self.error = HouseholdFailure.storage.localizedDescription
+            throw HouseholdFailure.storage
+        }
     }
     private func persist(_ next: HouseholdVaultState) throws {
         guard storageLoaded else { throw HouseholdFailure.storage }
@@ -797,5 +803,46 @@ import Observation
             let retained = Set(attempts.filter { !$0.unresolved }.suffix(30).map(\.id))
             saved.personalPublications = attempts.filter { $0.unresolved || retained.contains($0.id) }
         }
+    }
+}
+
+extension HouseholdWorkspace {
+    /// A live Watch request may wake the phone in the background. It refreshes only this account's bed controls.
+    var remoteContext: [String] {
+        [String(active), String(generation), selected?.id.uuidString ?? "", String(requiresMaintenance)]
+    }
+    /// Resolve protected storage before the remote captures its account boundary.
+    func prepareRemoteAccess() throws {
+        guard active, !busy else { throw BedRemoteFailure.unavailable }
+        try loadStorageIfNeeded()
+    }
+    func prepareRemoteTemperature() async throws -> (HouseholdSession, PersonalTemperatureWorkspace) {
+        try prepareRemoteAccess()
+        guard pending == nil, maintenance?.entered != true,
+              let record = selected, record.offlineBlocked != true else { throw BedRemoteFailure.unavailable }
+        let operation = generation
+        let value: HouseholdSession = try await read("household/session", record: record)
+        try value.validate()
+        guard active, generation == operation, selected?.id == record.id, !Task.isCancelled,
+              let identity = record.identity, identity.identity == value.identity,
+              value.capabilities.personalControls else { throw HouseholdFailure.changedIdentity }
+        if identity != value { try withdrawOfflineLibrary(record.id) }
+        if session != value { clearOrdinary() }
+        session = value
+        try update(record.id) { $0.identity = value }
+        configureTemperature(record: record, session: value, unit: .fahrenheit)
+        guard let temperature else { throw BedRemoteFailure.unavailable }
+        await temperature.refresh()
+        guard active, generation == operation, selected?.id == record.id, session == value,
+              temperature.bed?.availability == "ready" else { throw BedRemoteFailure.unavailable }
+        return (value, temperature)
+    }
+    func readRemoteWake(for bed: PersonalBed) async throws -> PersonalNextWake {
+        guard active, let record = selected, let session, bed.scope.matches(session) else { throw HouseholdFailure.changedIdentity }
+        let expected = remoteContext
+        let value: PersonalNextWake = try await read("me/alarm/next", record: record)
+        guard active, expected == remoteContext, self.session == session else { throw HouseholdFailure.changedIdentity }
+        try value.validate(for: bed, now: .now)
+        return value
     }
 }

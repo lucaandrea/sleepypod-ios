@@ -55,17 +55,25 @@ final class WatchMotionReceiver: NSObject {
     private(set) var recordings: [WatchMotionInbox.Recording] = []
     private(set) var lastError: String?
     nonisolated let inbox: WatchMotionInbox
+    private let remote: BedRemoteCoordinator?
 
-    init(inbox: WatchMotionInbox = .standard) {
-        self.inbox = inbox
+    init(inbox: WatchMotionInbox = .standard, remote: BedRemoteCoordinator? = nil) {
+        self.inbox = inbox; self.remote = remote
         super.init()
         recordings = inbox.recordings()
     }
 
     func activate() {
-        guard !PersonalWorkspaceBoundary.isActive, WCSession.isSupported() else { return }
+        guard WCSession.isSupported() else { return }
         WCSession.default.delegate = self
         WCSession.default.activate()
+    }
+
+    func invalidateRemote() {
+        remote?.invalidate()
+        if WCSession.default.activationState == .activated {
+            try? WCSession.default.updateApplicationContext(["bedRemoteInvalidated": UUID().uuidString])
+        }
     }
 
     func received(_ result: Result<WatchMotionInbox.Recording, Error>) {
@@ -78,6 +86,21 @@ final class WatchMotionReceiver: NSObject {
 }
 
 extension WatchMotionReceiver: WCSessionDelegate {
+    /// No transferUserInfo or background command queue: only immediate requests with a reply are accepted.
+    nonisolated func session(_ session: WCSession, didReceiveMessageData data: Data,
+                             replyHandler: @escaping (Data) -> Void) {
+        let reply = WatchRemoteReplyHandler(replyHandler)
+        Task { @MainActor in
+            guard data.count <= 4_096, let request = try? JSONDecoder().decode(BedRemoteRequest.self, from: data) else {
+                reply.send(Data()); return
+            }
+            let result: BedRemoteReply
+            if let remote = self.remote { result = await remote.handle(request) }
+            else { result = .init(requestID: request.id, outcome: .withheld, snapshot: nil, message: BedRemoteFailure.unavailable.localizedDescription) }
+            reply.send((try? JSONEncoder().encode(result)) ?? Data())
+        }
+    }
+
     nonisolated func session(_ session: WCSession, activationDidCompleteWith activationState: WCSessionActivationState, error: Error?) {}
     nonisolated func sessionDidBecomeInactive(_ session: WCSession) {}
     nonisolated func sessionDidDeactivate(_ session: WCSession) { session.activate() }
@@ -88,4 +111,11 @@ extension WatchMotionReceiver: WCSessionDelegate {
         let result = Result { try inbox.store(contentsOf: file.fileURL) }
         Task { @MainActor in self.received(result) }
     }
+}
+
+/// Apple's reply callback is invoked once on the main actor after the asynchronous controller request.
+private final class WatchRemoteReplyHandler: @unchecked Sendable {
+    private let handler: (Data) -> Void
+    init(_ handler: @escaping (Data) -> Void) { self.handler = handler }
+    func send(_ data: Data) { handler(data) }
 }

@@ -7,6 +7,7 @@ import WatchKit
 @MainActor
 @Observable
 final class RecordingController: NSObject {
+    let bed = BedRemoteClient.configured()
     private static let planKey = "watchMotion.plan"
 
     private let source: any AccelerometerSource
@@ -24,7 +25,7 @@ final class RecordingController: NSObject {
         if let data = defaults.data(forKey: Self.planKey) {
             plan = try? JSONDecoder().decode(RecordingPlan.self, from: data)
         }
-        if WCSession.isSupported() {
+        if !bed.isExample && WCSession.isSupported() {
             WCSession.default.delegate = self
             WCSession.default.activate()
         }
@@ -89,5 +90,13 @@ final class RecordingController: NSObject {
 }
 
 extension RecordingController: WCSessionDelegate {
-    nonisolated func session(_ session: WCSession, activationDidCompleteWith activationState: WCSessionActivationState, error: Error?) {}
+    nonisolated func session(_ session: WCSession, didReceiveApplicationContext applicationContext: [String: Any]) {
+        if applicationContext["bedRemoteInvalidated"] is String {
+            Task { @MainActor in self.bed.invalidate() }
+        }
+    }
+
+    nonisolated func session(_ session: WCSession, activationDidCompleteWith activationState: WCSessionActivationState, error: Error?) {
+        if activationState == .activated { Task { @MainActor in await self.bed.refresh() } }
+    }
 }
