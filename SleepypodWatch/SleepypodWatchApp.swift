@@ -6,7 +6,7 @@ struct SleepypodWatchApp: App {
 
     var body: some Scene {
         WindowGroup {
-            RecorderView().environment(controller)
+            BedControlsView().environment(controller)
         }
     }
 }

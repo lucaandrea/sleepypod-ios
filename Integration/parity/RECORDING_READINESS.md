@@ -36,3 +36,24 @@ and `/tmp/sleepypod-recording-ipad.xcresult` (iOS 27.0). SwiftLint strict passed
 Demo screens are synthetic and cannot establish physical Pod recording health.
 No TestFlight release or physical deployment is claimed here. This change does not
 enable temperature adaptation or change alarms.
+
+## Full-row disclosure and refresh follow-up
+
+Hosted iOS 26 checks exposed a disclosure label that did not expand the checks,
+and an offscreen XCTest hit-point failure at the largest text size. The disclosure
+now uses a full-width, at least 44-point button with an explicit expanded/collapsed
+accessibility value. The refresh label itself owns its minimum 44-point hit area.
+The tests wait for the asynchronous recording result, reveal controls in either
+scroll direction, and assert expansion before examining storage and refreshing.
+
+The corrected source passed both recording scenarios on signed iOS 27.2 phone and
+iPad simulators. Earlier failed local and hosted receipts are retained; they are
+not relabeled as successful runs. Final screen captures use `XCUIScreen`, since
+app-bounded landscape captures from XCTest were offset and unsuitable for review.
+The change does not alter polling, freshness, authentication or command authority.
+The final phone and iPad runs each passed two cases with no skips. An independent
+Impeccable review inspected all 12 closed/open/refresh captures and returned
+`ship` for this narrow refinement. It does not establish VoiceOver, physical Pod
+health, TestFlight distribution or compatibility with the hosted iOS 26 runtime;
+the latter remains a required hosted check. Evidence is preserved under
+`~/Library/Application Support/FreeSleep/diagnostics/2026-11-10/recording-disclosure`.

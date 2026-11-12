@@ -29,7 +29,7 @@ public struct SavedPersonalReportsScreen: View {
         .navigationBarTitleDisplayMode(.inline)
         .task(id: personalAccount) {
             reports = []
-            guard !personalAccount else { return }
+            guard !personalAccount, !AppMode.isDemo else { return }
             do { reports = try PersonalIntelligenceStore().read().reports }
             catch { self.error = "Saved reports could not be unlocked. Please try again when this device is unlocked." }
         }

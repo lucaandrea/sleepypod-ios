@@ -1,0 +1,279 @@
+{
+  "synthetic": true,
+  "sourceRevision": "5accd5b047ead1b6233e77d33689a01f3198fb1f",
+  "session": {
+    "apiVersion": 1,
+    "featureVersion": 1,
+    "podId": "00000000-0000-4000-8000-000000000001",
+    "householdId": "00000000-0000-4000-8000-000000000002",
+    "accountId": "00000000-0000-4000-8000-000000000003",
+    "selfSleeperId": "00000000-0000-4000-8000-000000000004",
+    "role": "owner",
+    "membership": "active",
+    "sessionRevision": 1,
+    "householdRevision": 1,
+    "assignmentRevision": 1,
+    "arrangement": {
+      "mode": "solo-anywhere",
+      "effectiveAt": "2026-10-29T22:00:00.000Z"
+    },
+    "self": {
+      "displayName": "Example owner",
+      "zones": [
+        "left",
+        "right"
+      ],
+      "assignment": "solo"
+    },
+    "capabilities": {
+      "manageInvitations": true,
+      "manageOwnDevices": true,
+      "personalPreferences": true,
+      "personalRoutineDrafts": true,
+      "activateArrangement": false,
+      "personalControls": false,
+      "personalLearningArchive": true,
+      "personalHistory": false,
+      "healthImport": false,
+      "cloudAnalysis": false,
+      "personalJournal": true,
+      "personalJournalPatterns": true
+    }
+  },
+  "ready": {
+    "version": 1,
+    "generatedAt": 1794427200000,
+    "scope": {
+      "podId": "00000000-0000-4000-8000-000000000001",
+      "householdId": "00000000-0000-4000-8000-000000000002",
+      "accountId": "00000000-0000-4000-8000-000000000003",
+      "sleeperId": "00000000-0000-4000-8000-000000000004",
+      "sessionRevision": 1,
+      "householdRevision": 1,
+      "assignmentRevision": 1
+    },
+    "interpretation": "personal_self_report_not_sleep_measurement",
+    "query": {
+      "from": "2026-11-01",
+      "through": "2026-11-10"
+    },
+    "source": "personal_journal",
+    "minimumDatesPerGroup": 5,
+    "cohorts": [
+      {
+        "timeZone": "America/Los_Angeles",
+        "dates": 10,
+        "comparisons": [
+          {
+            "id": "caffeine-time",
+            "label": "Last caffeine relative to bedtime",
+            "withLabel": "Within 6 hours",
+            "withoutLabel": "More than 6 hours before",
+            "withCount": 5,
+            "withoutCount": 5,
+            "excludedCount": 0,
+            "withWarmCount": 5,
+            "withoutWarmCount": 0,
+            "warmRateDifferencePoints": 100,
+            "quantityThreshold": null
+          },
+          {
+            "id": "alcohol-time",
+            "label": "Last drink relative to bedtime",
+            "withLabel": "Within 4 hours",
+            "withoutLabel": "More than 4 hours before",
+            "withCount": 0,
+            "withoutCount": 0,
+            "excludedCount": 10,
+            "withWarmCount": 0,
+            "withoutWarmCount": 0,
+            "warmRateDifferencePoints": null,
+            "quantityThreshold": null
+          },
+          {
+            "id": "exercise-time",
+            "label": "Exercise finished relative to bedtime",
+            "withLabel": "Within 3 hours",
+            "withoutLabel": "More than 3 hours before",
+            "withCount": 0,
+            "withoutCount": 0,
+            "excludedCount": 10,
+            "withWarmCount": 0,
+            "withoutWarmCount": 0,
+            "warmRateDifferencePoints": null,
+            "quantityThreshold": null
+          },
+          {
+            "id": "meal-time",
+            "label": "Last meal relative to bedtime",
+            "withLabel": "Within 2 hours",
+            "withoutLabel": "More than 2 hours before",
+            "withCount": 0,
+            "withoutCount": 0,
+            "excludedCount": 10,
+            "withWarmCount": 0,
+            "withoutWarmCount": 0,
+            "warmRateDifferencePoints": null,
+            "quantityThreshold": null
+          },
+          {
+            "id": "stress",
+            "label": "Stress compared with your usual day",
+            "withLabel": "Higher",
+            "withoutLabel": "Usual or lower",
+            "withCount": 5,
+            "withoutCount": 5,
+            "excludedCount": 0,
+            "withWarmCount": 5,
+            "withoutWarmCount": 0,
+            "warmRateDifferencePoints": 100,
+            "quantityThreshold": null
+          },
+          {
+            "id": "caffeine-amount",
+            "label": "Caffeine amount",
+            "withLabel": "Above 150 mg",
+            "withoutLabel": "150 mg or below",
+            "withCount": 5,
+            "withoutCount": 5,
+            "excludedCount": 0,
+            "withWarmCount": 5,
+            "withoutWarmCount": 0,
+            "warmRateDifferencePoints": 100,
+            "quantityThreshold": 150
+          }
+        ]
+      }
+    ],
+    "note": "Exploratory associations in your reported temperature comfort, not measured sleep or proof of cause. Each difference needs five distinct saved dates in each group within your personal account and one retained time zone. This is a display threshold, not statistical validation. Unlogged, future and after-bedtime observations are excluded from the relevant comparison. Timing bands describe groups, not recommended limits; quantity groups split at the median of logged amounts in this range. Other habits, room conditions, season and routine changes may explain a difference. Preserved legacy records are not pooled. These findings never change the bed or train a model."
+  },
+  "insufficient": {
+    "version": 1,
+    "generatedAt": 1794427200000,
+    "scope": {
+      "podId": "00000000-0000-4000-8000-000000000001",
+      "householdId": "00000000-0000-4000-8000-000000000002",
+      "accountId": "00000000-0000-4000-8000-000000000003",
+      "sleeperId": "00000000-0000-4000-8000-000000000004",
+      "sessionRevision": 1,
+      "householdRevision": 1,
+      "assignmentRevision": 1
+    },
+    "interpretation": "personal_self_report_not_sleep_measurement",
+    "query": {
+      "from": "2026-11-01",
+      "through": "2026-11-10"
+    },
+    "source": "personal_journal",
+    "minimumDatesPerGroup": 5,
+    "cohorts": [
+      {
+        "timeZone": "America/Los_Angeles",
+        "dates": 4,
+        "comparisons": [
+          {
+            "id": "caffeine-time",
+            "label": "Last caffeine relative to bedtime",
+            "withLabel": "Within 6 hours",
+            "withoutLabel": "More than 6 hours before",
+            "withCount": 4,
+            "withoutCount": 0,
+            "excludedCount": 0,
+            "withWarmCount": 4,
+            "withoutWarmCount": 0,
+            "warmRateDifferencePoints": null,
+            "quantityThreshold": null
+          },
+          {
+            "id": "alcohol-time",
+            "label": "Last drink relative to bedtime",
+            "withLabel": "Within 4 hours",
+            "withoutLabel": "More than 4 hours before",
+            "withCount": 0,
+            "withoutCount": 0,
+            "excludedCount": 4,
+            "withWarmCount": 0,
+            "withoutWarmCount": 0,
+            "warmRateDifferencePoints": null,
+            "quantityThreshold": null
+          },
+          {
+            "id": "exercise-time",
+            "label": "Exercise finished relative to bedtime",
+            "withLabel": "Within 3 hours",
+            "withoutLabel": "More than 3 hours before",
+            "withCount": 0,
+            "withoutCount": 0,
+            "excludedCount": 4,
+            "withWarmCount": 0,
+            "withoutWarmCount": 0,
+            "warmRateDifferencePoints": null,
+            "quantityThreshold": null
+          },
+          {
+            "id": "meal-time",
+            "label": "Last meal relative to bedtime",
+            "withLabel": "Within 2 hours",
+            "withoutLabel": "More than 2 hours before",
+            "withCount": 0,
+            "withoutCount": 0,
+            "excludedCount": 4,
+            "withWarmCount": 0,
+            "withoutWarmCount": 0,
+            "warmRateDifferencePoints": null,
+            "quantityThreshold": null
+          },
+          {
+            "id": "stress",
+            "label": "Stress compared with your usual day",
+            "withLabel": "Higher",
+            "withoutLabel": "Usual or lower",
+            "withCount": 4,
+            "withoutCount": 0,
+            "excludedCount": 0,
+            "withWarmCount": 4,
+            "withoutWarmCount": 0,
+            "warmRateDifferencePoints": null,
+            "quantityThreshold": null
+          },
+          {
+            "id": "caffeine-amount",
+            "label": "Caffeine amount",
+            "withLabel": "Above 200 mg",
+            "withoutLabel": "200 mg or below",
+            "withCount": 0,
+            "withoutCount": 4,
+            "excludedCount": 0,
+            "withWarmCount": 0,
+            "withoutWarmCount": 4,
+            "warmRateDifferencePoints": null,
+            "quantityThreshold": 200
+          }
+        ]
+      }
+    ],
+    "note": "Exploratory associations in your reported temperature comfort, not measured sleep or proof of cause. Each difference needs five distinct saved dates in each group within your personal account and one retained time zone. This is a display threshold, not statistical validation. Unlogged, future and after-bedtime observations are excluded from the relevant comparison. Timing bands describe groups, not recommended limits; quantity groups split at the median of logged amounts in this range. Other habits, room conditions, season and routine changes may explain a difference. Preserved legacy records are not pooled. These findings never change the bed or train a model."
+  },
+  "empty": {
+    "version": 1,
+    "generatedAt": 1794427200000,
+    "scope": {
+      "podId": "00000000-0000-4000-8000-000000000001",
+      "householdId": "00000000-0000-4000-8000-000000000002",
+      "accountId": "00000000-0000-4000-8000-000000000003",
+      "sleeperId": "00000000-0000-4000-8000-000000000004",
+      "sessionRevision": 1,
+      "householdRevision": 1,
+      "assignmentRevision": 1
+    },
+    "interpretation": "personal_self_report_not_sleep_measurement",
+    "query": {
+      "from": "2026-11-01",
+      "through": "2026-11-10"
+    },
+    "source": "personal_journal",
+    "minimumDatesPerGroup": 5,
+    "cohorts": [],
+    "note": "Exploratory associations in your reported temperature comfort, not measured sleep or proof of cause. Each difference needs five distinct saved dates in each group within your personal account and one retained time zone. This is a display threshold, not statistical validation. Unlogged, future and after-bedtime observations are excluded from the relevant comparison. Timing bands describe groups, not recommended limits; quantity groups split at the median of logged amounts in this range. Other habits, room conditions, season and routine changes may explain a difference. Preserved legacy records are not pooled. These findings never change the bed or train a model."
+  }
+}

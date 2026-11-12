@@ -186,13 +186,14 @@ import FreeSleepKit
     }
 }
 
-@MainActor private final class HouseholdTestVault: HouseholdVault {
-    var state = HouseholdVaultState(), reject = false
-    func load() throws -> HouseholdVaultState { state }
-    func save(_ state: HouseholdVaultState) throws { if reject { throw HouseholdFailure.storage }; self.state = state }
+@MainActor final class HouseholdTestVault: HouseholdVault {
+    var state = HouseholdVaultState(), reject = false, rejectLoad = false
+    var saveCount = 0
+    func load() throws -> HouseholdVaultState { if rejectLoad { throw HouseholdFailure.storage }; return state }
+    func save(_ state: HouseholdVaultState) throws { if reject { throw HouseholdFailure.storage }; self.state = state; saveCount += 1 }
 }
 
-private actor HouseholdTestServer: HouseholdTransport {
+actor HouseholdTestServer: HouseholdTransport {
     struct Call: Sendable { let path: String; let method: String; let token: String?; let body: Data? }
     var calls: [Call] = []
     private var values: [String: Data]
@@ -210,8 +211,10 @@ private actor HouseholdTestServer: HouseholdTransport {
     func waitHeld() async { while continuation == nil { await Task.yield() } }
     func release() { continuation?.resume(); continuation = nil }
     func useOwner() throws {
-        values["session"] = values["ownerSession"]
-        let session = try JSONDecoder().decode(HouseholdSession.self, from: XCTUnwrap(values["session"]))
+        try useSession(JSONDecoder().decode(HouseholdSession.self, from: XCTUnwrap(values["ownerSession"])))
+    }
+    func useSession(_ session: HouseholdSession) throws {
+        values["session"] = try JSONEncoder().encode(session)
         for key in ["preferences", "routines"] {
             var data = try XCTUnwrap(JSONSerialization.jsonObject(with: XCTUnwrap(values[key])) as? [String: Any])
             data["sleeperId"] = session.selfSleeperId

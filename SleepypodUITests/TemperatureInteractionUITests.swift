@@ -5,7 +5,8 @@ import XCTest
         continueAfterFailure = false
         let app = XCUIApplication()
         app.launchArguments = ["-apiBackend", "demo", "--demo", "-onboardingComplete", "YES", "-healthSyncEnabled", "NO", "-uiRoute", "", "-tempControl", control, "-temperatureLayout", layout, "-temperatureDisplay", "degrees", "-stageAutoReturn", "YES", "-uiContextScenario", scenario]
-        app.launch(); XCTAssertTrue(app.buttons["Temp"].firstMatch.waitForExistence(timeout: 15)); return app
+        app.launchArguments += ["-userDefaultSide", "left", "-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryL"]
+        app.launch(); XCTAssertTrue(app.buttons["Tonight"].firstMatch.waitForExistence(timeout: 15)); return app
     }
 
     func testStagePinchAutoReturnRotateAndReset() {
@@ -55,6 +56,7 @@ import XCTest
         continueAfterFailure = false
         let app = XCUIApplication()
         app.launchArguments = ["-apiBackend", "demo", "--demo", "-onboardingComplete", "YES", "-healthSyncEnabled", "NO", "-uiRoute", "schedule", "-appearance", "Light"]
+        app.launchArguments += ["-userDefaultSide", "left", "-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryL"]
         app.launch()
         let control = app.switches["schedule.global.left"]
         XCTAssertTrue(control.waitForExistence(timeout: 15)); reveal(control, app)

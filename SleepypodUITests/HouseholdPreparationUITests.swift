@@ -11,11 +11,11 @@ import XCTest
         XCTAssertFalse(app.tabBars.firstMatch.exists)
         XCTAssertFalse(app.buttons["Invite another person"].exists)
         capture(app, "Personal-member-preparation")
-        app.buttons["Comfort preferences"].tap()
+        tapReachable(app.buttons["Comfort preferences"], in: app)
         XCTAssertTrue(app.navigationBars["Comfort preferences"].waitForExistence(timeout: 5))
         capture(app, "Personal-comfort-draft")
         app.navigationBars.buttons.firstMatch.tap()
-        app.buttons["Weekly routine drafts"].tap()
+        tapReachable(app.buttons["Weekly routine drafts"], in: app)
         XCTAssertTrue(app.staticTexts["household.routines.status"].waitForExistence(timeout: 5))
         XCTAssertEqual(app.staticTexts["household.routines.status"].label, "Draft only")
         capture(app, "Personal-weekly-drafts")
@@ -25,6 +25,14 @@ import XCTest
         XCTAssertTrue(app.navigationBars["Sunday draft"].waitForExistence(timeout: 5))
         capture(app, "Personal-night-draft")
         app.terminate()
+    }
+    private func tapReachable(_ element: XCUIElement, in app: XCUIApplication) {
+        for _ in 0..<12 {
+            if element.exists && element.isHittable { break }
+            app.swipeUp()
+        }
+        XCTAssertTrue(element.exists); XCTAssertTrue(element.isHittable); XCTAssertTrue(element.isEnabled)
+        element.tap()
     }
     private func capture(_ app: XCUIApplication, _ name: String) {
         let attachment = XCTAttachment(screenshot: app.screenshot()); attachment.name = name; attachment.lifetime = .keepAlways; add(attachment)

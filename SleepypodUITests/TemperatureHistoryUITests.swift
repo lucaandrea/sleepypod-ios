@@ -5,7 +5,7 @@ import XCTest
         continueAfterFailure = false
         let app = XCUIApplication()
         app.launchArguments = ["-apiBackend", "demo", "--demo", "-onboardingComplete", "YES", "-healthSyncEnabled", "NO", "-uiRoute", "", "-tempControl", "dial", "-temperatureLayout", "stage", "-temperatureDisplay", "degrees", "-uiContextScenario", scenario]
-        app.launch(); XCTAssertTrue(app.buttons["Temp"].firstMatch.waitForExistence(timeout: 15)); return app
+        app.launch(); XCTAssertTrue(app.buttons["Tonight"].firstMatch.waitForExistence(timeout: 15)); return app
     }
     func testStagePreviewAndSharedHistoryWithRecordedAutopilot() {
         let app = launch()

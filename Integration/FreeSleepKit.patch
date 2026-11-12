@@ -72,49 +72,185 @@ index bf16c36..1bc23a1 100644
              }
              SleepCard(title: "Routines & wake alarms") {
                  NavigationLink("Edit your routines") { RoutinesView() }.buttonStyle(SleepButtonStyle())
+diff --git a/FreeSleepKit/Intelligence/HealthHistory.swift b/FreeSleepKit/Intelligence/HealthHistory.swift
+index 522ad53..b369884 100644
+--- a/FreeSleepKit/Intelligence/HealthHistory.swift
++++ b/FreeSleepKit/Intelligence/HealthHistory.swift
+@@ -21,6 +21,8 @@ struct HealthHistory: Codable, Sendable, Equatable {
+     var timeZone: String
+     var sources: [Source]
+     var ignoredSamples: Int
++    /// Nil identifies an older import without device provenance; empty means no Watch sleep was returned.
++    var watchNights: [Night]?
+     static let empty = Self(importedAt: .distantPast, timeZone: TimeZone.current.identifier, sources: [], ignoredSamples: 0)
+ }
+ 
+@@ -31,4 +33,5 @@ struct HistoricalSleepSample: Sendable {
+     var sourceID: String
+     var sourceName: String
+     var stage: Stage
++    var recordedByWatch = false
+ }
+diff --git a/FreeSleepKit/Intelligence/HealthHistoryAnalyzer.swift b/FreeSleepKit/Intelligence/HealthHistoryAnalyzer.swift
+index 679f4f0..24f1913 100644
+--- a/FreeSleepKit/Intelligence/HealthHistoryAnalyzer.swift
++++ b/FreeSleepKit/Intelligence/HealthHistoryAnalyzer.swift
+@@ -8,6 +8,15 @@ enum HealthHistoryAnalyzer {
+         return date < noon ? calendar.date(byAdding: .day, value: -1, to: noon) ?? noon : noon
+     }
+     static func build(samples: [HistoricalSleepSample], now: Date, timeZone: TimeZone) -> HealthHistory {
++        let all = groupedSources(samples: samples, now: now, timeZone: timeZone)
++        // Union Watch intervals across devices, without adding the same sleep twice or mixing third-party sources.
++        let watch = samples.filter(\.recordedByWatch).map { sample in
++            var result = sample; result.sourceID = "apple-watch"; result.sourceName = "Apple Watch"; return result
++        }
++        return HealthHistory(importedAt: now, timeZone: timeZone.identifier, sources: all.sources, ignoredSamples: all.ignored,
++                             watchNights: groupedSources(samples: watch, now: now, timeZone: timeZone).sources.first?.nights ?? [])
++    }
++    private static func groupedSources(samples: [HistoricalSleepSample], now: Date, timeZone: TimeZone) -> (sources: [HealthHistory.Source], ignored: Int) {
+         var calendar = Calendar(identifier: .gregorian); calendar.timeZone = timeZone
+         var grouped: [String: [Date: [HistoricalSleepSample]]] = [:]
+         var names: [String: String] = [:]
+@@ -43,7 +52,7 @@ enum HealthHistoryAnalyzer {
+         sources.sort { first, second in
+             first.nights.count == second.nights.count ? first.id < second.id : first.nights.count > second.nights.count
+         }
+-        return HealthHistory(importedAt: now, timeZone: timeZone.identifier, sources: sources, ignoredSamples: ignored)
++        return (sources, ignored)
+     }
+     static func median(_ values: [Double]) -> Double? {
+         let values = values.filter(\.isFinite).sorted()
+diff --git a/FreeSleepKit/Intelligence/HealthHistoryReader.swift b/FreeSleepKit/Intelligence/HealthHistoryReader.swift
+index 3bfa56f..0244457 100644
+--- a/FreeSleepKit/Intelligence/HealthHistoryReader.swift
++++ b/FreeSleepKit/Intelligence/HealthHistoryReader.swift
+@@ -31,7 +31,9 @@ struct HealthHistoryReader {
+                 default: continue // Time in bed and awake are never treated as measured sleep.
+                 }
+                 samples[sample.uuid] = .init(start: sample.startDate, end: sample.endDate,
+-                    sourceID: sample.sourceRevision.source.bundleIdentifier, sourceName: sample.sourceRevision.source.name, stage: stage)
++                    sourceID: sample.sourceRevision.source.bundleIdentifier, sourceName: sample.sourceRevision.source.name, stage: stage,
++                    recordedByWatch: WatchRecordingSummary.isWatch(productType: sample.sourceRevision.productType,
++                        model: sample.device?.model, hardwareVersion: sample.device?.hardwareVersion))
+             }
+             anchor = page.newAnchor
+             if page.addedSamples.count + page.deletedObjects.count < 1000 { break }
 diff --git a/FreeSleepKit/Intelligence/IntelligenceWorkspace.swift b/FreeSleepKit/Intelligence/IntelligenceWorkspace.swift
-index 71835d7..c7c34ef 100644
+index 71835d7..576f595 100644
 --- a/FreeSleepKit/Intelligence/IntelligenceWorkspace.swift
 +++ b/FreeSleepKit/Intelligence/IntelligenceWorkspace.swift
-@@ -24,9 +24,12 @@ final class IntelligenceWorkspace {
+@@ -1,6 +1,7 @@
+ import Foundation
+ import HealthKit
+ import Observation
++import UIKit
+ 
+ @MainActor @Observable
+ final class IntelligenceWorkspace {
+@@ -18,15 +19,32 @@ final class IntelligenceWorkspace {
+     private(set) var busy = false
+     private(set) var keySaved = false
+     private(set) var attempts = 0
++    private(set) var healthReadError: String?
++    private(set) var lastHealthAttempt: Date?
+     private let defaults: UserDefaults
+     private let store: PersonalIntelligenceStore
+     private var modelIDs: [String: String]
      private var operation: Task<Void, Never>?
-     private var lastRefreshAttempt = Date.distantPast
+-    private var lastRefreshAttempt = Date.distantPast
      private var restored = false
 +    private let generateModel: @Sendable (ModelRequest) async throws -> ModelReply
++    private let readHistory: @MainActor () async throws -> HealthHistory
++    private let authorizeHistory: @MainActor () async throws -> Void
++    private let protectedDataAvailable: @MainActor () -> Bool
++    private let historyScope: @MainActor () -> String
  
 -    init(defaults: UserDefaults = .standard, store: PersonalIntelligenceStore = .init()) {
 +    init(defaults: UserDefaults = .standard, store: PersonalIntelligenceStore = .init(),
-+         generateModel: @escaping @Sendable (ModelRequest) async throws -> ModelReply = { try await NativeModelClient().generate($0) }) {
++         generateModel: @escaping @Sendable (ModelRequest) async throws -> ModelReply = { try await NativeModelClient().generate($0) },
++         readHistory: @escaping @MainActor () async throws -> HealthHistory = { try await HealthHistoryReader(store: HKHealthStore()).read() },
++         authorizeHistory: @escaping @MainActor () async throws -> Void = { try await HealthHistoryReader(store: HKHealthStore()).authorize() },
++         protectedDataAvailable: @escaping @MainActor () -> Bool = { UIApplication.shared.isProtectedDataAvailable },
++         historyScope: @escaping @MainActor () -> String = {
++             ["apiBackend", "podURL", "podIPAddress", "ownerConnectionRevision", "household.boundaryRevision"]
++                 .map { UserDefaults.standard.string(forKey: $0) ?? "" }.joined(separator: "|")
++         }) {
          self.defaults = defaults; self.store = store
 +        self.generateModel = generateModel
++        self.readHistory = readHistory; self.authorizeHistory = authorizeHistory
++        self.protectedDataAvailable = protectedDataAvailable; self.historyScope = historyScope
          let selected = IntelligenceProvider(rawValue: defaults.string(forKey: "intelligence.provider") ?? "") ?? .apple
          provider = selected
          let savedModels = defaults.dictionary(forKey: "intelligence.models") as? [String: String] ?? [:]
-@@ -83,6 +86,7 @@ final class IntelligenceWorkspace {
+@@ -44,6 +62,7 @@ final class IntelligenceWorkspace {
+     }
+     var choices: [String] { Array(Set(provider.models + catalog + (modelID.isEmpty ? [] : [modelID]))).sorted() }
+     var reportInProgress: Bool { operation != nil }
++    var automaticHistoryRefresh: Bool { refreshHistory && defaults.bool(forKey: "intelligence.healthRequested") }
+     var ready: Bool { provider == .apple ? AppleIntelligenceClient.available : provider == .ollama ? !localAddress.isEmpty : keySaved }
+     func restore() {
+         if !restored {
+@@ -51,7 +70,10 @@ final class IntelligenceWorkspace {
+                 archive = try store.read(); restored = true
+                 if !archive.history.sources.contains(where: { $0.id == selectedSource }) { selectedSource = archive.history.sources.first?.id ?? "" }
+             }
+-            catch { message = "Saved Health history is unavailable while this device is locked, or the archive could not be read." }
++            catch {
++                healthReadError = "Saved Health history is unavailable while this device is locked, or the archive could not be read."
++                message = healthReadError
++            }
+         }
+         checkKey(); updateAttempts()
+     }
+@@ -83,40 +105,61 @@ final class IntelligenceWorkspace {
          } catch { message = error is CancellationError ? "Test cancelled." : error.localizedDescription }
      }
      func importHistory(authorize: Bool = true) async {
 +        guard !PersonalWorkspaceBoundary.isActive else { return }
          guard !busy, !AppMode.isDemo else { return }
-         busy = true; message = "Reading accessible Health history…"; lastRefreshAttempt = .now
+-        busy = true; message = "Reading accessible Health history…"; lastRefreshAttempt = .now
++        guard protectedDataAvailable() else {
++            healthReadError = "Unlock this device to read Health. Your previous import is unchanged."; return
++        }
++        restore()
++        guard restored else { return } // Never overwrite an unreadable archive and its existing reports.
++        let scope = historyScope()
++        busy = true; healthReadError = nil; message = "Reading accessible Health history…"; lastHealthAttempt = .now
          defer { busy = false }
-@@ -90,6 +94,7 @@ final class IntelligenceWorkspace {
-             let reader = HealthHistoryReader(store: HKHealthStore())
-             if authorize { try await reader.authorize(); defaults.set(true, forKey: "intelligence.healthRequested") }
-             let history = try await reader.read()
+         do {
+-            let reader = HealthHistoryReader(store: HKHealthStore())
+-            if authorize { try await reader.authorize(); defaults.set(true, forKey: "intelligence.healthRequested") }
+-            let history = try await reader.read()
++            if authorize {
++                try await authorizeHistory()
++                guard historyScope() == scope, !PersonalWorkspaceBoundary.isActive else { return }
++                defaults.set(true, forKey: "intelligence.healthRequested")
++            }
++            let history = try await readHistory()
 +            try PersonalWorkspaceBoundary.requireLegacyAccess()
++            guard historyScope() == scope else { return }
              try Task.checkCancellation()
              var updated = archive; updated.history = history
              try store.write(updated); archive = updated
-@@ -99,24 +104,29 @@ final class IntelligenceWorkspace {
-         } catch { message = error is CancellationError ? "History refresh cancelled. The previous import is unchanged." : error.localizedDescription }
+             if !history.sources.contains(where: { $0.id == selectedSource }) { selectedSource = history.sources.first?.id ?? "" }
+             message = history.sources.isEmpty ? "No readable sleep records were returned. Health does not reveal whether access was denied; review permissions or try again after data syncs."
+                 : "History refreshed. Choose one sleep source below. No Health data has been sent to a model."
+-        } catch { message = error is CancellationError ? "History refresh cancelled. The previous import is unchanged." : error.localizedDescription }
++        } catch {
++            guard historyScope() == scope, !PersonalWorkspaceBoundary.isActive else { return }
++            healthReadError = error is CancellationError ? "History refresh cancelled. The previous import is unchanged."
++                : "Health could not be read. Your previous import is unchanged. Unlock this device, then try again. If it continues, check sleepypod’s access in Health."
++            message = healthReadError
++        }
      }
      func refreshOnActivation() async {
-+        guard !PersonalWorkspaceBoundary.isActive else { return }
++        guard !PersonalWorkspaceBoundary.isActive, protectedDataAvailable(), !AppMode.isDemo else { return }
          restore()
-         guard refreshHistory, defaults.bool(forKey: "intelligence.healthRequested"), !busy,
-               Date.now.timeIntervalSince(archive.history.importedAt) >= 6 * 3600,
-               Date.now.timeIntervalSince(lastRefreshAttempt) >= 15 * 60 else { return }
+-        guard refreshHistory, defaults.bool(forKey: "intelligence.healthRequested"), !busy,
+-              Date.now.timeIntervalSince(archive.history.importedAt) >= 6 * 3600,
+-              Date.now.timeIntervalSince(lastRefreshAttempt) >= 15 * 60 else { return }
++        guard restored, !busy, HealthHistoryRefreshPolicy.shouldRefresh(now: .now, importedAt: archive.history.importedAt,
++            lastAttempt: lastHealthAttempt, enabled: refreshHistory, requested: defaults.bool(forKey: "intelligence.healthRequested")) else { return }
          await importHistory(authorize: false)
      }
 -    func generate(facts: [SleepFact], consent: Bool) {
@@ -140,7 +276,7 @@ index 71835d7..c7c34ef 100644
                      let report = PersonalSleepReport(id: UUID(), createdAt: .now, provider: input.provider, model: reply.model,
                          source: sourceName, facts: facts, text: reply.text, inputTokens: reply.inputTokens, outputTokens: reply.outputTokens)
                      var updated = archive; updated.reports = Array(([report] + updated.reports).prefix(30))
-@@ -127,6 +137,7 @@ final class IntelligenceWorkspace {
+@@ -127,11 +170,13 @@ final class IntelligenceWorkspace {
          } catch { busy = false; message = error.localizedDescription }
      }
      func cancel() { operation?.cancel() }
@@ -148,6 +284,12 @@ index 71835d7..c7c34ef 100644
      func forgetHistory() {
          guard !busy else { return }
          do {
+             let empty = PersonalIntelligenceArchive(); try store.write(empty); archive = empty
+             defaults.set(false, forKey: "intelligence.healthRequested"); refreshHistory = false
++            healthReadError = nil; lastHealthAttempt = nil; restored = true
+             message = "Local history and reports removed. Apple Health records and API keys are unchanged."
+         } catch { message = "The local archive could not be cleared." }
+     }
 diff --git a/FreeSleepKit/Intelligence/PersonalEvidenceWorkspace.swift b/FreeSleepKit/Intelligence/PersonalEvidenceWorkspace.swift
 new file mode 100644
 index 0000000..32121ae
@@ -200,6 +342,42 @@ index 0000000..32121ae
 +        hasObservations = !empty
 +    }
 +}
+diff --git a/FreeSleepKit/Intelligence/PersonalIntelligenceStore.swift b/FreeSleepKit/Intelligence/PersonalIntelligenceStore.swift
+index 942dd81..b6e1309 100644
+--- a/FreeSleepKit/Intelligence/PersonalIntelligenceStore.swift
++++ b/FreeSleepKit/Intelligence/PersonalIntelligenceStore.swift
+@@ -2,18 +2,24 @@ import Foundation
+ 
+ struct PersonalIntelligenceStore {
+     private let file: URL
+-    init(directory: URL = URL.applicationSupportDirectory.appending(path: "PersonalIntelligence", directoryHint: .isDirectory)) {
++    private let snapshots: PrivateSnapshotStore
++    init(directory: URL = URL.applicationSupportDirectory.appending(path: "PersonalIntelligence", directoryHint: .isDirectory),
++         snapshots: PrivateSnapshotStore? = nil) {
+         file = directory.appending(path: "history-and-reports.json")
++        self.snapshots = snapshots ?? .init(directory: directory, namespace: "personal-intelligence-v1")
+     }
+     func read() throws -> PersonalIntelligenceArchive {
++        try PersonalWorkspaceBoundary.requireLegacyAccess()
++        if let saved = try snapshots.read(PersonalIntelligenceArchive.self, scope: "device-owner") { return saved }
+         guard FileManager.default.fileExists(atPath: file.path) else { return .init() }
+-        return try JSONDecoder().decode(PersonalIntelligenceArchive.self, from: Data(contentsOf: file))
++        let legacy = try JSONDecoder().decode(PersonalIntelligenceArchive.self, from: Data(contentsOf: file))
++        // Complete the protected write before removing the previous local archive.
++        try write(legacy)
++        return legacy
+     }
+     func write(_ value: PersonalIntelligenceArchive) throws {
+-        var directory = file.deletingLastPathComponent()
+-        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+-        var resources = URLResourceValues(); resources.isExcludedFromBackup = true
+-        try directory.setResourceValues(resources)
+-        try JSONEncoder().encode(value).write(to: file, options: [.atomic, .completeFileProtection])
++        try PersonalWorkspaceBoundary.requireLegacyAccess()
++        try snapshots.write(value, scope: "device-owner")
++        if FileManager.default.fileExists(atPath: file.path) { try FileManager.default.removeItem(at: file) }
+     }
+ }
 diff --git a/FreeSleepKit/Intents/AlarmIntents.swift b/FreeSleepKit/Intents/AlarmIntents.swift
 index 7941fdd..7768acb 100644
 --- a/FreeSleepKit/Intents/AlarmIntents.swift

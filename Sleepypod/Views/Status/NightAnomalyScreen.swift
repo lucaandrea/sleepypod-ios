@@ -8,7 +8,7 @@ struct NightAnomalyScreen: View {
     @State private var confirmingDelete = false
     @State private var reviewBatch: NightAnomalyReviewBatch?
     @State private var confirmingRecentNights = false
-    private var scope: String { (health.watchReferenceContext + [settings.timeZone]).joined(separator: "|") }
+    private var scope: String { (health.watchReferenceDataContext + [settings.timeZone]).joined(separator: "|") }
     private var calendar: Calendar { SleepCalendar.calendar(timeZone: settings.timeZone) }
 
     var body: some View {

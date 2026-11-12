@@ -1,6 +1,6 @@
 {
   "synthetic": true,
-  "sourceCommit": "f0c40fabe7f040d8ed35ff6eba0e44d28dc75f1a",
+  "sourceCommit": "816f12692e7116c12e09b33853154727eccdac3b",
   "now": 1792990800000,
   "cases": {
     "scheduled": {
@@ -25,6 +25,12 @@
       "canChange": true,
       "reason": "",
       "execution": null,
+      "warming": {
+        "startsAt": "2026-10-26T06:30:00.000Z",
+        "endsAt": "2026-10-26T07:16:00.000Z",
+        "earliestVibrationAt": "2026-10-26T07:00:00.000Z",
+        "targetF": 80
+      },
       "acknowledgment": "accepted_not_physically_verified",
       "change": null
     },
@@ -32,7 +38,7 @@
       "apiVersion": 1,
       "side": "left",
       "timeZone": "UTC",
-      "revision": "7884290a7ae5b15d7d8ca55fde20fe2cff551e33778237683351434616a1f501",
+      "revision": "c5f888584816f3125179ba84cd056eec20ffb6919dda64d8a0b62e60a8c8cda2",
       "state": "skipped",
       "alarm": {
         "scheduleIds": [
@@ -50,9 +56,10 @@
       "canChange": true,
       "reason": "",
       "execution": null,
+      "warming": null,
       "acknowledgment": "accepted_not_physically_verified",
       "change": {
-        "revision": "dd669341-9fce-4d9b-bb80-2e6d29768f02",
+        "revision": "6dc07fbb-34bf-4af0-ad7a-d048114c32dd",
         "status": "active",
         "originalAt": "2026-10-26T07:00:00.000Z",
         "at": null,
@@ -63,7 +70,7 @@
       "apiVersion": 1,
       "side": "left",
       "timeZone": "UTC",
-      "revision": "ea5577f97b1d10ae3e30c52e6347fcaeea04962fac05fa86ee49aa83389c6fa4",
+      "revision": "e2179148105c506c5e10f8d16e9e7542ab7eb319be796d78359e2c9060a35642",
       "state": "scheduled",
       "alarm": {
         "scheduleIds": [
@@ -81,6 +88,12 @@
       "canChange": true,
       "reason": "",
       "execution": null,
+      "warming": {
+        "startsAt": "2026-10-26T06:30:00.000Z",
+        "endsAt": "2026-10-26T07:16:00.000Z",
+        "earliestVibrationAt": "2026-10-26T07:00:00.000Z",
+        "targetF": 80
+      },
       "acknowledgment": "accepted_not_physically_verified",
       "change": null
     },
@@ -88,7 +101,7 @@
       "apiVersion": 1,
       "side": "left",
       "timeZone": "UTC",
-      "revision": "6add4cffd5e6ab34f5bac20b81b0c2269430fe1d1a80420dd952a0551d200331",
+      "revision": "6a83fcfada8d62f2785263086d86338a7f1df96390ac7b0a4e60dba1c1b4d872",
       "state": "scheduled",
       "alarm": {
         "scheduleIds": [
@@ -106,9 +119,15 @@
       "canChange": true,
       "reason": "",
       "execution": null,
+      "warming": {
+        "startsAt": "2026-10-26T07:30:00.000Z",
+        "endsAt": "2026-10-26T08:16:00.000Z",
+        "earliestVibrationAt": "2026-10-26T08:00:00.000Z",
+        "targetF": 80
+      },
       "acknowledgment": "accepted_not_physically_verified",
       "change": {
-        "revision": "50f93c78-d133-4173-8fbd-0a9c59b784eb",
+        "revision": "60a871b2-ed4e-4e98-a16e-7a4ab06c8ef3",
         "status": "active",
         "originalAt": "2026-10-26T07:00:00.000Z",
         "at": "2026-10-26T08:00:00.000Z",
@@ -119,7 +138,7 @@
       "apiVersion": 1,
       "side": "left",
       "timeZone": "UTC",
-      "revision": "1968716174766cc9b3098873ad1f8286bf9f7bec27fc97f86c637bcee897927c",
+      "revision": "1437e42c6b7570c0df9920c941a3046597b8319a360c665cc4f9f6ef4edc8e99",
       "state": "scheduled",
       "alarm": {
         "scheduleIds": [
@@ -137,9 +156,15 @@
       "canChange": true,
       "reason": "",
       "execution": null,
+      "warming": {
+        "startsAt": "2026-11-02T06:30:00.000Z",
+        "endsAt": "2026-11-02T07:16:00.000Z",
+        "earliestVibrationAt": "2026-11-02T07:00:00.000Z",
+        "targetF": 80
+      },
       "acknowledgment": "accepted_not_physically_verified",
       "change": {
-        "revision": "50f93c78-d133-4173-8fbd-0a9c59b784eb",
+        "revision": "60a871b2-ed4e-4e98-a16e-7a4ab06c8ef3",
         "status": "expired",
         "originalAt": "2026-10-26T07:00:00.000Z",
         "at": "2026-10-26T08:00:00.000Z",
@@ -150,7 +175,7 @@
       "apiVersion": 1,
       "side": "left",
       "timeZone": "UTC",
-      "revision": "6317d80e3d0031deb85e8a483aacc663ab6b5fad393c1725ca7f069d214793d5",
+      "revision": "b22ce0590ed07e53676dfa470401a62e6a7ef33d5ff8b30fcba93e4124f75407",
       "state": "scheduled",
       "alarm": {
         "scheduleIds": [
@@ -168,9 +193,15 @@
       "canChange": true,
       "reason": "",
       "execution": null,
+      "warming": {
+        "startsAt": "2026-10-26T06:30:00.000Z",
+        "endsAt": "2026-10-26T07:16:30.000Z",
+        "earliestVibrationAt": "2026-10-26T07:00:00.000Z",
+        "targetF": 80
+      },
       "acknowledgment": "accepted_not_physically_verified",
       "change": {
-        "revision": "50f93c78-d133-4173-8fbd-0a9c59b784eb",
+        "revision": "60a871b2-ed4e-4e98-a16e-7a4ab06c8ef3",
         "status": "invalidated",
         "originalAt": "2026-10-26T07:00:00.000Z",
         "at": "2026-10-26T08:00:00.000Z",
@@ -181,7 +212,7 @@
       "apiVersion": 1,
       "side": "left",
       "timeZone": "UTC",
-      "revision": "eccd9448567df66b32193fe142c91c4cf415c55f614b15bcf87754cacd1e3a1d",
+      "revision": "28973a4d42cba3389d773fcc5efe87d0aa0426a27ad0419749d9e649d9571b65",
       "state": "away",
       "alarm": {
         "scheduleIds": [
@@ -199,6 +230,7 @@
       "canChange": false,
       "reason": "This side is away or inactive.",
       "execution": null,
+      "warming": null,
       "acknowledgment": "accepted_not_physically_verified",
       "change": null
     },
@@ -206,7 +238,7 @@
       "apiVersion": 1,
       "side": "left",
       "timeZone": "UTC",
-      "revision": "ee4a0c5d175157bc71dc16e753b65a75a9dda2093f0a8cf0e8ddc0feaddbc92e",
+      "revision": "657fbe34ab953c14b380fb39b2b16a7880c028d0f07360255a6f1fb4e3c65b73",
       "state": "scheduled",
       "alarm": {
         "scheduleIds": [
@@ -225,6 +257,7 @@
       "canChange": false,
       "reason": "Conflicting alarms share this wake time. Resolve them in Schedule before making a one-time change.",
       "execution": null,
+      "warming": null,
       "acknowledgment": "accepted_not_physically_verified",
       "change": null
     },
@@ -232,7 +265,7 @@
       "apiVersion": 1,
       "side": "left",
       "timeZone": "UTC",
-      "revision": "7a3c74b579a806310ac90ba99e607fa838d55d72c07946c7a12dbf6752038517",
+      "revision": "a28f5cd0cec39f907ae18407414b0c85c4d838a1860042d947b1e89211cee912",
       "state": "scheduled",
       "alarm": {
         "scheduleIds": [
@@ -250,6 +283,7 @@
       "canChange": false,
       "reason": "This occurrence has already been attempted. Use the current alarm controls to stop or snooze it.",
       "execution": "attempting",
+      "warming": null,
       "acknowledgment": "accepted_not_physically_verified",
       "change": null
     },
@@ -257,7 +291,7 @@
       "apiVersion": 1,
       "side": "left",
       "timeZone": "UTC",
-      "revision": "71f49cc15d130c644835bbf5a7b3401f70fe0c661291254e6327db4ae21e8abb",
+      "revision": "aec2d6d9179b9ef01a4ec7db768e5d46493b10458069dae2830e7b5ecc60f2e3",
       "state": "scheduled",
       "alarm": {
         "scheduleIds": [
@@ -275,6 +309,7 @@
       "canChange": false,
       "reason": "This occurrence has already been attempted. Use the current alarm controls to stop or snooze it.",
       "execution": "unknown",
+      "warming": null,
       "acknowledgment": "accepted_not_physically_verified",
       "change": null
     },
@@ -282,7 +317,7 @@
       "apiVersion": 1,
       "side": "left",
       "timeZone": "UTC",
-      "revision": "71bde7288f9602330e62b8aa612657e7527bdefee836f4e90ab4e75d67464ee5",
+      "revision": "2041628ee2e2e54e0045b3e01bc83d7b2340af8ff2743fb869ca3bddf402c7b9",
       "state": "scheduled",
       "alarm": {
         "scheduleIds": [
@@ -300,6 +335,7 @@
       "canChange": false,
       "reason": "This occurrence has already been attempted. Use the current alarm controls to stop or snooze it.",
       "execution": "acknowledged",
+      "warming": null,
       "acknowledgment": "accepted_not_physically_verified",
       "change": null
     },
@@ -307,13 +343,14 @@
       "apiVersion": 1,
       "side": "left",
       "timeZone": "UTC",
-      "revision": "d8ec4f7c9d99fc0cd7920c131092e6f5876f884b6b2da619ae030fda1927d8b1",
+      "revision": "bf63af62c536f67545ee58826e0aaa495540a7cbebdaad67dc419347117b38a3",
       "state": "none",
       "alarm": null,
       "followingAt": null,
       "canChange": false,
       "reason": "No enabled alarm is scheduled.",
       "execution": null,
+      "warming": null,
       "acknowledgment": "accepted_not_physically_verified",
       "change": null
     }

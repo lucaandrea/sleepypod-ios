@@ -1,34 +1,93 @@
-name: Personal recordings UI
+name: Personal recordings and learning UI
 
 on:
   pull_request:
     paths:
       - 'Sleepypod/**/PersonalHistory*.swift'
+      - 'Sleepypod/**/PersonalLearning*.swift'
+      - 'Sleepypod/**/PersonalJournal*.swift'
+      - 'Sleepypod/SleepypodApp.swift'
       - 'Sleepypod/Services/HouseholdWorkspace.swift'
       - 'Sleepypod/Views/Household/HouseholdScreen.swift'
       - 'SleepypodUITests/PersonalHistoryUITests.swift'
+      - 'SleepypodUITests/PersonalLearningUITests.swift'
+      - 'SleepypodUITests/PersonalLearningRemovalUITests.swift'
+      - 'SleepypodUITests/PersonalJournalUITests.swift'
+      - 'SleepypodUITests/PersonalJournalPatternsUITests.swift'
       - 'Integration/Fixtures/personal-history-v1.json'
+      - 'Integration/Fixtures/personal-learning-v1.json'
+      - 'Integration/Fixtures/personal-journal-v1.json'
+      - 'Integration/Fixtures/personal-journal-patterns-v1.json'
       - '.github/workflows/personal-history-ui.yml'
+      - 'scripts/verify-recordings-ui.sh'
+      - 'scripts/tests/test_recordings_groups.py'
+      - 'scripts/build-simulator-ui.sh'
+      - 'scripts/tests/test_simulator_build.py'
   workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
-  recordings:
-    name: Recordings (${{ matrix.form }})
+  ui-bundle:
+    name: Build personal recordings UI bundle
     runs-on: macos-15-intel
-    timeout-minutes: 65
-    strategy:
-      fail-fast: false
-      matrix:
-        form: [iPhone, iPad]
+    timeout-minutes: 45
     env:
       DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
     steps:
       - uses: actions/checkout@v4
         with:
           lfs: true
+      - name: Build all recording UI suites once
+        timeout-minutes: 30
+        run: bash scripts/verify-recordings-ui.sh build all
+      - name: Archive signed products and source revision
+        run: |
+          mkdir -p "$RUNNER_TEMP/RecordingsBundle"
+          ditto -c -k --keepParent "$RUNNER_TEMP/RecordingsBuild/Build/Products" "$RUNNER_TEMP/RecordingsBundle/Products.zip"
+          git rev-parse HEAD > "$RUNNER_TEMP/RecordingsBundle/source-revision.txt"
+          xcodebuild -version > "$RUNNER_TEMP/RecordingsBundle/xcode-version.txt"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: personal-recordings-ui-bundle
+          path: ${{ runner.temp }}/RecordingsBundle
+          if-no-files-found: error
+          retention-days: 7
+          compression-level: 0
+  recordings:
+    name: Recordings (${{ matrix.form }}, ${{ matrix.suite }})
+    needs: ui-bundle
+    runs-on: macos-15-intel
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      max-parallel: 2
+      matrix:
+        form: [iPhone, iPad]
+        suite: [history, learning, removal, journal, patterns]
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+      - uses: actions/download-artifact@v4
+        with:
+          name: personal-recordings-ui-bundle
+          path: ${{ runner.temp }}/RecordingsBundle
+      - name: Restore same-revision UI test bundle
+        run: |
+          test "$(cat "$RUNNER_TEMP/RecordingsBundle/source-revision.txt")" = "$(git rev-parse HEAD)"
+          xcodebuild -version > "$RUNNER_TEMP/current-xcode-version.txt"
+          cmp "$RUNNER_TEMP/RecordingsBundle/xcode-version.txt" "$RUNNER_TEMP/current-xcode-version.txt"
+          ditto -x -k "$RUNNER_TEMP/RecordingsBundle/Products.zip" "$RUNNER_TEMP/RecordingsBundle"
+          RECORDINGS_TEST_RUN=$(python3 -c '
+          import pathlib, sys
+          matches = list(pathlib.Path(sys.argv[1]).glob("*.xctestrun"))
+          if len(matches) != 1: sys.exit("Expected exactly one shared UI test run")
+          print(matches[0])' "$RUNNER_TEMP/RecordingsBundle/Products")
+          printf 'RECORDINGS_TEST_RUN=%s\n' "$RECORDINGS_TEST_RUN" >> "$GITHUB_ENV"
       - name: Select simulator
         run: |
           RECORDINGS_SIM_ID=$(xcrun simctl list devices available --json | python3 -c '
@@ -38,30 +97,17 @@ jobs:
           if not matches: sys.exit("Requested iOS 26 simulator is unavailable")
           print(matches[0])' '${{ matrix.form }}')
           printf 'RECORDINGS_SIM_ID=%s\n' "$RECORDINGS_SIM_ID" >> "$GITHUB_ENV"
-      - name: Build UI tests
-        timeout-minutes: 30
-        run: |
-          xcodebuild build-for-testing -project Sleepypod.xcodeproj -scheme Sleepypod \
-            -destination "platform=iOS Simulator,id=$RECORDINGS_SIM_ID" \
-            -derivedDataPath "$RUNNER_TEMP/RecordingsBuild" \
-            -only-testing:SleepypodUITests/PersonalHistoryUITests CODE_SIGNING_ALLOWED=NO
       - name: Boot simulator
         timeout-minutes: 15
         run: xcrun simctl bootstatus "$RECORDINGS_SIM_ID" -b
-      - name: Verify personal recordings
+      - name: Verify recording suite
         timeout-minutes: 20
-        run: |
-          xcodebuild test-without-building -project Sleepypod.xcodeproj -scheme Sleepypod \
-            -destination "platform=iOS Simulator,id=$RECORDINGS_SIM_ID" \
-            -derivedDataPath "$RUNNER_TEMP/RecordingsBuild" \
-            -only-testing:SleepypodUITests/PersonalHistoryUITests \
-            -resultBundlePath "$RUNNER_TEMP/Recordings.xcresult" \
-            -collect-test-diagnostics never -parallel-testing-enabled NO CODE_SIGNING_ALLOWED=NO
+        run: bash scripts/verify-recordings-ui.sh test "${{ matrix.suite }}"
       - name: Preserve screenshots and results
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: personal-recordings-${{ matrix.form }}
-          path: ${{ runner.temp }}/Recordings.xcresult
+          name: personal-recordings-${{ matrix.form }}-${{ matrix.suite }}
+          path: ${{ runner.temp }}/Recordings-${{ matrix.suite }}.xcresult
           if-no-files-found: ignore
           retention-days: 7

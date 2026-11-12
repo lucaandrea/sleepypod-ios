@@ -24,11 +24,17 @@ struct NativeControlAction: Codable, Equatable, Sendable {
     var head: Int?
     var feet: Int?
     var feedRate: Int?
+    var coolingId: String?
+    var expectedScope: String?
+    var expectedTargetF: Int?
+    var expectedExpiresAt: Int64?
 
     var family: String { kind.hasPrefix("base.") ? "base" : "\(side?.rawValue ?? "")-\(kind.hasPrefix("vibration") ? "vibration" : "thermal")" }
-    var isStopping: Bool { kind == "base.stop" || kind == "vibration.clear" || (kind == "power" && powered == false) }
+    var isStopping: Bool { kind == "cooling.cancel" || kind == "base.stop" || kind == "vibration.clear" || (kind == "power" && powered == false) }
     var label: String {
         switch kind {
+        case "cooling.start": "Temporary cooling · \(side?.displayName ?? "")"
+        case "cooling.cancel": "Cancel temporary cooling · \(side?.displayName ?? "")"
         case "temperature": "\(side?.displayName ?? "") temperature \(temperature ?? 0)°F"
         case "power": "\(side?.displayName ?? "") power \(powered == true ? "on" : "off")"
         case "vibration": "\(side?.displayName ?? "") vibration"
@@ -43,6 +49,15 @@ struct NativeControlAction: Codable, Equatable, Sendable {
         guard let fields = try JSONSerialization.jsonObject(with: data) as? [String: Any] else { throw NativeControlFailure.invalid }
         let required: Set<String>, optional: Set<String>
         switch kind {
+        case "cooling.start":
+            required = ["kind", "side", "coolingId", "expectedScope", "expectedTargetF", "expectedExpiresAt"]; optional = []
+            guard let coolingId, UUID(uuidString: coolingId) != nil, let expectedScope,
+                  expectedScope.range(of: "^[a-f0-9]{64}$", options: .regularExpression) != nil,
+                  let expectedTargetF, (55...110).contains(expectedTargetF), let expectedExpiresAt,
+                  expectedExpiresAt > 0, expectedExpiresAt <= 8_640_000_000_000_000 else { throw NativeControlFailure.invalid }
+        case "cooling.cancel":
+            required = ["kind", "side", "coolingId"]; optional = []
+            guard let coolingId, UUID(uuidString: coolingId) != nil else { throw NativeControlFailure.invalid }
         case "temperature":
             required = ["kind", "side", "temperature"]; optional = ["holdMinutes"]
             guard let temperature, (55...110).contains(temperature), holdMinutes.map({ (1...1440).contains($0) }) ?? true else { throw NativeControlFailure.invalid }

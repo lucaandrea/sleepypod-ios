@@ -30,24 +30,30 @@ struct SleepypodApp: App {
     @State private var watchMotion = WatchMotionReceiver()
     @State private var snoreCapture = SnoreCaptureService()
     @State private var offlineLibrary = OfflineLibrarySession()
+    @State private var ownerRoutes: OwnerRouteSession
 
     init() {
         #if DEBUG
         if ProcessInfo.processInfo.arguments.contains("--offline-library-fixture") {
             _offlineLibrary = State(initialValue: OfflineLibrarySession(currentScope: { "offline-ui-example" }))
         }
-        let household = PersonalHistoryPreview.make() ?? ArrangementReviewPreview.make() ?? PersonalRoutinePreview.make() ?? PersonalTemperaturePreview.make() ?? HouseholdPreview.make() ?? HouseholdWorkspace()
+        let household = Self.makePreviewHousehold()
         #else
         let household = HouseholdWorkspace()
         #endif
         _household = State(initialValue: household)
+        UnifiedRuntime.configureOwnerIdentity { OwnerDataIdentity.current.revision }
+        UnifiedRuntime.configureReportSharing { try await OwnerReportSharing.connect() }
         UnifiedRuntime.initialize()
         #if DEBUG
+        _ownerRoutes = State(initialValue: OwnerRouteExample.configured() ?? OwnerRouteSession())
         if APIBackend.current.isDemo && ProcessInfo.processInfo.arguments.contains("--reset-base-preferences") {
             for key in ["mattress", "simple", "instantPresets", "linked", "cards", "scope"] {
                 UserDefaults.standard.removeObject(forKey: "base.\(key)")
             }
         }
+        #else
+        _ownerRoutes = State(initialValue: OwnerRouteSession())
         #endif
         let client = APIBackend.current.createClient()
         let device = DeviceManager(api: client)
@@ -70,9 +76,33 @@ struct SleepypodApp: App {
         _healthSync = State(initialValue: health)
         let actions = NativeActionSession.configured { try await health.syncLinkedThirtyDays() }
         _nativeActions = State(initialValue: actions)
+        let owner = OwnerBedRemoteSource(selected: { device.isLinked ? Side.allCases : device.selectedSide.sides }, controls: {
+            try NativeControlService(ledger: .persistent(), client: { try CoreNativeControlClient(transport: .configured()) })
+        })
+        let remote = BedRemoteCoordinator(source: PhoneBedRemoteSource(household: household, owner: owner))
+        let watch = WatchMotionReceiver(remote: remote)
+        watch.activate()
+        _watchMotion = State(initialValue: watch)
         let bridge = actions.bridge
         AppDependencyManager.shared.add(dependency: bridge)
     }
+
+    #if DEBUG
+    // Preserve first-match fixture selection without one expensive optional-expression chain.
+    @MainActor private static func makePreviewHousehold() -> HouseholdWorkspace {
+        if let workspace = PersonalQuietPreview.make() { return workspace }
+        if let workspace = PersonalOfflinePreview.make() { return workspace }
+        if let workspace = PersonalJournalPreview.make() { return workspace }
+        if let workspace = PersonalLearningPreview.make() { return workspace }
+        if let workspace = ArrangementMaintenancePreview.make() { return workspace }
+        if let workspace = PersonalHistoryPreview.make() { return workspace }
+        if let workspace = ArrangementReviewPreview.make() { return workspace }
+        if let workspace = PersonalRoutinePreview.make() { return workspace }
+        if let workspace = PersonalTemperaturePreview.make() { return workspace }
+        if let workspace = HouseholdPreview.make() { return workspace }
+        return HouseholdWorkspace()
+    }
+    #endif
 
     var body: some Scene {
         WindowGroup {
@@ -81,20 +111,25 @@ struct SleepypodApp: App {
                 else { ownerContent }
             }
                 .environment(household)
+                .modifier(BackupAlarmLifecycle())
                 .preferredColorScheme(userProfile.appearance.colorScheme)
                 .foregroundStyle(Theme.text1)
                 .tint(Theme.text1)
                 .task {
                     sensorStream.notificationRelay = notificationRelay
-                    if !household.active { watchMotion.activate() }
+                    watchMotion.activate()
                 }
                 .onChange(of: household.active) {
+                    watchMotion.invalidateRemote()
                     if household.active {
                         offlineLibrary.withdraw()
                         deviceManager.suspendConnection(); sensorStream.disconnect(); podDiscovery.stopBrowsing()
                         snoreCapture.stop(reason: "personal account opened")
                     } else { watchMotion.activate() }
                 }
+                .onChange(of: household.remoteContext) { watchMotion.invalidateRemote() }
+                .onChange(of: deviceManager.selectedSide) { watchMotion.invalidateRemote() }
+                .onChange(of: deviceManager.isLinked) { watchMotion.invalidateRemote() }
                 .task(id: deviceManager.isConnected) {
                     // Keep first-install setup focused on local network access.
                     if !household.active && deviceManager.isConnected && !APIBackend.current.isDemo && !DebugRoute.marketingCapture {
@@ -107,7 +142,8 @@ struct SleepypodApp: App {
         }
         .backgroundTask(.appRefresh(HealthSyncService.backgroundTaskID)) { [healthSync] in
             // Queue the next wake-up first so a sync that runs out of time doesn't end the chain.
-            HealthSyncService.scheduleBackgroundSync()
+            HealthSyncService.scheduleBackgroundSync(after: 30 * 60)
+            await UnifiedRuntime.refreshPersonalHealth()
             await healthSync.syncInBackground()
         }
     }
@@ -121,7 +157,23 @@ struct SleepypodApp: App {
                         else { await offlineLibrary.refresh(client: MockClient(), timeZone: "America/Los_Angeles") }
                     }
             }
+            else if ProcessInfo.processInfo.arguments.contains("--comfort-experiments-fixture") { ComfortExperimentPreview() }
             else if ProcessInfo.processInfo.arguments.contains("--connection-fixture") { ConnectionRecoveryPreview() }
+            else if ProcessInfo.processInfo.arguments.contains("--daytime-context-fixture") {
+                NavigationStack { PodFeatureScreen(.daytimeContext) }
+            }
+            else if ProcessInfo.processInfo.arguments.contains("--journal-context-fixture") {
+                NavigationStack { MorningJournalScreen(side: .left) }
+            }
+            else if ProcessInfo.processInfo.arguments.contains("--morning-brief-fixture") { MorningBriefExample() }
+            else if ProcessInfo.processInfo.arguments.contains("--report-sharing-fixture") { ReportWebSharingExample() }
+            else if ProcessInfo.processInfo.arguments.contains("--personal-health-fixture") { PersonalHealthExample() }
+            else if APIBackend.current.isDemo, UserDefaults.standard.string(forKey: "uiRouteExample") != nil {
+                NavigationStack { OwnerRouteSettingsView() }
+            }
+            else if APIBackend.current.isDemo, UserDefaults.standard.string(forKey: "uiConnectionExample") != nil {
+                NavigationStack { OwnerConnectionView() }
+            }
             else { ContentView() }
             #else
             ContentView()
@@ -133,6 +185,7 @@ struct SleepypodApp: App {
             .environment(homeRoom).environment(bedroom).environment(healthSync).environment(nativeActions)
             .environment(stageModels).environment(nightAnomalies).environment(watchMotion).environment(snoreCapture)
             .environment(offlineLibrary)
+            .environment(ownerRoutes)
     }
 }
 
@@ -188,7 +241,7 @@ struct ContentView: View {
             TabView(selection: $selectedTab) {
                 Tab(value: "temp") {
                     TempScreen()
-                } label: { tabLabel("Temp", "thermometer.medium") }
+                } label: { tabLabel("Tonight", "thermometer.medium") }
                 Tab(value: "schedule") {
                     if isConnected { ScheduleScreen() }
                     else { OfflineLibraryScreen(page: .schedule) }
@@ -314,7 +367,12 @@ struct ContentView: View {
             guard scenePhase == .active, !isDemo else { connectionPath.stop(); return }
             connectionPath.start(onPermission: { deviceManager.localNetworkAccessDenied = $0 }) { deviceManager.networkRouteChanged() }
             await UnifiedRuntime.refreshHealth()
+            while !Task.isCancelled {
+                do { try await Task.sleep(for: .seconds(60)) } catch { return }
+                await UnifiedRuntime.refreshPersonalHealth()
+            }
         }
+        .modifier(OwnerRouteLifecycle())
         .onDisappear { connectionPath.stop() }
         .onChange(of: scenePhase) {
             if !isDemo {
@@ -326,8 +384,8 @@ struct ContentView: View {
                     sensorStream.disconnect()
                 }
             }
-            if scenePhase == .background && healthSync.enabled && !isDemo {
-                HealthSyncService.scheduleBackgroundSync()
+            if scenePhase == .background && (healthSync.enabled || UnifiedRuntime.automaticHistoryRefresh) && !isDemo {
+                HealthSyncService.scheduleBackgroundSync(after: 30 * 60)
             }
         }
         .onChange(of: deviceManager.isConnected) {

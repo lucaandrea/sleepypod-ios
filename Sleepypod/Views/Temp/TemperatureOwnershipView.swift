@@ -23,7 +23,12 @@ struct TemperatureOwnershipView: View {
                                     .disabled(device.isSendingMutation || device.controlsBlocked(for: side))
                             }
                         }.foregroundStyle(control.blocked == "safety" ? Theme.red : Theme.text2)
+                        if let explanation = control.comfortLimit?.explanation { Text(explanation).font(.footnote).foregroundStyle(Theme.text2) }
                     }
+                }
+                ForEach(device.isLinked ? Side.allCases : device.selectedSide.sides) { side in
+                    NavigationLink("\(settings.sideName(for: side)) comfort limit") { ComfortLimitScreen(side: side) }
+                        .font(.subheadline).frame(minHeight: 44).accessibilityIdentifier("comfort.limit.open.\(side.rawValue)")
                 }
                 let layout = typeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: 8)) : AnyLayout(HStackLayout())
                 layout {

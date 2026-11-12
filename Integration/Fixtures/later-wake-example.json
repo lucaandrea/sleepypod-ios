@@ -1,0 +1,502 @@
+{
+  "synthetic": true,
+  "sourceCommit": "63d0642846d3de062c7230ab27181302fdb9831f",
+  "now": "2026-10-26T05:00:00.000Z",
+  "cases": {
+    "ordinary": {
+      "before": {
+        "apiVersion": 1,
+        "side": "left",
+        "timeZone": "UTC",
+        "revision": "9e3bcf339d9c14b080dbe7acee2bf4becce1829dda14517e7157973d0dfef4a6",
+        "state": "scheduled",
+        "alarm": {
+          "scheduleIds": [
+            1
+          ],
+          "at": "2026-10-26T07:00:00.000Z",
+          "originalAt": "2026-10-26T07:00:00.000Z",
+          "time": "07:00",
+          "source": "routine",
+          "duration": 20,
+          "wakeWindow": 0,
+          "alarmTemperatureF": 105
+        },
+        "followingAt": "2026-11-02T07:00:00.000Z",
+        "canChange": true,
+        "reason": "",
+        "execution": null,
+        "warming": {
+          "startsAt": "2026-10-26T06:30:00.000Z",
+          "endsAt": "2026-10-26T07:15:20.000Z",
+          "earliestVibrationAt": "2026-10-26T07:00:00.000Z",
+          "targetF": 105
+        },
+        "acknowledgment": "accepted_not_physically_verified",
+        "change": null
+      },
+      "request": {
+        "side": "left",
+        "expectedRevision": "9e3bcf339d9c14b080dbe7acee2bf4becce1829dda14517e7157973d0dfef4a6",
+        "expectedAt": "2026-10-26T07:00:00.000Z",
+        "time": "09:00"
+      },
+      "preview": {
+        "apiVersion": 1,
+        "effect": "preview_only",
+        "generatedAt": "2026-10-26T05:00:00.000Z",
+        "expiresAt": "2026-10-26T05:01:30.000Z",
+        "before": {
+          "apiVersion": 1,
+          "side": "left",
+          "timeZone": "UTC",
+          "revision": "9e3bcf339d9c14b080dbe7acee2bf4becce1829dda14517e7157973d0dfef4a6",
+          "state": "scheduled",
+          "alarm": {
+            "scheduleIds": [
+              1
+            ],
+            "at": "2026-10-26T07:00:00.000Z",
+            "originalAt": "2026-10-26T07:00:00.000Z",
+            "time": "07:00",
+            "source": "routine",
+            "duration": 20,
+            "wakeWindow": 0,
+            "alarmTemperatureF": 105
+          },
+          "followingAt": "2026-11-02T07:00:00.000Z",
+          "canChange": true,
+          "reason": "",
+          "execution": null,
+          "warming": {
+            "startsAt": "2026-10-26T06:30:00.000Z",
+            "endsAt": "2026-10-26T07:15:20.000Z",
+            "earliestVibrationAt": "2026-10-26T07:00:00.000Z",
+            "targetF": 105
+          },
+          "acknowledgment": "accepted_not_physically_verified",
+          "change": null
+        },
+        "proposed": {
+          "at": "2026-10-26T09:00:00.000Z",
+          "time": "09:00",
+          "duration": 20,
+          "wakeWindow": 0,
+          "targetF": 105,
+          "warmingStartsAt": "2026-10-26T08:30:00.000Z",
+          "earliestVibrationAt": "2026-10-26T09:00:00.000Z",
+          "warmingEndsAt": "2026-10-26T09:15:20.000Z",
+          "changeExpiresAt": "2026-10-26T09:15:20.000Z"
+        },
+        "request": {
+          "side": "left",
+          "action": "time",
+          "expectedRevision": "9e3bcf339d9c14b080dbe7acee2bf4becce1829dda14517e7157973d0dfef4a6",
+          "expectedAt": "2026-10-26T07:00:00.000Z",
+          "time": "09:00"
+        },
+        "weeklyScheduleChanged": false,
+        "externalDevices": "not_included"
+      },
+      "saved": {
+        "apiVersion": 1,
+        "side": "left",
+        "timeZone": "UTC",
+        "revision": "97f3cf82998e9d617e1635aff4ec3084e622e9f99945ad8eaaa19f0dd8fe105f",
+        "state": "scheduled",
+        "alarm": {
+          "scheduleIds": [
+            1
+          ],
+          "at": "2026-10-26T09:00:00.000Z",
+          "originalAt": "2026-10-26T07:00:00.000Z",
+          "time": "09:00",
+          "source": "override",
+          "duration": 20,
+          "wakeWindow": 0,
+          "alarmTemperatureF": 105
+        },
+        "followingAt": "2026-11-02T07:00:00.000Z",
+        "canChange": true,
+        "reason": "",
+        "execution": null,
+        "warming": {
+          "startsAt": "2026-10-26T08:30:00.000Z",
+          "endsAt": "2026-10-26T09:15:20.000Z",
+          "earliestVibrationAt": "2026-10-26T09:00:00.000Z",
+          "targetF": 105
+        },
+        "acknowledgment": "accepted_not_physically_verified",
+        "change": {
+          "revision": "edaa71b6-4083-425f-97ee-337ffc471649",
+          "status": "active",
+          "originalAt": "2026-10-26T07:00:00.000Z",
+          "at": "2026-10-26T09:00:00.000Z",
+          "expiresAt": "2026-10-26T09:15:20.000Z"
+        },
+        "schedulerUpdated": false
+      },
+      "restored": {
+        "apiVersion": 1,
+        "side": "left",
+        "timeZone": "UTC",
+        "revision": "6ba4ff96940fb69c606f3c1dd44c6475ff815414e4cd8bfee8d532e4447f5159",
+        "state": "scheduled",
+        "alarm": {
+          "scheduleIds": [
+            1
+          ],
+          "at": "2026-10-26T07:00:00.000Z",
+          "originalAt": "2026-10-26T07:00:00.000Z",
+          "time": "07:00",
+          "source": "routine",
+          "duration": 20,
+          "wakeWindow": 0,
+          "alarmTemperatureF": 105
+        },
+        "followingAt": "2026-11-02T07:00:00.000Z",
+        "canChange": true,
+        "reason": "",
+        "execution": null,
+        "warming": {
+          "startsAt": "2026-10-26T06:30:00.000Z",
+          "endsAt": "2026-10-26T07:15:20.000Z",
+          "earliestVibrationAt": "2026-10-26T07:00:00.000Z",
+          "targetF": 105
+        },
+        "acknowledgment": "accepted_not_physically_verified",
+        "change": null
+      }
+    },
+    "movement-window": {
+      "before": {
+        "apiVersion": 1,
+        "side": "left",
+        "timeZone": "UTC",
+        "revision": "f7d8cae567294e8fce2382181d577b4e042fa9773d2aa60ebbe6e9717f824460",
+        "state": "scheduled",
+        "alarm": {
+          "scheduleIds": [
+            1
+          ],
+          "at": "2026-10-26T07:00:00.000Z",
+          "originalAt": "2026-10-26T07:00:00.000Z",
+          "time": "07:00",
+          "source": "routine",
+          "duration": 20,
+          "wakeWindow": 60,
+          "alarmTemperatureF": 105
+        },
+        "followingAt": "2026-11-02T07:00:00.000Z",
+        "canChange": true,
+        "reason": "",
+        "execution": null,
+        "warming": {
+          "startsAt": "2026-10-26T06:00:00.000Z",
+          "endsAt": "2026-10-26T07:15:20.000Z",
+          "earliestVibrationAt": "2026-10-26T06:00:00.000Z",
+          "targetF": 105
+        },
+        "acknowledgment": "accepted_not_physically_verified",
+        "change": null
+      },
+      "request": {
+        "side": "left",
+        "expectedRevision": "f7d8cae567294e8fce2382181d577b4e042fa9773d2aa60ebbe6e9717f824460",
+        "expectedAt": "2026-10-26T07:00:00.000Z",
+        "time": "09:00"
+      },
+      "preview": {
+        "apiVersion": 1,
+        "effect": "preview_only",
+        "generatedAt": "2026-10-26T05:00:00.000Z",
+        "expiresAt": "2026-10-26T05:01:30.000Z",
+        "before": {
+          "apiVersion": 1,
+          "side": "left",
+          "timeZone": "UTC",
+          "revision": "f7d8cae567294e8fce2382181d577b4e042fa9773d2aa60ebbe6e9717f824460",
+          "state": "scheduled",
+          "alarm": {
+            "scheduleIds": [
+              1
+            ],
+            "at": "2026-10-26T07:00:00.000Z",
+            "originalAt": "2026-10-26T07:00:00.000Z",
+            "time": "07:00",
+            "source": "routine",
+            "duration": 20,
+            "wakeWindow": 60,
+            "alarmTemperatureF": 105
+          },
+          "followingAt": "2026-11-02T07:00:00.000Z",
+          "canChange": true,
+          "reason": "",
+          "execution": null,
+          "warming": {
+            "startsAt": "2026-10-26T06:00:00.000Z",
+            "endsAt": "2026-10-26T07:15:20.000Z",
+            "earliestVibrationAt": "2026-10-26T06:00:00.000Z",
+            "targetF": 105
+          },
+          "acknowledgment": "accepted_not_physically_verified",
+          "change": null
+        },
+        "proposed": {
+          "at": "2026-10-26T09:00:00.000Z",
+          "time": "09:00",
+          "duration": 20,
+          "wakeWindow": 60,
+          "targetF": 105,
+          "warmingStartsAt": "2026-10-26T08:00:00.000Z",
+          "earliestVibrationAt": "2026-10-26T08:00:00.000Z",
+          "warmingEndsAt": "2026-10-26T09:15:20.000Z",
+          "changeExpiresAt": "2026-10-26T09:15:20.000Z"
+        },
+        "request": {
+          "side": "left",
+          "action": "time",
+          "expectedRevision": "f7d8cae567294e8fce2382181d577b4e042fa9773d2aa60ebbe6e9717f824460",
+          "expectedAt": "2026-10-26T07:00:00.000Z",
+          "time": "09:00"
+        },
+        "weeklyScheduleChanged": false,
+        "externalDevices": "not_included"
+      },
+      "saved": {
+        "apiVersion": 1,
+        "side": "left",
+        "timeZone": "UTC",
+        "revision": "affac8e8ff66397eb787c67a6b459202ac99bc1341204971c59b72b9c7f2ab33",
+        "state": "scheduled",
+        "alarm": {
+          "scheduleIds": [
+            1
+          ],
+          "at": "2026-10-26T09:00:00.000Z",
+          "originalAt": "2026-10-26T07:00:00.000Z",
+          "time": "09:00",
+          "source": "override",
+          "duration": 20,
+          "wakeWindow": 60,
+          "alarmTemperatureF": 105
+        },
+        "followingAt": "2026-11-02T07:00:00.000Z",
+        "canChange": true,
+        "reason": "",
+        "execution": null,
+        "warming": {
+          "startsAt": "2026-10-26T08:00:00.000Z",
+          "endsAt": "2026-10-26T09:15:20.000Z",
+          "earliestVibrationAt": "2026-10-26T08:00:00.000Z",
+          "targetF": 105
+        },
+        "acknowledgment": "accepted_not_physically_verified",
+        "change": {
+          "revision": "f8740cc1-b4d9-49a2-b86b-8cd13f496358",
+          "status": "active",
+          "originalAt": "2026-10-26T07:00:00.000Z",
+          "at": "2026-10-26T09:00:00.000Z",
+          "expiresAt": "2026-10-26T09:15:20.000Z"
+        },
+        "schedulerUpdated": false
+      },
+      "restored": {
+        "apiVersion": 1,
+        "side": "left",
+        "timeZone": "UTC",
+        "revision": "bd3a3c3cdb4b0269d8f05d3db2ce33c62904c6e9dde437022088bb8fba090cf7",
+        "state": "scheduled",
+        "alarm": {
+          "scheduleIds": [
+            1
+          ],
+          "at": "2026-10-26T07:00:00.000Z",
+          "originalAt": "2026-10-26T07:00:00.000Z",
+          "time": "07:00",
+          "source": "routine",
+          "duration": 20,
+          "wakeWindow": 60,
+          "alarmTemperatureF": 105
+        },
+        "followingAt": "2026-11-02T07:00:00.000Z",
+        "canChange": true,
+        "reason": "",
+        "execution": null,
+        "warming": {
+          "startsAt": "2026-10-26T06:00:00.000Z",
+          "endsAt": "2026-10-26T07:15:20.000Z",
+          "earliestVibrationAt": "2026-10-26T06:00:00.000Z",
+          "targetF": 105
+        },
+        "acknowledgment": "accepted_not_physically_verified",
+        "change": null
+      }
+    },
+    "pod-timezone": {
+      "before": {
+        "apiVersion": 1,
+        "side": "left",
+        "timeZone": "America/Los_Angeles",
+        "revision": "1fc17994d4af6be34c5fb3a3a55614857d5e75d16f6c0ecb0583e62497b2ae4f",
+        "state": "scheduled",
+        "alarm": {
+          "scheduleIds": [
+            1
+          ],
+          "at": "2026-10-26T14:00:00.000Z",
+          "originalAt": "2026-10-26T14:00:00.000Z",
+          "time": "07:00",
+          "source": "routine",
+          "duration": 20,
+          "wakeWindow": 0,
+          "alarmTemperatureF": 105
+        },
+        "followingAt": "2026-11-02T15:00:00.000Z",
+        "canChange": true,
+        "reason": "",
+        "execution": null,
+        "warming": {
+          "startsAt": "2026-10-26T13:30:00.000Z",
+          "endsAt": "2026-10-26T14:15:20.000Z",
+          "earliestVibrationAt": "2026-10-26T14:00:00.000Z",
+          "targetF": 105
+        },
+        "acknowledgment": "accepted_not_physically_verified",
+        "change": null
+      },
+      "request": {
+        "side": "left",
+        "expectedRevision": "1fc17994d4af6be34c5fb3a3a55614857d5e75d16f6c0ecb0583e62497b2ae4f",
+        "expectedAt": "2026-10-26T14:00:00.000Z",
+        "time": "09:00"
+      },
+      "preview": {
+        "apiVersion": 1,
+        "effect": "preview_only",
+        "generatedAt": "2026-10-26T05:00:00.000Z",
+        "expiresAt": "2026-10-26T05:01:30.000Z",
+        "before": {
+          "apiVersion": 1,
+          "side": "left",
+          "timeZone": "America/Los_Angeles",
+          "revision": "1fc17994d4af6be34c5fb3a3a55614857d5e75d16f6c0ecb0583e62497b2ae4f",
+          "state": "scheduled",
+          "alarm": {
+            "scheduleIds": [
+              1
+            ],
+            "at": "2026-10-26T14:00:00.000Z",
+            "originalAt": "2026-10-26T14:00:00.000Z",
+            "time": "07:00",
+            "source": "routine",
+            "duration": 20,
+            "wakeWindow": 0,
+            "alarmTemperatureF": 105
+          },
+          "followingAt": "2026-11-02T15:00:00.000Z",
+          "canChange": true,
+          "reason": "",
+          "execution": null,
+          "warming": {
+            "startsAt": "2026-10-26T13:30:00.000Z",
+            "endsAt": "2026-10-26T14:15:20.000Z",
+            "earliestVibrationAt": "2026-10-26T14:00:00.000Z",
+            "targetF": 105
+          },
+          "acknowledgment": "accepted_not_physically_verified",
+          "change": null
+        },
+        "proposed": {
+          "at": "2026-10-26T16:00:00.000Z",
+          "time": "09:00",
+          "duration": 20,
+          "wakeWindow": 0,
+          "targetF": 105,
+          "warmingStartsAt": "2026-10-26T15:30:00.000Z",
+          "earliestVibrationAt": "2026-10-26T16:00:00.000Z",
+          "warmingEndsAt": "2026-10-26T16:15:20.000Z",
+          "changeExpiresAt": "2026-10-26T16:15:20.000Z"
+        },
+        "request": {
+          "side": "left",
+          "action": "time",
+          "expectedRevision": "1fc17994d4af6be34c5fb3a3a55614857d5e75d16f6c0ecb0583e62497b2ae4f",
+          "expectedAt": "2026-10-26T14:00:00.000Z",
+          "time": "09:00"
+        },
+        "weeklyScheduleChanged": false,
+        "externalDevices": "not_included"
+      },
+      "saved": {
+        "apiVersion": 1,
+        "side": "left",
+        "timeZone": "America/Los_Angeles",
+        "revision": "3635eb5b80b58feee69b443ceca8828927af527267c98b287f59d670f4916427",
+        "state": "scheduled",
+        "alarm": {
+          "scheduleIds": [
+            1
+          ],
+          "at": "2026-10-26T16:00:00.000Z",
+          "originalAt": "2026-10-26T14:00:00.000Z",
+          "time": "09:00",
+          "source": "override",
+          "duration": 20,
+          "wakeWindow": 0,
+          "alarmTemperatureF": 105
+        },
+        "followingAt": "2026-11-02T15:00:00.000Z",
+        "canChange": true,
+        "reason": "",
+        "execution": null,
+        "warming": {
+          "startsAt": "2026-10-26T15:30:00.000Z",
+          "endsAt": "2026-10-26T16:15:20.000Z",
+          "earliestVibrationAt": "2026-10-26T16:00:00.000Z",
+          "targetF": 105
+        },
+        "acknowledgment": "accepted_not_physically_verified",
+        "change": {
+          "revision": "9c90b7af-02d7-4d39-a36b-a3201fbbca8b",
+          "status": "active",
+          "originalAt": "2026-10-26T14:00:00.000Z",
+          "at": "2026-10-26T16:00:00.000Z",
+          "expiresAt": "2026-10-26T16:15:20.000Z"
+        },
+        "schedulerUpdated": false
+      },
+      "restored": {
+        "apiVersion": 1,
+        "side": "left",
+        "timeZone": "America/Los_Angeles",
+        "revision": "9d89f04a8a7b4a89886fbf10bc6c6996cfbd4dc5fa033dd18b08982d55435d01",
+        "state": "scheduled",
+        "alarm": {
+          "scheduleIds": [
+            1
+          ],
+          "at": "2026-10-26T14:00:00.000Z",
+          "originalAt": "2026-10-26T14:00:00.000Z",
+          "time": "07:00",
+          "source": "routine",
+          "duration": 20,
+          "wakeWindow": 0,
+          "alarmTemperatureF": 105
+        },
+        "followingAt": "2026-11-02T15:00:00.000Z",
+        "canChange": true,
+        "reason": "",
+        "execution": null,
+        "warming": {
+          "startsAt": "2026-10-26T13:30:00.000Z",
+          "endsAt": "2026-10-26T14:15:20.000Z",
+          "earliestVibrationAt": "2026-10-26T14:00:00.000Z",
+          "targetF": 105
+        },
+        "acknowledgment": "accepted_not_physically_verified",
+        "change": null
+      }
+    }
+  }
+}

@@ -5,11 +5,24 @@ on:
     paths:
       - 'FreeSleepKit/Services/PrivateSnapshotStore.swift'
       - 'FreeSleepKit/Intelligence/PersonalIntelligenceStore.swift'
+      - 'FreeSleepKit/Intelligence/PersonalHealth*.swift'
+      - 'SleepypodFeatures/PersonalHealth*.swift'
+      - 'SleepypodFeatures/FeatureActionButtonStyle.swift'
+      - 'Sleepypod/Models/PersonalHealthAccess+Household.swift'
       - 'Sleepypod/**/OfflineLibrary*.swift'
+      - 'Sleepypod/**/PersonalOffline*.swift'
+      - 'Sleepypod/Services/HouseholdWorkspace.swift'
+      - 'Sleepypod/Services/HouseholdVault.swift'
+      - 'Sleepypod/Services/PersonalHistoryWorkspace.swift'
+      - 'Sleepypod/Services/PersonalRoutineWorkspace.swift'
+      - 'Sleepypod/Views/Household/HouseholdScreen.swift'
+      - 'Sleepypod/Views/Household/HouseholdRootView.swift'
       - 'Sleepypod/Models/SleepRecord.swift'
       - 'Sleepypod/SleepypodApp.swift'
       - 'SleepypodFeatures/SavedPersonalReportsScreen.swift'
       - 'SleepypodUITests/OfflineLibraryUITests.swift'
+      - 'SleepypodUITests/PersonalOfflineLibraryUITests.swift'
+      - 'SleepypodUITests/PersonalHealthUITests.swift'
       - '.github/workflows/offline-library-ui.yml'
   workflow_dispatch:
 
@@ -20,7 +33,7 @@ jobs:
   offline:
     name: Offline reading (${{ matrix.form }})
     runs-on: macos-15-intel
-    timeout-minutes: 65
+    timeout-minutes: 105
     strategy:
       fail-fast: false
       matrix:
@@ -43,24 +56,51 @@ jobs:
       # Ad-hoc simulator signing preserves Keychain entitlements. This tests the
       # production key storage rather than substituting a test key for UI runs.
       - name: Build UI tests
+        id: offline-build
         timeout-minutes: 30
         run: |
           xcodebuild build-for-testing -project Sleepypod.xcodeproj -scheme Sleepypod \
             -destination "platform=iOS Simulator,id=$OFFLINE_SIM_ID" \
             -derivedDataPath "$RUNNER_TEMP/OfflineBuild" \
             -only-testing:SleepypodUITests/OfflineLibraryUITests \
+            -only-testing:SleepypodUITests/PersonalOfflineLibraryUITests \
+            -only-testing:SleepypodUITests/PersonalHealthUITests \
             CODE_SIGNING_ALLOWED=YES CODE_SIGN_IDENTITY=-
       - name: Boot simulator
         timeout-minutes: 15
         run: xcrun simctl bootstatus "$OFFLINE_SIM_ID" -b
-      - name: Verify encrypted offline reading
+      # Intel-hosted simulator startup and the two offline suites exceeded one
+      # combined 20-minute step. Keep every scenario with independent budgets.
+      - name: Verify owner encrypted offline reading
         timeout-minutes: 20
         run: |
           xcodebuild test-without-building -project Sleepypod.xcodeproj -scheme Sleepypod \
             -destination "platform=iOS Simulator,id=$OFFLINE_SIM_ID" \
             -derivedDataPath "$RUNNER_TEMP/OfflineBuild" \
             -only-testing:SleepypodUITests/OfflineLibraryUITests \
-            -resultBundlePath "$RUNNER_TEMP/Offline.xcresult" \
+            -resultBundlePath "$RUNNER_TEMP/OwnerOffline.xcresult" \
+            -collect-test-diagnostics never -parallel-testing-enabled NO \
+            CODE_SIGNING_ALLOWED=YES CODE_SIGN_IDENTITY=-
+      - name: Verify personal encrypted offline reading
+        if: ${{ !cancelled() && steps.offline-build.outcome == 'success' }}
+        timeout-minutes: 20
+        run: |
+          xcodebuild test-without-building -project Sleepypod.xcodeproj -scheme Sleepypod \
+            -destination "platform=iOS Simulator,id=$OFFLINE_SIM_ID" \
+            -derivedDataPath "$RUNNER_TEMP/OfflineBuild" \
+            -only-testing:SleepypodUITests/PersonalOfflineLibraryUITests \
+            -resultBundlePath "$RUNNER_TEMP/PersonalOffline.xcresult" \
+            -collect-test-diagnostics never -parallel-testing-enabled NO \
+            CODE_SIGNING_ALLOWED=YES CODE_SIGN_IDENTITY=-
+      - name: Verify private Health enrollment and removal
+        if: ${{ !cancelled() && steps.offline-build.outcome == 'success' }}
+        timeout-minutes: 20
+        run: |
+          xcodebuild test-without-building -project Sleepypod.xcodeproj -scheme Sleepypod \
+            -destination "platform=iOS Simulator,id=$OFFLINE_SIM_ID" \
+            -derivedDataPath "$RUNNER_TEMP/OfflineBuild" \
+            -only-testing:SleepypodUITests/PersonalHealthUITests \
+            -resultBundlePath "$RUNNER_TEMP/PersonalHealth.xcresult" \
             -collect-test-diagnostics never -parallel-testing-enabled NO \
             CODE_SIGNING_ALLOWED=YES CODE_SIGN_IDENTITY=-
       - name: Preserve screenshots and results
@@ -68,6 +108,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: offline-library-${{ matrix.form }}
-          path: ${{ runner.temp }}/Offline.xcresult
+          path: |
+            ${{ runner.temp }}/OwnerOffline.xcresult
+            ${{ runner.temp }}/PersonalOffline.xcresult
+            ${{ runner.temp }}/PersonalHealth.xcresult
           if-no-files-found: ignore
           retention-days: 7

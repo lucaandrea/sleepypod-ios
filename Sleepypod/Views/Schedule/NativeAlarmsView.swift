@@ -88,7 +88,7 @@ private struct AlarmFeedback: View {
     @Environment(AlarmWorkspace.self) private var model
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            if model.demo { Text("DEMO · alarms and vibration tests are simulated").font(.caption).foregroundStyle(Theme.text3) }
+            if model.demo { Text("DEMO · alarms and vibration tests are simulated").font(.caption).foregroundStyle(Theme.text2) }
             if let error = model.error {
                 Text(error).font(.footnote).foregroundStyle(Theme.red)
                 Button("Reload alarms") { Task { await model.refresh() } }.frame(minHeight: 44).disabled(model.loading || model.saving)
@@ -144,46 +144,7 @@ struct NativeAlarmEditor: View {
                                     }.buttonStyle(.plain).accessibilityLabel(day.displayName).accessibilityValue(draft.days.contains(day) ? "Selected" : "Not selected")
                                 }
                             }
-                            Text(settings.timeZone).font(.caption).foregroundStyle(Theme.text3)
-                        }.cardStyle()
-                    }
-                    GroupedSection("WAKE WINDOW") {
-                        VStack(alignment: .leading, spacing: 12) {
-                            Picker("Wake window", selection: $draft.wakeWindow) {
-                                ForEach(AlarmDraft.wakeWindows, id: \.self) { Text($0 == 0 ? "Off" : "\($0) min").tag($0) }
-                            }.pickerStyle(.menu).accessibilityIdentifier("alarm.wakeWindow")
-                            Text(draft.wakeWindow == 0 ? "Goes off at the set time." : "Wakes you the first time you move after \(DisplayTime.clock(draft.windowStart)), up to \(draft.wakeWindow) minutes early. Otherwise it goes off at \(DisplayTime.clock(draft.time)).")
-                                .font(.footnote).foregroundStyle(Theme.text2).fixedSize(horizontal: false, vertical: true)
-                        }.frame(maxWidth: .infinity, alignment: .leading).cardStyle()
-                    }
-                    if model.supportsSnooze {
-                        GroupedSection("SNOOZE") {
-                            VStack(alignment: .leading, spacing: 16) {
-                                Text("Snooze for \((Double(draft.snoozeDuration) / 60).formatted(.number.precision(.fractionLength(0...1)))) min").font(.callout)
-                                Stepper("Snooze length", value: $draft.snoozeDuration, in: 60...1800, step: 60).labelsHidden()
-                                    .accessibilityLabel("Snooze length").accessibilityValue("\(draft.snoozeDuration) seconds")
-                                Text("Snooze taper").font(.callout).foregroundStyle(Theme.text2)
-                                Picker("Snooze taper", selection: $draft.snoozeTaper) {
-                                    ForEach(AlarmDraft.snoozeTapers, id: \.self) { Text($0 == 0 ? "Off" : "\($0)%").tag($0) }
-                                }.pickerStyle(.menu).accessibilityIdentifier("alarm.snoozeTaper")
-                                Text(draft.snoozeTaper == 0 ? "Every snooze has the same length." : "Each snooze is \(draft.snoozeTaper)% shorter: \(draft.snoozePreview)…")
-                                    .font(.footnote).foregroundStyle(Theme.text2).fixedSize(horizontal: false, vertical: true)
-                            }.frame(maxWidth: .infinity, alignment: .leading).cardStyle()
-                        }
-                    }
-                    GroupedSection("VIBRATION") {
-                        VStack(alignment: .leading, spacing: 16) {
-                            Picker("Pattern", selection: $draft.pattern) { Text("Rise").tag(VibrationPattern.rise); Text("Double").tag(VibrationPattern.double) }
-                                .pickerStyle(.menu)
-                            Text("Intensity · \(draft.intensity)%").font(.callout)
-                            Slider(value: Binding(get: { Double(draft.intensity) }, set: { draft.intensity = Int($0.rounded()) }), in: 1...100, step: 1) { Text("Vibration intensity") }
-                            VStack(alignment: .leading, spacing: 8) {
-                                Text("Duration · \(draft.duration)s").font(.callout)
-                                Stepper("Vibration duration", value: $draft.duration, in: 0...180, step: 10).labelsHidden().accessibilityLabel("Vibration duration").accessibilityValue("\(draft.duration) seconds")
-                            }
-                            Text("Pod 5 covers ignore pattern and intensity; duration changes the vibration you feel.").font(.footnote).foregroundStyle(Theme.text3)
-                            Button("Test vibration", systemImage: "play") { Task { await model.test(draft) } }
-                                .frame(minHeight: 44).disabled(!model.loaded || model.testing || model.stopping)
+                            Text(settings.timeZone).font(.caption).foregroundStyle(Theme.text2)
                         }.cardStyle()
                     }
                     GroupedSection("TEMPERATURE AT WAKE") {
@@ -193,8 +154,57 @@ struct NativeAlarmEditor: View {
                                 .labelsHidden().accessibilityLabel("Wake temperature").accessibilityValue(TemperatureConversion.displayTemp(draft.temperature, format: settings.temperatureFormat.degreeUnit))
                         }.frame(maxWidth: .infinity, alignment: .leading).cardStyle()
                     }
+                    GroupedSection("VIBRATION DURATION") {
+                        VStack(alignment: .leading, spacing: 12) {
+                            Text("\(draft.duration) seconds").font(.mono(28, relativeTo: .title))
+                            Stepper("Vibration duration", value: $draft.duration, in: 0...180, step: 10)
+                                .labelsHidden().accessibilityLabel("Vibration duration").accessibilityValue("\(draft.duration) seconds")
+                            Button("Test vibration", systemImage: "play") { Task { await model.test(draft) } }
+                                .frame(minHeight: 44).disabled(!model.loaded || model.testing || model.stopping)
+                            AlarmFeedback(context: "editor")
+                        }.cardStyle()
+                    }
+                    DisclosureGroup {
+                        VStack(spacing: 20) {
+                            GroupedSection("WAKE WINDOW") {
+                                VStack(alignment: .leading, spacing: 12) {
+                                    Picker("Wake window", selection: $draft.wakeWindow) {
+                                        ForEach(AlarmDraft.wakeWindows, id: \.self) { Text($0 == 0 ? "Off" : "\($0) min").tag($0) }
+                                    }.pickerStyle(.menu).accessibilityIdentifier("alarm.wakeWindow")
+                                    Text(draft.wakeWindow == 0 ? "Goes off at the set time." : "Wakes you the first time you move after \(DisplayTime.clock(draft.windowStart)), up to \(draft.wakeWindow) minutes early. Otherwise it goes off at \(DisplayTime.clock(draft.time)).")
+                                        .font(.footnote).foregroundStyle(Theme.text2).fixedSize(horizontal: false, vertical: true)
+                                }.frame(maxWidth: .infinity, alignment: .leading).cardStyle()
+                            }
+                            if model.supportsSnooze {
+                                GroupedSection("SNOOZE") {
+                                    VStack(alignment: .leading, spacing: 16) {
+                                        Text("Snooze for \((Double(draft.snoozeDuration) / 60).formatted(.number.precision(.fractionLength(0...1)))) min").font(.callout)
+                                        Stepper("Snooze length", value: $draft.snoozeDuration, in: 60...1800, step: 60).labelsHidden()
+                                            .accessibilityLabel("Snooze length").accessibilityValue("\(draft.snoozeDuration) seconds")
+                                        Text("Snooze taper").font(.callout).foregroundStyle(Theme.text2)
+                                        Picker("Snooze taper", selection: $draft.snoozeTaper) {
+                                            ForEach(AlarmDraft.snoozeTapers, id: \.self) { Text($0 == 0 ? "Off" : "\($0)%").tag($0) }
+                                        }.pickerStyle(.menu).accessibilityIdentifier("alarm.snoozeTaper")
+                                        Text(draft.snoozeTaper == 0 ? "Every snooze has the same length." : "Each snooze is \(draft.snoozeTaper)% shorter: \(draft.snoozePreview)…")
+                                            .font(.footnote).foregroundStyle(Theme.text2).fixedSize(horizontal: false, vertical: true)
+                                    }.frame(maxWidth: .infinity, alignment: .leading).cardStyle()
+                                }
+                            }
+                            GroupedSection("VIBRATION STYLE") {
+                                VStack(alignment: .leading, spacing: 16) {
+                                    Picker("Pattern", selection: $draft.pattern) { Text("Rise").tag(VibrationPattern.rise); Text("Double").tag(VibrationPattern.double) }
+                                        .pickerStyle(.menu)
+                                    Text("Intensity · \(draft.intensity)%").font(.callout)
+                                    Slider(value: Binding(get: { Double(draft.intensity) }, set: { draft.intensity = Int($0.rounded()) }), in: 1...100, step: 1) { Text("Vibration intensity") }
+                                    Text("Pattern and intensity depend on cover firmware. Use an attended vibration test to confirm what yours supports.")
+                                        .font(.footnote).foregroundStyle(Theme.text2)
+                                }.cardStyle()
+                            }
+                        }.padding(.top, 16)
+                    } label: {
+                        Text("Advanced wake options").font(.headline).frame(minHeight: 44).accessibilityIdentifier("alarm.advanced")
+                    }.tint(Theme.text2)
                     if let validation = draft.validation { Text(validation).font(.footnote).foregroundStyle(Theme.amber) }
-                    AlarmFeedback(context: "editor")
                 }.frame(maxWidth: 720).padding(16).frame(maxWidth: .infinity)
             }.background(Theme.background).navigationTitle(draft.original.isEmpty ? "New alarm" : "Edit alarm").navigationBarTitleDisplayMode(.inline)
             .toolbar {

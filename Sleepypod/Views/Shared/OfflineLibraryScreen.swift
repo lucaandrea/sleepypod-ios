@@ -64,6 +64,8 @@ struct OfflineLibraryScreen: View {
         NavigationLink { SavedPersonalReportsScreen() } label: {
             Label("Read saved personal reports", systemImage: "sparkles").frame(minHeight: 44)
         }.accessibilityIdentifier("offline.reports")
+        WatchRecordingAssistantLink()
+        LearningJourneyLink()
         if let reading {
             syncLabel(reading.savedAt)
             Text("Recent bed recordings").font(.title3.bold())

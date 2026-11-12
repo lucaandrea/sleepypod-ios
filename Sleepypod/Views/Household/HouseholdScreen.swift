@@ -1,4 +1,5 @@
 import SwiftUI
+import FreeSleepKit
 
 /// This root replaces the owner tabs; a personal credential never opens legacy controls.
 struct HouseholdScreen: View {
@@ -22,15 +23,49 @@ struct HouseholdScreen: View {
                             .font(.caption).foregroundStyle(Theme.text2)
                     }
                     Text(model.publication?.enabled == true
-                         ? "Drafts stay private until you publish them. Controls follow your bed assignment. Assignment changes and Apple Health are not active here."
+                         ? "Drafts stay private until you publish them. Controls follow your bed assignment."
                          : model.temperature == nil
-                         ? "Prepare your own comfort preferences and weekly routine. Bed controls, side assignment and Apple Health are not active in this workspace."
-                         : "Temperature controls use your personal bed assignment. Weekly routines remain drafts; assignment changes and Apple Health are not active here.")
+                         ? "Prepare your own comfort preferences and weekly routine. Bed controls are not active in this workspace."
+                         : "Temperature controls use your personal bed assignment. Weekly routines remain drafts.")
+                        .font(.footnote).foregroundStyle(Theme.text2)
+                    Text(model.maintenance?.canActivate == true
+                         ? "Changing sides needs both approvals and a separate attended confirmation."
+                         : "Side activation is not enabled in this workspace.")
                         .font(.footnote).foregroundStyle(Theme.text2)
                 }
                 feedback
+                if let quiet = model.quiet {
+                    Section("Shared quiet time") {
+                        NavigationLink("Someone is resting", value: "quiet")
+                            .disabled(!quiet.enabled).accessibilityIdentifier("quiet.accountLink")
+                        Text(quiet.enabled ? "Pause supported shared actions while someone rests. Your alarms and temperature plan continue."
+                             : "Quiet time is not enabled on this controller yet.")
+                            .font(.footnote).foregroundStyle(Theme.text2)
+                    }
+                }
                 controlRecovery
                 publicationRecovery
+                Section("Learn the controls") {
+                    NavigationLink("Practice temperature, alarms and Stop", value: "practice")
+                        .accessibilityIdentifier("household.practice")
+                    Text("Try example settings before using the bed. No real controls or alarms change.").font(.footnote).foregroundStyle(Theme.text2)
+                }
+                if model.offlineLibrary != nil {
+                    Section("Available without a connection") {
+                        NavigationLink("Open your saved readings", value: "offline")
+                            .accessibilityIdentifier("personalOffline.accountLink")
+                        Text("Your downloaded recordings and last read operating week stay private to this account.")
+                            .font(.footnote).foregroundStyle(Theme.text1)
+                    }
+                }
+                if model.personalHealth != nil {
+                    Section("Apple Health") {
+                        NavigationLink("Your private Health history", value: "health")
+                            .accessibilityIdentifier("personalHealth.accountLink")
+                        Text("Use your own iPhone or iPad. Link its Health records explicitly to your personal account.")
+                            .font(.footnote).foregroundStyle(Theme.text2)
+                    }
+                }
                 if let session = model.session {
                     Section("Your private drafts") {
                         NavigationLink("Comfort preferences", value: "preferences")
@@ -56,6 +91,28 @@ struct HouseholdScreen: View {
                              : "Personal recordings are not enabled on this controller.")
                             .font(.footnote).foregroundStyle(Theme.text2).accessibilityIdentifier("history.availability")
                     }
+                    Section("Your morning check-in") {
+                        NavigationLink("Open your check-in", value: "journal")
+                            .disabled(model.journal?.enabled != true).accessibilityIdentifier("personalJournal.accountLink")
+                        Text(model.journal?.enabled == true
+                             ? "Private comfort, restfulness and optional habits, whichever side you slept on."
+                             : "Personal check-ins are not enabled on this controller.")
+                            .font(.footnote).foregroundStyle(Theme.text2)
+                    }
+                    Section("Comfort comparisons") {
+                        NavigationLink("Compare nearby settings", value: "experiments")
+                            .disabled(model.experiments?.enabled != true).accessibilityIdentifier("experiments.personalLink")
+                        Text("Review scheduled nights, keep your wake routine, and compare your own morning comfort.")
+                            .font(.footnote).foregroundStyle(Theme.text2)
+                    }
+                    Section("Your saved learning") {
+                        NavigationLink("Browse saved learning", value: "learning")
+                            .disabled(model.learning?.enabled != true).accessibilityIdentifier("learning.accountLink")
+                        Text(model.learning?.enabled == true
+                             ? "Private check-ins, notes and historical models preserved when you change sides."
+                             : "The saved-learning library is not enabled on this controller.")
+                            .font(.footnote).foregroundStyle(Theme.text2).accessibilityIdentifier("learning.availability")
+                    }
                     Section("Future bed arrangement") {
                         NavigationLink("Shared side review", value: "arrangement")
                             .disabled(model.arrangement?.enabled != true).accessibilityIdentifier("arrangement.accountLink")
@@ -79,7 +136,7 @@ struct HouseholdScreen: View {
                         }
                         Text("Pair another device before revoking your last one. Revoking a device removes its access to your personal account.").font(.footnote).foregroundStyle(Theme.text2)
                     }
-                } else if model.pending == nil {
+                } else if model.pending == nil && model.offlineLibrary == nil {
                     Section {
                         Button("Join with an invitation") { connectionForm = .join }
                             .accessibilityIdentifier("household.join")
@@ -108,7 +165,7 @@ struct HouseholdScreen: View {
                 }
                 Section("Local data") {
                     Button("Erase all local personal data", role: .destructive) { eraseLocalData = true }.disabled(model.busy)
-                    Text("Removes personal credentials, drafts, command and publication recovery records on this device. It does not revoke server access or alter the bed.")
+                    Text("Removes personal credentials, saved readings, Health imports, drafts, command and publication recovery records on this device. It does not revoke server access or alter the bed.")
                         .font(.footnote).foregroundStyle(Theme.text2)
                 }
                 if model.canReturnToOwner {
@@ -125,15 +182,24 @@ struct HouseholdScreen: View {
                 Button("Refresh", systemImage: "arrow.clockwise") { Task { await model.refresh() } }.disabled(model.busy || model.selected == nil)
             } }
             .navigationDestination(for: String.self) { route in
-                if let session = model.session {
+                if route == "practice" { ControlPracticeScreen(guideURL: model.selected?.endpoint.appending(path: "guide/marissa.html")) }
+                else if route == "offline", let offline = model.offlineLibrary { PersonalOfflineLibraryScreen(model: offline).id(ObjectIdentifier(offline)) }
+                else if route == "health", let health = model.personalHealth { PersonalHealthScreen(model: health).id(ObjectIdentifier(health)) }
+                else if let session = model.session {
                     if route == "preferences" { HouseholdPreferencesEditor().id(session.namespace + String(model.preferences?.revision ?? 0)) }
                     else if route == "routines" { HouseholdRoutineWeek().id(session.namespace) }
                     else if route == "publication", let publication = model.publication { PersonalRoutineReviewScreen(model: publication, unit: model.draftPreferences.displayUnit).id(session.namespace) }
                     else if route == "history", let history = model.history { PersonalHistoryScreen(model: history).id(ObjectIdentifier(history)) }
-                    else if route == "arrangement", let arrangement = model.arrangement { ArrangementReviewScreen(model: arrangement).id(ObjectIdentifier(arrangement)) }
+                    else if route == "quiet", let quiet = model.quiet { PersonalQuietScreen(model: quiet).id(ObjectIdentifier(quiet)) }
+                    else if route == "journal", let journal = model.journal { PersonalJournalScreen(model: journal).id(ObjectIdentifier(journal)) }
+                    else if route == "experiments", let experiments = model.experiments { ComfortExperimentsScreen(model: experiments).id(ObjectIdentifier(experiments)) }
+                    else if route == "learning", let learning = model.learning { PersonalLearningScreen(model: learning).id(ObjectIdentifier(learning)) }
+                    else if route == "arrangement", let arrangement = model.arrangement {
+                        ArrangementReviewScreen(model: arrangement, maintenance: model.maintenance, close: { model.signOut() }).id(ObjectIdentifier(arrangement))
+                    }
                 }
             }
-            .sheet(item: $connectionForm) { kind in NavigationStack { HouseholdConnectionForm(kind: kind) } }
+            .sheet(item: $connectionForm) { kind in NavigationStack { HouseholdConnectionForm(kind: kind) }.presentationDetents([.large]) }
             .alert("Erase all local personal data?", isPresented: $eraseLocalData) {
                 Button("Erase local personal data", role: .destructive) { model.erasePersonalLocalData() }
                 Button("Cancel", role: .cancel) { }
@@ -150,9 +216,14 @@ struct HouseholdScreen: View {
                 Button("Cancel", role: .cancel) { revokeDevice = nil }
             } message: { Text("\(revokeDevice?.name ?? "This device") will lose personal-account access. This does not move the bed or change its schedules.") }
         }
-        .task { await model.refresh() }
-        .onChange(of: scenePhase) { if scenePhase != .active { revealedCode = nil } }
+        .onChange(of: scenePhase) {
+            if scenePhase != .active {
+                revealedCode = nil
+                if navigation.contains("quiet") || navigation.contains("learning") || navigation.contains("journal") || navigation.contains("offline") || navigation.contains("health") { navigation = [] }
+            }
+        }
         .onChange(of: model.session?.context) { revealedCode = nil; navigation = [] }
+        .onChange(of: model.selected?.id) { revealedCode = nil; navigation = [] }
     }
     @ViewBuilder private var publicationRecovery: some View {
         if !model.publicationRecoveries.isEmpty {
@@ -219,7 +290,10 @@ struct HouseholdScreen: View {
                     if let code = model.invitationCode(invitation.id), let expiry = SensorObservation.date(invitation.expiresAt), expiry > .now {
                         if revealedCode == invitation.id {
                             Text(code).font(.caption.monospaced()).textSelection(.enabled).privacySensitive()
-                            ShareLink("Share invitation", item: "Join my sleepypod personal workspace at \(model.selected?.endpoint.absoluteString ?? ""). Invitation: \(code)")
+                            if let endpoint = model.selected?.endpoint, let link = HouseholdInvitationLink.url(endpoint: endpoint, invitation: code) {
+                                ShareLink("Share invitation link", item: link)
+                                Text("Open in a browser, or paste the complete link into the app’s Join account screen.").font(.footnote).foregroundStyle(Theme.text2)
+                            }
                             Button("Hide invitation") { revealedCode = nil }
                         } else { Button("Show invitation") { revealedCode = invitation.id } }
                         Button("Revoke invitation", role: .destructive) { Task { await model.revoke(invitationId: invitation.id) } }.disabled(!model.maySave)
@@ -227,49 +301,5 @@ struct HouseholdScreen: View {
                 }.padding(.vertical, 4)
             }
         }
-    }
-}
-
-struct HouseholdConnectionForm: View {
-    enum Kind: String, Identifiable { case owner, join; var id: String { rawValue } }
-    let kind: Kind
-    @Environment(HouseholdWorkspace.self) private var model
-    @Environment(\.dismiss) private var dismiss
-    @State private var address = ""
-    @State private var name = ""
-    @State private var deviceName = "My iPhone"
-    @State private var invitation = ""
-    @State private var sourceSide: Side = .left
-    @State private var reviewed = false
-    var body: some View {
-        Form {
-            Section {
-                TextField("Controller address", text: $address).textContentType(.URL).textInputAutocapitalization(.never).autocorrectionDisabled()
-                    .disabled(kind == .owner).accessibilityIdentifier("household.address")
-                TextField("Your name", text: $name).textContentType(.givenName).accessibilityIdentifier("household.name")
-                TextField("Device name", text: $deviceName).accessibilityIdentifier("household.deviceName")
-                if kind == .join { SecureField("Invitation", text: $invitation).textInputAutocapitalization(.never).autocorrectionDisabled().accessibilityIdentifier("household.invitation") }
-                else {
-                    Picker("Current solo routine side", selection: $sourceSide) { Text("Left").tag(Side.left); Text("Right").tag(Side.right) }
-                    Text("Confirms the side currently providing your solo routine. Personal drafts start separately; your active routine and bed operation stay unchanged.").font(.footnote)
-                }
-            }
-            Section {
-                Toggle(kind == .join ? "I understand this prepares an unassigned account" : "I understand these are personal drafts", isOn: $reviewed)
-                Text("Routine drafts, side assignment, controls, sleep history and Health remain separate. Pairing another device with your own-device invitation keeps the same personal account.").font(.footnote).foregroundStyle(Theme.text2)
-                Button(kind == .owner ? "Prepare account" : "Join account") {
-                    Task {
-                        await model.start(address: address, name: name, deviceName: deviceName, invitation: kind == .join ? invitation : nil, sourceSide: sourceSide)
-                        invitation = ""
-                        if model.pending != nil || model.session != nil { dismiss() }
-                    }
-                }.disabled(model.busy || !reviewed || name.trimmingCharacters(in: .whitespaces).isEmpty || address.isEmpty)
-                if let error = model.error { Text(error).font(.footnote).foregroundStyle(Theme.amber) }
-            }
-        }.scrollContentBackground(.hidden).background(Theme.background)
-            .navigationTitle(kind == .owner ? "Prepare account" : "Join account").navigationBarTitleDisplayMode(.inline)
-            .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() }.disabled(model.busy) } }
-            .onAppear { if kind == .owner { address = OwnerConnection.displayAddress } }
-            .interactiveDismissDisabled(model.busy)
     }
 }

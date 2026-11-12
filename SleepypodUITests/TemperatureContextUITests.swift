@@ -7,7 +7,7 @@ import XCTest
                                "-healthSyncEnabled", "NO", "-uiRoute", "", "-tempControl", "dial", "-temperatureLayout", layout,
                                "-temperatureDisplay", "eightSleep", "-uiContextScenario", scenario, "-userDefaultSide", "right"]
         app.launch()
-        XCTAssertTrue(app.buttons["Temp"].firstMatch.waitForExistence(timeout: 15))
+        XCTAssertTrue(app.buttons["Tonight"].firstMatch.waitForExistence(timeout: 15))
         return app
     }
     func testRoomAndRecentSleepOpenMatchingSideInSleepTab() {
