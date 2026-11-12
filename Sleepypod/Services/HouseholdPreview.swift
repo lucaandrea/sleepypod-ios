@@ -17,7 +17,10 @@ import FreeSleepKit
             let defaults = UserDefaults(suiteName: "household-preview")!
             defaults.set(true, forKey: PersonalWorkspaceBoundary.preferenceKey)
             let client = HouseholdPreviewClient(fixture: fixture)
-            return HouseholdWorkspace(vault: vault, defaults: defaults, client: { _ in client }, capability: { false }, ownerEndpoint: { nil }, ownerKey: { _ in "" })
+            return HouseholdWorkspace(vault: vault, routeRead: { _, _ in
+                if ProcessInfo.processInfo.arguments.contains("--personal-route-old-core") { throw PersonalRouteFailure.freshness }
+                return session
+            }, defaults: defaults, client: { _ in client }, capability: { false }, ownerEndpoint: { nil }, ownerKey: { _ in "" })
         } catch { return nil }
     }
 }

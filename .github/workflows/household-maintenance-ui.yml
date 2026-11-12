@@ -5,9 +5,12 @@ on:
     paths:
       - 'Sleepypod/**/Arrangement*.swift'
       - 'Sleepypod/**/Household*.swift'
+      - 'Sleepypod/**/PersonalRoute*.swift'
+      - 'Sleepypod/**/VerifiedPersonalRoutes.swift'
       - 'Sleepypod/SleepypodApp.swift'
       - 'SleepypodUITests/Arrangement*.swift'
       - 'SleepypodUITests/Household*.swift'
+      - 'SleepypodUITests/PersonalRoute*.swift'
       - 'Integration/Fixtures/household-maintenance-v1.json'
       - '.github/workflows/household-maintenance-ui.yml'
       - 'scripts/verify-household-ui.sh'

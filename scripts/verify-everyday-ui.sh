@@ -30,7 +30,7 @@ for componentSuite in "${componentSuites[@]}"; do
       selectors+=(SleepypodUITests/TemporaryCoolingUITests)
       ;;
     response)
-      selectors+=(SleepypodUITests/TargetResponseUITests)
+      selectors+=(SleepypodUITests/TargetResponseUITests SleepypodUITests/PredictiveTargetUITests)
       ;;
     connection)
       selectors+=(SleepypodUITests/OwnerConnectionEnrollmentUITests SleepypodUITests/OwnerRouteSettingsUITests)

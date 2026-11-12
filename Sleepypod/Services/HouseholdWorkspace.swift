@@ -53,8 +53,10 @@ import Observation
     private var generation = 0
     private var storageLoaded = false
     private var foreground = true
+    let routes: PersonalRouteWorkspace
 
     init(vault: any HouseholdVault = HouseholdKeychainVault(), offlineStore: PersonalOfflineLibraryStore = .init(),
+         routeRead: @escaping PersonalRouteWorkspace.Read = { try await PersonalRouteClient().read(endpoint: $0, token: $1) },
          healthSnapshots: PrivateSnapshotStore? = nil, reportSnapshots: PrivateSnapshotStore? = nil, defaults: UserDefaults = .standard,
          client: @escaping @Sendable (URL) -> any HouseholdTransport = { HouseholdHTTPClient(endpoint: $0) },
          personalClient: @escaping @Sendable (PersonalBedConnection) -> any PersonalBedTransport = { PersonalBedHTTPClient(connection: $0) },
@@ -82,6 +84,7 @@ import Observation
         self.reportClient = reportClient
         self.learningClient = learningClient; self.journalClient = journalClient; self.quietClient = quietClient
         self.capability = capability; self.ownerEndpoint = ownerEndpoint; self.ownerKey = ownerKey; self.secret = secret
+        routes = PersonalRouteWorkspace(read: routeRead)
         active = defaults.bool(forKey: PersonalWorkspaceBoundary.preferenceKey)
         do { state = try vault.load(); storageLoaded = true } catch { self.error = HouseholdFailure.storage.localizedDescription }
     }
@@ -189,9 +192,12 @@ import Observation
     }
 
     func refresh() async {
-        guard active, foreground, !busy else { return }
+        guard active, foreground, !busy, !routes.busy else { return }
         if let maintenance, maintenance.entered { await maintenance.refresh(); return }
         do { try loadStorageIfNeeded() } catch { return }
+        if selected?.verifiedRoutes?.enabled == true, !routes.editing {
+            guard await recoverPersonalConnection() else { return }
+        }
         guard let record = selected else { return }
         configureOfflineLibrary()
         let operation = generation; busy = true; error = nil
@@ -424,7 +430,8 @@ import Observation
         guard storageLoaded else { throw HouseholdFailure.storage }
         do { try vault.save(next); state = next } catch { throw HouseholdFailure.storage }
     }
-    private func clearVisible(preservingQuiet: Bool = false) {
+    private func clearVisible(preservingQuiet: Bool = false, preservingRoutes: Bool = false) {
+        if !preservingRoutes { routes.invalidate() }
         personalReports?.invalidate(); personalReports = nil
         personalHealth?.invalidate(); personalHealth = nil
         offlineLibrary?.invalidate(); offlineLibrary = nil
@@ -449,11 +456,78 @@ import Observation
         preferences = nil; routines = nil; devices = []; invitations = []
     }
 
+    var mayEditPersonalRoutes: Bool {
+        active && foreground && !busy && !routes.busy && !requiresMaintenance && pending == nil
+            && selected?.identity != nil && selected?.offlineBlocked != true
+    }
+
+    func enrollPersonalRoutes(home: String, away: String) async {
+        guard mayEditPersonalRoutes, let record = selected else { return }
+        let operation = generation
+        await routes.enroll(record: record, home: home, away: away, isCurrent: { [weak self] in
+            self?.routeIsCurrent(record, operation: operation) == true
+        }, save: { [weak self] profile in
+            guard let self, self.routeIsCurrent(record, operation: operation) else { throw HouseholdFailure.changedIdentity }
+            try self.update(record.id) { $0.verifiedRoutes = profile }
+        })
+    }
+
+    func setPersonalRoutesEnabled(_ enabled: Bool) {
+        guard mayEditPersonalRoutes, let record = selected, var profile = record.verifiedRoutes,
+              let identity = record.identity else { return }
+        do {
+            try profile.validate(id: record.id, endpoint: record.endpoint, token: record.deviceSecret, session: identity)
+            profile.enabled = enabled
+            try update(record.id) { $0.verifiedRoutes = profile }
+            routes.invalidate()
+        } catch { self.error = PersonalRouteWorkspace.message(error) }
+    }
+
+    /// Switching only replaces local transports. Uncertain commands remain stored for receipt review.
+    @discardableResult func recoverPersonalConnection() async -> Bool {
+        guard active, foreground, !busy, !requiresMaintenance, !routes.editing,
+              let record = selected, record.identity != nil, record.verifiedRoutes?.enabled == true else { return false }
+        let operation = generation
+        let verified = await routes.resolve(record: record, isCurrent: { [weak self] in
+            self?.routeIsCurrent(record, operation: operation) == true
+        }, activate: { [weak self] endpoint in
+            guard let self, self.routeIsCurrent(record, operation: operation) else { throw HouseholdFailure.changedIdentity }
+            try self.update(record.id) { $0.endpoint = endpoint }
+            self.generation += 1
+            self.clearVisible(preservingRoutes: true)
+            self.configureOfflineLibrary()
+        })
+        if !verified, routeIsCurrent(record, operation: operation), !routes.busy, !Task.isCancelled {
+            clearVisible(preservingRoutes: true)
+            if routes.lastFailure == .authentication || routes.lastFailure == .changedIdentity {
+                try? withdrawOfflineLibrary(record.id)
+            } else { configureOfflineLibrary() }
+            error = routes.message
+        }
+        return verified
+    }
+
+    /// A foreground network change can recover reads; it never invokes a saved mutation.
+    func checkPersonalConnection() async {
+        guard selected?.verifiedRoutes?.enabled == true else { return }
+        let previous = selected?.endpoint
+        if await recoverPersonalConnection(), selected?.endpoint != previous || session != routes.verifiedSession {
+            await refresh()
+        }
+    }
+
+    private func routeIsCurrent(_ record: HouseholdConnectionRecord, operation: Int) -> Bool {
+        active && foreground && !busy && !requiresMaintenance && generation == operation
+            && selected?.id == record.id && selected?.endpoint == record.endpoint
+            && selected?.identity == record.identity && selected?.deviceSecret == record.deviceSecret
+            && selected?.verifiedRoutes == record.verifiedRoutes && !Task.isCancelled
+    }
+
     func sceneChanged(active: Bool) async {
         foreground = active
         if active { await refresh(); await personalHealth?.refreshOnActivation() }
         else {
-            generation += 1; busy = false
+            generation += 1; busy = false; routes.invalidate()
             personalHealth?.invalidate(); personalHealth = nil
             offlineLibrary?.invalidate(); offlineLibrary = nil
             maintenance?.background(); clearOrdinary(preservingQuiet: true)
@@ -466,7 +540,7 @@ import Observation
         }
         if let maintenance, maintenance.connection.id == record.id, maintenance.connection.session.identity == session.identity { return }
         maintenance?.invalidate(); clearOrdinary(preservingQuiet: true)
-        let connection = PersonalBedConnection(id: record.id, endpoint: record.endpoint, token: record.deviceSecret, session: session)
+        let connection = record.connection(for: session)
         maintenance = ArrangementMaintenanceWorkspace(connection: connection, client: maintenanceClient(connection), reviews: arrangementClient(connection), permitted: { [weak self] in
             guard let self else { return false }
             return self.active && self.foreground && self.state.selected == record.id && self.session?.identity == session.identity
@@ -497,7 +571,7 @@ import Observation
         let operation = generation; recoveryBusy = id; error = nil
         defer { if operation == generation { recoveryBusy = nil } }
         do {
-            let connection = PersonalBedConnection(id: record.id, endpoint: record.endpoint, token: record.deviceSecret, session: session)
+            let connection = record.connection(for: session)
             let transport = personalClient(connection)
             let fresh = try await transport.session()
             try check(operation, record.id); try fresh.validate(); try tombstone.validate()
@@ -549,7 +623,7 @@ import Observation
         }
         temperature?.invalidate()
         let operation = generation
-        let connection = PersonalBedConnection(id: record.id, endpoint: record.endpoint, token: record.deviceSecret, session: session)
+        let connection = record.connection(for: session)
         temperature = PersonalTemperatureWorkspace(connection: connection, client: personalClient(connection), unit: unit,
             permitted: { [weak self] in
                 guard let self else { return false }
@@ -625,7 +699,7 @@ import Observation
         let operation = generation; recoveryBusy = id; error = nil
         defer { if operation == generation { recoveryBusy = nil } }
         do {
-            let connection = PersonalBedConnection(id: record.id, endpoint: record.endpoint, token: record.deviceSecret, session: session)
+            let connection = record.connection(for: session)
             let transport = routineClient(connection)
             let fresh = try await transport.session()
             try check(operation, record.id); try fresh.validate(); try marker.validate()
@@ -649,7 +723,7 @@ import Observation
         if let publication, publication.connection.id == record.id, publication.connection.session == session { return }
         publication?.invalidate()
         let operation = generation
-        let connection = PersonalBedConnection(id: record.id, endpoint: record.endpoint, token: record.deviceSecret, session: session)
+        let connection = record.connection(for: session)
         publication = PersonalRoutineWorkspace(connection: connection, client: routineClient(connection), permitted: { [weak self] in
             guard let self else { return false }
             return self.active && self.generation == operation && self.state.selected == record.id && self.session == session
@@ -680,7 +754,7 @@ import Observation
         if let arrangement, !arrangement.isInvalidated, arrangement.connection.id == record.id, arrangement.connection.session == session { return }
         arrangement?.invalidate()
         let operation = generation
-        let connection = PersonalBedConnection(id: record.id, endpoint: record.endpoint, token: record.deviceSecret, session: session)
+        let connection = record.connection(for: session)
         arrangement = ArrangementReviewWorkspace(connection: connection, client: arrangementClient(connection), permitted: { [weak self] in
             guard let self else { return false }
             return self.active && self.generation == operation && self.state.selected == record.id && self.session == session
@@ -699,7 +773,7 @@ import Observation
         if let offlineLibrary, !offlineLibrary.invalidated, offlineLibrary.connection.id == record.id,
            offlineLibrary.connection.session == identity, offlineLibrary.connection.token == record.deviceSecret { return }
         offlineLibrary?.invalidate()
-        let connection = PersonalBedConnection(id: record.id, endpoint: record.endpoint, token: record.deviceSecret, session: identity)
+        let connection = record.connection(for: identity)
         let operation = generation
         offlineLibrary = PersonalOfflineLibraryWorkspace(connection: connection, store: offlineStore, permitted: { [weak self] in
             guard let self else { return false }
@@ -716,7 +790,7 @@ import Observation
         guard let record = state.connections.first(where: { $0.id == identifier }) else { return }
         try update(identifier) { $0.offlineBlocked = true }
         if let identity = record.identity {
-            try offlineStore.remove(connection: .init(id: record.id, endpoint: record.endpoint, token: record.deviceSecret, session: identity))
+            try offlineStore.remove(connection: record.connection(for: identity))
         }
     }
 
@@ -767,7 +841,7 @@ import Observation
         if let history, !history.isInvalidated, history.connection.id == record.id, history.connection.session == session { return }
         history?.invalidate()
         let operation = generation
-        let connection = PersonalBedConnection(id: record.id, endpoint: record.endpoint, token: record.deviceSecret, session: session)
+        let connection = record.connection(for: session)
         history = PersonalHistoryWorkspace(connection: connection, client: historyClient(connection), permitted: { [weak self] in
             guard let self else { return false }
             return self.active && self.generation == operation && self.state.selected == record.id && self.session == session
@@ -788,7 +862,7 @@ import Observation
         if let learning, !learning.isInvalidated, learning.connection.id == record.id, learning.connection.session == session { return }
         learning?.invalidate()
         let operation = generation
-        let connection = PersonalBedConnection(id: record.id, endpoint: record.endpoint, token: record.deviceSecret, session: session)
+        let connection = record.connection(for: session)
         learning = PersonalLearningWorkspace(connection: connection, client: learningClient(connection), permitted: { [weak self] in
             guard let self else { return false }
             return self.active && self.foreground && self.generation == operation && self.state.selected == record.id && self.session == session && !self.requiresMaintenance
@@ -804,7 +878,7 @@ import Observation
            existing.id == record.id, existing.endpoint == record.endpoint, existing.token == record.deviceSecret, existing.session == session { return }
         experiments?.invalidate(); experiments = nil; experimentConnection = nil
         guard session.capabilities.comfortExperiments == true else { return }
-        let connection = PersonalBedConnection(id: record.id, endpoint: record.endpoint, token: record.deviceSecret, session: session)
+        let connection = record.connection(for: session)
         experimentConnection = connection
         experiments = ComfortExperimentWorkspace(client: experimentClient(connection), permitted: { [weak self] in
             guard let self else { return false }
@@ -821,7 +895,7 @@ import Observation
         if let journal, !journal.isInvalidated, journal.connection.id == record.id, journal.connection.session == session { return }
         journal?.invalidate()
         let operation = generation
-        let connection = PersonalBedConnection(id: record.id, endpoint: record.endpoint, token: record.deviceSecret, session: session)
+        let connection = record.connection(for: session)
         journal = PersonalJournalWorkspace(connection: connection, client: journalClient(connection), permitted: { [weak self] in
             guard let self else { return false }
             return self.active && self.foreground && self.generation == operation && self.state.selected == record.id && self.session == session && !self.requiresMaintenance
@@ -837,7 +911,7 @@ import Observation
         if let quiet, !quiet.isInvalidated, quiet.connection.id == record.id, quiet.connection.endpoint == record.endpoint,
            quiet.connection.token == record.deviceSecret, quiet.connection.session == session { return }
         quiet?.invalidate()
-        let connection = PersonalBedConnection(id: record.id, endpoint: record.endpoint, token: record.deviceSecret, session: session)
+        let connection = record.connection(for: session)
         quiet = PersonalQuietWorkspace(connection: connection, client: quietClient(connection), permitted: { [weak self] in
             guard let self else { return false }
             return self.active && self.foreground && self.state.selected == record.id && self.session == session
@@ -938,11 +1012,12 @@ extension HouseholdWorkspace {
         guard active, foreground, !requiresMaintenance, let record = selected,
               let session, record.identity == session, record.offlineBlocked != true else { throw BedtimeRitualFailure.connectionRequired }
         guard session.capabilities.householdQuiet == true else { throw BedtimeRitualFailure.quietUnavailable }
-        let connection = PersonalBedConnection(id: record.id, endpoint: record.endpoint, token: record.deviceSecret, session: session)
+        let connection = record.connection(for: session)
         return try BedtimeRitualConnection.personal(connection) { [weak self] in
             guard let self else { return false }
             return self.active && self.selected?.id == record.id && self.selected?.identity == session
-                && self.selected?.deviceSecret == record.deviceSecret && self.selected?.offlineBlocked != true
+                && self.selected?.deviceSecret == record.deviceSecret && self.selected?.endpoint == record.endpoint
+                && self.selected?.offlineBlocked != true
         }
     }
     /// Resolve protected storage before the remote captures its account boundary.

@@ -26,7 +26,7 @@ struct HouseholdPendingRequest: Codable, Equatable, Sendable {
 
 struct HouseholdConnectionRecord: Codable, Identifiable, Sendable {
     let id: UUID
-    let endpoint: URL
+    var endpoint: URL
     let deviceSecret: String
     var identity: HouseholdSession?
     var offlineBlocked: Bool?
@@ -38,6 +38,7 @@ struct HouseholdConnectionRecord: Codable, Identifiable, Sendable {
     var draftRoutinesRevision: Int?
     var personalControls: [PersonalControlAttempt]?
     var personalPublications: [PersonalRoutineAttempt]?
+    var verifiedRoutes: VerifiedPersonalRoutes?
 }
 
 struct HouseholdVaultState: Codable {
@@ -85,7 +86,7 @@ struct HouseholdVaultState: Codable {
             guard SecItemAdd(item as CFDictionary, nil) == errSecSuccess else { throw HouseholdFailure.storage }
         } else if status != errSecSuccess { throw HouseholdFailure.storage }
     }
-    static func secret() throws -> String {
+    nonisolated static func secret() throws -> String {
         var bytes = [UInt8](repeating: 0, count: 32)
         guard SecRandomCopyBytes(kSecRandomDefault, bytes.count, &bytes) == errSecSuccess else { throw HouseholdFailure.storage }
         return Data(bytes).base64EncodedString().replacingOccurrences(of: "+", with: "-")
