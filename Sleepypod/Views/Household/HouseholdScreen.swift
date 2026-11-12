@@ -1,4 +1,5 @@
 import SwiftUI
+import FreeSleepKit
 
 /// This root replaces the owner tabs; a personal credential never opens legacy controls.
 struct HouseholdScreen: View {
@@ -28,8 +29,8 @@ struct HouseholdScreen: View {
                          : "Temperature controls use your personal bed assignment. Weekly routines remain drafts.")
                         .font(.footnote).foregroundStyle(Theme.text2)
                     Text(model.maintenance?.canActivate == true
-                         ? "Changing sides needs both approvals and a separate attended confirmation. Apple Health is not active in this workspace."
-                         : "Side activation and Apple Health are not enabled in this workspace.")
+                         ? "Changing sides needs both approvals and a separate attended confirmation."
+                         : "Side activation is not enabled in this workspace.")
                         .font(.footnote).foregroundStyle(Theme.text2)
                 }
                 feedback
@@ -46,6 +47,14 @@ struct HouseholdScreen: View {
                             .accessibilityIdentifier("personalOffline.accountLink")
                         Text("Your downloaded recordings and last read operating week stay private to this account.")
                             .font(.footnote).foregroundStyle(Theme.text1)
+                    }
+                }
+                if model.personalHealth != nil {
+                    Section("Apple Health") {
+                        NavigationLink("Your private Health history", value: "health")
+                            .accessibilityIdentifier("personalHealth.accountLink")
+                        Text("Use your own iPhone or iPad. Link its Health records explicitly to your personal account.")
+                            .font(.footnote).foregroundStyle(Theme.text2)
                     }
                 }
                 if let session = model.session {
@@ -141,7 +150,7 @@ struct HouseholdScreen: View {
                 }
                 Section("Local data") {
                     Button("Erase all local personal data", role: .destructive) { eraseLocalData = true }.disabled(model.busy)
-                    Text("Removes personal credentials, saved readings, drafts, command and publication recovery records on this device. It does not revoke server access or alter the bed.")
+                    Text("Removes personal credentials, saved readings, Health imports, drafts, command and publication recovery records on this device. It does not revoke server access or alter the bed.")
                         .font(.footnote).foregroundStyle(Theme.text2)
                 }
                 if model.canReturnToOwner {
@@ -160,6 +169,7 @@ struct HouseholdScreen: View {
             .navigationDestination(for: String.self) { route in
                 if route == "practice" { ControlPracticeScreen(guideURL: model.selected?.endpoint.appending(path: "guide/marissa.html")) }
                 else if route == "offline", let offline = model.offlineLibrary { PersonalOfflineLibraryScreen(model: offline).id(ObjectIdentifier(offline)) }
+                else if route == "health", let health = model.personalHealth { PersonalHealthScreen(model: health).id(ObjectIdentifier(health)) }
                 else if let session = model.session {
                     if route == "preferences" { HouseholdPreferencesEditor().id(session.namespace + String(model.preferences?.revision ?? 0)) }
                     else if route == "routines" { HouseholdRoutineWeek().id(session.namespace) }
@@ -192,7 +202,7 @@ struct HouseholdScreen: View {
         .onChange(of: scenePhase) {
             if scenePhase != .active {
                 revealedCode = nil
-                if navigation.contains("learning") || navigation.contains("journal") || navigation.contains("offline") { navigation = [] }
+                if navigation.contains("learning") || navigation.contains("journal") || navigation.contains("offline") || navigation.contains("health") { navigation = [] }
             }
         }
         .onChange(of: model.session?.context) { revealedCode = nil; navigation = [] }
