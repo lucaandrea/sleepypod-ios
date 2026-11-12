@@ -111,6 +111,7 @@ struct SleepypodApp: App {
                 else { ownerContent }
             }
                 .environment(household)
+                .modifier(BedtimeRitualLifecycle(household: household))
                 .modifier(BackupAlarmLifecycle())
                 .preferredColorScheme(userProfile.appearance.colorScheme)
                 .foregroundStyle(Theme.text1)
@@ -169,6 +170,7 @@ struct SleepypodApp: App {
             else if ProcessInfo.processInfo.arguments.contains("--report-sharing-fixture") { ReportWebSharingExample() }
             else if ProcessInfo.processInfo.arguments.contains("--personal-health-fixture") { PersonalHealthExample() }
             else if ProcessInfo.processInfo.arguments.contains("--personal-reports-fixture") { PersonalAccountReportsExample() }
+            else if ProcessInfo.processInfo.arguments.contains("--bedtime-audio-fixture") { BedtimeRitualPreview() }
             else if APIBackend.current.isDemo, UserDefaults.standard.string(forKey: "uiRouteExample") != nil {
                 NavigationStack { OwnerRouteSettingsView() }
             }

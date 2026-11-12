@@ -1,10 +1,11 @@
 import Foundation
 
 enum BedtimeRitualFailure: Error, LocalizedError, Equatable {
-    case invalid, accountChanged, setupRequired, quietUnavailable, someoneResting, pending, storage, expired, foregroundRequired
+    case invalid, connectionRequired, accountChanged, setupRequired, quietUnavailable, someoneResting, pending, storage, expired, foregroundRequired
     var errorDescription: String? {
         switch self {
         case .invalid: "This bedtime setup could not be verified. Review it before continuing."
+        case .connectionRequired: "Connect to your Pod before starting bedtime audio."
         case .accountChanged: "Your account changed. Open bedtime audio from your current account."
         case .setupRequired: "First check that your saved Shortcuts use the mode, speakers, volume and timer shown here."
         case .quietUnavailable: "Shared quiet status is unavailable. Reconnect before starting bedroom audio."

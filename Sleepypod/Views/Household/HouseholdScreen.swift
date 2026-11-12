@@ -45,6 +45,9 @@ struct HouseholdScreen: View {
                 }
                 controlRecovery
                 publicationRecovery
+                if model.session?.capabilities.householdQuiet == true {
+                    Section("Wind down") { BedtimeRitualEntry() }
+                }
                 Section("Learn the controls") {
                     NavigationLink("Practice temperature, alarms and Stop", value: "practice")
                         .accessibilityIdentifier("household.practice")

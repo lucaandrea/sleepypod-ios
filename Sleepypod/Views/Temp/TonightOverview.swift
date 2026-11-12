@@ -40,6 +40,7 @@ struct TonightOverview: View {
                         }.font(.footnote)
                     }.frame(maxWidth: .infinity, alignment: .leading).cardStyle()
                     TemporaryCoolingPanel(side: device.selectedSide.primarySide)
+                    BedtimeRitualEntry()
                     NavigationLink {
                         NightExplanationScreen(side: device.selectedSide.primarySide)
                     } label: {

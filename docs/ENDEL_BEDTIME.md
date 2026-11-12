@@ -29,8 +29,10 @@ an active call, or a manually changed route is not ours to take over silently.
 `BedtimeRitualSession` operates against injected account, foreground, quiet-read,
 URL-opening and secure-storage boundaries. `BedtimeRitualConnection` binds the
 real owner/personal quiet clients and protected Keychain to that engine. The
-native presentation and app routing remain to be connected; adding these files
-does not expose a working audio button yet.
+native flow is connected to Tonight and personal accounts. One app-level
+workspace retains the current session across the Shortcuts handoff and sheet
+dismissal. The installed Shortcuts and HomePods still require physical setup and
+qualification; the app does not create them or infer their capabilities.
 
 1. Save a per-account setup after the user reviews the configured Start and Pause
    Shortcuts, Endel mode, speaker destination, volume and timer. Changing a setting
@@ -72,16 +74,31 @@ These guards apply at launch. They do not promise automatic interruption of
 already-running audio if another sleeper requests quiet afterward. A callback
 token correlates an untrusted app return; it is not remote authentication.
 
+## Native workflow
+
+The grouped form leads with the latest handoff and its separate user observation.
+A new request scrolls its result into view. Initial setup requires explicit review
+of the exact saved Shortcut names and expected settings; changing any field
+withdraws that confirmation. Setup does not change a Shortcut or start media.
+
+The `Open bedtime audio` App Intent is discoverable as an action in Shortcuts and
+opens this review. It does not launch Endel or run a media action. Its metadata is
+present in the built app. The `sleepypod-bedtime` callback scheme is registered;
+only a current session's one-use return can update the result. A callback after
+process restart cannot recover a trustworthy live completion.
+
+Personal callbacks survive a normal foreground/background trip to Shortcuts,
+while changed account, removed credentials or protected-data loss withdraw the
+session. Erasing or forgetting a personal connection removes its audio setup and
+history from Keychain. Account removal does not claim to stop external audio.
+
 ## Remaining delivery work
 
-- Release the owner shared-quiet endpoint and bind the current app account to its
-  ritual session. The implemented owner adapter checks installation identity
-  around its read; the personal adapter checks its complete session on both sides
-  of the read. Neither falls back to the other credential type.
-- Add the native ritual screen, clear status labels, setup instructions, and
-  user-initiated Start/Pause actions. Register the callback scheme in the app and
-  route through one current session. Add an App Intent that opens this workflow.
-- Provide the browser/iPad companion instructions and the same state vocabulary.
+- Deploy the owner shared-quiet endpoint (merged Core PR 137) and release the native workflow. The
+  owner adapter checks installation identity around its read; the personal adapter
+  checks its complete session on both sides. Neither changes credential type.
+- Finish the browser/iPad companion instructions and the same state vocabulary;
+  their source and browser checks are in the separate Core guide change.
 - Inspect the installed Endel actions and configure/test the actual Start/Pause
   Shortcuts. Confirm how its timer is applied. A setting unsupported by the
   installed actions needs an explicit tap-to-finish step in Endel.
@@ -97,9 +114,38 @@ token correlates an untrusted app return; it is not remote authentication.
 The native tests exercise external-effect ordering, callback races and expiry,
 quiet/account/foreground changes during asynchronous work, secure per-account
 storage, process restart, lost persistence and explicit pause/observation.
-The final signed iPhone simulator run passes **32 tests, zero skips** in
-`/tmp/sleepypod-endel-transport-fixed.xcresult`. This includes real Keychain
-round trips and production URLSession adapters with intercepted HTTP responses.
-Strict SwiftLint passes on all six production files. The first transport-test
-compile needed two missing `try` keywords; the failed result is retained at
+The signed iPhone simulator integration run passes **47 tests, zero skips** in
+`/tmp/sleepypod-endel-ui-models-v4.xcresult`. This includes real Keychain round
+trips, production URLSession adapters with intercepted HTTP responses, retained
+callbacks, account removal, protected session withdrawal and personal background
+transitions. Strict SwiftLint passes on the new production files.
+
+The first UI pass exposed offscreen result navigation on iPhone. A new request
+now brings the result section into view, and the test locator can correctly find
+virtualized content above or below the viewport. The final eight-scenario run
+passes on both iPhone and iPad, including the actual Tonight entry, initial
+connection recovery, custom field labels, Pause results and account withdrawal:
+`/tmp/sleepypod-endel-ui-phone-reviewed-v2.xcresult` and
+`/tmp/sleepypod-endel-ui-ipad-reviewed.xcresult`. The 43 validated captures include
+light appearance, dark appearance at the largest accessibility text size and
+iPad landscape. They are in `.impeccable/review/bedtime-audio-reviewed/`.
+
+The complete application/framework regression run passes **1,720 tests, zero
+failures and nine existing skips** at
+`/tmp/sleepypod-endel-review-regression.xcresult`. Its initial run caught a test
+fixture using separate clock reads for a strict 15-second interval. The fixture
+now derives both timestamps from one instant; production freshness checks are
+unchanged. The original failed run remains at
+`/tmp/sleepypod-endel-ui-full-regression.xcresult`. The first transport-test
+compile needed two missing `try` keywords; its failed result remains at
 `/tmp/sleepypod-endel-transport.xcresult`. No real Shortcut or HomePod was invoked.
+
+The independent native reviewer scored all four material fixes resolved after
+inspecting the 43 recaptured images: truthful first-connection recovery,
+persistent setup-field labels, Pause-specific result copy and manual stop
+guidance after account withdrawal. The verdict covers those four fixes; actual
+audio and device qualification remain separate. The first phone recapture run
+failed because the test looked above an offscreen custom field instead of below
+it; the locator was corrected without changing production behavior or weakening
+its visibility assertion. That failed result remains at
+`/tmp/sleepypod-endel-ui-phone-reviewed.xcresult`.

@@ -369,6 +369,7 @@ import Observation
         try withdrawOfflineLibrary(id)
         var next = state
         if let record = next.connections.first(where: { $0.id == id }), let identity = record.identity {
+            try BedtimeRitualConnection.removePersonalData(record: record)
             try PersonalHealthWorkspace.removeLocalData(for: PersonalHealthIdentity(session: identity), snapshots: healthSnapshots)
             try PersonalReportWorkspace.removeLocalData(for: PersonalHealthIdentity(session: identity), snapshots: reportSnapshots)
             var tombstones = next.controlTombstones ?? []
@@ -532,6 +533,7 @@ import Observation
         generation += 1; clearVisible()
         do {
             for record in state.connections { try withdrawOfflineLibrary(record.id) }
+            for record in state.connections { try BedtimeRitualConnection.removePersonalData(record: record) }
             try PersonalHealthWorkspace.eraseAllLocalData(snapshots: healthSnapshots)
             let identities = try state.connections.compactMap { try $0.identity.map(PersonalHealthIdentity.init(session:)) }
             try PersonalReportWorkspace.eraseAllLocalData(identities: identities, snapshots: reportSnapshots)
@@ -926,6 +928,22 @@ extension HouseholdWorkspace {
     /// A live Watch request may wake the phone in the background. It refreshes only this account's bed controls.
     var remoteContext: [String] {
         [String(active), String(generation), selected?.id.uuidString ?? "", String(requiresMaintenance)]
+    }
+
+    /// Unlike sensor work, an audio callback must survive a normal trip to Shortcuts.
+    var bedtimeAudioContext: [String] {
+        [String(active), selected?.id.uuidString ?? ""] + (selected?.identity?.identity ?? [])
+    }
+    func bedtimeAudioSession() throws -> BedtimeRitualSession {
+        guard active, foreground, !requiresMaintenance, let record = selected,
+              let session, record.identity == session, record.offlineBlocked != true else { throw BedtimeRitualFailure.connectionRequired }
+        guard session.capabilities.householdQuiet == true else { throw BedtimeRitualFailure.quietUnavailable }
+        let connection = PersonalBedConnection(id: record.id, endpoint: record.endpoint, token: record.deviceSecret, session: session)
+        return try BedtimeRitualConnection.personal(connection) { [weak self] in
+            guard let self else { return false }
+            return self.active && self.selected?.id == record.id && self.selected?.identity == session
+                && self.selected?.deviceSecret == record.deviceSecret && self.selected?.offlineBlocked != true
+        }
     }
     /// Resolve protected storage before the remote captures its account boundary.
     func prepareRemoteAccess() throws {

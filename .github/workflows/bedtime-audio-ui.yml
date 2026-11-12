@@ -1,0 +1,108 @@
+name: Bedtime audio UI
+
+on:
+  pull_request:
+    paths:
+      - 'Sleepypod/Services/BedtimeRitual*.swift'
+      - 'Sleepypod/Models/BedtimeRitual*.swift'
+      - 'Sleepypod/Networking/BedtimeRitual*.swift'
+      - 'Sleepypod/Views/Home/BedtimeRitual*.swift'
+      - 'Sleepypod/Services/HouseholdWorkspace.swift'
+      - 'Sleepypod/SleepypodApp.swift'
+      - 'Sleepypod/Info.plist'
+      - 'SleepypodUITests/BedtimeRitualUITests.swift'
+      - '.github/workflows/bedtime-audio-ui.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: bedtime-audio-ui-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+env:
+  DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
+
+jobs:
+  build:
+    name: Build audio UI bundle
+    runs-on: macos-15-intel
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+      - name: Build signed simulator products
+        timeout-minutes: 30
+        run: |
+          xcodebuild build-for-testing -project Sleepypod.xcodeproj -scheme Sleepypod \
+            -destination 'generic/platform=iOS Simulator' -derivedDataPath "$RUNNER_TEMP/AudioBuild" \
+            CODE_SIGNING_ALLOWED=YES CODE_SIGN_IDENTITY=-
+      - name: Archive the exact build
+        run: |
+          mkdir -p "$RUNNER_TEMP/AudioBundle"
+          ditto -c -k --keepParent "$RUNNER_TEMP/AudioBuild/Build/Products" "$RUNNER_TEMP/AudioBundle/Products.zip"
+          git rev-parse HEAD > "$RUNNER_TEMP/AudioBundle/source-revision.txt"
+          xcodebuild -version > "$RUNNER_TEMP/AudioBundle/xcode-version.txt"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: bedtime-audio-bundle
+          path: ${{ runner.temp }}/AudioBundle
+          if-no-files-found: error
+          retention-days: 7
+          compression-level: 0
+  audio:
+    name: Bedtime audio (${{ matrix.form }})
+    needs: build
+    runs-on: macos-15-intel
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        form: [iPhone, iPad]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+      - uses: actions/download-artifact@v4
+        with:
+          name: bedtime-audio-bundle
+          path: ${{ runner.temp }}/AudioBundle
+      - name: Restore matching products and select simulator
+        run: |
+          test "$(cat "$RUNNER_TEMP/AudioBundle/source-revision.txt")" = "$(git rev-parse HEAD)"
+          xcodebuild -version > "$RUNNER_TEMP/current-xcode-version.txt"
+          cmp "$RUNNER_TEMP/AudioBundle/xcode-version.txt" "$RUNNER_TEMP/current-xcode-version.txt"
+          ditto -x -k "$RUNNER_TEMP/AudioBundle/Products.zip" "$RUNNER_TEMP/AudioBundle"
+          AUDIO_TEST_RUN=$(python3 -c '
+          import pathlib, sys
+          matches = list(pathlib.Path(sys.argv[1]).glob("*.xctestrun"))
+          if len(matches) != 1: sys.exit("Expected one audio test bundle")
+          print(matches[0])' "$RUNNER_TEMP/AudioBundle/Products")
+          AUDIO_SIM_ID=$(xcrun simctl list devices available --json | python3 -c '
+          import json, sys
+          matches = [device["udid"] for runtime, group in sorted(json.load(sys.stdin)["devices"].items(), reverse=True)
+                     if ".iOS-26-" in runtime for device in group if device["name"].startswith(sys.argv[1])]
+          if not matches: sys.exit("Requested iOS 26 simulator is unavailable")
+          print(matches[0])' '${{ matrix.form }}')
+          printf 'AUDIO_TEST_RUN=%s\nAUDIO_SIM_ID=%s\n' "$AUDIO_TEST_RUN" "$AUDIO_SIM_ID" >> "$GITHUB_ENV"
+      - name: Boot simulator
+        timeout-minutes: 15
+        run: xcrun simctl bootstatus "$AUDIO_SIM_ID" -b
+      - name: Verify setup, completion, quiet and recovery
+        timeout-minutes: 25
+        run: |
+          xcodebuild test-without-building -xctestrun "$AUDIO_TEST_RUN" \
+            -destination "platform=iOS Simulator,id=$AUDIO_SIM_ID" \
+            -only-testing:SleepypodUITests/BedtimeRitualUITests \
+            -resultBundlePath "$RUNNER_TEMP/Audio.xcresult" \
+            -parallel-testing-enabled NO -collect-test-diagnostics never
+      - name: Preserve result and screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bedtime-audio-${{ matrix.form }}
+          path: ${{ runner.temp }}/Audio.xcresult
+          if-no-files-found: ignore
+          retention-days: 7
