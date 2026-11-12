@@ -55,12 +55,19 @@ jobs:
       - name: Boot simulator
         timeout-minutes: 15
         run: xcrun simctl bootstatus "$REPORT_SIM_ID" -b
-      - name: Verify consent, read recovery and withdrawal
-        timeout-minutes: 15
+      - name: Select the built test bundle
         run: |
-          xcodebuild test-without-building -project Sleepypod.xcodeproj -scheme Sleepypod \
+          REPORT_TEST_RUN=$(python3 -c '
+          import pathlib, sys
+          matches = list(pathlib.Path(sys.argv[1]).glob("*.xctestrun"))
+          if len(matches) != 1: sys.exit("Expected exactly one report test bundle")
+          print(matches[0])' "$RUNNER_TEMP/ReportBuild/Build/Products")
+          printf 'REPORT_TEST_RUN=%s\n' "$REPORT_TEST_RUN" >> "$GITHUB_ENV"
+      - name: Verify consent, read recovery and withdrawal
+        timeout-minutes: 25
+        run: |
+          xcodebuild test-without-building -xctestrun "$REPORT_TEST_RUN" \
             -destination "platform=iOS Simulator,id=$REPORT_SIM_ID" \
-            -derivedDataPath "$RUNNER_TEMP/ReportBuild" \
             -only-testing:SleepypodUITests/ReportWebSharingUITests \
             -resultBundlePath "$RUNNER_TEMP/Reports.xcresult" \
             -collect-test-diagnostics never -parallel-testing-enabled NO \
