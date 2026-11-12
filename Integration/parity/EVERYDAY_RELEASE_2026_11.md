@@ -119,3 +119,26 @@ once, runs each once per device in separate steps, and retains all four result
 bundles. Existing recording and learning checks retain their assertions; the new
 journal and habit checks get distinct reports. This is coverage organization,
 not proof of hosted success. Final hosted checks and distribution remain pending.
+
+## Household confirmation harness correction
+
+The hosted iPhone job at `cd65ca9` reached the tests and reported an unchecked
+separate-activation confirmation after its coordinate tap. It later exhausted
+the combined three-suite step's 20-minute limit. Its original log and artifact
+are retained; the interrupted result bundle lacks its final `Info.plist`.
+
+The review harness now scrolls through the label column, locates the contained
+native switch, checks that each confirmation starts off, and waits for its
+selected value after one explicit tap. It rechecks all three after scrolling
+before testing approval. These changes match the existing maintenance harness;
+no production approval, freshness or activation rule changed.
+
+All twelve maintenance/review/preparation scenarios pass on both signed local
+iPhone and iPad simulators, with no failures or skips, including the lost-reply
+case and maximum-text confirmations. Build-for-testing, strict SwiftLint and
+the workflow selector audit pass. Hosted execution remains required.
+
+The workflow builds once and runs all three original suites in separate bounded
+steps, retaining each result bundle even when another suite fails. Each step
+retains a 20-minute limit and the overall job retains its 65-minute limit; no
+scenario or assertion was removed.

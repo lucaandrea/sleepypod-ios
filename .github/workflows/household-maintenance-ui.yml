@@ -40,30 +40,53 @@ jobs:
           print(matches[0])' '${{ matrix.form }}')
           printf 'MAINTENANCE_SIM_ID=%s\n' "$MAINTENANCE_SIM_ID" >> "$GITHUB_ENV"
       - name: Build household tests
+        id: build
         timeout-minutes: 30
         run: |
           xcodebuild build-for-testing -project Sleepypod.xcodeproj -scheme Sleepypod \
             -destination "platform=iOS Simulator,id=$MAINTENANCE_SIM_ID" \
             -derivedDataPath "$RUNNER_TEMP/MaintenanceBuild" CODE_SIGNING_ALLOWED=NO
       - name: Boot simulator
+        id: boot
         timeout-minutes: 15
         run: xcrun simctl bootstatus "$MAINTENANCE_SIM_ID" -b
-      - name: Verify maintenance and existing account navigation
+      - name: Verify attended maintenance
         timeout-minutes: 20
         run: |
           xcodebuild test-without-building -project Sleepypod.xcodeproj -scheme Sleepypod \
             -destination "platform=iOS Simulator,id=$MAINTENANCE_SIM_ID" \
             -derivedDataPath "$RUNNER_TEMP/MaintenanceBuild" \
             -only-testing:SleepypodUITests/ArrangementMaintenanceUITests \
-            -only-testing:SleepypodUITests/ArrangementReviewUITests \
-            -only-testing:SleepypodUITests/HouseholdPreparationUITests \
             -resultBundlePath "$RUNNER_TEMP/Maintenance.xcresult" \
+            -collect-test-diagnostics never -parallel-testing-enabled NO CODE_SIGNING_ALLOWED=NO
+      - name: Verify independent side review
+        if: ${{ !cancelled() && steps.build.outcome == 'success' && steps.boot.outcome == 'success' }}
+        timeout-minutes: 20
+        run: |
+          xcodebuild test-without-building -project Sleepypod.xcodeproj -scheme Sleepypod \
+            -destination "platform=iOS Simulator,id=$MAINTENANCE_SIM_ID" \
+            -derivedDataPath "$RUNNER_TEMP/MaintenanceBuild" \
+            -only-testing:SleepypodUITests/ArrangementReviewUITests \
+            -resultBundlePath "$RUNNER_TEMP/SideReview.xcresult" \
+            -collect-test-diagnostics never -parallel-testing-enabled NO CODE_SIGNING_ALLOWED=NO
+      - name: Verify personal account preparation
+        if: ${{ !cancelled() && steps.build.outcome == 'success' && steps.boot.outcome == 'success' }}
+        timeout-minutes: 20
+        run: |
+          xcodebuild test-without-building -project Sleepypod.xcodeproj -scheme Sleepypod \
+            -destination "platform=iOS Simulator,id=$MAINTENANCE_SIM_ID" \
+            -derivedDataPath "$RUNNER_TEMP/MaintenanceBuild" \
+            -only-testing:SleepypodUITests/HouseholdPreparationUITests \
+            -resultBundlePath "$RUNNER_TEMP/HouseholdPreparation.xcresult" \
             -collect-test-diagnostics never -parallel-testing-enabled NO CODE_SIGNING_ALLOWED=NO
       - name: Preserve screenshots and results
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: household-maintenance-${{ matrix.form }}
-          path: ${{ runner.temp }}/Maintenance.xcresult
+          path: |
+            ${{ runner.temp }}/Maintenance.xcresult
+            ${{ runner.temp }}/SideReview.xcresult
+            ${{ runner.temp }}/HouseholdPreparation.xcresult
           if-no-files-found: ignore
           retention-days: 7
