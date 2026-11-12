@@ -24,6 +24,8 @@ on:
       - 'SleepypodUITests/PersonalOfflineLibraryUITests.swift'
       - 'SleepypodUITests/PersonalHealthUITests.swift'
       - '.github/workflows/offline-library-ui.yml'
+      - 'scripts/run-simulator-ui.py'
+      - 'scripts/tests/test_simulator_startup.py'
   workflow_dispatch:
 
 permissions:
@@ -79,7 +81,7 @@ jobs:
       - name: Verify owner encrypted offline reading
         timeout-minutes: 20
         run: |
-          xcodebuild test-without-building -project Sleepypod.xcodeproj -scheme Sleepypod \
+          python3 scripts/run-simulator-ui.py test-without-building -project Sleepypod.xcodeproj -scheme Sleepypod \
             -destination "platform=iOS Simulator,id=$OFFLINE_SIM_ID" \
             -derivedDataPath "$RUNNER_TEMP/OfflineBuild" \
             -only-testing:SleepypodUITests/OfflineLibraryUITests \
@@ -90,7 +92,7 @@ jobs:
         if: ${{ !cancelled() && steps.offline-build.outcome == 'success' }}
         timeout-minutes: 20
         run: |
-          xcodebuild test-without-building -project Sleepypod.xcodeproj -scheme Sleepypod \
+          python3 scripts/run-simulator-ui.py test-without-building -project Sleepypod.xcodeproj -scheme Sleepypod \
             -destination "platform=iOS Simulator,id=$OFFLINE_SIM_ID" \
             -derivedDataPath "$RUNNER_TEMP/OfflineBuild" \
             -only-testing:SleepypodUITests/PersonalOfflineLibraryUITests \
@@ -101,7 +103,7 @@ jobs:
         if: ${{ !cancelled() && steps.offline-build.outcome == 'success' }}
         timeout-minutes: 20
         run: |
-          xcodebuild test-without-building -project Sleepypod.xcodeproj -scheme Sleepypod \
+          python3 scripts/run-simulator-ui.py test-without-building -project Sleepypod.xcodeproj -scheme Sleepypod \
             -destination "platform=iOS Simulator,id=$OFFLINE_SIM_ID" \
             -derivedDataPath "$RUNNER_TEMP/OfflineBuild" \
             -only-testing:SleepypodUITests/PersonalHealthUITests \
@@ -114,8 +116,11 @@ jobs:
         with:
           name: offline-library-${{ matrix.form }}
           path: |
-            ${{ runner.temp }}/OwnerOffline.xcresult
-            ${{ runner.temp }}/PersonalOffline.xcresult
-            ${{ runner.temp }}/PersonalHealth.xcresult
+            ${{ runner.temp }}/OwnerOffline*.xcresult
+            ${{ runner.temp }}/OwnerOffline-bootstrap-recovery.json
+            ${{ runner.temp }}/PersonalOffline*.xcresult
+            ${{ runner.temp }}/PersonalOffline-bootstrap-recovery.json
+            ${{ runner.temp }}/PersonalHealth*.xcresult
+            ${{ runner.temp }}/PersonalHealth-bootstrap-recovery.json
           if-no-files-found: ignore
           retention-days: 7

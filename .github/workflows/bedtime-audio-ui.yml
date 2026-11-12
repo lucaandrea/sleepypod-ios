@@ -12,6 +12,8 @@ on:
       - 'Sleepypod/Info.plist'
       - 'SleepypodUITests/BedtimeRitualUITests.swift'
       - '.github/workflows/bedtime-audio-ui.yml'
+      - 'scripts/run-simulator-ui.py'
+      - 'scripts/tests/test_simulator_startup.py'
       - 'scripts/build-simulator-ui.sh'
       - 'scripts/tests/test_simulator_build.py'
   workflow_dispatch:
@@ -95,7 +97,7 @@ jobs:
       - name: Verify setup, completion, quiet and recovery
         timeout-minutes: 25
         run: |
-          xcodebuild test-without-building -xctestrun "$AUDIO_TEST_RUN" \
+          python3 scripts/run-simulator-ui.py test-without-building -xctestrun "$AUDIO_TEST_RUN" \
             -destination "platform=iOS Simulator,id=$AUDIO_SIM_ID" \
             -only-testing:SleepypodUITests/BedtimeRitualUITests \
             -resultBundlePath "$RUNNER_TEMP/Audio.xcresult" \
@@ -105,6 +107,8 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: bedtime-audio-${{ matrix.form }}
-          path: ${{ runner.temp }}/Audio.xcresult
+          path: |
+            ${{ runner.temp }}/Audio*.xcresult
+            ${{ runner.temp }}/Audio-bootstrap-recovery.json
           if-no-files-found: ignore
           retention-days: 7

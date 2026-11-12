@@ -19,6 +19,8 @@ on:
       - 'Integration/Fixtures/personal-journal-v1.json'
       - 'Integration/Fixtures/personal-journal-patterns-v1.json'
       - '.github/workflows/personal-history-ui.yml'
+      - 'scripts/run-simulator-ui.py'
+      - 'scripts/tests/test_simulator_startup.py'
       - 'scripts/verify-recordings-ui.sh'
       - 'scripts/tests/test_recordings_groups.py'
       - 'scripts/build-simulator-ui.sh'
@@ -113,6 +115,8 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: personal-recordings-${{ matrix.form }}-${{ matrix.suite }}
-          path: ${{ runner.temp }}/Recordings-${{ matrix.suite }}.xcresult
+          path: |
+            ${{ runner.temp }}/Recordings-${{ matrix.suite }}*.xcresult
+            ${{ runner.temp }}/Recordings-${{ matrix.suite }}-bootstrap-recovery.json
           if-no-files-found: ignore
           retention-days: 7

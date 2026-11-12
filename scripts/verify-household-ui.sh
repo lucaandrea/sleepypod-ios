@@ -47,16 +47,18 @@ case "$mode" in
     ;;
   *) printf 'Unknown mode: %s\n' "$mode" >&2; exit 2 ;;
 esac
+command=(xcodebuild)
+if [[ "$mode" == test ]]; then command=(python3 "$(dirname "$0")/run-simulator-ui.py"); fi
 arguments=()
 for selector in "${selectors[@]}"; do arguments+=("-only-testing:$selector"); done
 if [[ "$mode" == test && -n "${HOUSEHOLD_TEST_RUN:-}" ]]; then
   [[ -f "$HOUSEHOLD_TEST_RUN" ]] || { printf 'Shared UI test bundle is missing.\n' >&2; exit 2; }
-  xcodebuild "$action" -xctestrun "$HOUSEHOLD_TEST_RUN" \
+  "${command[@]}" "$action" -xctestrun "$HOUSEHOLD_TEST_RUN" \
     -destination "platform=iOS Simulator,id=${MAINTENANCE_SIM_ID:?}" \
     "${arguments[@]}" "${extras[@]}"
   exit
 fi
-xcodebuild "$action" -project Sleepypod.xcodeproj -scheme Sleepypod \
+"${command[@]}" "$action" -project Sleepypod.xcodeproj -scheme Sleepypod \
   -destination "platform=iOS Simulator,id=${MAINTENANCE_SIM_ID:?}" \
   -derivedDataPath "${RUNNER_TEMP:?}/MaintenanceBuild" \
   "${arguments[@]}" "${extras[@]}"

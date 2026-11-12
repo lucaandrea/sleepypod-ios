@@ -70,20 +70,30 @@ class SimulatorBuildTests(unittest.TestCase):
         self.assertEqual(result.returncode, 65)
 
     def test_execution_keeps_shared_bundle_and_selected_scenarios(self):
-        bundle = self.directory / "Practice.xctestrun"
-        bundle.touch()
-        self.environment.update(PRACTICE_TEST_RUN=str(bundle), PRACTICE_SIM_ID="simulator-id")
-        result = self.run_script("verify-practice-ui.sh", "test", "invitations")
-        self.assertEqual(result.returncode, 0, result.stderr)
-        arguments = json.loads(result.stdout)
-        self.assertEqual(arguments[0], "test-without-building")
-        self.assertEqual(arguments[arguments.index("-xctestrun") + 1], str(bundle))
-        self.assertEqual(arguments[arguments.index("-destination") + 1],
-                         "platform=iOS Simulator,id=simulator-id")
-        selectors = self.run_script("verify-practice-ui.sh", "list", "invitations").stdout.splitlines()
-        self.assertEqual([item for item in arguments if item.startswith("-only-testing:")],
-                         [f"-only-testing:{selector}" for selector in selectors])
-        self.assertFalse(any(item.startswith("ARCHS=") for item in arguments))
+        simulator = "00000000-0000-4000-8000-000000000001"
+        cases = [
+            ("practice", "invitations", "PRACTICE_TEST_RUN", "PRACTICE_SIM_ID"),
+            ("recordings", "history", "RECORDINGS_TEST_RUN", "RECORDINGS_SIM_ID"),
+            ("household", "review", "HOUSEHOLD_TEST_RUN", "MAINTENANCE_SIM_ID"),
+            ("everyday", "cooling", "EVERYDAY_TEST_RUN", "RECORDING_SIM_ID"),
+        ]
+        for name, suite, bundle_key, simulator_key in cases:
+            with self.subTest(name=name):
+                bundle = self.directory / (name + ".xctestrun")
+                bundle.touch()
+                self.environment.update({bundle_key: str(bundle), simulator_key: simulator})
+                script = "verify-" + name + "-ui.sh"
+                result = self.run_script(script, "test", suite)
+                self.assertEqual(result.returncode, 0, result.stderr)
+                arguments = json.loads(result.stdout)
+                self.assertEqual(arguments[0], "test-without-building")
+                self.assertEqual(arguments[arguments.index("-xctestrun") + 1], str(bundle))
+                self.assertEqual(arguments[arguments.index("-destination") + 1],
+                                 "platform=iOS Simulator,id=" + simulator)
+                selectors = self.run_script(script, "list", suite).stdout.splitlines()
+                self.assertEqual([item for item in arguments if item.startswith("-only-testing:")],
+                                 [f"-only-testing:{selector}" for selector in selectors])
+                self.assertFalse(any(item.startswith("ARCHS=") for item in arguments))
 
 
 if __name__ == "__main__":

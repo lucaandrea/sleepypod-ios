@@ -32,7 +32,7 @@ case "$mode" in
     ;;
   test)
     [[ -f "${RECORDINGS_TEST_RUN:?}" ]] || { printf 'Shared UI test bundle is missing.\n' >&2; exit 2; }
-    xcodebuild test-without-building -xctestrun "$RECORDINGS_TEST_RUN" \
+    python3 "$(dirname "$0")/run-simulator-ui.py" test-without-building -xctestrun "$RECORDINGS_TEST_RUN" \
       -destination "platform=iOS Simulator,id=${RECORDINGS_SIM_ID:?}" \
       "${arguments[@]}" -resultBundlePath "${RUNNER_TEMP:?}/Recordings-${suite}.xcresult" \
       -collect-test-diagnostics on-failure -parallel-testing-enabled NO \

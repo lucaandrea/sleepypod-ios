@@ -63,6 +63,8 @@ on:
       - 'Sleepypod/SleepypodApp.swift'
       - 'Sleepypod/Views/Shared/OfflineLibraryScreen.swift'
       - '.github/workflows/recording-readiness-ui.yml'
+      - 'scripts/run-simulator-ui.py'
+      - 'scripts/tests/test_simulator_startup.py'
       - 'scripts/verify-everyday-ui.sh'
   workflow_dispatch:
 
@@ -163,6 +165,8 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: everyday-${{ matrix.form }}-${{ matrix.suite }}
-          path: ${{ runner.temp }}/Recording.xcresult
+          path: |
+            ${{ runner.temp }}/Recording*.xcresult
+            ${{ runner.temp }}/Recording-bootstrap-recovery.json
           if-no-files-found: ignore
           retention-days: 7

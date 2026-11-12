@@ -66,17 +66,19 @@ case "$mode" in
     ;;
   *) printf 'Unknown mode: %s\n' "$mode" >&2; exit 2 ;;
 esac
+command=(xcodebuild)
+if [[ "$mode" == test ]]; then command=(python3 "$(dirname "$0")/run-simulator-ui.py"); fi
 arguments=()
 for selector in "${selectors[@]}"; do arguments+=("-only-testing:$selector"); done
 # A workflow-local, same-revision artifact avoids recompiling the app for every screen group.
 if [[ "$mode" == test && -n "${EVERYDAY_TEST_RUN:-}" ]]; then
   [[ -f "$EVERYDAY_TEST_RUN" ]] || { printf 'Shared UI test bundle is missing.\n' >&2; exit 2; }
-  xcodebuild "$action" -xctestrun "$EVERYDAY_TEST_RUN" \
+  "${command[@]}" "$action" -xctestrun "$EVERYDAY_TEST_RUN" \
     -destination "platform=iOS Simulator,id=${RECORDING_SIM_ID:?}" \
     "${arguments[@]}" "${extras[@]}"
   exit
 fi
-xcodebuild "$action" -project Sleepypod.xcodeproj -scheme Sleepypod \
+"${command[@]}" "$action" -project Sleepypod.xcodeproj -scheme Sleepypod \
   -destination "platform=iOS Simulator,id=${RECORDING_SIM_ID:?}" \
   -derivedDataPath "${RUNNER_TEMP:?}/RecordingBuild" \
   "${arguments[@]}" "${extras[@]}"

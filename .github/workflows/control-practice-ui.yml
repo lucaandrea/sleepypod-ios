@@ -10,6 +10,8 @@ on:
       - 'SleepypodUITests/Household*.swift'
       - 'Sleepypod/Views/Settings/SettingsSheet.swift'
       - '.github/workflows/control-practice-ui.yml'
+      - 'scripts/run-simulator-ui.py'
+      - 'scripts/tests/test_simulator_startup.py'
       - 'scripts/verify-practice-ui.sh'
       - 'scripts/build-simulator-ui.sh'
       - 'scripts/tests/test_simulator_build.py'
@@ -104,6 +106,8 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: practice-${{ matrix.form }}-${{ matrix.suite }}
-          path: ${{ runner.temp }}/Practice-${{ matrix.suite }}.xcresult
+          path: |
+            ${{ runner.temp }}/Practice-${{ matrix.suite }}*.xcresult
+            ${{ runner.temp }}/Practice-${{ matrix.suite }}-bootstrap-recovery.json
           if-no-files-found: ignore
           retention-days: 7

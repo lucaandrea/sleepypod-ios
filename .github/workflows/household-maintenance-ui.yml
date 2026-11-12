@@ -13,6 +13,8 @@ on:
       - 'SleepypodUITests/PersonalRoute*.swift'
       - 'Integration/Fixtures/household-maintenance-v1.json'
       - '.github/workflows/household-maintenance-ui.yml'
+      - 'scripts/run-simulator-ui.py'
+      - 'scripts/tests/test_simulator_startup.py'
       - 'scripts/verify-household-ui.sh'
   workflow_dispatch:
 
@@ -114,6 +116,8 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: household-${{ matrix.form }}-${{ matrix.suite }}
-          path: ${{ runner.temp }}/Household.xcresult
+          path: |
+            ${{ runner.temp }}/Household*.xcresult
+            ${{ runner.temp }}/Household-bootstrap-recovery.json
           if-no-files-found: ignore
           retention-days: 7

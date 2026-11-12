@@ -14,6 +14,8 @@ on:
       - 'SleepypodUITests/MorningJournalContextUITests.swift'
       - 'Integration/Fixtures/morning-journal-context-example.json'
       - '.github/workflows/daytime-context-ui.yml'
+      - 'scripts/run-simulator-ui.py'
+      - 'scripts/tests/test_simulator_startup.py'
       - 'scripts/build-simulator-ui.sh'
       - 'scripts/tests/test_simulator_build.py'
   workflow_dispatch:
@@ -109,7 +111,7 @@ jobs:
             journal) CONTEXT_TEST_CLASS=MorningJournalContextUITests ;;
             *) exit 2 ;;
           esac
-          xcodebuild test-without-building -xctestrun "$CONTEXT_TEST_RUN" \
+          python3 scripts/run-simulator-ui.py test-without-building -xctestrun "$CONTEXT_TEST_RUN" \
             -destination "platform=iOS Simulator,id=$CONTEXT_SIM_ID" \
             "-only-testing:SleepypodUITests/$CONTEXT_TEST_CLASS" \
             -resultBundlePath "$RUNNER_TEMP/Context.xcresult" \
@@ -120,6 +122,8 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: personal-context-${{ matrix.form }}-${{ matrix.suite }}
-          path: ${{ runner.temp }}/Context.xcresult
+          path: |
+            ${{ runner.temp }}/Context*.xcresult
+            ${{ runner.temp }}/Context-bootstrap-recovery.json
           if-no-files-found: ignore
           retention-days: 7
