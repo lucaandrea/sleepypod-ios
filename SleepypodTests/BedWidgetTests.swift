@@ -100,11 +100,11 @@ final class BedWidgetTests: XCTestCase {
 @MainActor final class BedWidgetSessionTests: XCTestCase {
     private var folder: URL!
     private var store: BedWidgetStore!
-    override func setUp() {
+    override func setUp() async throws {
         folder = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         store = BedWidgetStore(directory: folder)
     }
-    override func tearDown() { try? FileManager.default.removeItem(at: folder) }
+    override func tearDown() async throws { try? FileManager.default.removeItem(at: folder) }
     func testRefreshPublishesDisplayOnlyAndWithdrawalClears() async {
         let source = WidgetTestSource()
         let session = BedWidgetSession(source: source, store: store, now: { source.now }, reload: {})
