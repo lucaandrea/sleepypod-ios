@@ -22,6 +22,7 @@ import Observation
     private(set) var personalHealth: PersonalHealthWorkspace?
     private(set) var learning: PersonalLearningWorkspace?
     private(set) var journal: PersonalJournalWorkspace?
+    private(set) var quiet: PersonalQuietWorkspace?
     private(set) var maintenance: ArrangementMaintenanceWorkspace?
     private(set) var maintenanceChecking = false
     private(set) var recoveryBusy: UUID?
@@ -35,6 +36,7 @@ import Observation
     private let arrangementClient: @Sendable (PersonalBedConnection) -> any ArrangementReviewTransport
     private let historyClient: @Sendable (PersonalBedConnection) -> any PersonalHistoryTransport
     private let learningClient: @Sendable (PersonalBedConnection) -> any PersonalLearningTransport
+    private let quietClient: @Sendable (PersonalBedConnection) -> any PersonalQuietTransport
     private let journalClient: @Sendable (PersonalBedConnection) -> any PersonalJournalTransport
     private let maintenanceClient: @Sendable (PersonalBedConnection) -> any ArrangementMaintenanceTransport
     private let capability: @MainActor () async throws -> Bool
@@ -55,6 +57,7 @@ import Observation
          historyClient: @escaping @Sendable (PersonalBedConnection) -> any PersonalHistoryTransport = { PersonalHistoryHTTPClient(connection: $0) },
          learningClient: @escaping @Sendable (PersonalBedConnection) -> any PersonalLearningTransport = { PersonalLearningHTTPClient(connection: $0) },
          journalClient: @escaping @Sendable (PersonalBedConnection) -> any PersonalJournalTransport = { PersonalJournalHTTPClient(connection: $0) },
+         quietClient: @escaping @Sendable (PersonalBedConnection) -> any PersonalQuietTransport = { PersonalQuietHTTPClient(connection: $0) },
          maintenanceClient: @escaping @Sendable (PersonalBedConnection) -> any ArrangementMaintenanceTransport = { ArrangementMaintenanceHTTPClient(connection: $0) },
          capability: @escaping @MainActor () async throws -> Bool = { try await HouseholdPreparationCapability.load() },
          ownerEndpoint: @escaping @MainActor () -> URL? = { OwnerConnection.endpoint },
@@ -64,7 +67,7 @@ import Observation
         self.healthSnapshots = healthSnapshots
         self.vault = vault; self.defaults = defaults; self.client = client; self.personalClient = personalClient; self.routineClient = routineClient
         self.arrangementClient = arrangementClient; self.historyClient = historyClient; self.maintenanceClient = maintenanceClient
-        self.learningClient = learningClient; self.journalClient = journalClient
+        self.learningClient = learningClient; self.journalClient = journalClient; self.quietClient = quietClient
         self.capability = capability; self.ownerEndpoint = ownerEndpoint; self.ownerKey = ownerKey; self.secret = secret
         active = defaults.bool(forKey: PersonalWorkspaceBoundary.preferenceKey)
         do { state = try vault.load(); storageLoaded = true } catch { self.error = HouseholdFailure.storage.localizedDescription }
@@ -192,6 +195,7 @@ import Observation
             if let previous = record.identity, previous.identity != value.identity { throw HouseholdFailure.changedIdentity }
             if record.offlineBlocked == true || (record.identity != nil && record.identity != value) { try withdrawOfflineLibrary(record.id) }
             if session != value { arrangement?.invalidate(); arrangement = nil; history?.invalidate(); history = nil; learning?.invalidate(); learning = nil; journal?.invalidate(); journal = nil }
+            if let quiet, quiet.connection.session != value { quiet.invalidate(); self.quiet = nil }
             session = value
             try update(record.id) { saved in
                 saved.identity = value; saved.offlineBlocked = false
@@ -201,7 +205,7 @@ import Observation
             configureMaintenance(record: record, session: value)
             if let maintenance {
                 await maintenance.refresh(); try check(operation, record.id)
-                guard maintenance.loaded, !maintenance.entered else { clearOrdinary(); return }
+                guard maintenance.loaded, !maintenance.entered else { clearOrdinary(preservingQuiet: !maintenance.entered); return }
             }
             let personal: HouseholdPreferencesResponse = try await read("me/preferences", record: record)
             try personal.validate(for: value); try check(operation, record.id)
@@ -224,11 +228,12 @@ import Observation
             configureHistory(record: record, session: value)
             configureLearning(record: record, session: value)
             configureJournal(record: record, session: value)
+            configureQuiet(record: record, session: value)
             notice = pending == nil ? "Personal account refreshed. Routine drafts do not run the bed." : "Saved state refreshed. An earlier request still needs review; retrying uses the same request."
         } catch {
             guard foreground, operation == generation else { return }
             let failure = error as? HouseholdFailure ?? .invalid
-            clearVisible()
+            clearVisible(preservingQuiet: [.uncertain, .rateLimited].contains(failure))
             if [.uncertain, .rateLimited].contains(failure) { configureOfflineLibrary() }
             else { try? withdrawOfflineLibrary(record.id) }
             if failure == .authentication, record.identity != nil { try? forget(record.id) }
@@ -397,15 +402,16 @@ import Observation
         guard storageLoaded else { throw HouseholdFailure.storage }
         do { try vault.save(next); state = next } catch { throw HouseholdFailure.storage }
     }
-    private func clearVisible() {
+    private func clearVisible(preservingQuiet: Bool = false) {
         personalHealth?.invalidate(); personalHealth = nil
         offlineLibrary?.invalidate(); offlineLibrary = nil
         maintenance?.invalidate(); maintenance = nil; maintenanceChecking = false
-        clearOrdinary()
+        clearOrdinary(preservingQuiet: preservingQuiet)
         session = nil; busy = false; error = nil; notice = nil; recoveryBusy = nil
     }
     /// Dispose assigned controls and private editors without losing an unresolved maintenance operation.
-    private func clearOrdinary() {
+    private func clearOrdinary(preservingQuiet: Bool = false) {
+        if preservingQuiet { quiet?.suspend() } else { quiet?.invalidate(); quiet = nil }
         personalHealth?.invalidate(); personalHealth = nil
         temperature?.invalidate(); temperature = nil
         publication?.invalidate(); publication = nil
@@ -422,7 +428,7 @@ import Observation
             generation += 1; busy = false
             personalHealth?.invalidate(); personalHealth = nil
             offlineLibrary?.invalidate(); offlineLibrary = nil
-            maintenance?.background(); clearOrdinary()
+            maintenance?.background(); clearOrdinary(preservingQuiet: true)
         }
     }
 
@@ -431,7 +437,7 @@ import Observation
             maintenance?.invalidate(); maintenance = nil; return
         }
         if let maintenance, maintenance.connection.id == record.id, maintenance.connection.session.identity == session.identity { return }
-        maintenance?.invalidate(); clearOrdinary()
+        maintenance?.invalidate(); clearOrdinary(preservingQuiet: true)
         let connection = PersonalBedConnection(id: record.id, endpoint: record.endpoint, token: record.deviceSecret, session: session)
         maintenance = ArrangementMaintenanceWorkspace(connection: connection, client: maintenanceClient(connection), reviews: arrangementClient(connection), permitted: { [weak self] in
             guard let self else { return false }
@@ -748,6 +754,23 @@ import Observation
             return self.active && self.foreground && self.generation == operation && self.state.selected == record.id && self.session == session && !self.requiresMaintenance
         }, revoked: { [weak self] in
             guard let self, self.generation == operation, self.state.selected == record.id else { return }
+            self.clearVisible()
+            do { try self.forget(record.id); self.error = HouseholdFailure.authentication.localizedDescription }
+            catch { self.error = HouseholdFailure.storage.localizedDescription }
+        })
+    }
+    /// Retain an uncertain quiet receipt across suspension, but never across a credential or account change.
+    private func configureQuiet(record: HouseholdConnectionRecord, session: HouseholdSession) {
+        if let quiet, !quiet.isInvalidated, quiet.connection.id == record.id, quiet.connection.endpoint == record.endpoint,
+           quiet.connection.token == record.deviceSecret, quiet.connection.session == session { return }
+        quiet?.invalidate()
+        let connection = PersonalBedConnection(id: record.id, endpoint: record.endpoint, token: record.deviceSecret, session: session)
+        quiet = PersonalQuietWorkspace(connection: connection, client: quietClient(connection), permitted: { [weak self] in
+            guard let self else { return false }
+            return self.active && self.foreground && self.state.selected == record.id && self.session == session
+                && self.selected?.deviceSecret == record.deviceSecret && self.selected?.endpoint == record.endpoint && !self.requiresMaintenance
+        }, revoked: { [weak self] in
+            guard let self, self.active, self.state.selected == record.id, self.session == session else { return }
             self.clearVisible()
             do { try self.forget(record.id); self.error = HouseholdFailure.authentication.localizedDescription }
             catch { self.error = HouseholdFailure.storage.localizedDescription }

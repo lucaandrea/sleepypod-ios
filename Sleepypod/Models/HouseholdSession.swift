@@ -34,6 +34,7 @@ struct HouseholdSession: Codable, Equatable, Sendable {
         var personalLearningRemoval: Bool?
         var personalJournal: Bool?
         var personalJournalPatterns: Bool?
+        var householdQuiet: Bool?
         let activateArrangement: Bool
         let personalControls: Bool
         let personalHistory: Bool
