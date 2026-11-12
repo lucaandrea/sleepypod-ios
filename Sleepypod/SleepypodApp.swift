@@ -43,6 +43,7 @@ struct SleepypodApp: App {
         #endif
         _household = State(initialValue: household)
         UnifiedRuntime.configureOwnerIdentity { OwnerDataIdentity.current.revision }
+        UnifiedRuntime.configureReportSharing { try await OwnerReportSharing.connect() }
         UnifiedRuntime.initialize()
         #if DEBUG
         _ownerRoutes = State(initialValue: OwnerRouteExample.configured() ?? OwnerRouteSession())
@@ -136,6 +137,7 @@ struct SleepypodApp: App {
                 NavigationStack { MorningJournalScreen(side: .left) }
             }
             else if ProcessInfo.processInfo.arguments.contains("--morning-brief-fixture") { MorningBriefExample() }
+            else if ProcessInfo.processInfo.arguments.contains("--report-sharing-fixture") { ReportWebSharingExample() }
             else if APIBackend.current.isDemo, UserDefaults.standard.string(forKey: "uiRouteExample") != nil {
                 NavigationStack { OwnerRouteSettingsView() }
             }

@@ -1,0 +1,74 @@
+name: Report sharing UI
+
+on:
+  pull_request:
+    paths:
+      - 'FreeSleepKit/Intelligence/MorningReport*.swift'
+      - 'SleepypodFeatures/ReportWebSharing*.swift'
+      - 'SleepypodFeatures/MorningBriefScreen.swift'
+      - 'Sleepypod/Services/OwnerReportSharing.swift'
+      - 'Sleepypod/SleepypodApp.swift'
+      - 'Integration/UnifiedWorkspace.swift'
+      - 'SleepypodUITests/ReportWebSharingUITests.swift'
+      - '.github/workflows/report-sharing-ui.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: report-sharing-ui-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  sharing:
+    name: Report sharing (${{ matrix.form }})
+    runs-on: macos-15
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        form: [iPhone, iPad]
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+      - name: Select simulator
+        run: |
+          REPORT_SIM_ID=$(xcrun simctl list devices available --json | python3 -c '
+          import json, sys
+          matches = [device["udid"] for runtime, group in sorted(json.load(sys.stdin)["devices"].items(), reverse=True)
+                     if ".iOS-26-" in runtime for device in group if device["name"].startswith(sys.argv[1])]
+          if not matches: sys.exit("Requested iOS 26 simulator is unavailable")
+          print(matches[0])' '${{ matrix.form }}')
+          printf 'REPORT_SIM_ID=%s\n' "$REPORT_SIM_ID" >> "$GITHUB_ENV"
+      - name: Build sharing tests
+        timeout-minutes: 30
+        run: |
+          xcodebuild build-for-testing -project Sleepypod.xcodeproj -scheme Sleepypod \
+            -destination "platform=iOS Simulator,id=$REPORT_SIM_ID" \
+            -derivedDataPath "$RUNNER_TEMP/ReportBuild" \
+            CODE_SIGNING_ALLOWED=YES CODE_SIGN_IDENTITY=-
+      - name: Boot simulator
+        timeout-minutes: 15
+        run: xcrun simctl bootstatus "$REPORT_SIM_ID" -b
+      - name: Verify consent, read recovery and withdrawal
+        timeout-minutes: 15
+        run: |
+          xcodebuild test-without-building -project Sleepypod.xcodeproj -scheme Sleepypod \
+            -destination "platform=iOS Simulator,id=$REPORT_SIM_ID" \
+            -derivedDataPath "$RUNNER_TEMP/ReportBuild" \
+            -only-testing:SleepypodUITests/ReportWebSharingUITests \
+            -resultBundlePath "$RUNNER_TEMP/Reports.xcresult" \
+            -collect-test-diagnostics never -parallel-testing-enabled NO \
+            CODE_SIGNING_ALLOWED=YES CODE_SIGN_IDENTITY=-
+      - name: Preserve screenshots and results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: report-sharing-${{ matrix.form }}
+          path: ${{ runner.temp }}/Reports.xcresult
+          if-no-files-found: ignore
+          retention-days: 7

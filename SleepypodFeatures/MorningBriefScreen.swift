@@ -46,6 +46,15 @@ struct MorningBriefScreen: View {
             }.padding(20).frame(maxWidth: 720).frame(maxWidth: .infinity, alignment: .center)
         }.scrollDismissesKeyboard(.interactively)
             .background(Theme.background).navigationTitle("Morning brief").navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                if !example && !AppMode.isDemo && !personalAccount {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        NavigationLink { ReportWebSharingScreen(report: currentReport) } label: {
+                            Label("Web copy", systemImage: "globe")
+                        }.accessibilityIdentifier("brief.webCopy")
+                    }
+                }
+            }
             .accessibilityIdentifier("brief.scroll")
             .task { if !example && !AppMode.isDemo && !personalAccount { workspace.restore() } }
             .onChange(of: workspace.provider) { reset() }
