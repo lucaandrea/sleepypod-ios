@@ -18,11 +18,13 @@ import Observation
     private(set) var publication: PersonalRoutineWorkspace?
     private(set) var arrangement: ArrangementReviewWorkspace?
     private(set) var history: PersonalHistoryWorkspace?
+    private(set) var offlineLibrary: PersonalOfflineLibraryWorkspace?
     private(set) var learning: PersonalLearningWorkspace?
     private(set) var journal: PersonalJournalWorkspace?
     private(set) var maintenance: ArrangementMaintenanceWorkspace?
     private(set) var maintenanceChecking = false
     private(set) var recoveryBusy: UUID?
+    private let offlineStore: PersonalOfflineLibraryStore
     private let vault: any HouseholdVault
     private let defaults: UserDefaults
     private let client: @Sendable (URL) -> any HouseholdTransport
@@ -42,7 +44,7 @@ import Observation
     private var storageLoaded = false
     private var foreground = true
 
-    init(vault: any HouseholdVault = HouseholdKeychainVault(), defaults: UserDefaults = .standard,
+    init(vault: any HouseholdVault = HouseholdKeychainVault(), offlineStore: PersonalOfflineLibraryStore = .init(), defaults: UserDefaults = .standard,
          client: @escaping @Sendable (URL) -> any HouseholdTransport = { HouseholdHTTPClient(endpoint: $0) },
          personalClient: @escaping @Sendable (PersonalBedConnection) -> any PersonalBedTransport = { PersonalBedHTTPClient(connection: $0) },
          routineClient: @escaping @Sendable (PersonalBedConnection) -> any PersonalRoutineTransport = { PersonalRoutineHTTPClient(connection: $0) },
@@ -55,6 +57,7 @@ import Observation
          ownerEndpoint: @escaping @MainActor () -> URL? = { OwnerConnection.endpoint },
          ownerKey: @escaping @MainActor (URL) -> String = { UnifiedRuntime.savedKey(for: $0.absoluteString) },
          secret: @escaping @MainActor () throws -> String = { try HouseholdKeychainVault.secret() }) {
+        self.offlineStore = offlineStore
         self.vault = vault; self.defaults = defaults; self.client = client; self.personalClient = personalClient; self.routineClient = routineClient
         self.arrangementClient = arrangementClient; self.historyClient = historyClient; self.maintenanceClient = maintenanceClient
         self.learningClient = learningClient; self.journalClient = journalClient
@@ -113,6 +116,7 @@ import Observation
         if !storageLoaded {
             do { state = try vault.load(); storageLoaded = true } catch { self.error = HouseholdFailure.storage.localizedDescription }
         }
+        configureOfflineLibrary()
     }
     /// Returning to a retained installation-owner key requires the device owner's authentication.
     func returnToOwner(authenticate: (() async throws -> Bool)? = nil) async {
@@ -174,6 +178,7 @@ import Observation
             catch { self.error = HouseholdFailure.storage.localizedDescription; return }
         }
         guard let record = selected else { return }
+        configureOfflineLibrary()
         let operation = generation; busy = true; error = nil
         maintenanceChecking = session?.capabilities.arrangementMaintenance == true
         defer { if operation == generation { busy = false; maintenanceChecking = false } }
@@ -181,12 +186,14 @@ import Observation
             let value: HouseholdSession = try await read("household/session", record: record)
             try value.validate(); try check(operation, record.id)
             if let previous = record.identity, previous.identity != value.identity { throw HouseholdFailure.changedIdentity }
+            if record.offlineBlocked == true || (record.identity != nil && record.identity != value) { try withdrawOfflineLibrary(record.id) }
             if session != value { arrangement?.invalidate(); arrangement = nil; history?.invalidate(); history = nil; learning?.invalidate(); learning = nil; journal?.invalidate(); journal = nil }
             session = value
             try update(record.id) { saved in
-                saved.identity = value
+                saved.identity = value; saved.offlineBlocked = false
                 if saved.pending?.kind == .setup || saved.pending?.kind == .join { saved.pending = nil }
             }
+            configureOfflineLibrary()
             configureMaintenance(record: record, session: value)
             if let maintenance {
                 await maintenance.refresh(); try check(operation, record.id)
@@ -216,9 +223,12 @@ import Observation
             notice = pending == nil ? "Personal account refreshed. Routine drafts do not run the bed." : "Saved state refreshed. An earlier request still needs review; retrying uses the same request."
         } catch {
             guard foreground, operation == generation else { return }
+            let failure = error as? HouseholdFailure ?? .invalid
             clearVisible()
-            if error as? HouseholdFailure == .authentication, record.identity != nil { try? forget(record.id) }
-            self.error = (error as? HouseholdFailure ?? .invalid).localizedDescription
+            if [.uncertain, .rateLimited].contains(failure) { configureOfflineLibrary() }
+            else { try? withdrawOfflineLibrary(record.id) }
+            if failure == .authentication, record.identity != nil { try? forget(record.id) }
+            self.error = failure.localizedDescription
         }
     }
 
@@ -338,6 +348,7 @@ import Observation
         }
     }
     private func forget(_ id: UUID) throws {
+        try withdrawOfflineLibrary(id)
         var next = state
         if let record = next.connections.first(where: { $0.id == id }), let identity = record.identity {
             var tombstones = next.controlTombstones ?? []
@@ -382,6 +393,7 @@ import Observation
         do { try vault.save(next); state = next } catch { throw HouseholdFailure.storage }
     }
     private func clearVisible() {
+        offlineLibrary?.invalidate(); offlineLibrary = nil
         maintenance?.invalidate(); maintenance = nil; maintenanceChecking = false
         clearOrdinary()
         session = nil; busy = false; error = nil; notice = nil; recoveryBusy = nil
@@ -401,6 +413,7 @@ import Observation
         if active { await refresh() }
         else {
             generation += 1; busy = false
+            offlineLibrary?.invalidate(); offlineLibrary = nil
             maintenance?.background(); clearOrdinary()
         }
     }
@@ -476,7 +489,10 @@ import Observation
     }
     func erasePersonalLocalData() {
         generation += 1; clearVisible()
-        do { try persist(.init()); notice = "Personal credentials, drafts, command and publication recovery records erased from this device." }
+        do {
+            for record in state.connections { try withdrawOfflineLibrary(record.id) }
+            try persist(.init()); notice = "Personal credentials, saved readings, drafts, command and publication recovery records erased from this device."
+        }
         catch { self.error = HouseholdFailure.storage.localizedDescription }
     }
 
@@ -606,6 +622,12 @@ import Observation
             self.clearVisible()
             do { try self.forget(record.id); self.error = HouseholdFailure.authentication.localizedDescription }
             catch { self.error = HouseholdFailure.storage.localizedDescription }
+        }, cacheReview: { [weak self] review in
+            guard let self, self.generation == operation, self.session == session, self.state.selected == record.id else { return }
+            self.offlineLibrary?.save(review, temperatureUnit: self.preferences?.preferences.displayUnit ?? "F")
+        }, withdrawCache: { [weak self] in
+            guard let self, self.generation == operation, self.state.selected == record.id else { return }
+            try? self.withdrawOfflineLibrary(record.id)
         })
     }
     private func configureArrangement(record: HouseholdConnectionRecord, session: HouseholdSession) {
@@ -623,6 +645,31 @@ import Observation
             catch { self.error = HouseholdFailure.storage.localizedDescription }
         })
     }
+    /// Offline reads use the last validated identity only; they never create an active session.
+    private func configureOfflineLibrary() {
+        guard active, foreground, let record = selected, record.offlineBlocked != true, let identity = record.identity else { return }
+        if let offlineLibrary, !offlineLibrary.invalidated, offlineLibrary.connection.id == record.id,
+           offlineLibrary.connection.session == identity, offlineLibrary.connection.token == record.deviceSecret { return }
+        offlineLibrary?.invalidate()
+        let connection = PersonalBedConnection(id: record.id, endpoint: record.endpoint, token: record.deviceSecret, session: identity)
+        let operation = generation
+        offlineLibrary = PersonalOfflineLibraryWorkspace(connection: connection, store: offlineStore, permitted: { [weak self] in
+            guard let self else { return false }
+            return self.active && self.foreground && self.generation == operation && self.state.selected == record.id
+                && self.selected?.identity == identity && self.selected?.offlineBlocked != true && self.selected?.deviceSecret == record.deviceSecret
+        })
+        offlineLibrary?.restore()
+    }
+    /// Persist denial before removing ciphertext, so a failed removal cannot re-expose a revoked copy.
+    private func withdrawOfflineLibrary(_ identifier: UUID) throws {
+        if offlineLibrary?.connection.id == identifier { offlineLibrary?.invalidate(); offlineLibrary = nil }
+        guard let record = state.connections.first(where: { $0.id == identifier }) else { return }
+        try update(identifier) { $0.offlineBlocked = true }
+        if let identity = record.identity {
+            try offlineStore.remove(connection: .init(id: record.id, endpoint: record.endpoint, token: record.deviceSecret, session: identity))
+        }
+    }
+
     private func configureHistory(record: HouseholdConnectionRecord, session: HouseholdSession) {
         if let history, !history.isInvalidated, history.connection.id == record.id, history.connection.session == session { return }
         history?.invalidate()
@@ -636,6 +683,12 @@ import Observation
             self.clearVisible()
             do { try self.forget(record.id); self.error = HouseholdFailure.authentication.localizedDescription }
             catch { self.error = HouseholdFailure.storage.localizedDescription }
+        }, cachePage: { [weak self] page, appending in
+            guard let self, self.generation == operation, self.session == session, self.state.selected == record.id else { return }
+            self.offlineLibrary?.save(page, appending: appending)
+        }, withdrawCache: { [weak self] in
+            guard let self, self.generation == operation, self.state.selected == record.id else { return }
+            try? self.withdrawOfflineLibrary(record.id)
         })
     }
     private func configureLearning(record: HouseholdConnectionRecord, session: HouseholdSession) {

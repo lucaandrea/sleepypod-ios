@@ -1,8 +1,10 @@
 # Offline reading
 
 Part of approved platform improvement 02. This change implements the installation
-owner's private offline library. Personal-account offline history and publication
-receipts remain a separate household integration task; they never borrow this data.
+owner's private offline library. Personal accounts now have a separate
+[saved-readings implementation](../../docs/PERSONAL_OFFLINE_LIBRARY.md) for their
+own downloaded records and operating week; they never borrow the owner's data or
+report archive. Saved weeks do not constitute publication or alarm receipts.
 
 Sleep and Schedule now remain useful when the controller disconnects. The app saves
 30 days of bed recordings on each side and the complete last-confirmed weekly
@@ -72,4 +74,5 @@ on both forms. Local result bundles are `sleepypod-platform-regression.xcresult`
 and `sleepypod-offline-ipad.xcresult` in `/tmp`.
 
 This change has not yet been distributed through TestFlight. A real disconnected
-phone/iPad walkthrough and personal-account offline history remain pending.
+phone/iPad walkthrough remains pending. Personal-account source validation and
+release evidence are tracked separately in the linked saved-readings document.

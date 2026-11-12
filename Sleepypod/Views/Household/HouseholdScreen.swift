@@ -40,6 +40,14 @@ struct HouseholdScreen: View {
                         .accessibilityIdentifier("household.practice")
                     Text("Try example settings before using the bed. No real controls or alarms change.").font(.footnote).foregroundStyle(Theme.text2)
                 }
+                if model.offlineLibrary != nil {
+                    Section("Available without a connection") {
+                        NavigationLink("Open your saved readings", value: "offline")
+                            .accessibilityIdentifier("personalOffline.accountLink")
+                        Text("Your downloaded recordings and last read operating week stay private to this account.")
+                            .font(.footnote).foregroundStyle(Theme.text1)
+                    }
+                }
                 if let session = model.session {
                     Section("Your private drafts") {
                         NavigationLink("Comfort preferences", value: "preferences")
@@ -104,7 +112,7 @@ struct HouseholdScreen: View {
                         }
                         Text("Pair another device before revoking your last one. Revoking a device removes its access to your personal account.").font(.footnote).foregroundStyle(Theme.text2)
                     }
-                } else if model.pending == nil {
+                } else if model.pending == nil && model.offlineLibrary == nil {
                     Section {
                         Button("Join with an invitation") { connectionForm = .join }
                             .accessibilityIdentifier("household.join")
@@ -133,7 +141,7 @@ struct HouseholdScreen: View {
                 }
                 Section("Local data") {
                     Button("Erase all local personal data", role: .destructive) { eraseLocalData = true }.disabled(model.busy)
-                    Text("Removes personal credentials, drafts, command and publication recovery records on this device. It does not revoke server access or alter the bed.")
+                    Text("Removes personal credentials, saved readings, drafts, command and publication recovery records on this device. It does not revoke server access or alter the bed.")
                         .font(.footnote).foregroundStyle(Theme.text2)
                 }
                 if model.canReturnToOwner {
@@ -151,6 +159,7 @@ struct HouseholdScreen: View {
             } }
             .navigationDestination(for: String.self) { route in
                 if route == "practice" { ControlPracticeScreen(guideURL: model.selected?.endpoint.appending(path: "guide/marissa.html")) }
+                else if route == "offline", let offline = model.offlineLibrary { PersonalOfflineLibraryScreen(model: offline).id(ObjectIdentifier(offline)) }
                 else if let session = model.session {
                     if route == "preferences" { HouseholdPreferencesEditor().id(session.namespace + String(model.preferences?.revision ?? 0)) }
                     else if route == "routines" { HouseholdRoutineWeek().id(session.namespace) }
@@ -183,10 +192,11 @@ struct HouseholdScreen: View {
         .onChange(of: scenePhase) {
             if scenePhase != .active {
                 revealedCode = nil
-                if navigation.contains("learning") || navigation.contains("journal") { navigation = [] }
+                if navigation.contains("learning") || navigation.contains("journal") || navigation.contains("offline") { navigation = [] }
             }
         }
         .onChange(of: model.session?.context) { revealedCode = nil; navigation = [] }
+        .onChange(of: model.selected?.id) { revealedCode = nil; navigation = [] }
     }
     @ViewBuilder private var publicationRecovery: some View {
         if !model.publicationRecoveries.isEmpty {

@@ -1,7 +1,7 @@
 import Foundation
 import Observation
 
-/// Private recording bodies live only in this scope-bound, in-memory reader.
+/// Live recording bodies remain scope-bound; validated pages may also populate the separate offline reader.
 @MainActor @Observable final class PersonalHistoryWorkspace {
     enum Window: Int, CaseIterable { case week = 7, month = 30, quarter = 90 }
     let connection: PersonalBedConnection
@@ -20,6 +20,8 @@ import Observation
     private let client: any PersonalHistoryTransport
     private let permitted: @MainActor () -> Bool
     private let revoked: @MainActor () -> Void
+    private let cachePage: (PersonalHistoryPage, Bool) -> Void
+    private let withdrawCache: () -> Void
     private let pageSize: Int
     private let clock: @MainActor () -> Int64
     private var generation = 0
@@ -29,7 +31,9 @@ import Observation
 
     init(connection: PersonalBedConnection, client: any PersonalHistoryTransport, pageSize: Int = 30,
          permitted: @escaping @MainActor () -> Bool = { true }, revoked: @escaping @MainActor () -> Void = {},
+         cachePage: @escaping (PersonalHistoryPage, Bool) -> Void = { _, _ in }, withdrawCache: @escaping () -> Void = {},
          now: @escaping @MainActor () -> Int64 = { Int64(Date().timeIntervalSince1970 * 1_000) }) {
+        self.cachePage = cachePage; self.withdrawCache = withdrawCache
         self.pageSize = pageSize; self.connection = connection; self.client = client; self.permitted = permitted; self.revoked = revoked; clock = now
     }
     var enabled: Bool { !isInvalidated && permitted() && connection.session.capabilities.personalHistory }
@@ -58,6 +62,7 @@ import Observation
             try check(operation); try page.validate(for: session, requested: requested)
             query = requested; records = page.records; recordIds = Set(page.records.map(\.id))
             nextCursor = page.nextCursor; attributionRevision = page.attributionRevision; generatedAt = page.generatedAt; loaded = true
+            cachePage(page, false)
         } catch { fail(error, operation: operation) }
     }
 
@@ -79,6 +84,7 @@ import Observation
             else { throw HouseholdFailure.conflict }
             records.append(contentsOf: page.records); recordIds.formUnion(page.records.map(\.id))
             nextCursor = page.nextCursor; generatedAt = page.generatedAt
+            cachePage(page, true)
         } catch { fail(error, operation: operation) }
     }
 
@@ -120,6 +126,7 @@ import Observation
     private func fail(_ failure: Error, operation: Int) {
         guard operation == generation else { return }
         discard()
+        if ![HouseholdFailure.uncertain, .rateLimited].contains(failure as? HouseholdFailure ?? .invalid) { withdrawCache() }
         switch failure as? HouseholdFailure {
         case .authentication:
             isInvalidated = true; revoked()

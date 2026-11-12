@@ -29,6 +29,7 @@ struct HouseholdConnectionRecord: Codable, Identifiable, Sendable {
     let endpoint: URL
     let deviceSecret: String
     var identity: HouseholdSession?
+    var offlineBlocked: Bool?
     var pending: HouseholdPendingRequest?
     var invitationSecrets: [String: String] = [:]
     var draftPreferences: HouseholdPreferences?
