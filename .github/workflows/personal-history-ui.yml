@@ -21,6 +21,8 @@ on:
       - '.github/workflows/personal-history-ui.yml'
       - 'scripts/verify-recordings-ui.sh'
       - 'scripts/tests/test_recordings_groups.py'
+      - 'scripts/build-simulator-ui.sh'
+      - 'scripts/tests/test_simulator_build.py'
   workflow_dispatch:
 
 permissions:

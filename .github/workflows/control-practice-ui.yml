@@ -11,6 +11,8 @@ on:
       - 'Sleepypod/Views/Settings/SettingsSheet.swift'
       - '.github/workflows/control-practice-ui.yml'
       - 'scripts/verify-practice-ui.sh'
+      - 'scripts/build-simulator-ui.sh'
+      - 'scripts/tests/test_simulator_build.py'
   workflow_dispatch:
 
 permissions:

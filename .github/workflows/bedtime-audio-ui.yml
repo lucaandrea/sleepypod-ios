@@ -12,6 +12,8 @@ on:
       - 'Sleepypod/Info.plist'
       - 'SleepypodUITests/BedtimeRitualUITests.swift'
       - '.github/workflows/bedtime-audio-ui.yml'
+      - 'scripts/build-simulator-ui.sh'
+      - 'scripts/tests/test_simulator_build.py'
   workflow_dispatch:
 
 permissions:
@@ -36,8 +38,8 @@ jobs:
       - name: Build signed simulator products
         timeout-minutes: 30
         run: |
-          xcodebuild build-for-testing -project Sleepypod.xcodeproj -scheme Sleepypod \
-            -destination 'generic/platform=iOS Simulator' -derivedDataPath "$RUNNER_TEMP/AudioBuild" \
+          bash scripts/build-simulator-ui.sh -project Sleepypod.xcodeproj -scheme Sleepypod \
+            -derivedDataPath "$RUNNER_TEMP/AudioBuild" \
             CODE_SIGNING_ALLOWED=YES CODE_SIGN_IDENTITY=-
       - name: Archive the exact build
         run: |

@@ -26,8 +26,7 @@ arguments=()
 for selector in "${selectors[@]}"; do arguments+=("-only-testing:$selector"); done
 case "$mode" in
   build)
-    xcodebuild build-for-testing -project Sleepypod.xcodeproj -scheme Sleepypod \
-      -destination 'generic/platform=iOS Simulator' \
+    bash "$(dirname "$0")/build-simulator-ui.sh" -project Sleepypod.xcodeproj -scheme Sleepypod \
       -derivedDataPath "${RUNNER_TEMP:?}/RecordingsBuild" \
       "${arguments[@]}" CODE_SIGNING_ALLOWED=YES CODE_SIGN_IDENTITY=-
     ;;
