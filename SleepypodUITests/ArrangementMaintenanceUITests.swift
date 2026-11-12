@@ -3,11 +3,12 @@ import XCTest
 @MainActor final class ArrangementMaintenanceUITests: XCTestCase {
     private func launch(_ mode: String, large: Bool = false) -> XCUIApplication {
         continueAfterFailure = false
+        XCUIDevice.shared.orientation = .portrait
         let app = XCUIApplication()
         app.launchArguments = ["--maintenance-fixture", mode, "--demo", "-apiBackend", "demo", "-healthSyncEnabled", "NO", "-appearance", large ? "Light" : "Dark"]
         if large { app.launchArguments += ["-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL"] }
         app.launch()
-        XCTAssertTrue(app.staticTexts[mode == "activate" ? "household.assignment" : "maintenance.title"].waitForExistence(timeout: 20))
+        XCTAssertTrue(app.staticTexts[["activate", "activate-uncertain", "retry"].contains(mode) ? "household.assignment" : "maintenance.title"].waitForExistence(timeout: 20))
         return app
     }
     private func reveal(_ element: XCUIElement, in app: XCUIApplication, towardTop: Bool = false) {
@@ -23,9 +24,9 @@ import XCTest
         XCTAssertGreaterThanOrEqual(element.frame.minX, app.frame.minX)
         XCTAssertLessThanOrEqual(element.frame.maxX, app.frame.maxX)
     }
-    private func confirm(_ fields: [String], in app: XCUIApplication) {
-        for field in fields {
-            let toggle = app.switches["maintenance.confirm.\(field)"]; reveal(toggle, in: app)
+    private func confirm(_ fields: [String], in app: XCUIApplication, firstAbove: Bool = false) {
+        for (index, field) in fields.enumerated() {
+            let toggle = app.switches["maintenance.confirm.\(field)"]; reveal(toggle, in: app, towardTop: index == 0 && firstAbove)
             XCTAssertEqual(toggle.value as? String, "0")
             // SwiftUI exposes both a full-width labelled row and its smaller native switch.
             let bounds = toggle.frame
@@ -48,6 +49,36 @@ import XCTest
     }
     private func capture(_ app: XCUIApplication, _ name: String) {
         let attachment = XCTAttachment(screenshot: app.screenshot()); attachment.name = name; attachment.lifetime = .keepAlways; add(attachment)
+    }
+    func testLaterApprovedReviewCanStartAfterCompletedCancellation() {
+        let app = launch("retry", large: true)
+        tap("arrangement.accountLink", in: app)
+        tap("maintenance.reviewLink", in: app)
+        let state = app.staticTexts["maintenance.state"]; reveal(state, in: app)
+        capture(app, "Activation-previous-cancellation-kept")
+        let start = app.buttons["maintenance.activate"]; reveal(start, in: app)
+        XCTAssertFalse(start.isEnabled)
+        confirm(["acknowledgeHeldUntilRecovery", "confirmClearTemporaryActions", "confirmEmptyAndAttended", "confirmPauseLearningAndSharedAutomations"], in: app, firstAbove: true)
+        reveal(start, in: app)
+        capture(app, "Activation-later-review-large-text")
+        tap("maintenance.activate", in: app)
+        // Entering maintenance replaces the navigation stack and starts the new form at its top.
+        reveal(state, in: app)
+        XCTAssertTrue(state.label.contains("recovery needed"))
+        XCTAssertFalse(app.buttons["maintenance.activate"].exists)
+        capture(app, "Activation-new-attempt-committed"); app.terminate()
+    }
+    func testUncertainActivationAndAbsentReceiptOnlyOfferReadRecovery() {
+        let app = launch("activate-uncertain")
+        tap("arrangement.accountLink", in: app)
+        tap("maintenance.reviewLink", in: app)
+        confirm(["acknowledgeHeldUntilRecovery", "confirmClearTemporaryActions", "confirmEmptyAndAttended", "confirmPauseLearningAndSharedAutomations"], in: app)
+        tap("maintenance.activate", in: app)
+        tap("maintenance.refresh", in: app)
+        let message = app.staticTexts["maintenance.empty"]; reveal(message, in: app)
+        XCTAssertTrue(message.label.contains("No saved receipt"))
+        XCTAssertFalse(app.buttons["maintenance.activate"].exists)
+        capture(app, "Activation-unknown-outcome-read-only"); app.terminate()
     }
     func testRestartRequiresAttendedConfirmationAndSavedReceiptPreventsRepeat() {
         let app = launch("restart")

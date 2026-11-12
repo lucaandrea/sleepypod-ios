@@ -20,15 +20,17 @@ actor MaintenanceTestServer: ArrangementMaintenanceTransport {
     var operation: [String: Any]?
     var posts: [ArrangementMaintenanceRequest.Action] = []
     var postFailure: HouseholdFailure?
+    var failBeforeWrite = false
     private var held: String?
     private var continuation: CheckedContinuation<Void, Never>?
     init(_ key: String = "committed") throws {
         account = try MaintenanceFixtures.session()
         operation = try ArrangementJSON.object(MaintenanceFixtures.data(key))["operation"] as? [String: Any]
     }
-    func configure(key: String? = nil, failure: HouseholdFailure? = nil, now: Int64? = nil) throws {
+    func configure(key: String? = nil, failure: HouseholdFailure? = nil, now: Int64? = nil, beforeWrite: Bool = false) throws {
         if let key { operation = try ArrangementJSON.object(MaintenanceFixtures.data(key))["operation"] as? [String: Any] }
         postFailure = failure
+        failBeforeWrite = beforeWrite
         if let now { self.now = now }
     }
     func changeAccount(_ value: HouseholdSession) { account = value }
@@ -56,6 +58,7 @@ actor MaintenanceTestServer: ArrangementMaintenanceTransport {
     func send(_ request: ArrangementMaintenanceRequest, session: HouseholdSession) async throws -> ArrangementMaintenanceResult {
         _ = try ArrangementMaintenanceRequest.decodeExact(request.body, action: request.action, session: account, now: now)
         posts.append(request.action)
+        if failBeforeWrite, let postFailure { throw postFailure }
         var envelope: [String: Any] = ["replayed": false]
         if request.action == .activate {
             operation = ["operationId": request.requestId, "reviewId": request.referenceId, "state": "committed",

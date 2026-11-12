@@ -2,10 +2,65 @@ import XCTest
 @testable import Sleepypod
 
 @MainActor final class ArrangementMaintenanceWorkspaceTests: XCTestCase {
+    private func approvedReview(_ context: MaintenanceTestContext) throws -> ArrangementReview {
+        try PersonalRoutineFixtures.changed(ArrangementFixtures.review()) { object in
+            object["reviewId"] = "10000000-0000-4000-8000-000000000099"
+            object["state"] = "approved_for_separate_activation"; object["canActivate"] = true; object["canApprove"] = false
+            object["createdAt"] = context.now; object["expiresAt"] = context.now + 60_000
+            for field in ["self", "partner"] {
+                var person = object[field] as? [String: Any] ?? [:]; person["approved"] = true; object[field] = person
+            }
+        }
+    }
     private func setup(_ key: String = "committed") async throws -> (MaintenanceTestContext, MaintenanceTestServer, ArrangementTestServer, ArrangementMaintenanceWorkspace) {
         let context = MaintenanceTestContext(), server = try MaintenanceTestServer(key), reviews = try ArrangementTestServer()
         let model = context.workspace(server, reviews: reviews, session: try await server.session())
         return (context, server, reviews, model)
+    }
+    func testFreshApprovedReviewCanFollowCompletedCancellation() async throws {
+        let (_, server, reviews, _) = try await setup("cancelled")
+        let context = MaintenanceTestContext()
+        let approved = try approvedReview(context)
+        await reviews.setReview(approved)
+        let model = context.workspace(server, reviews: reviews, session: try await server.session())
+        await model.refresh()
+        XCTAssertTrue(model.canStart(approved))
+        model.confirmations = ArrangementMaintenanceRequest.Action.activate.confirmations
+        await model.activate(approved)
+        XCTAssertEqual(model.currentOperation?.state, .committed)
+        XCTAssertFalse(model.canStart(approved))
+        let posts = await server.posts; XCTAssertEqual(posts, [.activate])
+    }
+    func testEarlierOrSameReviewCannotRestartCancelledAttempt() async throws {
+        for earlier in [true, false] {
+            let (context, server, reviews, model) = try await setup("cancelled")
+            await model.refresh()
+            let prior = try XCTUnwrap(model.currentOperation)
+            let approved = try PersonalRoutineFixtures.changed(approvedReview(context)) {
+                if earlier { $0["createdAt"] = prior.createdAt - 1 }
+                else { $0["reviewId"] = prior.reviewId }
+            }
+            await reviews.setReview(approved)
+            XCTAssertFalse(model.canStart(approved))
+            model.confirmations = ArrangementMaintenanceRequest.Action.activate.confirmations
+            await model.activate(approved)
+            let posts = await server.posts; XCTAssertTrue(posts.isEmpty)
+        }
+    }
+    func testLostActivationWithNoReceiptDoesNotOfferOrSubmitAnotherAttempt() async throws {
+        let (context, server, reviews, model) = try await setup("empty")
+        let approved = try approvedReview(context)
+        await reviews.setReview(approved)
+        try await server.configure(failure: .uncertain, beforeWrite: true)
+        await model.refresh(); model.confirmations = ArrangementMaintenanceRequest.Action.activate.confirmations
+        await model.activate(approved)
+        try await server.configure()
+        await model.refresh()
+        XCTAssertTrue(model.loaded); XCTAssertNil(model.currentOperation); XCTAssertTrue(model.entered)
+        XCTAssertFalse(model.canStart(approved))
+        model.confirmations = ArrangementMaintenanceRequest.Action.activate.confirmations
+        await model.activate(approved)
+        let posts = await server.posts; XCTAssertEqual(posts, [.activate])
     }
     func testInitialSavedTransitionEntersOnceWithoutWriting() async throws {
         let (context, server, _, model) = try await setup()

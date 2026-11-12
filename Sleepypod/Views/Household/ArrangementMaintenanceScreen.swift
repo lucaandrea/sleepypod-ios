@@ -22,7 +22,7 @@ struct ArrangementMaintenanceScreen: View {
             }
             if model.loaded {
                 if let operation = model.currentOperation { operationSections(operation) }
-                else if let review, review.canActivate, model.canActivate {
+                if let review, model.canStart(review) {
                     Section("Approved sides") {
                         LabeledContent("Your proposed side", value: review.person.proposedSide.displayName)
                         LabeledContent("Partner’s proposed side", value: review.partner.proposedSide.displayName)
@@ -30,7 +30,7 @@ struct ArrangementMaintenanceScreen: View {
                             .font(.footnote).foregroundStyle(Theme.text2)
                     }
                     confirmations(.activate, title: "Before switching sides", button: "Switch to the approved sides") { await model.activate(review) }
-                } else {
+                } else if model.currentOperation == nil {
                     Section { Text(model.entered
                         ? "No saved receipt is available yet. Keep checking the transition; the earlier action will not be repeated."
                         : "There is no unfinished side change. Both people must approve a shared side review before a separate activation becomes available.")

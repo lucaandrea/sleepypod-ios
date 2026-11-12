@@ -51,6 +51,13 @@ struct ArrangementMaintenanceStatus: Codable, Equatable, Sendable {
     let expectedAssignmentRevision: Int
     let operation: Operation?
 
+    /// A completed cancellation stays visible; a later approved review may start a distinct attempt.
+    func allowsReview(_ review: ArrangementReview) -> Bool {
+        guard let operation else { return true }
+        return operation.state == .cancelled && operation.admission == .open
+            && operation.cancellation.map { review.reviewId != operation.reviewId && review.createdAt >= $0.completedAt } == true
+    }
+
     func validate(for session: HouseholdSession, now: Int64, operationId: String? = nil) throws {
         try session.validate()
         guard session.role == "owner", version == 1,

@@ -33,6 +33,10 @@ import Observation
     }
     var enabled: Bool { !invalidated && permitted() && connection.session.role == "owner" && connection.session.capabilities.arrangementMaintenance == true }
     var currentOperation: ArrangementMaintenanceStatus.Operation? { loaded ? status?.operation : nil }
+    func canStart(_ review: ArrangementReview) -> Bool {
+        enabled && loaded && !entered && canActivate && review.canActivate
+            && review.state(at: clock()) == .approved && status?.allowsReview(review) == true
+    }
     func confirmed(_ action: ArrangementMaintenanceRequest.Action) -> Bool {
         enabled && loaded && !busy && confirmations == action.confirmations
     }
@@ -105,14 +109,15 @@ import Observation
         return result
     }
     func activate(_ review: ArrangementReview) async {
-        guard confirmed(.activate) else { return }
+        guard confirmed(.activate), !entered else { return }
         let checked = confirmations
         await operation { current, session, status in
-            guard session.capabilities.activateArrangement, status.operation == nil, session.arrangement.mode == "solo-anywhere" else { throw HouseholdFailure.conflict }
+            guard session.capabilities.activateArrangement, status.allowsReview(review), session.arrangement.mode == "solo-anywhere" else { throw HouseholdFailure.conflict }
             let index = try await reviews.latest(); try check(current)
             guard index.version == 1, let fresh = index.review else { throw HouseholdFailure.invalid }
             try fresh.validate(for: session)
-            guard fresh.reviewId == review.reviewId, fresh.state(at: clock()) == .approved, fresh.canActivate else { throw HouseholdFailure.conflict }
+            guard fresh.reviewId == review.reviewId, fresh.state(at: clock()) == .approved, fresh.canActivate,
+                  status.allowsReview(fresh) else { throw HouseholdFailure.conflict }
             let after = try await owner(current)
             guard after.context == session.context else { throw HouseholdFailure.conflict }
             let request = try ArrangementMaintenanceRequest(action: .activate, session: after, referenceId: fresh.reviewId, confirmations: checked, now: clock())

@@ -40,6 +40,7 @@ private actor ArrangementMaintenancePreviewServer: HouseholdTransport, Arrangeme
         var review = try Self.fixture("arrangement-review-v1", key: "ownerReview")
         review["state"] = "approved_for_separate_activation"; review["canActivate"] = true; review["canApprove"] = false
         review["createdAt"] = now - 5_000; review["expiresAt"] = now + 3_600_000
+        if mode == "retry" { review["reviewId"] = "10000000-0000-4000-8000-000000000099" }
         for field in ["self", "partner"] {
             var person = review[field] as? [String: Any] ?? [:]; person["approved"] = true; review[field] = person
         }
@@ -53,14 +54,15 @@ private actor ArrangementMaintenancePreviewServer: HouseholdTransport, Arrangeme
         capabilities["arrangementReview"] = true; capabilities["arrangementMaintenance"] = true; capabilities["activateArrangement"] = true
         capabilities["personalControls"] = false; capabilities["personalRoutinePublication"] = false
         raw["capabilities"] = capabilities
-        if !["activate", "held"].contains(mode) {
+        if !["activate", "activate-uncertain", "retry", "held"].contains(mode) {
             raw["sessionRevision"] = 2; raw["assignmentRevision"] = 2
             raw["arrangement"] = ["mode": "assigned", "effectiveAt": "2026-11-11T15:00:00Z"]
             raw["self"] = ["displayName": approved.person.displayName, "zones": ["right"], "assignment": "right"]
         }
         initialAccount = try JSONDecoder().decode(HouseholdSession.self, from: JSONSerialization.data(withJSONObject: raw))
         account = initialAccount
-        let key = mode == "activate" ? "empty" : mode == "recover" ? "readyToRecover" : mode == "unknown" ? "restartSubmitted" : mode == "held" ? "held" : "committed"
+        let key = ["activate", "activate-uncertain"].contains(mode) ? "empty" : mode == "retry" ? "cancelled"
+            : mode == "recover" ? "readyToRecover" : mode == "unknown" ? "restartSubmitted" : mode == "held" ? "held" : "committed"
         operation = try Self.fixture("household-maintenance-v1", key: key)["operation"] as? [String: Any]
         if mode == "held" { operation?["controllerRestarted"] = true }
     }
@@ -70,7 +72,7 @@ private actor ArrangementMaintenancePreviewServer: HouseholdTransport, Arrangeme
         return value
     }
     func session() async throws -> HouseholdSession { account }
-    func latest() async throws -> ArrangementIndex { .init(version: 1, review: operation == nil ? approved : nil) }
+    func latest() async throws -> ArrangementIndex { .init(version: 1, review: operation == nil || (mode == "retry" && operation?["state"] as? String == "cancelled") ? approved : nil) }
     func review(_ id: UUID) async throws -> ArrangementReview { approved }
     func send(_ action: ArrangementRequest.Action, body: Data) async throws -> ArrangementReview { throw HouseholdFailure.forbidden }
     func status(operationId: UUID?) async throws -> ArrangementMaintenanceStatus {
@@ -86,6 +88,7 @@ private actor ArrangementMaintenancePreviewServer: HouseholdTransport, Arrangeme
             "controlDigest": String(repeating: "a", count: 64), "observedAt": Self.now]))
     }
     func send(_ request: ArrangementMaintenanceRequest, session: HouseholdSession) async throws -> ArrangementMaintenanceResult {
+        if mode == "activate-uncertain", request.action == .activate { throw HouseholdFailure.uncertain }
         _ = try ArrangementMaintenanceRequest.decodeExact(request.body, action: request.action, session: account, now: Self.now)
         let now = Self.now
         var envelope: [String: Any] = ["replayed": false]
