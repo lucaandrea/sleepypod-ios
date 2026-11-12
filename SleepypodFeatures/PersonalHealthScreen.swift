@@ -106,7 +106,8 @@ public struct PersonalHealthScreen: View {
                     .font(.footnote).foregroundStyle(Theme.text2).accessibilityIdentifier("personalHealth.offline")
             }
             if model.importedAt != nil {
-                Toggle("Refresh when I open this account", isOn: Binding(get: { model.automaticRefresh }, set: model.setAutomaticRefresh))
+                // The explicit closure avoids Swift 6.2's isolated method-reference conversion crash.
+                Toggle("Refresh when I open this account", isOn: Binding(get: { model.automaticRefresh }, set: { model.setAutomaticRefresh($0) }))
                     .tint(Theme.green).disabled(model.busy).accessibilityIdentifier("personalHealth.automatic")
                 Text("Check for new records at most every 30 minutes in the morning, or every six hours otherwise. This does not retrain a model or create a report.")
                     .font(.footnote).foregroundStyle(Theme.text2)

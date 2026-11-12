@@ -91,3 +91,22 @@ device, including short/long source switching and distinct coverage. The same
 reviewer scored that finding resolved from the final captures. These are simulator
 results; hosted checks, TestFlight distribution and actual Health-device
 acceptance remain open.
+## Hosted Swift 6.2 compatibility
+
+The integrated release at `e8a62ca` failed its hosted iPhone and iPad test builds
+before executing tests. Xcode 26.3 / Swift 6.2.4 crashed during IR generation for
+`PersonalHealthScreen`, while emitting the actor-isolated Boolean setter
+reabstraction thunk. The original build log is retained at
+`/tmp/sleepypod-native-e8a62ca-offline-failure.log`.
+
+The automatic-refresh binding now uses an explicit setter closure that invokes
+the same `setAutomaticRefresh` method. It preserves actor isolation, persistence,
+the visible layout and all access checks. The enrollment walkthrough now turns
+the preference on and off and checks both values at normal and maximum text size.
+The hosted compiler must still validate this compatibility change; a newer local
+compiler passing is not proof that Xcode 26.3 passes.
+
+The local focused run passes all 20 checks: 18 Health enrollment/model cases and
+both phone enrollment/removal walkthroughs, including the refresh toggle in both
+directions at normal and maximum text sizes. Strict SwiftLint also passes. The
+final result is `/tmp/sleepypod-personal-health-compiler-fix-toggle.xcresult`.

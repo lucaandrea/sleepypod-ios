@@ -89,6 +89,12 @@ import XCTest
         let coverage = app.staticTexts["personalHealth.coverage"]; reveal(coverage, app)
         XCTAssertTrue(coverage.label.contains("3 recorded days")); capture(large ? "Imported-largest" : "Imported")
         let automatic = app.switches["personalHealth.automatic"]; reveal(automatic, app)
+        let automaticControl = automatic.switches.firstMatch.exists ? automatic.switches.firstMatch : automatic
+        XCTAssertEqual(automatic.value as? String, "0")
+        automaticControl.tap()
+        XCTAssertEqual(automatic.value as? String, "1")
+        automaticControl.tap()
+        XCTAssertEqual(automatic.value as? String, "0")
         capture(large ? "Refresh-options-largest" : "Refresh-options")
         let remove = app.buttons["personalHealth.forget"]; reveal(remove, app); remove.tap()
         let alert = app.alerts["Remove this personal Health import?"]
