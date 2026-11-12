@@ -35,7 +35,7 @@ case "$mode" in
     xcodebuild test-without-building -xctestrun "$RECORDINGS_TEST_RUN" \
       -destination "platform=iOS Simulator,id=${RECORDINGS_SIM_ID:?}" \
       "${arguments[@]}" -resultBundlePath "${RUNNER_TEMP:?}/Recordings-${suite}.xcresult" \
-      -collect-test-diagnostics never -parallel-testing-enabled NO \
+      -collect-test-diagnostics on-failure -parallel-testing-enabled NO \
       CODE_SIGNING_ALLOWED=YES CODE_SIGN_IDENTITY=-
     ;;
   *) printf 'Unknown mode: %s\n' "$mode" >&2; exit 2 ;;

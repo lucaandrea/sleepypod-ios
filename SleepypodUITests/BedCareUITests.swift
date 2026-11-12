@@ -60,18 +60,25 @@ import UIKit
             if frame.height > 0 {
                 // Large-text disclosure labels can extend beyond the viewport even with a clear tap point.
                 let visible = viewport.contains(CGPoint(x: frame.midX, y: frame.midY))
-                if visible, element.isHittable { return }
+                // Geometry establishes readable content; the subsequent tap verifies actionable controls.
+                // Querying hittability of an offscreen Link can itself fail inside hosted XCTest.
+                if visible { return }
             }
             let upward = frame.isEmpty || frame.midY >= viewport.minY
-            if centeredSheet {
-                // A centered iPad sheet needs a drag within its own content margin.
-                let start = container.coordinate(withNormalizedOffset: .init(dx: 0.03, dy: upward ? 0.8 : 0.2))
-                let end = container.coordinate(withNormalizedOffset: .init(dx: 0.03, dy: upward ? 0.2 : 0.8))
-                start.press(forDuration: 0.1, thenDragTo: end)
-            } else {
-                // Phone sheets change detents during scrolling; keep the native swipe gesture.
-                if upward { container.swipeUp() } else { container.swipeDown() }
+            if !centeredSheet {
+                // Native swipes expand phone detents without long-pressing a row.
+                // Use the app, since a ScrollView snapshot can extend below its visible sheet.
+                if upward { app.swipeUp(velocity: .slow) } else { app.swipeDown(velocity: .slow) }
+                continue
             }
+            // Keep the drag inside the current sheet's visible area, then settle its momentum.
+            let horizontal = viewport.minX + 8
+            let upper = viewport.minY + viewport.height * 0.2
+            let lower = viewport.minY + viewport.height * 0.8
+            let origin = app.coordinate(withNormalizedOffset: .zero)
+            let start = origin.withOffset(CGVector(dx: horizontal, dy: upward ? lower : upper))
+            let end = origin.withOffset(CGVector(dx: horizontal, dy: upward ? upper : lower))
+            start.press(forDuration: 0.1, thenDragTo: end, withVelocity: .slow, thenHoldForDuration: 0.3)
         }
         capture("Care-unreachable"); print(app.debugDescription)
         XCTFail("Could not reach care control: \(element)")

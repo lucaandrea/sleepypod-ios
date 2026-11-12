@@ -62,7 +62,7 @@ case "$mode" in
   build) action=build-for-testing ;;
   test)
     action=test-without-building
-    extras+=(-resultBundlePath "${RUNNER_TEMP:?}/Recording.xcresult" -collect-test-diagnostics never -parallel-testing-enabled NO)
+    extras+=(-resultBundlePath "${RUNNER_TEMP:?}/Recording.xcresult" -collect-test-diagnostics on-failure -parallel-testing-enabled NO)
     ;;
   *) printf 'Unknown mode: %s\n' "$mode" >&2; exit 2 ;;
 esac

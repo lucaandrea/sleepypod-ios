@@ -64,7 +64,7 @@ jobs:
     name: Recordings (${{ matrix.form }}, ${{ matrix.suite }})
     needs: ui-bundle
     runs-on: macos-15-intel
-    timeout-minutes: 45
+    timeout-minutes: 60
     strategy:
       fail-fast: false
       max-parallel: 2
@@ -106,7 +106,7 @@ jobs:
         timeout-minutes: 15
         run: xcrun simctl bootstatus "$RECORDINGS_SIM_ID" -b
       - name: Verify recording suite
-        timeout-minutes: 20
+        timeout-minutes: 35
         run: bash scripts/verify-recordings-ui.sh test "${{ matrix.suite }}"
       - name: Preserve screenshots and results
         if: always()

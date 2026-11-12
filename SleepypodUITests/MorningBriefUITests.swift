@@ -97,7 +97,8 @@ import UIKit
             if abs(distance) < 24 { return }
             let start = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.55))
             let end = start.withOffset(CGVector(dx: 0, dy: max(-300, min(300, distance))))
-            start.press(forDuration: 0.05, thenDragTo: end)
+            // Stop the drag before release so momentum cannot repeatedly overshoot the first line.
+            start.press(forDuration: 0.1, thenDragTo: end, withVelocity: .slow, thenHoldForDuration: 0.3)
             RunLoop.current.run(until: Date().addingTimeInterval(0.3))
         }
         XCTFail("Could not align the beginning of the chart notes")

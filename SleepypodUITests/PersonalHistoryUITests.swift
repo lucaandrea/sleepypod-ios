@@ -14,7 +14,8 @@ import XCTest
             if visible() { break }
             let upward = !element.exists || element.frame.midY > app.frame.maxY - 40
             app.coordinate(withNormalizedOffset: CGVector(dx: 0.90, dy: upward ? 0.78 : 0.28))
-                .press(forDuration: 0.05, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.90, dy: upward ? 0.28 : 0.78)))
+                .press(forDuration: 0.1, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.90, dy: upward ? 0.28 : 0.78)),
+                       withVelocity: .slow, thenHoldForDuration: 0.3)
         }
         XCTAssertTrue(visible(), "Unreachable \(element.identifier)")
         XCTAssertGreaterThanOrEqual(element.frame.minX, app.frame.minX); XCTAssertLessThanOrEqual(element.frame.maxX, app.frame.maxX)
