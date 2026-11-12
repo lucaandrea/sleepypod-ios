@@ -101,6 +101,33 @@ actor PersonalJournalTestServer: PersonalJournalTransport {
     }
 }
 
+@MainActor final class PersonalJournalPreviewTests: XCTestCase {
+    func testInitialUTCQueryDoesNotCreateAFutureLocalCheckIn() async throws {
+        let instant = try XCTUnwrap(ISO8601DateFormatter().date(from: "2026-11-12T00:00:00Z"))
+        let server = try PersonalJournalPreviewServer(mode: "ready", now: { instant })
+        let session = try await server.session()
+        let utcPage = try await server.read(date: "2026-11-12")
+        try utcPage.validate(for: session, date: "2026-11-12")
+        XCTAssertEqual(utcPage.today, "2026-11-11")
+        XCTAssertNil(utcPage.entries.first?.record)
+        let localPage = try await server.read(date: utcPage.today)
+        try localPage.validate(for: session, date: "2026-11-11")
+        XCTAssertEqual(localPage.entries.first?.record?.fields.restfulness, 4)
+    }
+
+    func testOpeningCurrentEntryAcrossUTCMidnightKeepsTheSeededCheckIn() async throws {
+        let instant = try XCTUnwrap(ISO8601DateFormatter().date(from: "2026-11-12T07:59:00Z"))
+        let server = try PersonalJournalPreviewServer(mode: "uncertain", now: { instant })
+        let connection = PersonalHistoryFixtures.connection(try await server.session())
+        let model = PersonalJournalWorkspace(connection: connection, client: server, now: { instant })
+        await model.open()
+        XCTAssertNil(model.error)
+        XCTAssertEqual(model.selected?.date, "2026-11-11")
+        XCTAssertEqual(model.draft?.restfulness, 4)
+        XCTAssertEqual(model.draft?.context.caffeine.status, "none")
+    }
+}
+
 @MainActor final class PersonalJournalWorkspaceTests: XCTestCase {
     private func workspace(_ server: PersonalJournalTestServer) throws -> PersonalJournalWorkspace {
         let now = Date(timeIntervalSince1970: Double(try PersonalJournalFixtures.page().generatedAt) / 1000)

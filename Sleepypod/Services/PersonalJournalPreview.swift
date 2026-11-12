@@ -20,16 +20,18 @@ import FreeSleepKit
     }
 }
 
-private actor PersonalJournalPreviewServer: PersonalJournalTransport, HouseholdTransport {
+actor PersonalJournalPreviewServer: PersonalJournalTransport, HouseholdTransport {
     nonisolated let account: HouseholdSession
     private let mode: String
     private let ordinary: PersonalHistoryPreviewServer
     private let example: PersonalJournalPage
+    private let now: @Sendable () -> Date
     private var seeded = false
     private var entries: [String: PersonalJournalSelection] = [:]
     private var receipts: [String: PersonalJournalReceipt] = [:]
-    init(mode: String) throws {
+    init(mode: String, now: @escaping @Sendable () -> Date = Date.init) throws {
         self.mode = mode
+        self.now = now
         guard let url = Bundle.main.url(forResource: "personal-journal-v1", withExtension: "json"),
               let fixture = try JSONSerialization.jsonObject(with: Data(contentsOf: url)) as? [String: Any],
               var session = fixture["session"] as? [String: Any],
@@ -46,12 +48,16 @@ private actor PersonalJournalPreviewServer: PersonalJournalTransport, HouseholdT
     }
     func read(date: String) async throws -> PersonalJournalPage {
         if mode == "error" { throw HouseholdFailure.uncertain }
+        let currentInstant = now()
+        let generatedAt = Int64(currentInstant.timeIntervalSince1970 * 1_000)
         if !seeded, mode != "empty", let record = example.entries.first?.record {
             seeded = true
-            entries[date] = .init(date: date, revision: UUID().uuidString.lowercased(), timeZone: record.timeZone,
-                record: .init(date: date, timeZone: record.timeZone, createdAt: timestamp, updatedAt: timestamp, fields: record.fields))
+            // The first query uses UTC before learning the controller's local date.
+            let seedDate = MorningJournalDates.key(currentInstant, timeZone: example.currentTimeZone)
+            entries[seedDate] = .init(date: seedDate, revision: UUID().uuidString.lowercased(), timeZone: record.timeZone,
+                record: .init(date: seedDate, timeZone: record.timeZone, createdAt: generatedAt, updatedAt: generatedAt, fields: record.fields))
         }
-        return .init(version: 1, generatedAt: timestamp, scope: example.scope, interpretation: example.interpretation,
+        return .init(version: 1, generatedAt: generatedAt, scope: example.scope, interpretation: example.interpretation,
                      currentTimeZone: example.currentTimeZone, query: .init(date: date),
                      entries: [entries[date] ?? .init(date: date, revision: nil, timeZone: nil, record: nil)])
     }
@@ -77,7 +83,7 @@ private actor PersonalJournalPreviewServer: PersonalJournalTransport, HouseholdT
         response["query"] = ["from": range.from, "through": range.through]
         return try .decodeExact(JSONSerialization.data(withJSONObject: response))
     }
-    private var timestamp: Int64 { Int64(Date().timeIntervalSince1970 * 1_000) }
+    private var timestamp: Int64 { Int64(now().timeIntervalSince1970 * 1_000) }
     private func result(_ receipt: PersonalJournalReceipt?) -> PersonalJournalResult {
         .init(version: 1, generatedAt: timestamp, scope: example.scope, interpretation: example.interpretation, receipt: receipt)
     }
