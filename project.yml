@@ -71,12 +71,7 @@ targets:
     postBuildScripts:
       - name: Apply direct-provider privacy declarations
         script: |
-          set -eu
-          SDK_MANIFEST="${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/AIProxy_AIProxy.bundle/PrivacyInfo.xcprivacy"
-          if [ -f "$SDK_MANIFEST" ]; then
-            cp "${SRCROOT}/FreeSleepKit/Resources/PrivacyInfo.xcprivacy" "$SDK_MANIFEST"
-            plutil -lint "$SDK_MANIFEST"
-          fi
+          /bin/sh "${SRCROOT}/scripts/apply-provider-privacy.sh"
         basedOnDependencyAnalysis: false
     dependencies:
       - target: FreeSleepKit
