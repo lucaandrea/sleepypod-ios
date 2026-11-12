@@ -4,12 +4,10 @@ import XCTest
 
 /// Exercise real Keychain item migration in an isolated namespace; physical lock behavior is a separate device check.
 @MainActor final class HouseholdBackgroundVaultTests: XCTestCase {
-    private var service = ""
+    private let service = "sleepypod-vault-tests.\(UUID().uuidString)"
     private var query: [String: Any] {
         [kSecClass as String: kSecClassGenericPassword, kSecAttrService as String: service, kSecAttrAccount as String: "connections.v1"]
     }
-    override func setUp() { super.setUp(); service = "sleepypod-vault-tests.\(UUID().uuidString)" }
-    override func tearDown() { SecItemDelete(query as CFDictionary); super.tearDown() }
     private func attributes() throws -> [String: Any] {
         var lookup = query; lookup[kSecReturnAttributes as String] = true
         var result: CFTypeRef?
@@ -22,6 +20,7 @@ import XCTest
         XCTAssertEqual(SecItemAdd(value as CFDictionary, nil), errSecSuccess)
     }
     func testExistingReadableAccountVaultMigratesWithoutReplacingItsContents() throws {
+        defer { SecItemDelete(query as CFDictionary) }
         let session = try PersonalControlFixtures.session(for: PersonalControlFixtures.bed())
         let record = HouseholdConnectionRecord(id: UUID(), endpoint: URL(string: "https://example.invalid")!,
             deviceSecret: String(repeating: "A", count: 43), identity: session)
@@ -34,11 +33,13 @@ import XCTest
         XCTAssertEqual(try attributes()[kSecAttrAccessible as String] as? String, kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly as String)
     }
     func testMalformedLegacyVaultDoesNotMigrateOrBecomeAnEmptyAccount() throws {
+        defer { SecItemDelete(query as CFDictionary) }
         legacy(Data("not a vault".utf8))
         XCTAssertThrowsError(try HouseholdKeychainVault(service: service).load())
         XCTAssertEqual(try attributes()[kSecAttrAccessible as String] as? String, kSecAttrAccessibleWhenUnlockedThisDeviceOnly as String)
     }
     func testNewControlVaultSupportsBackgroundAccessOnlyOnThisDevice() throws {
+        defer { SecItemDelete(query as CFDictionary) }
         let vault = HouseholdKeychainVault(service: service)
         try vault.save(.init())
         XCTAssertTrue(try vault.load().connections.isEmpty)
