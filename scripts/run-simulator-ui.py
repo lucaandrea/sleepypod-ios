@@ -8,6 +8,9 @@ import sys
 
 AX_FAILURE = ('The test runner failed to initialize for UI testing. '
               '(Underlying Error: Timed out waiting for AX loaded notification)')
+AX_LOADING_FAILURE = ('The test runner failed to initialize for UI testing. '
+                      '(Underlying Error: Timed out while loading Accessibility.)')
+AX_STARTUP_FAILURES = (AX_FAILURE, AX_LOADING_FAILURE)
 RUNNER_FAILURE = re.compile(r'^SleepypodUITests-Runner \([0-9]+\) encountered an error$')
 
 
@@ -24,7 +27,7 @@ def bootstrap_only(summary, tree):
     if not isinstance(failures, list) or len(failures) != 1:
         return False
     failure = failures[0]
-    if (not isinstance(failure, dict) or failure.get('failureText') != AX_FAILURE
+    if (not isinstance(failure, dict) or failure.get('failureText') not in AX_STARTUP_FAILURES
             or not RUNNER_FAILURE.fullmatch(failure.get('testIdentifierString', ''))):
         return False
     cases = []
@@ -90,7 +93,7 @@ def run(arguments):
     except (subprocess.SubprocessError, OSError, ValueError, TypeError):
         return status
 
-    evidence = {'reason': AX_FAILURE, 'originalExit': status, 'originalResult': str(bundle),
+    evidence = {'reason': summary['testFailures'][0]['failureText'], 'originalExit': status, 'originalResult': str(bundle),
                 'retryResult': str(retry_bundle), 'retryAttempted': False}
     receipt.write_text(json.dumps(evidence, indent=2) + '\n')
     print('Simulator AX failed before any app test. Preserving the result and rebooting this simulator once.', flush=True)

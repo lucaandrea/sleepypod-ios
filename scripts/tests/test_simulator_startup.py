@@ -24,6 +24,18 @@ class StartupClassificationTests(unittest.TestCase):
     def test_exact_observed_failure_is_eligible(self):
         self.assertTrue(RUNNER.bootstrap_only(SUMMARY, TREE))
 
+    def test_observed_loading_timeout_is_eligible_only_before_application_tests(self):
+        summary = copy.deepcopy(SUMMARY)
+        summary['testFailures'][0]['failureText'] = RUNNER.AX_LOADING_FAILURE
+        self.assertTrue(RUNNER.bootstrap_only(summary, TREE))
+        summary['testFailures'][0]['testIdentifierString'] = 'PersonalQuietUITests/testQuiet()'
+        self.assertFalse(RUNNER.bootstrap_only(summary, TREE))
+
+    def test_similar_unobserved_error_wording_is_not_retried(self):
+        summary = copy.deepcopy(SUMMARY)
+        summary['testFailures'][0]['failureText'] = 'Timed out while loading Accessibility.'
+        self.assertFalse(RUNNER.bootstrap_only(summary, TREE))
+
     def test_any_executed_or_skipped_test_prevents_recovery(self):
         for key in ['passedTests', 'skippedTests', 'expectedFailures']:
             summary = copy.deepcopy(SUMMARY)
@@ -53,6 +65,9 @@ class StartupClassificationTests(unittest.TestCase):
     def test_malformed_or_missing_results_fail_closed(self):
         for summary, tree in [(None, TREE), (SUMMARY, {}), ({}, TREE), (SUMMARY, {'testNodes': [None]})]:
             self.assertFalse(RUNNER.bootstrap_only(summary, tree))
+        malformed = copy.deepcopy(SUMMARY)
+        malformed['testFailures'][0]['failureText'] = []
+        self.assertFalse(RUNNER.bootstrap_only(malformed, TREE))
 
 
 class StartupExecutionTests(unittest.TestCase):
@@ -95,6 +110,17 @@ class StartupExecutionTests(unittest.TestCase):
         receipt = json.loads(self.bundle.with_name('Reports-bootstrap-recovery.json').read_text())
         self.assertEqual(receipt['originalExit'], 65)
         self.assertEqual(receipt['retryExit'], 0)
+
+    def test_loading_variant_preserves_its_actual_reason_and_fails_if_retry_executes_nothing(self):
+        summary = copy.deepcopy(SUMMARY)
+        summary['testFailures'][0]['failureText'] = RUNNER.AX_LOADING_FAILURE
+        empty = {'result': 'Passed', 'passedTests': 0, 'failedTests': 0}
+        with patch.object(RUNNER.subprocess, 'run', side_effect=[self.process(65), self.process(0), self.process(0), self.process(0)]), \
+                patch.object(RUNNER, 'result_json', side_effect=[summary, TREE, empty]):
+            self.assertEqual(RUNNER.run(self.arguments), 65)
+        receipt = json.loads(self.bundle.with_name('Reports-bootstrap-recovery.json').read_text())
+        self.assertEqual(receipt['reason'], RUNNER.AX_LOADING_FAILURE)
+        self.assertEqual(receipt['retryExit'], 65)
 
     def test_second_failure_is_final_even_if_it_is_bootstrap_failure(self):
         with patch.object(RUNNER.subprocess, 'run', side_effect=[self.process(65), self.process(0), self.process(0), self.process(65)]) as process, \

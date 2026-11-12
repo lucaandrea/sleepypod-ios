@@ -10,6 +10,8 @@ on:
       - 'Sleepypod/SleepypodApp.swift'
       - 'SleepypodUITests/PersonalQuietUITests.swift'
       - 'Integration/Fixtures/personal-quiet-v1.json'
+      - 'scripts/run-simulator-ui.py'
+      - 'scripts/tests/test_simulator_startup.py'
       - '.github/workflows/personal-quiet-ui.yml'
   workflow_dispatch:
 
@@ -59,7 +61,7 @@ jobs:
       - name: Verify shared quiet and recovery
         timeout-minutes: 20
         run: |
-          xcodebuild test-without-building -project Sleepypod.xcodeproj -scheme Sleepypod \
+          python3 scripts/run-simulator-ui.py test-without-building -project Sleepypod.xcodeproj -scheme Sleepypod \
             -destination "platform=iOS Simulator,id=$QUIET_SIM_ID" \
             -derivedDataPath "$RUNNER_TEMP/QuietBuild" \
             -only-testing:SleepypodUITests/PersonalQuietUITests \
@@ -71,6 +73,8 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: personal-quiet-${{ matrix.form }}
-          path: ${{ runner.temp }}/Quiet.xcresult
+          path: |
+            ${{ runner.temp }}/Quiet*.xcresult
+            ${{ runner.temp }}/Quiet-bootstrap-recovery.json
           if-no-files-found: ignore
           retention-days: 7
