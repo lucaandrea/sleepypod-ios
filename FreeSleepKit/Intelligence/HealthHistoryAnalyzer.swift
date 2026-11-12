@@ -67,12 +67,16 @@ enum HealthHistoryAnalyzer {
         return Double(minute < 720 ? minute + 1440 : minute)
     }
     static func facts(source: HealthHistory.Source?, now: Date, timeZone: TimeZone) -> [SleepFact] {
-        guard let source, !source.nights.isEmpty else { return [] }
+        guard let source, let earliest = source.nights.map(\.start).min(),
+              let latest = source.nights.map(\.end).max() else { return [] }
         let nights = source.nights
+        // Imported and restored arrays may use different ordering; report the actual source coverage.
+        var coverageDate = Date.FormatStyle(date: .abbreviated, time: .omitted)
+        coverageDate.timeZone = timeZone
         let recent = nights.filter { $0.end > now.addingTimeInterval(-28 * 86400) }
         let week = recent.filter { $0.end > now.addingTimeInterval(-7 * 86400) }
         let prior = nights.filter { $0.end <= now.addingTimeInterval(-7 * 86400) && $0.end > now.addingTimeInterval(-35 * 86400) }
-        var facts = [SleepFact(id: "health.coverage", text: "\(nights.count) noon-to-noon days with recorded sleep, \(nights.first!.start.formatted(date: .abbreviated, time: .omitted)) through \(nights.last!.end.formatted(date: .abbreviated, time: .omitted)). Source: \(source.name)."),
+        var facts = [SleepFact(id: "health.coverage", text: "\(nights.count) noon-to-noon days with recorded sleep, \(earliest.formatted(coverageDate)) through \(latest.formatted(coverageDate)). Source: \(source.name)."),
             SleepFact(id: "health.recent", text: "\(recent.count) recorded days in the last 28 days; \(week.count) in the last 7. Missing days are unknown, not zero sleep.")]
         func add(_ identifier: String, _ values: [Double], _ name: String, _ unit: String) {
             guard values.count >= 3, let value = median(values) else { return }

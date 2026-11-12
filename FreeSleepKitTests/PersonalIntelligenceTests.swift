@@ -51,6 +51,35 @@ struct PersonalIntelligenceTests {
         #expect(!facts.contains { $0.id == "health.change" || $0.id == "health.rhr" || $0.id == "health.timing" })
         #expect(facts.contains { $0.text.contains("Missing days are unknown") })
     }
+    @Test func reportFactsKeepForwardCoverageForEveryNightOrder() throws {
+        let now = date("2026-11-12T18:00:00Z")
+        let history = HealthHistoryAnalyzer.build(samples: [
+            sample("2026-10-31T05:00:00Z", "2026-10-31T13:00:00Z"),
+            sample("2026-11-05T06:00:00Z", "2026-11-05T14:00:00Z"),
+            sample("2026-11-10T06:00:00Z", "2026-11-10T14:00:00Z"),
+        ], now: now, timeZone: zone)
+        let source = try #require(history.sources.first)
+        let expected = HealthHistoryAnalyzer.facts(source: source, now: now, timeZone: zone)
+        for order in [[0, 1, 2], [0, 2, 1], [1, 0, 2], [1, 2, 0], [2, 0, 1], [2, 1, 0]] {
+            var reordered = source; reordered.nights = order.map { source.nights[$0] }
+            #expect(HealthHistoryAnalyzer.facts(source: reordered, now: now, timeZone: zone) == expected)
+        }
+        #expect(expected.first?.id == "health.coverage")
+        #expect(expected.first?.text.contains("3 noon-to-noon days") == true)
+    }
+    @Test func reportCoverageDatesUseTheSelectedHistoryTimeZone() throws {
+        let now = date("2026-11-12T18:00:00Z")
+        let start = date("2026-11-01T01:00:00Z"), end = date("2026-11-01T06:00:00Z")
+        let source = HealthHistory.Source(id: "watch", name: "Watch", nights: [
+            .init(id: "recorded-night", start: start, end: end, asleepMinutes: 300),
+        ])
+        let local = try #require(HealthHistoryAnalyzer.facts(source: source, now: now, timeZone: zone).first)
+        let utc = try #require(HealthHistoryAnalyzer.facts(source: source, now: now, timeZone: TimeZone(secondsFromGMT: 0)!).first)
+        var localDate = Date.FormatStyle(date: .abbreviated, time: .omitted); localDate.timeZone = zone
+        let expectedDay = start.formatted(localDate)
+        #expect(local.text.contains("\(expectedDay) through \(expectedDay)"))
+        #expect(local.text != utc.text)
+    }
     @Test func modelIDsRejectURLsQueriesAndTraversalButSupportLocalModelTags() {
         #expect(IntelligenceProvider.validModel("gemini-4-argon"))
         #expect(IntelligenceProvider.validModel("gemma3:4b"))

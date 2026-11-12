@@ -5,12 +5,19 @@ on:
     paths:
       - 'FreeSleepKit/Intelligence/MorningReport*.swift'
       - 'SleepypodFeatures/ReportWebSharing*.swift'
+      - 'SleepypodFeatures/PersonalAccountReport*.swift'
+      - 'SleepypodFeatures/PersonalReportSettingsScreen.swift'
+      - 'FreeSleepKit/Intelligence/PersonalReport*.swift'
+      - 'FreeSleepKit/Intelligence/PersonalProviderKeys.swift'
+      - 'FreeSleepKit/Intelligence/PersonalHealth*.swift'
+      - 'Sleepypod/Services/HouseholdWorkspace.swift'
       - 'SleepypodFeatures/FeatureActionButtonStyle.swift'
       - 'SleepypodFeatures/MorningBriefScreen.swift'
       - 'Sleepypod/Services/OwnerReportSharing.swift'
       - 'Sleepypod/SleepypodApp.swift'
       - 'Integration/UnifiedWorkspace.swift'
       - 'SleepypodUITests/ReportWebSharingUITests.swift'
+      - 'SleepypodUITests/PersonalAccountReportsUITests.swift'
       - '.github/workflows/report-sharing-ui.yml'
   workflow_dispatch:
 
@@ -65,11 +72,23 @@ jobs:
             -resultBundlePath "$RUNNER_TEMP/Reports.xcresult" \
             -collect-test-diagnostics never -parallel-testing-enabled NO \
             CODE_SIGNING_ALLOWED=YES CODE_SIGN_IDENTITY=-
+      - name: Verify personal reports, model settings and follow-ups
+        timeout-minutes: 15
+        run: |
+          xcodebuild test-without-building -project Sleepypod.xcodeproj -scheme Sleepypod \
+            -destination "platform=iOS Simulator,id=$REPORT_SIM_ID" \
+            -derivedDataPath "$RUNNER_TEMP/ReportBuild" \
+            -only-testing:SleepypodUITests/PersonalAccountReportsUITests \
+            -resultBundlePath "$RUNNER_TEMP/PersonalReports.xcresult" \
+            -collect-test-diagnostics never -parallel-testing-enabled NO \
+            CODE_SIGNING_ALLOWED=YES CODE_SIGN_IDENTITY=-
       - name: Preserve screenshots and results
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: report-sharing-${{ matrix.form }}
-          path: ${{ runner.temp }}/Reports.xcresult
+          path: |
+            ${{ runner.temp }}/Reports.xcresult
+            ${{ runner.temp }}/PersonalReports.xcresult
           if-no-files-found: ignore
           retention-days: 7

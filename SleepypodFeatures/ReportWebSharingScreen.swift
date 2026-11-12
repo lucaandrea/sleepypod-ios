@@ -4,6 +4,7 @@ struct ReportWebSharingScreen: View {
     let report: PersonalSleepReport
     var example = false
     @State var workspace = MorningReportSharingWorkspace()
+    var personalAccess: (@MainActor () -> Bool)?
     @State private var consent = false
     @State private var confirmingWithdrawal = false
     @Environment(\.scenePhase) private var phase
@@ -12,7 +13,10 @@ struct ReportWebSharingScreen: View {
     @AppStorage("podURL") private var address = ""
     @AppStorage("apiBackend") private var backend = ""
     @AppStorage("household.boundaryRevision") private var householdRevision = ""
-    private var allowed: Bool { phase == .active && (example || !personal && !AppMode.isDemo) }
+    private var allowed: Bool {
+        if let personalAccess { return phase == .active && personalAccess() && (example || !AppMode.isDemo) }
+        return phase == .active && (example || !personal && !AppMode.isDemo)
+    }
     private var context: String { "\(phase)|\(personal)|\(ownerRevision)|\(address)|\(backend)|\(householdRevision)|\(report.id)|\(report.followUps?.count ?? 0)" }
 
     var body: some View {
@@ -52,7 +56,9 @@ struct ReportWebSharingScreen: View {
                             Text("What is shared").font(.headline)
                             Text("The report’s text, calculated facts, comparison chart and saved answers. Provider keys and raw Health samples are not included.")
                                 .font(.subheadline).foregroundStyle(Theme.text2)
-                            Text("People with your Pod’s owner key can read this copy. Pod administrators and backups also have access.")
+                            Text(personalAccess == nil
+                                 ? "People with your Pod’s owner key can read this copy. Pod administrators and backups also have access."
+                                 : "This copy belongs to your personal account in the web app. Other sleepers and the owner-key library cannot read it through the app. Pod administrators and backups still have access.")
                                 .font(.subheadline).foregroundStyle(Theme.text2)
                             Toggle("Share this report with my Pod’s web app", isOn: $consent).accessibilityIdentifier("report.share.consent")
                             Button(workspace.needsUpdate ? "Update shared answers" : "Share report") {
