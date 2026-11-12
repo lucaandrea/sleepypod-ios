@@ -137,6 +137,7 @@
 		18789E103BDBBD1A63D5727F /* SystemLogWorkspace.swift in Sources */ = {isa = PBXBuildFile; fileRef = 647E0B7504F11870F1A3EF9A /* SystemLogWorkspace.swift */; };
 		18A737D736015779C83BF8BB /* FreeSleepKit.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 454932A5C78BA1D0091701F0 /* FreeSleepKit.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		18D2F27D2EB13AB5281F8785 /* PersonalJournalPatterns.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94DDE44A053E25024B12D277 /* PersonalJournalPatterns.swift */; };
+		19D362288A72C2A0B839DC17 /* PersonalLearningRemoval.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF6EFA84444E7E13C0A42791 /* PersonalLearningRemoval.swift */; };
 		1A435CFDDF3ECBE7FECFD18D /* PersonalJournalClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11D3DD057935B84E0B6FAE79 /* PersonalJournalClient.swift */; };
 		1A85EBB29D2FF688EFEDE814 /* CoachUsageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 476A4B882C88C54CB1DE37B7 /* CoachUsageView.swift */; };
 		1A9A73E1A4CB9DA72F492877 /* HapticsTestView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 71D9F9BB5117870F21D58DE2 /* HapticsTestView.swift */; };
@@ -273,6 +274,7 @@
 		347A875D12074FA062587F71 /* DemoBiometricDatasetsClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3CAA0DBE3D2CC400E5F375F3 /* DemoBiometricDatasetsClient.swift */; };
 		34CE06F0BF8DAD0E1F263836 /* HardwareVibrationWorkspace.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF29D61854E585E69F326E73 /* HardwareVibrationWorkspace.swift */; };
 		3542A0961E7B70A7D5BDE011 /* DatasetReferencePickerScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 671824D913AF80DF9257F887 /* DatasetReferencePickerScreen.swift */; };
+		3597DFCE4FE941DB78C349E3 /* PersonalLearningRemovalSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2A12EBE62A8C5D353FCD6DB /* PersonalLearningRemovalSection.swift */; };
 		35A4C7CBEFF32E05D29E3080 /* RoutinePlan.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEDD210ADB5EBCDC7FBBBA1B /* RoutinePlan.swift */; };
 		35C7D2191B1F23FF6B1BDAB9 /* BiometricProfilesClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1FD217D106885CBC7D42996 /* BiometricProfilesClient.swift */; };
 		35D3985C0404AAC5EA6C4295 /* SystemThermalTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 972DB46185F40A20B850ECA4 /* SystemThermalTests.swift */; };
@@ -415,6 +417,7 @@
 		52694411F911D9C0292BDFB4 /* NextAlarmClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = A33F354B2422C7525B2AEA16 /* NextAlarmClient.swift */; };
 		527C417D4B97BBB82C5D5578 /* NightAnomalyDataset.swift in Sources */ = {isa = PBXBuildFile; fileRef = A233647AF85AF571FFEE5D01 /* NightAnomalyDataset.swift */; };
 		52BA2CBC04DF0DFD707DE536 /* OwnerConnectionEnrollmentUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9ACA36A3C7A2B70D027D959E /* OwnerConnectionEnrollmentUITests.swift */; };
+		5353E8A7A47C7D47E6A9B4EC /* PersonalLearningRemovalUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65A1CBBD7D614CC7A28F48A5 /* PersonalLearningRemovalUITests.swift */; };
 		53581400686FE861A24087AE /* CalibrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE0553DF9686966CDE7AF58B /* CalibrationTests.swift */; };
 		5361EC691268C411EEBA008D /* AlertInboxTransportTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0D536FAE2DFC84310468AAF7 /* AlertInboxTransportTests.swift */; };
 		539F5AFD46F4BBFC1BB1EDC3 /* WatchMotionFile.swift in Sources */ = {isa = PBXBuildFile; fileRef = F63D97596C1E062CB7C4917A /* WatchMotionFile.swift */; };
@@ -985,6 +988,7 @@
 		CD014B9CEE2C262CDD2637B5 /* SleepAnalyzerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE5C25057170EC9CC2049440 /* SleepAnalyzerTests.swift */; };
 		CD2CC6B849FE19586479F040 /* TemperatureContextWorkspace.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5932BD4A78E24AD2164B6FAE /* TemperatureContextWorkspace.swift */; };
 		CD71ECB189E6926595E8AEA8 /* backtest-three-metric-report.json in Resources */ = {isa = PBXBuildFile; fileRef = 9A1EEFDE993BFB9F77487962 /* backtest-three-metric-report.json */; };
+		CD7B0E34F488897A81E88DD1 /* PersonalLearningRemovalTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61B200EDADB78BAD32B8673B /* PersonalLearningRemovalTests.swift */; };
 		CD7F4DB7BD7B8F53658750FE /* BedtimeRoutineRESTTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E87076F49D8AC7F8B3853642 /* BedtimeRoutineRESTTests.swift */; };
 		CD928D7EE79D4C3E78439117 /* PodPreferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7094DD650A9409ECB1257A47 /* PodPreferences.swift */; };
 		CD9B748103126F2443327A5D /* PreferencesWorkspace.swift in Sources */ = {isa = PBXBuildFile; fileRef = BEAD8F0E3AA4F54A5A8EC8B0 /* PreferencesWorkspace.swift */; };
@@ -1763,6 +1767,7 @@
 		61694C472F1666CC66CC4916 /* SetBasePresetIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SetBasePresetIntent.swift; sourceTree = "<group>"; };
 		618986E1CEE4068835557ABD /* BiometricsContext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiometricsContext.swift; sourceTree = "<group>"; };
 		618F89DD15C6B22F4B6C92DE /* LaterWakeExample.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaterWakeExample.swift; sourceTree = "<group>"; };
+		61B200EDADB78BAD32B8673B /* PersonalLearningRemovalTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersonalLearningRemovalTests.swift; sourceTree = "<group>"; };
 		61C81955217DA4F28A020254 /* SystemHealthThermalUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemHealthThermalUITests.swift; sourceTree = "<group>"; };
 		61FC07E1A24356EEFE016485 /* HouseholdTransportTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HouseholdTransportTests.swift; sourceTree = "<group>"; };
 		622586F0DA268FE6B89D6605 /* SleeperGestureUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SleeperGestureUITests.swift; sourceTree = "<group>"; };
@@ -1781,6 +1786,7 @@
 		653CE89AE6089A7455591769 /* SystemHealthTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemHealthTests.swift; sourceTree = "<group>"; };
 		656D69D6DE4D1F68D818E1A9 /* ConnectionHomeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionHomeTests.swift; sourceTree = "<group>"; };
 		6594CE3CD551E70CDB9A70A6 /* HealthAccessView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthAccessView.swift; sourceTree = "<group>"; };
+		65A1CBBD7D614CC7A28F48A5 /* PersonalLearningRemovalUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersonalLearningRemovalUITests.swift; sourceTree = "<group>"; };
 		6609B20274A647020E72383E /* TokenStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokenStore.swift; sourceTree = "<group>"; };
 		6609FBA3B881355B05CD01F8 /* PersonalReportPrompt.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersonalReportPrompt.swift; sourceTree = "<group>"; };
 		66398413AD99177B58D51DA5 /* WaveformDatasetScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WaveformDatasetScreen.swift; sourceTree = "<group>"; };
@@ -2284,6 +2290,7 @@
 		D2502ACF99310750E574746B /* SleepTab.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SleepTab.swift; sourceTree = "<group>"; };
 		D258CB4797D3C532F7A8AF2C /* automation-backtest-fixture.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "automation-backtest-fixture.json"; sourceTree = "<group>"; };
 		D26CF0F3D077D5DEF9A54526 /* NativeVitalEvidence.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeVitalEvidence.swift; sourceTree = "<group>"; };
+		D2A12EBE62A8C5D353FCD6DB /* PersonalLearningRemovalSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersonalLearningRemovalSection.swift; sourceTree = "<group>"; };
 		D2FD2FA3FA80666605E9EBBC /* CalibrationSignalBuffer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalibrationSignalBuffer.swift; sourceTree = "<group>"; };
 		D30C0EC349CE22AF91EA3B58 /* HouseholdDrafts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HouseholdDrafts.swift; sourceTree = "<group>"; };
 		D3240F10C59DE3B91546BDC5 /* DaytimeContextWorkspaceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DaytimeContextWorkspaceTests.swift; sourceTree = "<group>"; };
@@ -2342,6 +2349,7 @@
 		DEDD210ADB5EBCDC7FBBBA1B /* RoutinePlan.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoutinePlan.swift; sourceTree = "<group>"; };
 		DF5434A1CA8C3C116129669F /* HomeRoomWorkspace.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeRoomWorkspace.swift; sourceTree = "<group>"; };
 		DF6A54166C6963A3B125AC7C /* ScheduleCurveAlgorithm.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScheduleCurveAlgorithm.swift; sourceTree = "<group>"; };
+		DF6EFA84444E7E13C0A42791 /* PersonalLearningRemoval.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersonalLearningRemoval.swift; sourceTree = "<group>"; };
 		E01BEF5309FAF40C5F088ACE /* ArchivePushTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArchivePushTests.swift; sourceTree = "<group>"; };
 		E0BA1C0C75C7FBCDED8307EF /* AlarmPreview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmPreview.swift; sourceTree = "<group>"; };
 		E0E654BD283664FF3666FAB7 /* NightExplanationScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NightExplanationScreen.swift; sourceTree = "<group>"; };
@@ -2594,6 +2602,7 @@
 				DA4852845F9D5B733CCDD67D /* PersonalJournalScreen.swift */,
 				71CF13500C344AAFE88C3DC5 /* PersonalLearningDetailScreen.swift */,
 				8D5FE53F3614643E768B102A /* PersonalLearningPresentation.swift */,
+				D2A12EBE62A8C5D353FCD6DB /* PersonalLearningRemovalSection.swift */,
 				1006073449DF42712E8D5952 /* PersonalLearningScreen.swift */,
 				58E6A5FB7F6DCEA94E7AFE15 /* PersonalOfflineLibraryScreen.swift */,
 				5006B1D0ABA3874B47DD8D47 /* PersonalRoutineReviewScreen.swift */,
@@ -3211,6 +3220,7 @@
 				08E6B235E18BDBF00C08BA0F /* PersonalLearningDecoding.swift */,
 				91C27CE59B47DBB613D933AF /* PersonalLearningDetail.swift */,
 				76BB9CB8441F8E3501EC7F7B /* PersonalLearningPages.swift */,
+				DF6EFA84444E7E13C0A42791 /* PersonalLearningRemoval.swift */,
 				FB85F9D5F3D7C4BEB216F5E9 /* PersonalOfflineLibrary.swift */,
 				89C886265D8FE6BF7C106C4B /* PersonalRoutine.swift */,
 				117825B4438F3E4625CF5034 /* PodSleepStages.swift */,
@@ -3396,6 +3406,7 @@
 				00C259DBF695797FA8E9B119 /* PersonalJournalTests.swift */,
 				16814B6DD3F79076351FB3FE /* PersonalJournalTransportTests.swift */,
 				078EC190139757979A36AA71 /* PersonalLearningContractTests.swift */,
+				61B200EDADB78BAD32B8673B /* PersonalLearningRemovalTests.swift */,
 				2228972144E04CFC81B6C2DE /* PersonalLearningTransportTests.swift */,
 				DB69D746E608A9B73E708F29 /* PersonalLearningWorkspaceTests.swift */,
 				7D0AA3AA448060E89B38D30F /* PersonalOfflineLibraryTests.swift */,
@@ -3930,6 +3941,7 @@
 				F50F839B7F8126F641AB1E7A /* PersonalHistoryUITests.swift */,
 				A35E3C3C658F9B375F896083 /* PersonalJournalPatternsUITests.swift */,
 				4080EA6881E3EF1442D90638 /* PersonalJournalUITests.swift */,
+				65A1CBBD7D614CC7A28F48A5 /* PersonalLearningRemovalUITests.swift */,
 				1CDCE2AE5B2A57E4D980E4F9 /* PersonalLearningUITests.swift */,
 				B505106044673D15F72A2C5C /* PersonalOfflineLibraryUITests.swift */,
 				1F2555A1018F8DE2C8A4B47F /* PersonalRoutineUITests.swift */,
@@ -4541,6 +4553,7 @@
 				1B1321B08B7250AE0FAF9756 /* PersonalJournalTests.swift in Sources */,
 				24BA9C8A20AD7312D5AC0613 /* PersonalJournalTransportTests.swift in Sources */,
 				67119E4ACEDB23805163EF82 /* PersonalLearningContractTests.swift in Sources */,
+				CD7B0E34F488897A81E88DD1 /* PersonalLearningRemovalTests.swift in Sources */,
 				1E75C6472E78CA5238B6526F /* PersonalLearningTransportTests.swift in Sources */,
 				7E413715652BDF2ABAA3FBB0 /* PersonalLearningWorkspaceTests.swift in Sources */,
 				F1E291954617CF49BF754591 /* PersonalOfflineLibraryTests.swift in Sources */,
@@ -4674,6 +4687,7 @@
 				CAF42124EFA5203CA9A96CFE /* PersonalHistoryUITests.swift in Sources */,
 				8800A5723C0690AD0DAE19E4 /* PersonalJournalPatternsUITests.swift in Sources */,
 				0FB2703EA5CE58A4C143817F /* PersonalJournalUITests.swift in Sources */,
+				5353E8A7A47C7D47E6A9B4EC /* PersonalLearningRemovalUITests.swift in Sources */,
 				85467AE5DA14BCAD5C22DA78 /* PersonalLearningUITests.swift in Sources */,
 				F083DB90501C2AC7DC42EFCB /* PersonalOfflineLibraryUITests.swift in Sources */,
 				06DC5AD69CEF304DB3E69531 /* PersonalRoutineUITests.swift in Sources */,
@@ -5303,6 +5317,8 @@
 				45C8DAF21AB6BD70BC1EFD90 /* PersonalLearningPages.swift in Sources */,
 				B35B746EFF00B087E99AFD95 /* PersonalLearningPresentation.swift in Sources */,
 				846D159A949C67CF3894E0B2 /* PersonalLearningPreview.swift in Sources */,
+				19D362288A72C2A0B839DC17 /* PersonalLearningRemoval.swift in Sources */,
+				3597DFCE4FE941DB78C349E3 /* PersonalLearningRemovalSection.swift in Sources */,
 				2E9538C304282135CDC02CE0 /* PersonalLearningScreen.swift in Sources */,
 				DBFB269243BF23F60FFE2432 /* PersonalLearningWorkspace.swift in Sources */,
 				15AFE4654DACC8BCF9220EA9 /* PersonalOfflineLibrary.swift in Sources */,

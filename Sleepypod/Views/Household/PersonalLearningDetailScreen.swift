@@ -21,7 +21,7 @@ struct PersonalLearningDetailScreen: View {
     var body: some View {
         Form {
             PersonalLearningFeedback(model: model)
-            if let detail = model.detail, detail.recordId == recordId {
+            if let detail = model.detail, detail.recordId == recordId, model.removal?.phase != .removed {
                 let reading = PersonalLearningPresentation.reading(detail)
                 Section {
                     Text(reading.title).font(.title3.bold()).accessibilityIdentifier("learning.detailTitle")
@@ -51,9 +51,10 @@ struct PersonalLearningDetailScreen: View {
                         }
                     }
                 }
-            } else if !model.busy {
+            } else if !model.busy, model.removal == nil {
                 Section { Text("Return to Saved learning and reload to verify this record.").font(.footnote).foregroundStyle(Theme.text2) }
             }
+            PersonalLearningRemovalSection(model: model)
             if let exportNotice { Section { Text(exportNotice).accessibilityIdentifier("learning.exportNotice") } }
         }
         .modifier(PersonalLearningAccessCheck(model: model))
@@ -69,6 +70,9 @@ struct PersonalLearningDetailScreen: View {
         })
         .onChange(of: exporting) { if !exporting { exportDocument = nil } }
         .onChange(of: model.isInvalidated) { if model.isInvalidated { exporting = false; exportDocument = nil; exportNotice = nil } }
+        .onChange(of: model.removal?.phase) {
+            if model.removal?.phase != .review { exporting = false; exportDocument = nil; exportNotice = nil }
+        }
         .onDisappear { model.closeRecord(); exporting = false; exportDocument = nil; exportNotice = nil }
     }
 }

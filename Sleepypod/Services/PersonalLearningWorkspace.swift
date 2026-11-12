@@ -8,7 +8,9 @@ import Observation
     private(set) var selected: PersonalLearningArchive?
     private(set) var records: PersonalLearningRecordPage?
     private(set) var detail: PersonalLearningDetail?
+    private(set) var removal: PersonalLearningRemovalProgress?
     private(set) var busy = false
+    private(set) var activity = "Reading saved learning…"
     private(set) var error: String?
     private(set) var isInvalidated = false
     private let client: any PersonalLearningTransport
@@ -21,9 +23,10 @@ import Observation
         self.connection = connection; self.client = client; self.permitted = permitted; self.revoked = revoked
     }
     var enabled: Bool { !isInvalidated && permitted() && connection.session.capabilities.personalLearningArchive == true }
-    func suspend() { generation += 1; archives = nil; selected = nil; records = nil; detail = nil; busy = false; error = nil }
+    var removalAvailable: Bool { enabled && connection.session.capabilities.personalLearningRemoval == true }
+    func suspend() { generation += 1; archives = nil; selected = nil; records = nil; detail = nil; removal = nil; busy = false; error = nil }
     func invalidate() { isInvalidated = true; suspend() }
-    func closeRecord() { generation += 1; detail = nil; busy = false; error = nil }
+    func closeRecord() { generation += 1; detail = nil; removal = nil; busy = false; error = nil }
     func closeArchive() { closeRecord(); selected = nil; records = nil }
 
     func refresh() async {
@@ -83,6 +86,60 @@ import Observation
             detail = result
         } catch { fail(error, operation: operation) }
     }
+    func reviewRemoval() {
+        guard removalAvailable, !busy, removal == nil, let detail, !detail.redacted,
+              let archive = selected, archive.id == detail.archiveId,
+              let record = records?.records.first(where: { $0.id == detail.recordId }) else { return }
+        let session = connection.session
+        removal = .init(request: .init(version: 1, requestId: UUID().uuidString.lowercased(),
+            expectedSessionRevision: session.sessionRevision, expectedAssignmentRevision: session.assignmentRevision,
+            recordId: detail.recordId, archiveId: archive.id, expectedPayloadHash: detail.payloadHash, confirmRemoveArchivedCopy: true),
+            title: PersonalLearningPresentation.title(record), capturedAt: archive.capturedAt, redactedDetail: detail.removingPayload)
+        error = nil
+    }
+    func cancelRemoval() {
+        guard !busy, removal?.phase == .review else { return }
+        removal = nil; error = nil
+    }
+    func confirmRemoval() async { await performRemoval(readReceiptOnly: false) }
+    func checkRemovalReceipt() async { await performRemoval(readReceiptOnly: true) }
+
+    /// Send only from an explicit review; every uncertain follow-up reads the same receipt.
+    private func performRemoval(readReceiptOnly: Bool) async {
+        guard removalAvailable, !busy, let pending = removal,
+              pending.phase == (readReceiptOnly ? .uncertain : .review) else { return }
+        generation += 1
+        let operation = generation
+        busy = true; error = nil
+        activity = readReceiptOnly ? "Checking removal receipt…" : "Removing saved copy…"
+        defer { finish(operation) }
+        do {
+            let session = try await freshSession(operation)
+            try pending.request.validate(for: session)
+            // The request can reach the Pod even when its reply is lost. Hide the old content now.
+            detail = nil; removal?.phase = .uncertain
+            let response: PersonalLearningRemovalResponse
+            if readReceiptOnly { response = try await client.removalReceipt(requestId: pending.request.requestId) }
+            else { response = try await client.remove(pending.request) }
+            try check(operation)
+            try response.validate(for: session, request: pending.request, capturedAt: pending.capturedAt)
+            _ = try await freshSession(operation)
+            guard let receipt = response.receipt else {
+                error = "The Pod has not confirmed this removal. Check the saved result again; the app will not resend the removal."
+                return
+            }
+            removal?.phase = .removed; removal?.receipt = receipt
+            detail = pending.redactedDetail
+            records = records?.removingPayload(pending.request.recordId)
+        } catch {
+            guard operation == generation else { return }
+            if removal?.phase == .uncertain,
+               ![HouseholdFailure.authentication, .changedIdentity, .forbidden, .unavailable].contains(error as? HouseholdFailure ?? .uncertain) {
+                detail = nil
+                self.error = "Removal is not confirmed. The saved content is hidden until the Pod verifies the result. Check the removal receipt when connected."
+            } else { fail(error, operation: operation) }
+        }
+    }
     func checkAccess() async {
         guard !isInvalidated else { return }
         guard enabled else { invalidate(); return }
@@ -103,7 +160,11 @@ import Observation
     private func check(_ operation: Int) throws {
         guard operation == generation, enabled, !Task.isCancelled else { throw HouseholdFailure.changedIdentity }
     }
-    private func begin() -> Int { generation += 1; busy = true; detail = nil; error = nil; return generation }
+    private func begin() -> Int {
+        generation += 1; busy = true; detail = nil; removal = nil; error = nil
+        activity = "Reading saved learning…"
+        return generation
+    }
     private func finish(_ operation: Int) { if operation == generation { busy = false } }
     private func fail(_ failure: Error, operation: Int) {
         guard operation == generation else { return }

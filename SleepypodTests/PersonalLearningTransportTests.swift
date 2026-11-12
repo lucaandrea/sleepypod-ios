@@ -70,6 +70,51 @@ import XCTest
             XCTAssertEqual(PersonalLearningProtocol.count, 1)
         }
     }
+    func testRemovalPostsOnlyReviewedBodyAndReceiptRecoveryUsesGet() async throws {
+        let client = try client(LearningRemovalFixtures.session()), removal = try LearningRemovalFixtures.request()
+        let response = try JSONEncoder().encode(LearningRemovalFixtures.response(removal))
+        PersonalLearningProtocol.set { request in
+            XCTAssertNil(request.url?.query)
+            XCTAssertEqual(request.value(forHTTPHeaderField: "Authorization"), "Bearer \(client.connection.token)")
+            XCTAssertEqual(request.value(forHTTPHeaderField: "X-Sleepypod-Sleeper-Id"), client.connection.session.selfSleeperId)
+            if request.url?.path == "/api/v1/me/learning/records/\(removal.recordId)/remove" {
+                XCTAssertEqual(request.httpMethod, "POST")
+                XCTAssertEqual(request.value(forHTTPHeaderField: "Content-Type"), "application/json")
+                var body = request.httpBody ?? Data()
+                if let stream = request.httpBodyStream {
+                    stream.open(); defer { stream.close() }
+                    var buffer = [UInt8](repeating: 0, count: 2_048)
+                    while stream.hasBytesAvailable {
+                        let count = stream.read(&buffer, maxLength: buffer.count)
+                        guard count > 0 else { break }; body.append(contentsOf: buffer.prefix(count))
+                    }
+                }
+                XCTAssertEqual(try? JSONDecoder().decode(PersonalLearningRemovalRequest.self, from: body), removal)
+            } else {
+                XCTAssertEqual(request.url?.path, "/api/v1/me/learning/requests/\(removal.requestId)")
+                XCTAssertEqual(request.httpMethod, "GET"); XCTAssertNil(request.httpBody)
+            }
+            return .init(body: response)
+        }
+        _ = try await client.remove(removal); _ = try await client.removalReceipt(requestId: removal.requestId)
+        XCTAssertEqual(PersonalLearningProtocol.count, 2)
+    }
+    func testRemovalRequiresCapabilityAndValidReviewBeforeSending() async throws {
+        PersonalLearningProtocol.set { _ in XCTFail("Unexpected removal"); return .init() }
+        let request = try LearningRemovalFixtures.request()
+        do { _ = try await client().remove(request); XCTFail("Missing capability") } catch {}
+        let client = try client(LearningRemovalFixtures.session())
+        for field in ["recordId", "archiveId", "expectedPayloadHash", "confirmRemoveArchivedCopy", "expectedSessionRevision"] {
+            let changed: PersonalLearningRemovalRequest = try PersonalHistoryFixtures.changed(request) {
+                if field == "confirmRemoveArchivedCopy" { $0[field] = false }
+                else if field == "expectedSessionRevision" { $0[field] = 999 }
+                else { $0[field] = "../owner" }
+            }
+            do { _ = try await client.remove(changed); XCTFail("Invalid review") } catch {}
+        }
+        do { _ = try await client.removalReceipt(requestId: "../owner"); XCTFail("Invalid request ID") } catch {}
+        XCTAssertEqual(PersonalLearningProtocol.count, 0)
+    }
 }
 
 private final class PersonalLearningProtocol: URLProtocol, @unchecked Sendable {

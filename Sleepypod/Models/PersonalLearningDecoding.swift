@@ -2,7 +2,7 @@ import Foundation
 
 /// Reject broader projections before decoding; original source JSON remains an uninterpreted string.
 enum PersonalLearningDecoding {
-    enum Shape { case archives, records, detail }
+    enum Shape { case archives, records, detail, removal }
     static func check(_ data: Data, shape: Shape) throws {
         guard let object = try JSONSerialization.jsonObject(with: data) as? [String: Any] else { throw HouseholdFailure.invalid }
         let common: Set<String> = ["version", "generatedAt", "scope", "interpretation"]
@@ -24,6 +24,11 @@ enum PersonalLearningDecoding {
             }
         case .detail:
             try keys(object, common.union(["recordId", "archiveId", "sourceTable", "sourceSide", "kind", "attribution", "activation", "payloadHash", "encoding", "payload", "redacted"]))
+        case .removal:
+            try keys(object, common.union(["receipt"]))
+            if !(object["receipt"] is NSNull) {
+                try keys(object["receipt"], ["requestId", "recordId", "archiveId", "payloadHash", "removedAt", "outcome"])
+            }
         }
     }
     private static func keys(_ value: Any?, _ required: Set<String>, optional: Set<String> = []) throws {
