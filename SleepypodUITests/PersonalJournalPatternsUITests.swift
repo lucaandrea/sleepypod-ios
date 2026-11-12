@@ -12,15 +12,22 @@ import XCTest
         return app
     }
     private func reveal(_ element: XCUIElement, in app: XCUIApplication, towardTop: Bool = false) {
-        func visible() -> Bool { element.exists && element.isHittable && element.frame.midY > app.frame.minY + 110 && element.frame.midY < app.frame.maxY - 40 }
-        for _ in 0..<40 {
-            if visible() { break }
-            let upward = element.exists ? element.frame.midY > app.frame.maxY - 40 : !towardTop
+        // Reuse each accessibility snapshot within an attempt; remote runners make repeated reads costly.
+        let window = app.frame
+        for attempt in 0...40 {
+            let exists = element.exists
+            let frame = exists ? element.frame : .zero
+            if exists, frame.midY > window.minY + 110, frame.midY < window.maxY - 40, element.isHittable {
+                XCTAssertGreaterThanOrEqual(frame.minX, window.minX)
+                XCTAssertLessThanOrEqual(frame.maxX, window.maxX)
+                return
+            }
+            guard attempt < 40 else { break }
+            let upward = exists ? frame.midY > window.maxY - 40 : !towardTop
             app.coordinate(withNormalizedOffset: CGVector(dx: 0.9, dy: upward ? 0.78 : 0.28))
                 .press(forDuration: 0.05, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.9, dy: upward ? 0.28 : 0.78)))
         }
-        XCTAssertTrue(visible(), "Unreachable \(element.identifier)")
-        XCTAssertGreaterThanOrEqual(element.frame.minX, app.frame.minX); XCTAssertLessThanOrEqual(element.frame.maxX, app.frame.maxX)
+        XCTFail("Unreachable \(element.identifier)")
     }
     private func capture(_ name: String) {
         let attachment = XCTAttachment(screenshot: XCUIScreen.main.screenshot()); attachment.name = name; attachment.lifetime = .keepAlways; add(attachment)
