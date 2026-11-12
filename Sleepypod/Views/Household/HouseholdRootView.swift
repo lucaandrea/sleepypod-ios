@@ -24,7 +24,7 @@ struct HouseholdRootView: View {
                 }
             } else { HouseholdScreen() }
         }
-        .task { await household.refresh() }
+        .task { await household.refresh(); await household.personalHealth?.refreshOnActivation() }
         .onChange(of: scenePhase) { _, phase in Task { await household.sceneChanged(active: phase == .active) } }
     }
 }

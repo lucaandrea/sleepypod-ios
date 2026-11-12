@@ -101,7 +101,7 @@ struct PersonalLearningRecordsScreen: View {
 struct PersonalLearningFeedback: View {
     let model: PersonalLearningWorkspace
     var body: some View {
-        if model.busy { Section { ProgressView("Reading saved learning…").accessibilityIdentifier("learning.loading") } }
+        if model.busy { Section { ProgressView(model.activity).accessibilityIdentifier("learning.loading") } }
         if let error = model.error { Section { Text(error).foregroundStyle(Theme.text1).accessibilityIdentifier("learning.error") } }
     }
 }

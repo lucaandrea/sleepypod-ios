@@ -40,7 +40,7 @@ struct ReportWebSharingScreen: View {
                                 .font(.caption).foregroundStyle(Theme.text2)
                         }
                         Button(workspace.busy ? "Checking…" : "Refresh sharing status") { Task { await refresh() } }
-                            .buttonStyle(ReportSharingButtonStyle()).disabled(workspace.busy).accessibilityIdentifier("report.share.refresh")
+                            .buttonStyle(FeatureActionButtonStyle()).disabled(workspace.busy).accessibilityIdentifier("report.share.refresh")
                         if let message = workspace.message { Text(message).font(.subheadline).accessibilityIdentifier("report.share.message") }
                     }
                     if workspace.status == .withdrawn {
@@ -58,7 +58,7 @@ struct ReportWebSharingScreen: View {
                             Button(workspace.needsUpdate ? "Update shared answers" : "Share report") {
                                 let approved = consent; consent = false
                                 Task { await workspace.share(consent: approved, valid: { allowed }) }
-                            }.buttonStyle(ReportSharingButtonStyle(primary: true)).disabled(!consent || workspace.busy).accessibilityIdentifier("report.share.send")
+                            }.buttonStyle(FeatureActionButtonStyle(primary: true)).disabled(!consent || workspace.busy).accessibilityIdentifier("report.share.send")
                         }
                     }
                     if workspace.canWithdraw {
@@ -68,7 +68,7 @@ struct ReportWebSharingScreen: View {
                             Text("Withdrawal removes this report from the Pod’s shared library. It does not erase your original on this device or existing backups.")
                                 .font(.subheadline).foregroundStyle(Theme.text2)
                             Button("Withdraw shared copy", role: .destructive) { confirmingWithdrawal = true }
-                                .buttonStyle(ReportSharingButtonStyle()).disabled(workspace.busy).accessibilityIdentifier("report.share.withdraw")
+                                .buttonStyle(FeatureActionButtonStyle()).disabled(workspace.busy).accessibilityIdentifier("report.share.withdraw")
                         }
                     }
                 }
@@ -103,43 +103,5 @@ struct ReportWebSharingScreen: View {
     private func refresh() async {
         consent = false; confirmingWithdrawal = false; workspace.suspend()
         if allowed { await workspace.refresh(report) }
-    }
-}
-
-/// Keeps full-size, multiline action labels inside their control at accessibility sizes.
-private struct ReportSharingButtonStyle: ButtonStyle {
-    var primary = false
-    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
-    @Environment(\.isEnabled) private var isEnabled
-
-    @ViewBuilder func makeBody(configuration: Configuration) -> some View {
-        if dynamicTypeSize.isAccessibilitySize {
-            let shape = RoundedRectangle(cornerRadius: 16, style: .continuous)
-            if primary {
-                paddedLabel(configuration).foregroundStyle(Theme.background)
-                    .background(Theme.text1, in: shape).contentShape(shape)
-                    .opacity(isEnabled ? (configuration.isPressed ? 0.8 : 1) : 0.45)
-            } else {
-                paddedLabel(configuration).foregroundStyle(Theme.text1)
-                    .chromeSurface(shape).contentShape(shape)
-                    .opacity(isEnabled ? (configuration.isPressed ? 0.8 : 1) : 0.45)
-            }
-        } else if primary {
-            configuration.label.font(.headline).frame(maxWidth: .infinity, minHeight: 56)
-                .foregroundStyle(Theme.background).background(Theme.text1, in: Capsule())
-                .opacity(isEnabled ? (configuration.isPressed ? 0.8 : 1) : 0.45)
-                .contentShape(Capsule())
-        } else {
-            configuration.label.font(.headline).frame(maxWidth: .infinity, minHeight: 56)
-                .foregroundStyle(Theme.text1).chromeSurface()
-                .opacity(isEnabled ? 1 : 0.45)
-        }
-    }
-
-    private func paddedLabel(_ configuration: Configuration) -> some View {
-        configuration.label.font(.headline).multilineTextAlignment(.center)
-            .fixedSize(horizontal: false, vertical: true)
-            .padding(.horizontal, 24).padding(.vertical, 16)
-            .frame(maxWidth: .infinity, minHeight: 56)
     }
 }

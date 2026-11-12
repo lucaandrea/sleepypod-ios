@@ -5,6 +5,7 @@ on:
     paths:
       - 'FreeSleepKit/Intelligence/MorningReport*.swift'
       - 'SleepypodFeatures/ReportWebSharing*.swift'
+      - 'SleepypodFeatures/FeatureActionButtonStyle.swift'
       - 'SleepypodFeatures/MorningBriefScreen.swift'
       - 'Sleepypod/Services/OwnerReportSharing.swift'
       - 'Sleepypod/SleepypodApp.swift'

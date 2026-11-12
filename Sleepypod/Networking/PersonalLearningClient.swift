@@ -5,9 +5,16 @@ protocol PersonalLearningTransport: Sendable {
     func archives(before: String?, limit: Int) async throws -> PersonalLearningArchivePage
     func records(archiveId: String, after: Int, limit: Int) async throws -> PersonalLearningRecordPage
     func detail(recordId: String) async throws -> PersonalLearningDetail
+    func remove(_ request: PersonalLearningRemovalRequest) async throws -> PersonalLearningRemovalResponse
+    func removalReceipt(requestId: String) async throws -> PersonalLearningRemovalResponse
 }
 
-/// Read-only personal routes use bounded streams, pinned identity and no owner fallback.
+extension PersonalLearningTransport {
+    func remove(_ request: PersonalLearningRemovalRequest) async throws -> PersonalLearningRemovalResponse { throw HouseholdFailure.unavailable }
+    func removalReceipt(requestId: String) async throws -> PersonalLearningRemovalResponse { throw HouseholdFailure.unavailable }
+}
+
+/// Bounded personal routes pin identity, reject redirects and never retry a removal.
 struct PersonalLearningHTTPClient: PersonalLearningTransport {
     let connection: PersonalBedConnection
     var transport: URLSession = Self.transport
@@ -38,10 +45,24 @@ struct PersonalLearningHTTPClient: PersonalLearningTransport {
         guard HouseholdValidation.identifier(recordId) else { throw HouseholdFailure.invalid }
         return try .decodeExact(await read("me/learning/records/\(recordId)", maximumBytes: 2 * PersonalLearningContract.recordBytes + 65_536))
     }
+    func remove(_ request: PersonalLearningRemovalRequest) async throws -> PersonalLearningRemovalResponse {
+        try removalAvailable()
+        try request.validate(for: connection.session)
+        return try .decodeExact(await read("me/learning/records/\(request.recordId)/remove", body: JSONEncoder().encode(request)))
+    }
+    func removalReceipt(requestId: String) async throws -> PersonalLearningRemovalResponse {
+        try removalAvailable()
+        guard HouseholdValidation.identifier(requestId) else { throw HouseholdFailure.invalid }
+        return try .decodeExact(await read("me/learning/requests/\(requestId)"))
+    }
+    private func removalAvailable() throws {
+        try available()
+        guard connection.session.capabilities.personalLearningRemoval == true else { throw HouseholdFailure.unavailable }
+    }
     private func available() throws {
         guard connection.session.capabilities.personalLearningArchive == true else { throw HouseholdFailure.unavailable }
     }
-    private func read(_ path: String, query: [URLQueryItem] = [], maximumBytes: Int = 524_288) async throws -> Data {
+    private func read(_ path: String, query: [URLQueryItem] = [], maximumBytes: Int = 524_288, body: Data? = nil) async throws -> Data {
         guard try HouseholdHTTPClient.endpoint(connection.endpoint.absoluteString) == connection.endpoint,
               HouseholdValidation.secret(connection.token) else { throw HouseholdFailure.authentication }
         let endpoint = connection.endpoint.appending(path: "api/v1").appending(path: path)
@@ -49,7 +70,9 @@ struct PersonalLearningHTTPClient: PersonalLearningTransport {
         if !query.isEmpty { components.queryItems = query }
         guard let address = components.url else { throw HouseholdFailure.invalid }
         var request = URLRequest(url: address, cachePolicy: .reloadIgnoringLocalAndRemoteCacheData, timeoutInterval: 20)
-        request.httpMethod = "GET"; request.httpShouldHandleCookies = false
+        request.httpMethod = body == nil ? "GET" : "POST"; request.httpShouldHandleCookies = false
+        request.httpBody = body
+        if body != nil { request.setValue("application/json", forHTTPHeaderField: "Content-Type") }
         request.setValue("application/json", forHTTPHeaderField: "Accept")
         request.setValue("Bearer \(connection.token)", forHTTPHeaderField: "Authorization")
         request.setValue(connection.session.selfSleeperId, forHTTPHeaderField: "X-Sleepypod-Sleeper-Id")

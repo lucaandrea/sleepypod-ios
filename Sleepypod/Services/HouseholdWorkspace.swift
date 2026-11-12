@@ -19,12 +19,14 @@ import Observation
     private(set) var arrangement: ArrangementReviewWorkspace?
     private(set) var history: PersonalHistoryWorkspace?
     private(set) var offlineLibrary: PersonalOfflineLibraryWorkspace?
+    private(set) var personalHealth: PersonalHealthWorkspace?
     private(set) var learning: PersonalLearningWorkspace?
     private(set) var journal: PersonalJournalWorkspace?
     private(set) var maintenance: ArrangementMaintenanceWorkspace?
     private(set) var maintenanceChecking = false
     private(set) var recoveryBusy: UUID?
     private let offlineStore: PersonalOfflineLibraryStore
+    private let healthSnapshots: PrivateSnapshotStore?
     private let vault: any HouseholdVault
     private let defaults: UserDefaults
     private let client: @Sendable (URL) -> any HouseholdTransport
@@ -44,7 +46,8 @@ import Observation
     private var storageLoaded = false
     private var foreground = true
 
-    init(vault: any HouseholdVault = HouseholdKeychainVault(), offlineStore: PersonalOfflineLibraryStore = .init(), defaults: UserDefaults = .standard,
+    init(vault: any HouseholdVault = HouseholdKeychainVault(), offlineStore: PersonalOfflineLibraryStore = .init(),
+         healthSnapshots: PrivateSnapshotStore? = nil, defaults: UserDefaults = .standard,
          client: @escaping @Sendable (URL) -> any HouseholdTransport = { HouseholdHTTPClient(endpoint: $0) },
          personalClient: @escaping @Sendable (PersonalBedConnection) -> any PersonalBedTransport = { PersonalBedHTTPClient(connection: $0) },
          routineClient: @escaping @Sendable (PersonalBedConnection) -> any PersonalRoutineTransport = { PersonalRoutineHTTPClient(connection: $0) },
@@ -58,6 +61,7 @@ import Observation
          ownerKey: @escaping @MainActor (URL) -> String = { UnifiedRuntime.savedKey(for: $0.absoluteString) },
          secret: @escaping @MainActor () throws -> String = { try HouseholdKeychainVault.secret() }) {
         self.offlineStore = offlineStore
+        self.healthSnapshots = healthSnapshots
         self.vault = vault; self.defaults = defaults; self.client = client; self.personalClient = personalClient; self.routineClient = routineClient
         self.arrangementClient = arrangementClient; self.historyClient = historyClient; self.maintenanceClient = maintenanceClient
         self.learningClient = learningClient; self.journalClient = journalClient
@@ -351,6 +355,7 @@ import Observation
         try withdrawOfflineLibrary(id)
         var next = state
         if let record = next.connections.first(where: { $0.id == id }), let identity = record.identity {
+            try PersonalHealthWorkspace.removeLocalData(for: PersonalHealthIdentity(session: identity), snapshots: healthSnapshots)
             var tombstones = next.controlTombstones ?? []
             for attempt in record.personalControls ?? [] where attempt.needsReview {
                 let tombstone = PersonalControlTombstone(identity: identity.identity, requestId: attempt.id,
@@ -393,6 +398,7 @@ import Observation
         do { try vault.save(next); state = next } catch { throw HouseholdFailure.storage }
     }
     private func clearVisible() {
+        personalHealth?.invalidate(); personalHealth = nil
         offlineLibrary?.invalidate(); offlineLibrary = nil
         maintenance?.invalidate(); maintenance = nil; maintenanceChecking = false
         clearOrdinary()
@@ -400,6 +406,7 @@ import Observation
     }
     /// Dispose assigned controls and private editors without losing an unresolved maintenance operation.
     private func clearOrdinary() {
+        personalHealth?.invalidate(); personalHealth = nil
         temperature?.invalidate(); temperature = nil
         publication?.invalidate(); publication = nil
         arrangement?.invalidate(); arrangement = nil
@@ -410,9 +417,10 @@ import Observation
 
     func sceneChanged(active: Bool) async {
         foreground = active
-        if active { await refresh() }
+        if active { await refresh(); await personalHealth?.refreshOnActivation() }
         else {
             generation += 1; busy = false
+            personalHealth?.invalidate(); personalHealth = nil
             offlineLibrary?.invalidate(); offlineLibrary = nil
             maintenance?.background(); clearOrdinary()
         }
@@ -491,7 +499,8 @@ import Observation
         generation += 1; clearVisible()
         do {
             for record in state.connections { try withdrawOfflineLibrary(record.id) }
-            try persist(.init()); notice = "Personal credentials, saved readings, drafts, command and publication recovery records erased from this device."
+            try PersonalHealthWorkspace.eraseAllLocalData(snapshots: healthSnapshots)
+            try persist(.init()); notice = "Personal credentials, saved readings, Health imports, drafts, command and publication recovery records erased from this device."
         }
         catch { self.error = HouseholdFailure.storage.localizedDescription }
     }
@@ -647,6 +656,7 @@ import Observation
     }
     /// Offline reads use the last validated identity only; they never create an active session.
     private func configureOfflineLibrary() {
+        configurePersonalHealth()
         guard active, foreground, let record = selected, record.offlineBlocked != true, let identity = record.identity else { return }
         if let offlineLibrary, !offlineLibrary.invalidated, offlineLibrary.connection.id == record.id,
            offlineLibrary.connection.session == identity, offlineLibrary.connection.token == record.deviceSecret { return }
@@ -662,12 +672,34 @@ import Observation
     }
     /// Persist denial before removing ciphertext, so a failed removal cannot re-expose a revoked copy.
     private func withdrawOfflineLibrary(_ identifier: UUID) throws {
+        if personalHealth?.access.connectionID == identifier { personalHealth?.invalidate(); personalHealth = nil }
         if offlineLibrary?.connection.id == identifier { offlineLibrary?.invalidate(); offlineLibrary = nil }
         guard let record = state.connections.first(where: { $0.id == identifier }) else { return }
         try update(identifier) { $0.offlineBlocked = true }
         if let identity = record.identity {
             try offlineStore.remove(connection: .init(id: record.id, endpoint: record.endpoint, token: record.deviceSecret, session: identity))
         }
+    }
+
+    /// Cached reads use a retained identity; new imports also require the current live account session.
+    private func configurePersonalHealth() {
+        guard active, foreground, let record = selected, let identity = record.identity,
+              let access = try? PersonalHealthAccess(record: record, session: identity) else {
+            personalHealth?.invalidate(); personalHealth = nil; return
+        }
+        if let personalHealth, !personalHealth.isInvalidated, personalHealth.access == access { return }
+        personalHealth?.invalidate()
+        let operation = generation
+        personalHealth = PersonalHealthWorkspace(access: access, displayName: identity.person.displayName, currentAccess: { [weak self] in
+            guard let self, self.active, self.foreground, self.generation == operation,
+                  let current = self.selected, current.id == record.id, let session = current.identity else { return nil }
+            return try? PersonalHealthAccess(record: current, session: session)
+        }, importPermitted: { [weak self] in
+            guard let self else { return false }
+            return self.active && self.foreground && !self.busy && !self.requiresMaintenance
+                && self.generation == operation && self.session == identity && self.selected?.id == record.id
+        }, snapshots: healthSnapshots)
+        personalHealth?.restore()
     }
 
     private func configureHistory(record: HouseholdConnectionRecord, session: HouseholdSession) {
