@@ -20,6 +20,7 @@ import Observation
     private(set) var history: PersonalHistoryWorkspace?
     private(set) var offlineLibrary: PersonalOfflineLibraryWorkspace?
     private(set) var personalHealth: PersonalHealthWorkspace?
+    private(set) var personalReports: PersonalReportWorkspace?
     private(set) var learning: PersonalLearningWorkspace?
     private(set) var journal: PersonalJournalWorkspace?
     private(set) var experiments: ComfortExperimentWorkspace?
@@ -30,6 +31,7 @@ import Observation
     private(set) var recoveryBusy: UUID?
     private let offlineStore: PersonalOfflineLibraryStore
     private let healthSnapshots: PrivateSnapshotStore?
+    private let reportSnapshots: PrivateSnapshotStore?
     private let vault: any HouseholdVault
     private let defaults: UserDefaults
     private let client: @Sendable (URL) -> any HouseholdTransport
@@ -42,6 +44,7 @@ import Observation
     private let experimentClient: @Sendable (PersonalBedConnection) -> any ComfortExperimentTransport
     private let journalClient: @Sendable (PersonalBedConnection) -> any PersonalJournalTransport
     private let maintenanceClient: @Sendable (PersonalBedConnection) -> any ArrangementMaintenanceTransport
+    private let reportClient: @MainActor (URL, String, MorningReportScope) throws -> any MorningReportSharingTransport
     private let capability: @MainActor () async throws -> Bool
     private var ownerGateScope: [String]?
     private let ownerEndpoint: @MainActor () -> URL?
@@ -52,7 +55,7 @@ import Observation
     private var foreground = true
 
     init(vault: any HouseholdVault = HouseholdKeychainVault(), offlineStore: PersonalOfflineLibraryStore = .init(),
-         healthSnapshots: PrivateSnapshotStore? = nil, defaults: UserDefaults = .standard,
+         healthSnapshots: PrivateSnapshotStore? = nil, reportSnapshots: PrivateSnapshotStore? = nil, defaults: UserDefaults = .standard,
          client: @escaping @Sendable (URL) -> any HouseholdTransport = { HouseholdHTTPClient(endpoint: $0) },
          personalClient: @escaping @Sendable (PersonalBedConnection) -> any PersonalBedTransport = { PersonalBedHTTPClient(connection: $0) },
          routineClient: @escaping @Sendable (PersonalBedConnection) -> any PersonalRoutineTransport = { PersonalRoutineHTTPClient(connection: $0) },
@@ -63,15 +66,20 @@ import Observation
          experimentClient: @escaping @Sendable (PersonalBedConnection) -> any ComfortExperimentTransport = { ComfortExperimentHTTPClient(account: .personal($0)) },
          quietClient: @escaping @Sendable (PersonalBedConnection) -> any PersonalQuietTransport = { PersonalQuietHTTPClient(connection: $0) },
          maintenanceClient: @escaping @Sendable (PersonalBedConnection) -> any ArrangementMaintenanceTransport = { ArrangementMaintenanceHTTPClient(connection: $0) },
+         reportClient: @escaping @MainActor (URL, String, MorningReportScope) throws -> any MorningReportSharingTransport = {
+             try MorningReportHTTPClient(endpoint: $0, token: $1, scope: $2)
+         },
          capability: @escaping @MainActor () async throws -> Bool = { try await HouseholdPreparationCapability.load() },
          ownerEndpoint: @escaping @MainActor () -> URL? = { OwnerConnection.endpoint },
          ownerKey: @escaping @MainActor (URL) -> String = { UnifiedRuntime.savedKey(for: $0.absoluteString) },
          secret: @escaping @MainActor () throws -> String = { try HouseholdKeychainVault.secret() }) {
         self.offlineStore = offlineStore
         self.healthSnapshots = healthSnapshots
+        self.reportSnapshots = reportSnapshots
         self.vault = vault; self.defaults = defaults; self.client = client; self.personalClient = personalClient; self.routineClient = routineClient
         self.arrangementClient = arrangementClient; self.historyClient = historyClient; self.maintenanceClient = maintenanceClient
         self.experimentClient = experimentClient
+        self.reportClient = reportClient
         self.learningClient = learningClient; self.journalClient = journalClient; self.quietClient = quietClient
         self.capability = capability; self.ownerEndpoint = ownerEndpoint; self.ownerKey = ownerKey; self.secret = secret
         active = defaults.bool(forKey: PersonalWorkspaceBoundary.preferenceKey)
@@ -362,6 +370,7 @@ import Observation
         var next = state
         if let record = next.connections.first(where: { $0.id == id }), let identity = record.identity {
             try PersonalHealthWorkspace.removeLocalData(for: PersonalHealthIdentity(session: identity), snapshots: healthSnapshots)
+            try PersonalReportWorkspace.removeLocalData(for: PersonalHealthIdentity(session: identity), snapshots: reportSnapshots)
             var tombstones = next.controlTombstones ?? []
             for attempt in record.personalControls ?? [] where attempt.needsReview {
                 let tombstone = PersonalControlTombstone(identity: identity.identity, requestId: attempt.id,
@@ -415,6 +424,7 @@ import Observation
         do { try vault.save(next); state = next } catch { throw HouseholdFailure.storage }
     }
     private func clearVisible(preservingQuiet: Bool = false) {
+        personalReports?.invalidate(); personalReports = nil
         personalHealth?.invalidate(); personalHealth = nil
         offlineLibrary?.invalidate(); offlineLibrary = nil
         maintenance?.invalidate(); maintenance = nil; maintenanceChecking = false
@@ -423,6 +433,7 @@ import Observation
     }
     /// Dispose assigned controls and private editors without losing an unresolved maintenance operation.
     private func clearOrdinary(preservingQuiet: Bool = false) {
+        personalReports?.invalidate(); personalReports = nil
         if preservingQuiet {
             quiet?.suspend(); experiments?.suspend()
         } else {
@@ -522,7 +533,9 @@ import Observation
         do {
             for record in state.connections { try withdrawOfflineLibrary(record.id) }
             try PersonalHealthWorkspace.eraseAllLocalData(snapshots: healthSnapshots)
-            try persist(.init()); notice = "Personal credentials, saved readings, Health imports, drafts, command and publication recovery records erased from this device."
+            let identities = try state.connections.compactMap { try $0.identity.map(PersonalHealthIdentity.init(session:)) }
+            try PersonalReportWorkspace.eraseAllLocalData(identities: identities, snapshots: reportSnapshots)
+            try persist(.init()); notice = "Personal credentials, saved readings, Health imports, reports, model keys, drafts and recovery records erased from this device."
         }
         catch { self.error = HouseholdFailure.storage.localizedDescription }
     }
@@ -679,6 +692,7 @@ import Observation
     /// Offline reads use the last validated identity only; they never create an active session.
     private func configureOfflineLibrary() {
         configurePersonalHealth()
+        configurePersonalReports()
         guard active, foreground, let record = selected, record.offlineBlocked != true, let identity = record.identity else { return }
         if let offlineLibrary, !offlineLibrary.invalidated, offlineLibrary.connection.id == record.id,
            offlineLibrary.connection.session == identity, offlineLibrary.connection.token == record.deviceSecret { return }
@@ -694,6 +708,7 @@ import Observation
     }
     /// Persist denial before removing ciphertext, so a failed removal cannot re-expose a revoked copy.
     private func withdrawOfflineLibrary(_ identifier: UUID) throws {
+        if personalReports?.access.connectionID == identifier { personalReports?.invalidate(); personalReports = nil }
         if personalHealth?.access.connectionID == identifier { personalHealth?.invalidate(); personalHealth = nil }
         if offlineLibrary?.connection.id == identifier { offlineLibrary?.invalidate(); offlineLibrary = nil }
         guard let record = state.connections.first(where: { $0.id == identifier }) else { return }
@@ -722,6 +737,28 @@ import Observation
                 && self.generation == operation && self.session == identity && self.selected?.id == record.id
         }, snapshots: healthSnapshots)
         personalHealth?.restore()
+    }
+
+    /// Reports retain personal ownership while fresh creation requires the current live grant.
+    private func configurePersonalReports() {
+        guard active, foreground, let record = selected, let identity = record.identity,
+              identity.capabilities.personalDeviceReports == true, let health = personalHealth else {
+            personalReports?.invalidate(); personalReports = nil; return
+        }
+        if let personalReports, !personalReports.isInvalidated, personalReports.access == health.access { return }
+        personalReports?.invalidate()
+        let operation = generation
+        personalReports = PersonalReportWorkspace(health: health, currentAccess: { [weak self] in
+            guard let self, self.active, self.foreground, self.generation == operation,
+                  let current = self.selected, current.id == record.id, let retained = current.identity,
+                  retained.capabilities.personalDeviceReports == true else { return nil }
+            return try? PersonalHealthAccess(record: current, session: retained)
+        }, requestPermitted: { [weak self] in
+            guard let self else { return false }
+            return self.active && self.foreground && !self.busy && !self.requiresMaintenance
+                && self.generation == operation && self.session == identity && self.selected?.id == record.id
+        }, snapshots: reportSnapshots)
+        personalReports?.restore()
     }
 
     private func configureHistory(record: HouseholdConnectionRecord, session: HouseholdSession) {
@@ -835,6 +872,57 @@ import Observation
 }
 
 extension HouseholdWorkspace {
+    /// Sharing always revalidates the personal session and never borrows the household owner key.
+    func connectPersonalReportSharing() async throws -> MorningReportConnection {
+        guard active, foreground, !busy, !requiresMaintenance, pending == nil,
+              let record = selected, record.offlineBlocked != true, let session,
+              record.identity == session, session.capabilities.personalReports == true,
+              session.capabilities.personalDeviceReports == true, personalReports?.available == true else {
+            throw MorningReportSharingFailure.unavailable
+        }
+        let operation = generation
+        do {
+            let fresh: HouseholdSession = try await read("household/session", record: record)
+            try check(operation, record.id)
+            try fresh.validate()
+            guard fresh == session, self.session == session, selected?.identity == session,
+                  selected?.endpoint == record.endpoint, selected?.deviceSecret == record.deviceSecret,
+                  selected?.offlineBlocked != true, !requiresMaintenance, !busy, pending == nil,
+                  personalReports?.available == true else { throw HouseholdFailure.changedIdentity }
+            let identity = try PersonalHealthIdentity(session: fresh)
+            let scope = MorningReportScope.personal(podID: identity.podID, householdID: identity.householdID,
+                accountID: identity.accountID, sleeperID: identity.sleeperID, sessionRevision: fresh.sessionRevision,
+                householdRevision: fresh.householdRevision, assignmentRevision: fresh.assignmentRevision)
+            let transport = try reportClient(record.endpoint, record.deviceSecret, scope)
+            return MorningReportConnection(address: record.endpoint.absoluteString, transport: transport, isCurrent: { [weak self] in
+                guard let self else { return false }
+                return self.active && self.foreground && self.generation == operation && !self.busy
+                    && !self.requiresMaintenance && self.pending == nil && self.selected?.id == record.id
+                    && self.selected?.endpoint == record.endpoint && self.selected?.deviceSecret == record.deviceSecret
+                    && self.selected?.offlineBlocked != true && self.selected?.identity == session && self.session == session
+                    && self.personalReports?.available == true
+            }, authorizationFailed: { [weak self] failure in
+                guard let self, self.active, self.foreground, self.generation == operation, self.selected?.id == record.id else { return }
+                self.clearVisible()
+                if failure == .authentication { try? self.forget(record.id) }
+                else { try? self.withdrawOfflineLibrary(record.id) }
+            })
+        } catch {
+            guard active, foreground, operation == generation, selected?.id == record.id else {
+                throw MorningReportSharingFailure.changedAccount
+            }
+            if error as? HouseholdFailure == .authentication {
+                clearVisible(); try? forget(record.id)
+                throw MorningReportSharingFailure.authentication
+            }
+            if [.changedIdentity, .forbidden, .invalid].contains(error as? HouseholdFailure) {
+                clearVisible(); try? withdrawOfflineLibrary(record.id)
+                throw MorningReportSharingFailure.changedAccount
+            }
+            throw error as? MorningReportSharingFailure ?? MorningReportSharingFailure.uncertain
+        }
+    }
+
     /// A live Watch request may wake the phone in the background. It refreshes only this account's bed controls.
     var remoteContext: [String] {
         [String(active), String(generation), selected?.id.uuidString ?? "", String(requiresMaintenance)]

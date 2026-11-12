@@ -7,8 +7,11 @@ import UIKit
     public let address: String
     let transport: any MorningReportSharingTransport
     let isCurrent: @MainActor () -> Bool
-    public init(address: String, transport: any MorningReportSharingTransport, isCurrent: @escaping @MainActor () -> Bool) {
+    let authorizationFailed: (@MainActor (MorningReportSharingFailure) -> Void)?
+    public init(address: String, transport: any MorningReportSharingTransport, isCurrent: @escaping @MainActor () -> Bool,
+                authorizationFailed: (@MainActor (MorningReportSharingFailure) -> Void)? = nil) {
         self.address = address; self.transport = transport; self.isCurrent = isCurrent
+        self.authorizationFailed = authorizationFailed
     }
 }
 
@@ -90,6 +93,10 @@ import UIKit
     private func finish(_ error: Error, generation: UUID, mutation: Bool = false) {
         guard self.generation == generation else { return }
         guard protectedData(), connection?.isCurrent() != false else { suspend(); return }
+        if let failure = error as? MorningReportSharingFailure, [.authentication, .forbidden].contains(failure),
+           let withdrawAccess = connection?.authorizationFailed {
+            withdrawAccess(failure); suspend(); return
+        }
         status = mutation ? .uncertain : .unchecked
         message = error is CancellationError ? "The operation ended. Refresh sharing status before continuing."
             : (error as? MorningReportSharingFailure)?.errorDescription ?? MorningReportSharingFailure.uncertain.errorDescription

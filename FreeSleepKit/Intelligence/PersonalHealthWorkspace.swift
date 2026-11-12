@@ -70,6 +70,25 @@ import UIKit
     }
     var history: HealthHistory? { readable ? archive?.history : nil }
 
+    /// Reports use only this explicit device enrollment and one selected source.
+    func reportEvidence(at instant: Date) -> PersonalReportEvidence? {
+        guard readable, let saved = archive, let history = saved.history, history.importedAt <= instant,
+              let source = history.sources.first(where: { $0.id == saved.selectedSource }), !source.nights.isEmpty,
+              let zone = TimeZone(identifier: history.timeZone) else { return nil }
+        return .init(identity: access.identity, healthRevision: saved.revision, sourceID: source.id,
+                     sourceName: String(source.name.prefix(256)), importedAt: history.importedAt,
+                     facts: HealthHistoryAnalyzer.facts(source: source, now: instant, timeZone: zone),
+                     comparison: ReportSleepComparison.capture(source: source, history: history, now: instant))
+    }
+
+    func reportEvidenceIsCurrent(_ evidence: PersonalReportEvidence) -> Bool {
+        guard readable, evidence.identity == access.identity, evidence.healthRevision == archive?.revision,
+              evidence.sourceID == archive?.selectedSource else { return false }
+        guard let saved = try? store.read() else { return false }
+        return saved.identity == access.identity && saved.revision == evidence.healthRevision
+            && saved.selectedSource == evidence.sourceID
+    }
+
     public func restore() {
         guard readable, !storedBusy else { return }
         archive = nil; storedMessage = nil

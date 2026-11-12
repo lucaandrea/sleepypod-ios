@@ -168,6 +168,7 @@ struct SleepypodApp: App {
             else if ProcessInfo.processInfo.arguments.contains("--morning-brief-fixture") { MorningBriefExample() }
             else if ProcessInfo.processInfo.arguments.contains("--report-sharing-fixture") { ReportWebSharingExample() }
             else if ProcessInfo.processInfo.arguments.contains("--personal-health-fixture") { PersonalHealthExample() }
+            else if ProcessInfo.processInfo.arguments.contains("--personal-reports-fixture") { PersonalAccountReportsExample() }
             else if APIBackend.current.isDemo, UserDefaults.standard.string(forKey: "uiRouteExample") != nil {
                 NavigationStack { OwnerRouteSettingsView() }
             }

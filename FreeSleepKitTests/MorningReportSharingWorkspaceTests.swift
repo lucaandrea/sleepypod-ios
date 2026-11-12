@@ -36,6 +36,23 @@ import Testing
         #expect(await transport.actions == ["read", "share", "read"])
     }
 
+    @Test(arguments: [MorningReportSharingFailure.authentication, .forbidden])
+    func deniedPersonalShareWithdrawsHostAccessAndCannotRetry(failure: MorningReportSharingFailure) async throws {
+        let access = SharingAccess(), transport = ReportSharingFake(), now = now
+        var denials: [MorningReportSharingFailure] = []
+        let workspace = MorningReportSharingWorkspace(connect: {
+            .init(address: "https://fixture.invalid", transport: transport, isCurrent: { access.current }, authorizationFailed: {
+                denials.append($0); access.current = false
+            })
+        }, protectedData: { true }, now: { now })
+        await workspace.refresh(report()); await transport.configure(failure: failure)
+        await workspace.share(consent: true)
+        #expect(denials == [failure]); #expect(!access.current); #expect(workspace.status == .unchecked)
+        #expect(workspace.receipt == nil); #expect(!workspace.canShare); #expect(!workspace.canWithdraw)
+        await workspace.share(consent: true)
+        #expect(await transport.actions == ["read", "share"])
+    }
+
     @Test func uncertainUploadIsReadBeforeAnyFurtherSharingAndCanBeWithdrawn() async throws {
         let transport = ReportSharingFake(), workspace = workspace(transport), report = report()
         await workspace.refresh(report)

@@ -66,6 +66,14 @@ struct HouseholdScreen: View {
                             .font(.footnote).foregroundStyle(Theme.text2)
                     }
                 }
+                if model.personalReports != nil {
+                    Section("Your reports") {
+                        NavigationLink("Your morning brief and model", value: "reports")
+                            .accessibilityIdentifier("personalReports.accountLink")
+                        Text("Use your own Health history and model keys. Review every request before sharing evidence.")
+                            .font(.footnote).foregroundStyle(Theme.text2)
+                    }
+                }
                 if let session = model.session {
                     Section("Your private drafts") {
                         NavigationLink("Comfort preferences", value: "preferences")
@@ -185,6 +193,10 @@ struct HouseholdScreen: View {
                 if route == "practice" { ControlPracticeScreen(guideURL: model.selected?.endpoint.appending(path: "guide/marissa.html")) }
                 else if route == "offline", let offline = model.offlineLibrary { PersonalOfflineLibraryScreen(model: offline).id(ObjectIdentifier(offline)) }
                 else if route == "health", let health = model.personalHealth { PersonalHealthScreen(model: health).id(ObjectIdentifier(health)) }
+                else if route == "reports", let reports = model.personalReports, let health = model.personalHealth {
+                    PersonalAccountReportsScreen(model: reports, health: health, connect: { try await model.connectPersonalReportSharing() })
+                        .id(ObjectIdentifier(reports))
+                }
                 else if let session = model.session {
                     if route == "preferences" { HouseholdPreferencesEditor().id(session.namespace + String(model.preferences?.revision ?? 0)) }
                     else if route == "routines" { HouseholdRoutineWeek().id(session.namespace) }

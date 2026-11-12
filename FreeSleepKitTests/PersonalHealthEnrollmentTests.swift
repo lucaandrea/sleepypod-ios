@@ -40,6 +40,27 @@ import Testing
               authorizeHistory: authorize, readHistory: read, now: { state.now })
     }
 
+    @Test func reportEvidencePinsOneSourceAndDetectsSourceDeletionOrReplacement() async throws {
+        try await personal {
+            let (directory, store, _) = fixture(); defer { try? FileManager.default.removeItem(at: directory) }
+            let state = PersonalHealthTestState(try access(), now: instant)
+            let workspace = model(state, store: store, read: { history() })
+            workspace.restore()
+            #expect(workspace.reportEvidence(at: instant) == nil)
+            workspace.enroll(confirmedOwnHealth: true); await workspace.importHistory()
+            let first = try #require(workspace.reportEvidence(at: instant))
+            #expect(first.identity == state.original.identity); #expect(first.sourceID == "source-0")
+            #expect(workspace.reportEvidenceIsCurrent(first)); #expect(first.comparison?.sourceName == "Source 0")
+            workspace.selectSource("source-1")
+            #expect(!workspace.reportEvidenceIsCurrent(first))
+            let second = try #require(workspace.reportEvidence(at: instant))
+            #expect(second.sourceID == "source-1"); #expect(second.healthRevision != first.healthRevision)
+            #expect(workspace.reportEvidence(at: instant.addingTimeInterval(-1)) == nil)
+            workspace.forget()
+            #expect(!workspace.reportEvidenceIsCurrent(second)); #expect(workspace.reportEvidence(at: instant) == nil)
+        }
+    }
+
     @Test func noHealthReadOrPermissionRequestBeforeExplicitPersonConfirmation() async throws {
         try await personal {
             let (directory, store, _) = fixture(); defer { try? FileManager.default.removeItem(at: directory) }
