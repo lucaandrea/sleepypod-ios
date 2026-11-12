@@ -28,6 +28,11 @@ on:
 permissions:
   contents: read
 
+# Retain only the newest revision of each PR; superseded runs cannot establish release readiness.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   ui-bundle:
     name: Build personal recordings UI bundle

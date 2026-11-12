@@ -21,7 +21,7 @@ for componentSuite in "${componentSuites[@]}"; do
       selectors+=(SleepypodUITests/RecordingReadinessUITests SleepypodUITests/WatchRecordingUITests)
       ;;
     guidance)
-      selectors+=(SleepypodUITests/LearningJourneyUITests SleepypodUITests/TonightUITests SleepypodUITests/BedCareUITests)
+      selectors+=(SleepypodUITests/LearningJourneyUITests SleepypodUITests/TonightUITests SleepypodUITests/BedCareUITests SleepypodUITests/BedWidgetUITests)
       ;;
     morning)
       selectors+=(SleepypodUITests/MorningBriefUITests)
