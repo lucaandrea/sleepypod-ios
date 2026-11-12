@@ -19,12 +19,16 @@ struct PersonalOfflineLibrary: Codable, Equatable {
         try week?.validate(for: session, now: now)
     }
 
-    /// Credential changes and origin changes get different ciphertext namespaces.
+    /// Only an enrolled pair may share an origin namespace; credentials and people stay isolated.
     static func scope(_ connection: PersonalBedConnection) throws -> String {
         try connection.session.validate()
         guard try HouseholdHTTPClient.endpoint(connection.endpoint.absoluteString) == connection.endpoint,
               HouseholdValidation.secret(connection.token) else { throw HouseholdFailure.invalid }
-        let fields = [connection.id.uuidString, connection.endpoint.absoluteString, connection.token] + connection.session.identity
+        if let profile = connection.verifiedRoutes {
+            try profile.validate(id: connection.id, endpoint: connection.endpoint, token: connection.token, session: connection.session)
+        }
+        let origin = connection.verifiedRoutes?.cacheOrigin ?? connection.endpoint
+        let fields = [connection.id.uuidString, origin.absoluteString, connection.token] + connection.session.identity
         let encoded = try JSONEncoder().encode(fields)
         return SHA256.hash(data: encoded).map { String(format: "%02x", $0) }.joined()
     }

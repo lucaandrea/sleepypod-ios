@@ -28,6 +28,7 @@ case "$suite" in
       SleepypodUITests/ArrangementMaintenanceUITests/testExistingRestartReceiptCannotOfferAnotherRestart
       SleepypodUITests/ArrangementMaintenanceUITests/testUnavailableStatusRetainsRetryAndSignOutWithoutOrdinaryEditors
       SleepypodUITests/HouseholdPreparationUITests
+      SleepypodUITests/PersonalRouteUITests
     )
     ;;
   review) selectors=(SleepypodUITests/ArrangementReviewUITests) ;;

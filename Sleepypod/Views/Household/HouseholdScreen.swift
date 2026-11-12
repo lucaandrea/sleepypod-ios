@@ -34,6 +34,13 @@ struct HouseholdScreen: View {
                         .font(.footnote).foregroundStyle(Theme.text2)
                 }
                 feedback
+                if model.selected?.identity != nil {
+                    Section("Connection") {
+                        NavigationLink("Home and away", value: "personalRoutes")
+                            .accessibilityIdentifier("personalRoutes.accountLink")
+                        if let message = model.routes.message { Text(message).font(.footnote).foregroundStyle(Theme.text2) }
+                    }
+                }
                 if let quiet = model.quiet {
                     Section("Shared quiet time") {
                         NavigationLink("Someone is resting", value: "quiet")
@@ -193,7 +200,8 @@ struct HouseholdScreen: View {
                 Button("Refresh", systemImage: "arrow.clockwise") { Task { await model.refresh() } }.disabled(model.busy || model.selected == nil)
             } }
             .navigationDestination(for: String.self) { route in
-                if route == "practice" { ControlPracticeScreen(guideURL: model.selected?.endpoint.appending(path: "guide/marissa.html")) }
+                if route == "personalRoutes" { PersonalRouteScreen() }
+                else if route == "practice" { ControlPracticeScreen(guideURL: model.selected?.endpoint.appending(path: "guide/marissa.html")) }
                 else if route == "offline", let offline = model.offlineLibrary { PersonalOfflineLibraryScreen(model: offline).id(ObjectIdentifier(offline)) }
                 else if route == "health", let health = model.personalHealth { PersonalHealthScreen(model: health).id(ObjectIdentifier(health)) }
                 else if route == "reports", let reports = model.personalReports, let health = model.personalHealth {
