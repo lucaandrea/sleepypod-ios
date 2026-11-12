@@ -83,6 +83,7 @@ struct SleepypodApp: App {
     #if DEBUG
     // Preserve first-match fixture selection without one expensive optional-expression chain.
     @MainActor private static func makePreviewHousehold() -> HouseholdWorkspace {
+        if let workspace = PersonalQuietPreview.make() { return workspace }
         if let workspace = PersonalOfflinePreview.make() { return workspace }
         if let workspace = PersonalJournalPreview.make() { return workspace }
         if let workspace = PersonalLearningPreview.make() { return workspace }

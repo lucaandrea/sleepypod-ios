@@ -34,6 +34,15 @@ struct HouseholdScreen: View {
                         .font(.footnote).foregroundStyle(Theme.text2)
                 }
                 feedback
+                if let quiet = model.quiet {
+                    Section("Shared quiet time") {
+                        NavigationLink("Someone is resting", value: "quiet")
+                            .disabled(!quiet.enabled).accessibilityIdentifier("quiet.accountLink")
+                        Text(quiet.enabled ? "Pause supported shared actions while someone rests. Your alarms and temperature plan continue."
+                             : "Quiet time is not enabled on this controller yet.")
+                            .font(.footnote).foregroundStyle(Theme.text2)
+                    }
+                }
                 controlRecovery
                 publicationRecovery
                 Section("Learn the controls") {
@@ -175,6 +184,7 @@ struct HouseholdScreen: View {
                     else if route == "routines" { HouseholdRoutineWeek().id(session.namespace) }
                     else if route == "publication", let publication = model.publication { PersonalRoutineReviewScreen(model: publication, unit: model.draftPreferences.displayUnit).id(session.namespace) }
                     else if route == "history", let history = model.history { PersonalHistoryScreen(model: history).id(ObjectIdentifier(history)) }
+                    else if route == "quiet", let quiet = model.quiet { PersonalQuietScreen(model: quiet).id(ObjectIdentifier(quiet)) }
                     else if route == "journal", let journal = model.journal { PersonalJournalScreen(model: journal).id(ObjectIdentifier(journal)) }
                     else if route == "learning", let learning = model.learning { PersonalLearningScreen(model: learning).id(ObjectIdentifier(learning)) }
                     else if route == "arrangement", let arrangement = model.arrangement {
@@ -202,7 +212,7 @@ struct HouseholdScreen: View {
         .onChange(of: scenePhase) {
             if scenePhase != .active {
                 revealedCode = nil
-                if navigation.contains("learning") || navigation.contains("journal") || navigation.contains("offline") || navigation.contains("health") { navigation = [] }
+                if navigation.contains("quiet") || navigation.contains("learning") || navigation.contains("journal") || navigation.contains("offline") || navigation.contains("health") { navigation = [] }
             }
         }
         .onChange(of: model.session?.context) { revealedCode = nil; navigation = [] }
