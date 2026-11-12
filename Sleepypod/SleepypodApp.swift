@@ -37,7 +37,7 @@ struct SleepypodApp: App {
         if ProcessInfo.processInfo.arguments.contains("--offline-library-fixture") {
             _offlineLibrary = State(initialValue: OfflineLibrarySession(currentScope: { "offline-ui-example" }))
         }
-        let household = PersonalOfflinePreview.make() ?? PersonalJournalPreview.make() ?? PersonalLearningPreview.make() ?? ArrangementMaintenancePreview.make() ?? PersonalHistoryPreview.make() ?? ArrangementReviewPreview.make() ?? PersonalRoutinePreview.make() ?? PersonalTemperaturePreview.make() ?? HouseholdPreview.make() ?? HouseholdWorkspace()
+        let household = Self.makePreviewHousehold()
         #else
         let household = HouseholdWorkspace()
         #endif
@@ -79,6 +79,22 @@ struct SleepypodApp: App {
         let bridge = actions.bridge
         AppDependencyManager.shared.add(dependency: bridge)
     }
+
+    #if DEBUG
+    // Preserve first-match fixture selection without one expensive optional-expression chain.
+    @MainActor private static func makePreviewHousehold() -> HouseholdWorkspace {
+        if let workspace = PersonalOfflinePreview.make() { return workspace }
+        if let workspace = PersonalJournalPreview.make() { return workspace }
+        if let workspace = PersonalLearningPreview.make() { return workspace }
+        if let workspace = ArrangementMaintenancePreview.make() { return workspace }
+        if let workspace = PersonalHistoryPreview.make() { return workspace }
+        if let workspace = ArrangementReviewPreview.make() { return workspace }
+        if let workspace = PersonalRoutinePreview.make() { return workspace }
+        if let workspace = PersonalTemperaturePreview.make() { return workspace }
+        if let workspace = HouseholdPreview.make() { return workspace }
+        return HouseholdWorkspace()
+    }
+    #endif
 
     var body: some Scene {
         WindowGroup {

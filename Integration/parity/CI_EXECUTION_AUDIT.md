@@ -46,3 +46,41 @@ simulator: **seven tests, zero failures**. Their result bundles are separately
 retained as `Practice-journey.xcresult`, `Practice-accessibility.xcresult` and
 `Practice-invitations.xcresult`. This validates selector execution and unchanged
 flows; hosted phone/tablet results are still pending.
+
+## 12 November — recording groups and fixture selection
+
+PR 69 run `43180122638`, iPad job `131053779790`, compiled successfully
+and passed four of five personal-history scenarios. The largest-text case failed
+while reading the first vitals record because XCTest could not obtain an
+accessibility snapshot: the application main run loop did not respond within
+30 seconds. The original result bundle is retained. An unchanged signed local
+build passed all five history scenarios on iPad iOS 27.2; that result does not
+prove hosted iOS 26.2 behavior or identify the timeout's cause.
+
+The recording workflow now builds one signed Apple Silicon bundle and verifies
+its source revision and Xcode version when restoring it. History, learning,
+removal, journal and pattern suites run independently on both phone and tablet,
+with at most two groups running concurrently. Previously four consecutive test
+steps, compilation and boot shared one 65-minute job; one failure skipped every
+later suite. All 25 original test cases remain selected exactly once per form,
+with unchanged assertions and bounded per-group execution. Seven build-support
+script tests, workflow/shell validation and strict SwiftLint pass. The new hosted
+runs remain required before this execution correction is accepted.
+
+Quiet-controls PR 77 run `43185108074`, job `131070219583`, exposed a separate
+Xcode 26.3 compiler limit in the long optional chain choosing DEBUG household
+fixtures. The common app entry now uses sequential first-match returns, preserving
+fixture priority and lazy construction. The Release path is unchanged. A signed
+local build-for-testing of the complete application succeeds. The quiet fixture
+will retain its first position when its branch is integrated.
+
+Report-sharing run `43180122616`, iPad job `131053779606`, passed four of five
+scenarios and failed the immediate send-button-enabled assertion after a consent
+tap at the largest text size. The captured event targeted the switch; the result
+does not establish whether the consent binding updated. The test now reveals the
+actual switch, verifies its initially-off value, taps once and waits up to five
+seconds for selected and enabled states. Before/after captures distinguish a
+missed interaction from a stale button snapshot. It never retries the tap,
+preselects consent or removes the original send/withdraw assertions. Hosted
+acceptance remains pending; this diagnostic correction is not a claimed product
+fix or a passing result.

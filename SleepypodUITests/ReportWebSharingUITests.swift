@@ -75,7 +75,17 @@ import XCTest
         let row = app.switches["report.share.consent"]
         reveal(row, app)
         let control = row.switches.firstMatch.exists ? row.switches.firstMatch : row
+        reveal(control, app)
+        XCTAssertEqual(control.value as? String, "0", "Sharing must begin without consent")
+        capture("Consent-before-tap")
         control.tap()
+        // Wait for the binding's observable state; never retry a tap that could revoke consent.
+        let selected = XCTNSPredicateExpectation(predicate: NSPredicate(format: "value == %@", "1"), object: control)
+        let selection = XCTWaiter.wait(for: [selected], timeout: 5)
+        capture("Consent-after-tap")
+        XCTAssertEqual(selection, .completed, "The consent switch did not become selected")
+        let enabled = XCTNSPredicateExpectation(predicate: NSPredicate(format: "enabled == true"), object: app.buttons["report.share.send"])
+        XCTAssertEqual(XCTWaiter.wait(for: [enabled], timeout: 5), .completed)
         XCTAssertTrue(app.buttons["report.share.send"].isEnabled)
     }
     private func launch(_ scenario: String, large: Bool = false) -> XCUIApplication {
