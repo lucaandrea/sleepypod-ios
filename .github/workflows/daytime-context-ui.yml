@@ -14,6 +14,8 @@ on:
       - 'SleepypodUITests/MorningJournalContextUITests.swift'
       - 'Integration/Fixtures/morning-journal-context-example.json'
       - '.github/workflows/daytime-context-ui.yml'
+      - 'scripts/build-simulator-ui.sh'
+      - 'scripts/tests/test_simulator_build.py'
   workflow_dispatch:
 
 permissions:
@@ -37,8 +39,7 @@ jobs:
       - name: Build both context scenarios
         timeout-minutes: 30
         run: |
-          xcodebuild build-for-testing -project Sleepypod.xcodeproj -scheme Sleepypod \
-            -destination 'generic/platform=iOS Simulator' \
+          bash scripts/build-simulator-ui.sh -project Sleepypod.xcodeproj -scheme Sleepypod \
             -derivedDataPath "$RUNNER_TEMP/ContextBuild" \
             -only-testing:SleepypodUITests/DaytimeContextUITests \
             -only-testing:SleepypodUITests/MorningJournalContextUITests \

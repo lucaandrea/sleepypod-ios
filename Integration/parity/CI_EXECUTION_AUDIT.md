@@ -41,6 +41,20 @@ budget and result artifact. Local validation covers all shell blocks, YAML,
 selector coverage and the manifest regression. Hosted results remain required;
 local iOS 27.2 execution does not establish hosted iOS 26.2 acceptance.
 
+### Context build architecture correction
+
+On November 12, PR 79 run `43261107053`, job `131332345200`, compiled both
+`arm64` and `x86_64` for an Intel-only simulator matrix. The log reports
+`TEST BUILD SUCCEEDED` at 17:23:17 UTC, then the build step reached its
+30-minute limit before artifact publication. No context test ran.
+
+The context workflow now uses the existing, tested shared simulator build
+entry point, as the audio, practice and recording workflows already do. It
+compiles only the runner architecture while retaining both context suites,
+ad-hoc signing, source/Xcode identity checks, all four execution groups and
+the existing build and test time limits. This change does not retry failed
+assertions or establish a hosted pass; the replacement run must still pass.
+
 The three execution groups subsequently passed on the signed local iPhone
 simulator: **seven tests, zero failures**. Their result bundles are separately
 retained as `Practice-journey.xcresult`, `Practice-accessibility.xcresult` and
