@@ -3,6 +3,9 @@ import AppIntents
 import BackgroundTasks
 
 public enum UnifiedRuntime {
+    @MainActor public static func configureReportSharing(_ connect: @escaping @MainActor () async throws -> MorningReportConnection) {
+        MorningReportSharingWorkspace.connect = connect
+    }
     @MainActor public static func configureOwnerIdentity(_ revision: @escaping @MainActor () -> [String]?) {
         DaytimeContextWorkspace.ownerRevision = revision
     }
