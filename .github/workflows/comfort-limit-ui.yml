@@ -17,6 +17,8 @@ on:
       - 'SleepypodUITests/ComfortExperimentUITests.swift'
       - 'Integration/Fixtures/comfort-experiments-v1.json'
       - '.github/workflows/comfort-limit-ui.yml'
+      - 'scripts/run-simulator-ui.py'
+      - 'scripts/tests/test_simulator_startup.py'
   workflow_dispatch:
 
 permissions:
@@ -75,7 +77,7 @@ jobs:
       - name: Verify comfort editor at standard text size
         timeout-minutes: 20
         run: |
-          xcodebuild test-without-building -xctestrun "$COMFORT_TEST_RUN" \
+          python3 scripts/run-simulator-ui.py test-without-building -xctestrun "$COMFORT_TEST_RUN" \
             -destination "platform=iOS Simulator,id=$COMFORT_SIM_ID" \
             -only-testing:SleepypodUITests/ComfortLimitUITests/testPracticeSeparatesComfortRangeAndWakeWarming \
             -resultBundlePath "$RUNNER_TEMP/Comfort-standard.xcresult" \
@@ -85,7 +87,7 @@ jobs:
         if: ${{ !cancelled() && steps.boot.outcome == 'success' && steps.bundle.outcome == 'success' }}
         timeout-minutes: 20
         run: |
-          xcodebuild test-without-building -xctestrun "$COMFORT_TEST_RUN" \
+          python3 scripts/run-simulator-ui.py test-without-building -xctestrun "$COMFORT_TEST_RUN" \
             -destination "platform=iOS Simulator,id=$COMFORT_SIM_ID" \
             -only-testing:SleepypodUITests/ComfortLimitUITests/testLargeTextKeepsLimitEditorReachable \
             -resultBundlePath "$RUNNER_TEMP/Comfort-large.xcresult" \
@@ -95,7 +97,7 @@ jobs:
         if: ${{ !cancelled() && steps.boot.outcome == 'success' && steps.bundle.outcome == 'success' }}
         timeout-minutes: 20
         run: |
-          xcodebuild test-without-building -xctestrun "$COMFORT_TEST_RUN" \
+          python3 scripts/run-simulator-ui.py test-without-building -xctestrun "$COMFORT_TEST_RUN" \
             -destination "platform=iOS Simulator,id=$COMFORT_SIM_ID" \
             -only-testing:SleepypodUITests/ComfortExperimentUITests \
             -resultBundlePath "$RUNNER_TEMP/Comfort-experiments.xcresult" \
@@ -106,6 +108,8 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: comfort-limit-${{ matrix.form }}
-          path: ${{ runner.temp }}/Comfort-*.xcresult
+          path: |
+            ${{ runner.temp }}/Comfort-*.xcresult
+            ${{ runner.temp }}/Comfort-*bootstrap-recovery.json
           if-no-files-found: ignore
           retention-days: 7

@@ -12,6 +12,8 @@ on:
       - 'Integration/UnifiedWorkspace.swift'
       - 'SleepypodUITests/ReportWebSharingUITests.swift'
       - '.github/workflows/report-sharing-ui.yml'
+      - 'scripts/run-simulator-ui.py'
+      - 'scripts/tests/test_simulator_startup.py'
   workflow_dispatch:
 
 permissions:
@@ -66,7 +68,7 @@ jobs:
       - name: Verify consent, read recovery and withdrawal
         timeout-minutes: 25
         run: |
-          xcodebuild test-without-building -xctestrun "$REPORT_TEST_RUN" \
+          python3 scripts/run-simulator-ui.py test-without-building -xctestrun "$REPORT_TEST_RUN" \
             -destination "platform=iOS Simulator,id=$REPORT_SIM_ID" \
             -only-testing:SleepypodUITests/ReportWebSharingUITests \
             -resultBundlePath "$RUNNER_TEMP/Reports.xcresult" \
@@ -77,6 +79,8 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: report-sharing-${{ matrix.form }}
-          path: ${{ runner.temp }}/Reports.xcresult
+          path: |
+            ${{ runner.temp }}/Reports*.xcresult
+            ${{ runner.temp }}/*bootstrap-recovery.json
           if-no-files-found: ignore
           retention-days: 7
