@@ -128,11 +128,13 @@ struct PersonalReportReview: Equatable {
         guard previous != nil || (health?.identity == access.identity && health.map(evidenceCurrent) == true) else {
             storedMessage = PersonalReportFailure.evidence.localizedDescription; return
         }
-        storedReview = .init(id: UUID(), expiresAt: now().addingTimeInterval(300), preferences: saved.preferences,
+        // Resolve the evidence before constructing the review so older supported compilers can type-check it.
+        let facts: [SleepFact] = previous?.report.facts ?? health?.facts ?? []
+        let source: String = previous?.report.source ?? health?.sourceName ?? ""
+        let comparison: ReportSleepComparison? = previous?.report.comparison ?? health?.comparison
+        storedReview = PersonalReportReview(id: UUID(), expiresAt: now().addingTimeInterval(300), preferences: saved.preferences,
                              archiveRevision: saved.revision, question: question,
-                             facts: previous?.report.facts ?? health?.facts ?? [],
-                             source: previous?.report.source ?? health?.sourceName ?? "",
-                             comparison: previous?.report.comparison ?? health?.comparison, health: health, previous: previous)
+                             facts: facts, source: source, comparison: comparison, health: health, previous: previous)
     }
 
     func discardReview() { storedReview = nil }
