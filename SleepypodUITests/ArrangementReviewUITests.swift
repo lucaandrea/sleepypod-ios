@@ -20,8 +20,9 @@ import XCTest
                 // Inserting a review can move a large-text Form back to its beginning.
                 towardBottom = true
             }
-            app.coordinate(withNormalizedOffset: CGVector(dx: 0.90, dy: towardBottom ? 0.78 : 0.28))
-                .press(forDuration: 0.05, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.90, dy: towardBottom ? 0.28 : 0.78)))
+            // Scroll through labels so a gesture cannot change a confirmation switch.
+            app.coordinate(withNormalizedOffset: CGVector(dx: 0.50, dy: towardBottom ? 0.78 : 0.28))
+                .press(forDuration: 0.05, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.50, dy: towardBottom ? 0.28 : 0.78)))
         }
         guard visible() else { capture(app, "Unreachable-\(element.identifier)"); XCTFail("Unreachable \(element.identifier)"); return }
         XCTAssertGreaterThanOrEqual(element.frame.minX, app.frame.minX)
@@ -35,10 +36,22 @@ import XCTest
         XCTAssertTrue(app.navigationBars["Shared side review"].waitForExistence(timeout: 10))
     }
     private func confirm(_ app: XCUIApplication) {
-        for identifier in ["arrangement.confirmSide", "arrangement.confirmRoutine", "arrangement.confirmActivation"] {
+        let identifiers = ["arrangement.confirmSide", "arrangement.confirmRoutine", "arrangement.confirmActivation"]
+        for identifier in identifiers {
             let toggle = app.switches[identifier]; reveal(toggle, in: app)
-            toggle.coordinate(withNormalizedOffset: CGVector(dx: 0.95, dy: 0.5)).tap()
-            XCTAssertEqual(toggle.value as? String, "1")
+            XCTAssertEqual(toggle.value as? String, "0", "Confirmation changed before its explicit tap: \(identifier)")
+            // The identified accessibility row also contains the actual native switch.
+            let bounds = toggle.frame
+            let controls = app.switches.matching(NSPredicate(format: "identifier == ''")).allElementsBoundByIndex
+                .filter { bounds.contains($0.frame) && $0.isHittable }
+            XCTAssertEqual(controls.count, 1, "Expected one native switch for \(identifier)")
+            controls.first?.tap()
+            let selected = XCTNSPredicateExpectation(predicate: NSPredicate(format: "value == %@", "1"), object: toggle)
+            XCTAssertEqual(XCTWaiter.wait(for: [selected], timeout: 5), .completed, "Confirmation did not register: \(identifier)")
+        }
+        for (index, identifier) in identifiers.enumerated() {
+            let toggle = app.switches[identifier]; reveal(toggle, in: app, upward: index != 0)
+            XCTAssertEqual(toggle.value as? String, "1", "Confirmation changed while scrolling: \(identifier)")
         }
         let approve = app.buttons["arrangement.approve"]; reveal(approve, in: app); XCTAssertTrue(approve.isEnabled)
     }
