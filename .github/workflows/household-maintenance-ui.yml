@@ -10,26 +10,82 @@ on:
       - 'SleepypodUITests/Household*.swift'
       - 'Integration/Fixtures/household-maintenance-v1.json'
       - '.github/workflows/household-maintenance-ui.yml'
+      - 'scripts/verify-household-ui.sh'
   workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
-  maintenance:
-    name: Household maintenance (${{ matrix.form }})
-    runs-on: macos-15-intel
-    timeout-minutes: 65
-    strategy:
-      fail-fast: false
-      matrix:
-        form: [iPhone, iPad]
+  ui-bundle:
+    name: Build household UI bundle
+    runs-on: macos-15
+    timeout-minutes: 45
     env:
       DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
     steps:
       - uses: actions/checkout@v4
         with:
           lfs: true
+      - name: Select build simulator
+        run: |
+          MAINTENANCE_SIM_ID=$(xcrun simctl list devices available --json | python3 -c '
+          import json, sys
+          matches = [device["udid"] for runtime, group in sorted(json.load(sys.stdin)["devices"].items(), reverse=True)
+                     if ".iOS-26-" in runtime for device in group if device["name"].startswith("iPhone")]
+          if not matches: sys.exit("Requested iOS 26 simulator is unavailable")
+          print(matches[0])')
+          printf 'MAINTENANCE_SIM_ID=%s\n' "$MAINTENANCE_SIM_ID" >> "$GITHUB_ENV"
+      - name: Build all UI tests once
+        timeout-minutes: 30
+        run: bash scripts/verify-household-ui.sh build all
+      - name: Archive signed products and source revision
+        run: |
+          mkdir -p "$RUNNER_TEMP/MaintenanceBundle"
+          ditto -c -k --keepParent "$RUNNER_TEMP/MaintenanceBuild/Build/Products" "$RUNNER_TEMP/MaintenanceBundle/Products.zip"
+          git rev-parse HEAD > "$RUNNER_TEMP/MaintenanceBundle/source-revision.txt"
+          xcodebuild -version > "$RUNNER_TEMP/MaintenanceBundle/xcode-version.txt"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: household-ui-bundle
+          path: ${{ runner.temp }}/MaintenanceBundle
+          if-no-files-found: error
+          retention-days: 7
+          compression-level: 0
+  maintenance:
+    name: Household checks (${{ matrix.form }}, ${{ matrix.suite }})
+    needs: ui-bundle
+    runs-on: macos-15
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      # Bound each group without dropping any phone or tablet scenario.
+      max-parallel: 2
+      matrix:
+        form: [iPhone, iPad]
+        suite: [activation, recovery, status, review]
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+      - uses: actions/download-artifact@v4
+        with:
+          name: household-ui-bundle
+          path: ${{ runner.temp }}/MaintenanceBundle
+      - name: Restore same-revision UI test bundle
+        run: |
+          test "$(cat "$RUNNER_TEMP/MaintenanceBundle/source-revision.txt")" = "$(git rev-parse HEAD)"
+          xcodebuild -version > "$RUNNER_TEMP/current-xcode-version.txt"
+          cmp "$RUNNER_TEMP/MaintenanceBundle/xcode-version.txt" "$RUNNER_TEMP/current-xcode-version.txt"
+          ditto -x -k "$RUNNER_TEMP/MaintenanceBundle/Products.zip" "$RUNNER_TEMP/MaintenanceBundle"
+          HOUSEHOLD_TEST_RUN=$(python3 -c '
+          import pathlib, sys
+          matches = list(pathlib.Path(sys.argv[1]).glob("*.xctestrun"))
+          if len(matches) != 1: sys.exit("Expected exactly one shared UI test run")
+          print(matches[0])' "$RUNNER_TEMP/MaintenanceBundle/Products")
+          printf 'HOUSEHOLD_TEST_RUN=%s\n' "$HOUSEHOLD_TEST_RUN" >> "$GITHUB_ENV"
       - name: Select simulator
         run: |
           MAINTENANCE_SIM_ID=$(xcrun simctl list devices available --json | python3 -c '
@@ -39,54 +95,17 @@ jobs:
           if not matches: sys.exit("Requested iOS 26 simulator is unavailable")
           print(matches[0])' '${{ matrix.form }}')
           printf 'MAINTENANCE_SIM_ID=%s\n' "$MAINTENANCE_SIM_ID" >> "$GITHUB_ENV"
-      - name: Build household tests
-        id: build
-        timeout-minutes: 30
-        run: |
-          xcodebuild build-for-testing -project Sleepypod.xcodeproj -scheme Sleepypod \
-            -destination "platform=iOS Simulator,id=$MAINTENANCE_SIM_ID" \
-            -derivedDataPath "$RUNNER_TEMP/MaintenanceBuild" CODE_SIGNING_ALLOWED=NO
       - name: Boot simulator
-        id: boot
         timeout-minutes: 15
         run: xcrun simctl bootstatus "$MAINTENANCE_SIM_ID" -b
-      - name: Verify attended maintenance
+      - name: Verify household scenarios
         timeout-minutes: 20
-        run: |
-          xcodebuild test-without-building -project Sleepypod.xcodeproj -scheme Sleepypod \
-            -destination "platform=iOS Simulator,id=$MAINTENANCE_SIM_ID" \
-            -derivedDataPath "$RUNNER_TEMP/MaintenanceBuild" \
-            -only-testing:SleepypodUITests/ArrangementMaintenanceUITests \
-            -resultBundlePath "$RUNNER_TEMP/Maintenance.xcresult" \
-            -collect-test-diagnostics never -parallel-testing-enabled NO CODE_SIGNING_ALLOWED=NO
-      - name: Verify independent side review
-        if: ${{ !cancelled() && steps.build.outcome == 'success' && steps.boot.outcome == 'success' }}
-        timeout-minutes: 20
-        run: |
-          xcodebuild test-without-building -project Sleepypod.xcodeproj -scheme Sleepypod \
-            -destination "platform=iOS Simulator,id=$MAINTENANCE_SIM_ID" \
-            -derivedDataPath "$RUNNER_TEMP/MaintenanceBuild" \
-            -only-testing:SleepypodUITests/ArrangementReviewUITests \
-            -resultBundlePath "$RUNNER_TEMP/SideReview.xcresult" \
-            -collect-test-diagnostics never -parallel-testing-enabled NO CODE_SIGNING_ALLOWED=NO
-      - name: Verify personal account preparation
-        if: ${{ !cancelled() && steps.build.outcome == 'success' && steps.boot.outcome == 'success' }}
-        timeout-minutes: 20
-        run: |
-          xcodebuild test-without-building -project Sleepypod.xcodeproj -scheme Sleepypod \
-            -destination "platform=iOS Simulator,id=$MAINTENANCE_SIM_ID" \
-            -derivedDataPath "$RUNNER_TEMP/MaintenanceBuild" \
-            -only-testing:SleepypodUITests/HouseholdPreparationUITests \
-            -resultBundlePath "$RUNNER_TEMP/HouseholdPreparation.xcresult" \
-            -collect-test-diagnostics never -parallel-testing-enabled NO CODE_SIGNING_ALLOWED=NO
+        run: bash scripts/verify-household-ui.sh test "${{ matrix.suite }}"
       - name: Preserve screenshots and results
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: household-maintenance-${{ matrix.form }}
-          path: |
-            ${{ runner.temp }}/Maintenance.xcresult
-            ${{ runner.temp }}/SideReview.xcresult
-            ${{ runner.temp }}/HouseholdPreparation.xcresult
+          name: household-${{ matrix.form }}-${{ matrix.suite }}
+          path: ${{ runner.temp }}/Household.xcresult
           if-no-files-found: ignore
           retention-days: 7

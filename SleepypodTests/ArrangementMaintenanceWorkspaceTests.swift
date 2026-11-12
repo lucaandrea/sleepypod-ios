@@ -96,21 +96,60 @@ import XCTest
         XCTAssertEqual(context.finished, 1)
         posts = await server.posts; XCTAssertEqual(posts, [.recover])
     }
-    func testCancellationNeedsANewGenerationAndFreshDigestReview() async throws {
+    func testCancellationRechecksUnchangedControlsAfterALongReview() async throws {
         let (context, server, _, model) = try await setup("held")
         await model.refresh(); await model.previewCancellation(); XCTAssertNil(model.cancellation)
         // Change only the simulated generation; there is still no committed side change.
         await server.markRestarted()
         await model.refresh(); await model.previewCancellation(); XCTAssertNotNil(model.cancellation)
-        context.now += 60_001; try await server.configure(now: context.now)
-        model.confirmations = ArrangementMaintenanceRequest.Action.cancel.confirmations
-        await model.cancel()
-        let noPosts = await server.posts; XCTAssertTrue(noPosts.isEmpty)
-        await model.refresh(); await model.previewCancellation()
+        context.now += 300_001; try await server.configure(now: context.now)
         model.confirmations = ArrangementMaintenanceRequest.Action.cancel.confirmations
         await model.cancel()
         XCTAssertEqual(model.currentOperation?.state, .cancelled)
         let posts = await server.posts; XCTAssertEqual(posts, [.cancel])
+        let reads = await server.previewReads; XCTAssertEqual(reads, 2)
+    }
+    func testChangedControlsRequireAnotherReviewWithoutSubmitting() async throws {
+        let (_, server, _, model) = try await setup("held")
+        await server.markRestarted(); await model.refresh(); await model.previewCancellation()
+        await server.configurePreview(digest: String(repeating: "b", count: 64))
+        model.confirmations = ArrangementMaintenanceRequest.Action.cancel.confirmations
+        await model.cancel()
+        let posts = await server.posts; XCTAssertTrue(posts.isEmpty)
+        XCTAssertFalse(model.loaded); XCTAssertNil(model.cancellation); XCTAssertTrue(model.confirmations.isEmpty)
+    }
+    func testRecheckedCancellationStillRejectsStaleAndFutureObservations() async throws {
+        for offset in [Int64(-15_001), 1] {
+            let (_, server, _, model) = try await setup("held")
+            await server.markRestarted(); await model.refresh(); await model.previewCancellation()
+            await server.configurePreview(clockOffset: offset)
+            model.confirmations = ArrangementMaintenanceRequest.Action.cancel.confirmations
+            await model.cancel()
+            let posts = await server.posts; XCTAssertTrue(posts.isEmpty)
+            XCTAssertFalse(model.loaded); XCTAssertNil(model.cancellation)
+        }
+    }
+    func testBackgroundDuringCancellationRecheckCannotSubmit() async throws {
+        let (_, server, _, model) = try await setup("held")
+        await server.markRestarted(); await model.refresh(); await model.previewCancellation()
+        model.confirmations = ArrangementMaintenanceRequest.Action.cancel.confirmations
+        await server.hold("preview")
+        let action = Task { await model.cancel() }
+        await server.waitHeld(); model.background(); await server.release(); await action.value
+        let posts = await server.posts; XCTAssertTrue(posts.isEmpty)
+        XCTAssertNil(model.status); XCTAssertTrue(model.confirmations.isEmpty)
+    }
+    func testAccountChangeDuringCancellationRecheckCannotSubmit() async throws {
+        let (context, server, _, model) = try await setup("held")
+        await server.markRestarted(); await model.refresh(); await model.previewCancellation()
+        model.confirmations = ArrangementMaintenanceRequest.Action.cancel.confirmations
+        await server.hold("preview")
+        let action = Task { await model.cancel() }
+        await server.waitHeld()
+        let other = try PersonalRoutineFixtures.changed(try await server.session()) { $0["accountId"] = UUID().uuidString }
+        await server.changeAccount(other); await server.release(); await action.value
+        let posts = await server.posts; XCTAssertTrue(posts.isEmpty)
+        XCTAssertEqual(context.revoked, 1); XCTAssertFalse(model.enabled)
     }
     func testActivationFollowsItsOwnAssignmentAfterAnUncertainReply() async throws {
         let (context, server, reviews, model) = try await setup("empty")

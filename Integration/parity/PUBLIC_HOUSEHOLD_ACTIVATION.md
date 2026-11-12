@@ -29,3 +29,25 @@ acceptance.
 The implementation does not activate Luca/Marissa assignments, change routines,
 restart a real Pod, train personal models or establish physical acceptance.
 Source, simulator, TestFlight and live two-person qualification remain separate.
+
+## Consolidated release correction — November 11
+
+Hosted run `43160797555` exposed a real review-time limit: the keep-solo preview
+was opened at 05:44:10 UTC and confirmation tapped at 05:45:28, after its 60-second
+client deadline. The app now fetches a fresh cancellation preview at confirmation,
+requires the identical reviewed control digest, operation and account revisions,
+and validates the new observation with the original 15-second freshness limit.
+Changed controls require another review; stale observations, identity changes and
+backgrounding still prevent submission. No request is automatically retried.
+
+All 34 focused contract/transport/workspace/boundary tests and both original
+failing iPhone UI paths passed locally. The preparation UI test now scrolls to
+the actual draft controls instead of assuming they are already onscreen.
+
+The hosted maintenance batch also exhausted its 20-minute execution budget after
+five completed scenarios. CI now builds one ad-hoc-signed bundle and verifies its
+source revision and Xcode version before each isolated phone/tablet group. All
+eight maintenance scenarios appear exactly once, and the complete side-review
+and preparation suites remain selected. Each group retains a 20-minute limit;
+the original failed results remain evidence, not passing acceptance. Hosted
+verification of this correction is still required.

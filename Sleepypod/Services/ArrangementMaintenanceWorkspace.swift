@@ -172,11 +172,18 @@ import Observation
         let checked = confirmations
         await operation { current, session, status in
             let pending = try pending(status, state: .held)
-            guard pending.controllerRestarted == true else { throw HouseholdFailure.conflict }
-            try preview.validate(for: session, operationId: pending.operationId, now: clock(), maximumAge: 60_000)
-            let request = try ArrangementMaintenanceRequest(action: .cancel, session: session, referenceId: pending.operationId,
-                confirmations: checked, now: clock(), controlDigest: preview.controlDigest)
-            guard case .cancelled(let receipt, let services, _) = try await submit(request, session: session, current: current),
+            guard pending.controllerRestarted == true, let identifier = UUID(uuidString: pending.operationId) else { throw HouseholdFailure.conflict }
+            // Reading and confirming may take time. Recheck the reviewed controls rather than extending their freshness.
+            let fresh = try await client.cancellationPreview(operationId: identifier); try check(current)
+            let after = try await owner(current)
+            guard after.context == session.context, fresh.operationId == preview.operationId,
+                  fresh.expectedSessionRevision == preview.expectedSessionRevision,
+                  fresh.expectedAssignmentRevision == preview.expectedAssignmentRevision,
+                  fresh.controlDigest == preview.controlDigest else { throw HouseholdFailure.conflict }
+            try fresh.validate(for: after, operationId: pending.operationId, now: clock())
+            let request = try ArrangementMaintenanceRequest(action: .cancel, session: after, referenceId: pending.operationId,
+                confirmations: checked, now: clock(), controlDigest: fresh.controlDigest)
+            guard case .cancelled(let receipt, let services, _) = try await submit(request, session: after, current: current),
                   receipt.reviewId == pending.reviewId, receipt.controlDigest == preview.controlDigest else { throw HouseholdFailure.invalid }
             _ = try await checkedStatus(current)
             notice = services == .resumed ? "Solo arrangement kept. Saved routine services resumed."

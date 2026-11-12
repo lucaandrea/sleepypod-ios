@@ -21,6 +21,9 @@ actor MaintenanceTestServer: ArrangementMaintenanceTransport {
     var posts: [ArrangementMaintenanceRequest.Action] = []
     var postFailure: HouseholdFailure?
     var failBeforeWrite = false
+    private(set) var previewReads = 0
+    private var previewDigest = String(repeating: "a", count: 64)
+    private var previewClockOffset: Int64 = 0
     private var held: String?
     private var continuation: CheckedContinuation<Void, Never>?
     init(_ key: String = "committed") throws {
@@ -35,6 +38,10 @@ actor MaintenanceTestServer: ArrangementMaintenanceTransport {
     }
     func changeAccount(_ value: HouseholdSession) { account = value }
     func markRestarted() { operation?["controllerRestarted"] = true }
+    func configurePreview(digest: String? = nil, clockOffset: Int64 = 0) {
+        if let digest { previewDigest = digest }
+        previewClockOffset = clockOffset
+    }
     func hold(_ route: String) { held = route }
     func waitHeld() async { while continuation == nil { await Task.yield() } }
     func release() { continuation?.resume(); continuation = nil }
@@ -51,9 +58,12 @@ actor MaintenanceTestServer: ArrangementMaintenanceTransport {
         await pause("status"); return value
     }
     func cancellationPreview(operationId: UUID) async throws -> ArrangementCancellationPreview {
-        try .decodeExact(JSONSerialization.data(withJSONObject: ["operationId": operationId.uuidString.lowercased(),
+        previewReads += 1
+        let value = try ArrangementCancellationPreview.decodeExact(JSONSerialization.data(withJSONObject: ["operationId": operationId.uuidString.lowercased(),
             "expectedSessionRevision": account.sessionRevision, "expectedAssignmentRevision": account.assignmentRevision,
-            "controlDigest": String(repeating: "a", count: 64), "observedAt": now]))
+            "controlDigest": previewDigest, "observedAt": now + previewClockOffset]))
+        await pause("preview")
+        return value
     }
     func send(_ request: ArrangementMaintenanceRequest, session: HouseholdSession) async throws -> ArrangementMaintenanceResult {
         _ = try ArrangementMaintenanceRequest.decodeExact(request.body, action: request.action, session: account, now: now)
