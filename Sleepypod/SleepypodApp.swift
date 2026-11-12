@@ -76,6 +76,13 @@ struct SleepypodApp: App {
         _healthSync = State(initialValue: health)
         let actions = NativeActionSession.configured { try await health.syncLinkedThirtyDays() }
         _nativeActions = State(initialValue: actions)
+        let owner = OwnerBedRemoteSource(selected: { device.isLinked ? Side.allCases : device.selectedSide.sides }, controls: {
+            try NativeControlService(ledger: .persistent(), client: { try CoreNativeControlClient(transport: .configured()) })
+        })
+        let remote = BedRemoteCoordinator(source: PhoneBedRemoteSource(household: household, owner: owner))
+        let watch = WatchMotionReceiver(remote: remote)
+        watch.activate()
+        _watchMotion = State(initialValue: watch)
         let bridge = actions.bridge
         AppDependencyManager.shared.add(dependency: bridge)
     }
@@ -93,15 +100,19 @@ struct SleepypodApp: App {
                 .tint(Theme.text1)
                 .task {
                     sensorStream.notificationRelay = notificationRelay
-                    if !household.active { watchMotion.activate() }
+                    watchMotion.activate()
                 }
                 .onChange(of: household.active) {
+                    watchMotion.invalidateRemote()
                     if household.active {
                         offlineLibrary.withdraw()
                         deviceManager.suspendConnection(); sensorStream.disconnect(); podDiscovery.stopBrowsing()
                         snoreCapture.stop(reason: "personal account opened")
                     } else { watchMotion.activate() }
                 }
+                .onChange(of: household.remoteContext) { watchMotion.invalidateRemote() }
+                .onChange(of: deviceManager.selectedSide) { watchMotion.invalidateRemote() }
+                .onChange(of: deviceManager.isLinked) { watchMotion.invalidateRemote() }
                 .task(id: deviceManager.isConnected) {
                     // Keep first-install setup focused on local network access.
                     if !household.active && deviceManager.isConnected && !APIBackend.current.isDemo && !DebugRoute.marketingCapture {
