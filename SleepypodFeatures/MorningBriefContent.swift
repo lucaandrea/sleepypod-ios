@@ -50,16 +50,24 @@ struct MorningBriefContent: View {
                 .chartXScale(domain: -0.5...13.5)
                 .chartYScale(domain: 0...max(10, ceil((comparison.days.compactMap(\.minutes).max() ?? 0) / 60)))
                 .chartXAxis {
-                    AxisMarks(values: [0, 6, 13]) { value in
-                        AxisValueLabel {
+                    if !textSize.isAccessibilitySize {
+                        AxisMarks(values: [0, 6, 13]) { value in
                             if let index = value.as(Int.self), comparison.days.indices.contains(index) {
-                                Text(comparison.dateLabel(comparison.days[index].end))
+                                // Edge labels grow into the plot instead of beyond its clipped bounds.
+                                AxisValueLabel(anchor: index == 0 ? .topLeading : index == 13 ? .topTrailing : .top) {
+                                    Text(comparison.dateLabel(comparison.days[index].end)).fixedSize()
+                                }
                             }
                         }
                     }
                 }
                 .frame(height: textSize.isAccessibilitySize ? 210 : compact ? 125 : 170)
                 .accessibilityIdentifier("brief.chart")
+                if textSize.isAccessibilitySize, let first = comparison.days.first, let last = comparison.days.last {
+                    Text("From \(comparison.dateLabel(first.end)) to \(comparison.dateLabel(last.end))")
+                        .font(.caption).foregroundStyle(Theme.text2).fixedSize(horizontal: false, vertical: true)
+                        .accessibilityIdentifier("brief.chart.dates")
+                }
             } else {
                 Text("No observations in this saved window.").font(.subheadline).accessibilityIdentifier("brief.chart.empty")
             }

@@ -12,6 +12,21 @@ struct MorningBriefTests {
     private func night(_ start: String, _ end: String, minutes: Double) -> HealthHistory.Night {
         .init(id: start, start: date(start), end: date(end), asleepMinutes: minutes)
     }
+    @MainActor @Test func personalExampleContainsTwelveComparableNightsAtEveryHourAndAcrossDST() throws {
+        let identity = PersonalHealthIdentity(podID: UUID(), householdID: UUID(), accountID: UUID(), sleeperID: UUID())
+        for anchor in ["2026-03-09T00:00:00Z", "2026-11-02T00:00:00Z", "2026-11-13T00:00:00Z"] {
+            for hour in 0..<24 {
+                let now = date(anchor).addingTimeInterval(Double(hour) * 3600)
+                let evidence = PersonalAccountReportsExample.evidence(identity: identity, now: now)
+                let comparison = try #require(evidence.comparison)
+                #expect(comparison.isValid)
+                #expect(comparison.observedCount == 12, "Example lost nights at \(now)")
+                #expect(comparison.omittedRecords == 0)
+                #expect(comparison.priorValues.count >= 4 && comparison.recentValues.count >= 4)
+                #expect(comparison.medianChange != nil)
+            }
+        }
+    }
     @Test func frozenComparisonPreservesDSTAndMissingDaysWithoutFillingZero() throws {
         let now = date("2026-11-02T17:00:00Z")
         let archive = history([night("2026-11-01T05:00:00Z", "2026-11-01T16:00:00Z", minutes: 500)], now: now)

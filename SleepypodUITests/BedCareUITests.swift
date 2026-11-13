@@ -44,18 +44,20 @@ import UIKit
     }
     private func reveal(_ element: XCUIElement, _ app: XCUIApplication) {
         let appFrame = app.frame
-        let initialContainer = scrollContainer(for: element, in: app)
-        let initialFrame = initialContainer.frame
+        let container = scrollContainer(for: element, in: app)
+        let initialFrame = container.frame
         let centeredSheet = initialFrame.width < appFrame.width * 0.8
         let navigationBottom = app.navigationBars.allElementsBoundByIndex
             .filter { $0.frame.intersects(initialFrame) && $0.isHittable }.map(\.frame.maxY).max()
         for _ in 0..<24 {
-            let container = centeredSheet ? initialContainer : scrollContainer(for: element, in: app)
+            // The element stays in this container during reveal; reread its geometry
+            // after each swipe without rediscovering the full accessibility subtree.
+            let containerFrame = container.frame
             // iPad settings are a centered sheet: screen bounds do not describe its visible content.
-            let contentTop = max(appFrame.minY + 120, (navigationBottom ?? container.frame.minY) + 12)
+            let contentTop = max(appFrame.minY + 120, (navigationBottom ?? containerFrame.minY) + 12)
             let screenContent = CGRect(x: appFrame.minX, y: contentTop,
                                        width: appFrame.width, height: appFrame.maxY - 40 - contentTop)
-            let viewport = container.frame.insetBy(dx: 0, dy: 24).intersection(screenContent)
+            let viewport = containerFrame.insetBy(dx: 0, dy: 24).intersection(screenContent)
             let frame = element.exists ? element.frame : .zero
             if frame.height > 0 {
                 // Large-text disclosure labels can extend beyond the viewport even with a clear tap point.

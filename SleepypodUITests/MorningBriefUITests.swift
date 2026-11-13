@@ -47,6 +47,9 @@ import UIKit
         reveal(chart, app); capture(prefix + "-chart")
         let days = app.buttons["brief.days"]
         if large {
+            let dates = app.staticTexts["brief.chart.dates"]
+            reveal(dates, app); XCTAssertTrue(dates.label.hasPrefix("From "))
+            capture(prefix + "-chart-dates")
             let coverageNotes = app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH %@", "Blank days are unknown")).firstMatch
             revealStart(coverageNotes, app); capture(prefix + "-chart-notes")
             let importNotes = app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH %@", "Health imported")).firstMatch
