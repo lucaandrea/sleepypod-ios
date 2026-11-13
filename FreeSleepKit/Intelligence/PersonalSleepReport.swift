@@ -10,6 +10,19 @@ struct PersonalSleepReport: Codable, Identifiable, Sendable, Equatable {
     var text: String
     var inputTokens: Int?
     var outputTokens: Int?
+    var comparison: ReportSleepComparison?
+    var followUps: [PersonalReportFollowUp]?
+}
+
+struct PersonalReportFollowUp: Codable, Identifiable, Sendable, Equatable {
+    var id: UUID
+    var createdAt: Date
+    var question: String
+    var text: String
+    var provider: IntelligenceProvider
+    var model: String
+    var inputTokens: Int?
+    var outputTokens: Int?
 }
 
 struct PersonalIntelligenceArchive: Codable, Sendable {

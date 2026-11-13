@@ -5,6 +5,7 @@ struct PersonalBedConnection: Sendable {
     let endpoint: URL
     let token: String
     let session: HouseholdSession
+    var verifiedRoutes: VerifiedPersonalRoutes?
 }
 
 protocol PersonalBedTransport: Sendable {

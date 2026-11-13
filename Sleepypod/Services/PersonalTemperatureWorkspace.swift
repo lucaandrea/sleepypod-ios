@@ -124,8 +124,13 @@ import Observation
     }
     /// Recheck session and configuration, then durably save the exact bytes before the sole POST.
     func submit(_ action: PersonalControlAction) async {
+        _ = await submitWithReceipt(action)
+    }
+    /// A remote caller can revalidate its short-lived intent against the final fresh bed before persistence.
+    func submitWithReceipt(_ action: PersonalControlAction,
+                           validateBeforeSubmit: @MainActor (PersonalBed) throws -> Void = { _ in }) async -> PersonalControlAttempt? {
         guard action.isStopping ? (action.kind == "power" ? canStopPower : canStopVibration) : canAdjust,
-              let reviewed = bed else { return }
+              let reviewed = bed else { return nil }
         let operation = generation, reservation = UUID()
         // Stop supersedes ordinary actions still waiting for preflight; already-sent actions keep their receipts.
         if action.isStopping { controlEpoch += 1; stopping() }
@@ -141,6 +146,7 @@ import Observation
             guard action.isStopping || (snapshot.observation.isFresh(at: now()) && snapshot.observation.water == "ok" && snapshot.observation.priming == false) else {
                 apply(snapshot); throw PersonalControlFailure.observationRequired
             }
+            try validateBeforeSubmit(snapshot)
             let request = try PersonalControlRequest(scope: snapshot.scope, action: action, now: now())
             let encoder = JSONEncoder(); encoder.outputFormatting = [.sortedKeys]
             var attempt = PersonalControlAttempt(request: request, body: try encoder.encode(request), authorizedZones: snapshot.routing.zones(for: action))
@@ -151,7 +157,9 @@ import Observation
             try check(operation); try receipt.validate(for: attempt)
             receiptReads[attempt.id, default: 0] += 1
             attempt.receipt = receipt; try save(attempt); reloadAttempts(); draftTarget = nil
+            return attempt
         } catch { if operation == generation { fail(error, preserveBed: true) } }
+        return nil
     }
     /// Receipt lookups never resend the command, including after restart or a side move.
     func reconcile(_ id: UUID) async {

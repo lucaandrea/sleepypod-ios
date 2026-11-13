@@ -10,6 +10,8 @@
 	<string>app-store-connect</string>
 	<key>provisioningProfiles</key>
 	<dict>
+		<key>com.lucaandrea.freesleep.widgets</key>
+		<string>Free Sleep Widgets App Store 2026</string>
 		<key>com.lucaandrea.freesleep</key>
 		<string>Free Sleep App Store 2026</string>
 		<key>com.lucaandrea.freesleep.watchkitapp</key>

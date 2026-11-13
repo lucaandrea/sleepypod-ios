@@ -12,6 +12,7 @@ import Foundation
 final class SleepypodCoreClient: SleepypodProtocol, @unchecked Sendable {
     private let session: URLSession
     private let configuredBaseURL: URL?
+    private let connectionCheck: OwnerConnectionCandidate?
     private let encoder: JSONEncoder
     private let decoder: JSONDecoder
 
@@ -24,8 +25,9 @@ final class SleepypodCoreClient: SleepypodProtocol, @unchecked Sendable {
         return URL(string: "http://\(ip):3000")
     }
 
-    init(session: URLSession = OwnerConnection.session, baseURL: URL? = nil) {
+    init(session: URLSession = OwnerConnection.session, baseURL: URL? = nil, connectionCheck: OwnerConnectionCandidate? = nil) {
         self.configuredBaseURL = baseURL
+        self.connectionCheck = connectionCheck
         self.session = session
         self.encoder = JSONEncoder()
         self.decoder = JSONDecoder()
@@ -613,7 +615,7 @@ final class SleepypodCoreClient: SleepypodProtocol, @unchecked Sendable {
 
     private func performRequest(_ request: URLRequest) async throws -> (Data, URLResponse) {
         try PersonalWorkspaceBoundary.requireLegacyAccess()
-        let request = OwnerConnection.authorize(request)
+        let request = try connectionCheck?.authorizeStatusCheck(request) ?? OwnerConnection.authorize(request)
         do {
             return try await session.data(for: request)
         } catch let error as URLError where request.httpMethod == "GET" && Self.isTransient(error) {
@@ -723,6 +725,7 @@ final class SleepypodCoreClient: SleepypodProtocol, @unchecked Sendable {
         return PodSettings(
             timeFormat: device?.timeFormat,
             bedMode: device?.bedMode,
+            unusedZoneMode: device?.unusedZoneMode,
             defaultScheduleEndAction: device?.defaultScheduleEndAction,
             id: "1",
             timeZone: device?.timezone ?? TimeZone.current.identifier,
@@ -815,6 +818,7 @@ private struct TRPCDeviceStatus: Decodable {
 private struct TRPCDeviceSettings: Decodable {
     let timeFormat: String?
     let bedMode: String?
+    let unusedZoneMode: String?
     let defaultScheduleEndAction: ScheduleEndAction?
     let timezone: String?
     let temperatureUnit: String?

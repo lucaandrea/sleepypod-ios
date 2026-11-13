@@ -1,6 +1,8 @@
 included:
   - Sleepypod
   - SleepypodWatch
+  - SleepypodWidgets
+  - WidgetPresentation
   - Shared
 
 excluded:

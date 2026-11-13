@@ -64,6 +64,11 @@ struct PersonalComfortScreen: View {
                         ThermalModelCard(side: side, client: client).id(scope)
                     } else if let learning = status.learning { ThermalLearningCard(learning: learning) }
                     reports(status)
+                    NavigationLink { ComfortExperimentsEntry() } label: {
+                        Label("Compare nearby settings", systemImage: "thermometer.medium")
+                            .frame(maxWidth: .infinity, alignment: .leading).padding(16)
+                    }.background(Theme.card, in: RoundedRectangle(cornerRadius: 16))
+                        .accessibilityIdentifier("experiments.ownerLink")
                     if status.features.ownerActivation == true {
                         NavigationLink {
                             ComfortOwnerScreen(side: side, timezone: status.timezone)

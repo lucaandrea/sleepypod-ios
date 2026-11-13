@@ -1,0 +1,208 @@
+{
+  "synthetic": true,
+  "sourceCommit": "0fc563554a5e7554a5a16af24156b1c8d42d69fb",
+  "session": {
+    "apiVersion": 1,
+    "featureVersion": 1,
+    "podId": "a7e804f1-e9ac-4112-bd30-51fce4d9a571",
+    "householdId": "03bf9cfe-d665-480c-9cba-6cbf49e2d357",
+    "accountId": "3aad8a1c-6b35-40b8-bb29-2b1d1819e150",
+    "selfSleeperId": "d8bc9a71-aa35-403c-84ba-4a13041c7999",
+    "role": "owner",
+    "membership": "active",
+    "sessionRevision": 1,
+    "householdRevision": 2,
+    "assignmentRevision": 1,
+    "arrangement": {
+      "mode": "solo-anywhere",
+      "effectiveAt": "2026-11-12T07:00:00.000Z"
+    },
+    "self": {
+      "displayName": "Example owner",
+      "zones": [
+        "left",
+        "right"
+      ],
+      "assignment": "solo"
+    },
+    "capabilities": {
+      "manageInvitations": true,
+      "manageOwnDevices": true,
+      "personalPreferences": true,
+      "personalRoutineDrafts": true,
+      "activateArrangement": false,
+      "personalControls": false,
+      "personalHistory": false,
+      "healthImport": false,
+      "cloudAnalysis": false,
+      "householdQuiet": true
+    }
+  },
+  "memberSession": {
+    "apiVersion": 1,
+    "featureVersion": 1,
+    "podId": "a7e804f1-e9ac-4112-bd30-51fce4d9a571",
+    "householdId": "03bf9cfe-d665-480c-9cba-6cbf49e2d357",
+    "accountId": "f33c1ee8-7653-4dd8-9a52-6adc60de4be3",
+    "selfSleeperId": "beccf15a-3487-4408-bd12-b32de9748744",
+    "role": "member",
+    "membership": "active",
+    "sessionRevision": 1,
+    "householdRevision": 2,
+    "assignmentRevision": 1,
+    "arrangement": {
+      "mode": "solo-anywhere",
+      "effectiveAt": "2026-11-12T07:00:00.000Z"
+    },
+    "self": {
+      "displayName": "Example partner",
+      "zones": [],
+      "assignment": "unassigned"
+    },
+    "capabilities": {
+      "manageInvitations": false,
+      "manageOwnDevices": true,
+      "personalPreferences": true,
+      "personalRoutineDrafts": true,
+      "activateArrangement": false,
+      "personalControls": false,
+      "personalHistory": false,
+      "healthImport": false,
+      "cloudAnalysis": false,
+      "householdQuiet": true
+    }
+  },
+  "idle": {
+    "version": 1,
+    "generatedAt": 1794466800000,
+    "scope": {
+      "podId": "a7e804f1-e9ac-4112-bd30-51fce4d9a571",
+      "householdId": "03bf9cfe-d665-480c-9cba-6cbf49e2d357",
+      "accountId": "3aad8a1c-6b35-40b8-bb29-2b1d1819e150",
+      "sleeperId": "d8bc9a71-aa35-403c-84ba-4a13041c7999",
+      "sessionRevision": 1,
+      "householdRevision": 2,
+      "assignmentRevision": 1
+    },
+    "mine": {
+      "revision": null,
+      "until": null
+    },
+    "shared": {
+      "paused": false,
+      "until": null
+    }
+  },
+  "write": {
+    "requestId": "4effc44f-9a97-4279-87ec-37b4c7dba4b9",
+    "expectedSessionRevision": 1,
+    "expectedAssignmentRevision": 1,
+    "expectedRevision": null,
+    "issuedAt": 1794466800000,
+    "expiresAt": 1794466830000,
+    "until": 1794470400000
+  },
+  "saved": {
+    "version": 1,
+    "generatedAt": 1794466800000,
+    "scope": {
+      "podId": "a7e804f1-e9ac-4112-bd30-51fce4d9a571",
+      "householdId": "03bf9cfe-d665-480c-9cba-6cbf49e2d357",
+      "accountId": "3aad8a1c-6b35-40b8-bb29-2b1d1819e150",
+      "sleeperId": "d8bc9a71-aa35-403c-84ba-4a13041c7999",
+      "sessionRevision": 1,
+      "householdRevision": 2,
+      "assignmentRevision": 1
+    },
+    "receipt": {
+      "requestId": "4effc44f-9a97-4279-87ec-37b4c7dba4b9",
+      "revision": "244c943d-73ad-46fe-b101-bee42f50184c",
+      "savedAt": 1794466800000,
+      "until": 1794470400000
+    }
+  },
+  "shared": {
+    "version": 1,
+    "generatedAt": 1794466800000,
+    "scope": {
+      "podId": "a7e804f1-e9ac-4112-bd30-51fce4d9a571",
+      "householdId": "03bf9cfe-d665-480c-9cba-6cbf49e2d357",
+      "accountId": "3aad8a1c-6b35-40b8-bb29-2b1d1819e150",
+      "sleeperId": "d8bc9a71-aa35-403c-84ba-4a13041c7999",
+      "sessionRevision": 1,
+      "householdRevision": 2,
+      "assignmentRevision": 1
+    },
+    "mine": {
+      "revision": "244c943d-73ad-46fe-b101-bee42f50184c",
+      "until": 1794470400000
+    },
+    "shared": {
+      "paused": true,
+      "until": 1794474000000
+    }
+  },
+  "clear": {
+    "requestId": "3a021705-5cc7-4660-8646-5dec6ef3ef3c",
+    "expectedSessionRevision": 1,
+    "expectedAssignmentRevision": 1,
+    "expectedRevision": "244c943d-73ad-46fe-b101-bee42f50184c",
+    "issuedAt": 1794466800000,
+    "expiresAt": 1794466830000,
+    "until": null
+  },
+  "cleared": {
+    "version": 1,
+    "generatedAt": 1794466800000,
+    "scope": {
+      "podId": "a7e804f1-e9ac-4112-bd30-51fce4d9a571",
+      "householdId": "03bf9cfe-d665-480c-9cba-6cbf49e2d357",
+      "accountId": "3aad8a1c-6b35-40b8-bb29-2b1d1819e150",
+      "sleeperId": "d8bc9a71-aa35-403c-84ba-4a13041c7999",
+      "sessionRevision": 1,
+      "householdRevision": 2,
+      "assignmentRevision": 1
+    },
+    "receipt": {
+      "requestId": "3a021705-5cc7-4660-8646-5dec6ef3ef3c",
+      "revision": "5b7743db-712c-4928-b073-499c151c46ab",
+      "savedAt": 1794466800000,
+      "until": null
+    }
+  },
+  "partner": {
+    "version": 1,
+    "generatedAt": 1794466800000,
+    "scope": {
+      "podId": "a7e804f1-e9ac-4112-bd30-51fce4d9a571",
+      "householdId": "03bf9cfe-d665-480c-9cba-6cbf49e2d357",
+      "accountId": "3aad8a1c-6b35-40b8-bb29-2b1d1819e150",
+      "sleeperId": "d8bc9a71-aa35-403c-84ba-4a13041c7999",
+      "sessionRevision": 1,
+      "householdRevision": 2,
+      "assignmentRevision": 1
+    },
+    "mine": {
+      "revision": "5b7743db-712c-4928-b073-499c151c46ab",
+      "until": null
+    },
+    "shared": {
+      "paused": true,
+      "until": 1794474000000
+    }
+  },
+  "missing": {
+    "version": 1,
+    "generatedAt": 1794466800000,
+    "scope": {
+      "podId": "a7e804f1-e9ac-4112-bd30-51fce4d9a571",
+      "householdId": "03bf9cfe-d665-480c-9cba-6cbf49e2d357",
+      "accountId": "3aad8a1c-6b35-40b8-bb29-2b1d1819e150",
+      "sleeperId": "d8bc9a71-aa35-403c-84ba-4a13041c7999",
+      "sessionRevision": 1,
+      "householdRevision": 2,
+      "assignmentRevision": 1
+    },
+    "receipt": null
+  }
+}

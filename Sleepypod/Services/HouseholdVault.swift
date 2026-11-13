@@ -26,9 +26,10 @@ struct HouseholdPendingRequest: Codable, Equatable, Sendable {
 
 struct HouseholdConnectionRecord: Codable, Identifiable, Sendable {
     let id: UUID
-    let endpoint: URL
+    var endpoint: URL
     let deviceSecret: String
     var identity: HouseholdSession?
+    var offlineBlocked: Bool?
     var pending: HouseholdPendingRequest?
     var invitationSecrets: [String: String] = [:]
     var draftPreferences: HouseholdPreferences?
@@ -37,6 +38,7 @@ struct HouseholdConnectionRecord: Codable, Identifiable, Sendable {
     var draftRoutinesRevision: Int?
     var personalControls: [PersonalControlAttempt]?
     var personalPublications: [PersonalRoutineAttempt]?
+    var verifiedRoutes: VerifiedPersonalRoutes?
 }
 
 struct HouseholdVaultState: Codable {
@@ -53,7 +55,8 @@ struct HouseholdVaultState: Codable {
 
 /// Tokens, invitations, uncertain requests and private drafts never enter UserDefaults or files.
 @MainActor struct HouseholdKeychainVault: HouseholdVault {
-    private let service = "com.lucaandrea.freesleep.household"
+    private let service: String
+    init(service: String = "com.lucaandrea.freesleep.household") { self.service = service }
     private var query: [String: Any] {
         [kSecClass as String: kSecClassGenericPassword, kSecAttrService as String: service, kSecAttrAccount as String: "connections.v1"]
     }
@@ -66,11 +69,16 @@ struct HouseholdVaultState: Codable {
         if status == errSecItemNotFound { return .init() }
         guard status == errSecSuccess, let data = result as? Data,
               let state = try? JSONDecoder().decode(HouseholdVaultState.self, from: data) else { throw HouseholdFailure.storage }
+        // A live Watch action wakes a locked iPhone. Migrate only a successfully read account vault;
+        // Health snapshots and provider keys use their separate, stricter Keychain stores.
+        let migrated = SecItemUpdate(query as CFDictionary,
+            [kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly] as CFDictionary)
+        guard migrated == errSecSuccess else { throw HouseholdFailure.storage }
         return state
     }
     func save(_ state: HouseholdVaultState) throws {
         let data = try JSONEncoder().encode(state)
-        let attributes: [String: Any] = [kSecValueData as String: data, kSecAttrAccessible as String: kSecAttrAccessibleWhenUnlockedThisDeviceOnly]
+        let attributes: [String: Any] = [kSecValueData as String: data, kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly]
         let status = SecItemUpdate(query as CFDictionary, attributes as CFDictionary)
         if status == errSecItemNotFound {
             var item = query
@@ -78,7 +86,7 @@ struct HouseholdVaultState: Codable {
             guard SecItemAdd(item as CFDictionary, nil) == errSecSuccess else { throw HouseholdFailure.storage }
         } else if status != errSecSuccess { throw HouseholdFailure.storage }
     }
-    static func secret() throws -> String {
+    nonisolated static func secret() throws -> String {
         var bytes = [UInt8](repeating: 0, count: 32)
         guard SecRandomCopyBytes(kSecRandomDefault, bytes.count, &bytes) == errSecSuccess else { throw HouseholdFailure.storage }
         return Data(bytes).base64EncodedString().replacingOccurrences(of: "+", with: "-")

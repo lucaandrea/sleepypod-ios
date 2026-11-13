@@ -44,9 +44,10 @@ final class SettingsManager {
     var podID: String { Self.registerPodIdentity(address: Self.healthAddress) }
 
     static var healthAddress: String {
-        let stored = UserDefaults.standard.string(forKey: "podIPAddress") ?? ""
+        guard let revision = OwnerDataIdentity.current.revision else { return "" }
+        let stored = revision[2]
         if !stored.isEmpty { return stored }
-        return APIBackend.current == .sleepypodCore ? OwnerConnection.endpoint?.absoluteString ?? "" : ""
+        return APIBackend.current == .sleepypodCore ? revision[1] : ""
     }
 
     @discardableResult

@@ -108,7 +108,7 @@ private struct RecentSleepContextCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
-            Eyebrow("LATEST SLEEP · \(sideName.uppercased())")
+            Text("Latest recorded segment · \(sideName)").font(.headline)
             if let error = result.error { feedback("Sleep unavailable: \(error)") }
             else if let context = result.value {
                 Button {
@@ -124,7 +124,9 @@ private struct RecentSleepContextCard: View {
                         Image(systemName: "chevron.right").font(.caption).foregroundStyle(Theme.text3)
                     }.frame(minHeight: 44).contentShape(Rectangle())
                 }.buttonStyle(.plain).accessibilityIdentifier("temperature.recentSleep")
-                    .accessibilityLabel("View sleep for \(sideName), \(date(context.record.enteredBedDate)), \(context.record.durationFormatted)")
+                    .accessibilityLabel("View recorded segment for \(sideName), \(date(context.record.enteredBedDate)), \(context.record.durationFormatted)")
+                Text("One recorded segment, not a complete night. Open Sleep for the whole night and any gaps.")
+                    .font(.caption).foregroundStyle(Theme.text2).fixedSize(horizontal: false, vertical: true)
                 Divider().overlay(Theme.track)
                 let layout = typeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: 14)) : AnyLayout(HStackLayout(alignment: .top, spacing: 12))
                 layout {

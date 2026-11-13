@@ -7,7 +7,7 @@ final class UnifiedNavigationTests: XCTestCase {
         app.launchArguments = ["-apiBackend", "demo", "--demo", "-onboardingComplete", "YES", "-appearance", appearance,
                                "-healthSyncEnabled", "NO", "-uiRoute", "", "-tempControl", "dial"]
         app.launch()
-        XCTAssertTrue(app.tabBars.buttons["Temp"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.tabBars.buttons["Tonight"].waitForExistence(timeout: 10))
         return app
     }
 

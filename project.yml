@@ -58,6 +58,7 @@ targets:
     platform: iOS
     sources:
       - path: Sleepypod
+      - path: WidgetPresentation
       - path: SleepypodUI
       - path: Shared
       - path: Integration/Fixtures
@@ -71,26 +72,23 @@ targets:
     postBuildScripts:
       - name: Apply direct-provider privacy declarations
         script: |
-          set -eu
-          SDK_MANIFEST="${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/AIProxy_AIProxy.bundle/PrivacyInfo.xcprivacy"
-          if [ -f "$SDK_MANIFEST" ]; then
-            cp "${SRCROOT}/FreeSleepKit/Resources/PrivacyInfo.xcprivacy" "$SDK_MANIFEST"
-            plutil -lint "$SDK_MANIFEST"
-          fi
+          /bin/sh "${SRCROOT}/scripts/apply-provider-privacy.sh"
         basedOnDependencyAnalysis: false
     dependencies:
       - target: FreeSleepKit
       - target: SleepypodWatch
+      - target: SleepypodWidgets
     entitlements:
       path: Sleepypod/Sleepypod.entitlements
       properties:
         com.apple.developer.healthkit: true
         com.apple.developer.homekit: true
+        com.apple.security.application-groups: [group.com.lucaandrea.freesleep.widgets]
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.lucaandrea.freesleep
         INFOPLIST_FILE: Sleepypod/Info.plist
-        INFOPLIST_KEY_NSHealthShareUsageDescription: "Compare Apple Health history with your bed data and prepare personal sleep reports. Optional cloud sharing requires your consent."
+        INFOPLIST_KEY_NSHealthShareUsageDescription: "Compare your sleep history with bed data. You can separately choose workouts, activity and earlier wrist temperature as private context. Cloud sharing requires your explicit consent."
         INFOPLIST_KEY_UIApplicationSceneManifest_Generation: true
         INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone: UIInterfaceOrientationPortrait
         INFOPLIST_KEY_NSLocalNetworkUsageDescription: "sleepypod connects to your sleep pod on the local network to control temperature, view sensor data, and track sleep."
@@ -104,6 +102,40 @@ targets:
           CODE_SIGN_STYLE: Manual
           CODE_SIGN_IDENTITY: Apple Distribution
           PROVISIONING_PROFILE_SPECIFIER: Free Sleep App Store 2026
+
+  SleepypodWidgets:
+    type: app-extension
+    platform: iOS
+    sources:
+      - path: SleepypodWidgets
+      - path: WidgetPresentation
+      - path: Shared/BedWidget
+      - path: Shared/BedRemote.swift
+    entitlements:
+      path: SleepypodWidgets/SleepypodWidgets.entitlements
+      properties:
+        com.apple.security.application-groups: [group.com.lucaandrea.freesleep.widgets]
+    info:
+      path: SleepypodWidgets/Info.plist
+      properties:
+        CFBundleDisplayName: Bed status
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.widgetkit-extension
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.lucaandrea.freesleep.widgets
+        PRODUCT_NAME: SleepypodWidgets
+        INFOPLIST_KEY_CFBundleDisplayName: Bed status
+        APPLICATION_EXTENSION_API_ONLY: true
+        SKIP_INSTALL: true
+        TARGETED_DEVICE_FAMILY: "1,2"
+        CODE_SIGN_STYLE: Automatic
+        DEVELOPMENT_TEAM: 9FNNQ6J269
+      configs:
+        Release:
+          CODE_SIGN_STYLE: Manual
+          CODE_SIGN_IDENTITY: Apple Distribution
+          PROVISIONING_PROFILE_SPECIFIER: Free Sleep Widgets App Store 2026
 
   SleepypodWatch:
     type: application
@@ -148,6 +180,12 @@ targets:
     platform: iOS
     sources:
       - path: SleepypodTests
+      - path: Integration/Fixtures/stage-model-demo.json
+        buildPhase: resources
+      - path: Integration/Fixtures/stage-model-core-identity.json
+        buildPhase: resources
+      - path: Integration/Fixtures/stage-rules-defaults.json
+        buildPhase: resources
     dependencies:
       - target: Sleepypod
     settings:

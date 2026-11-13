@@ -39,11 +39,11 @@ import Observation
         do {
             for batch in HealthWatchBatch.batches(snapshot, side: side) {
                 try Task.checkCancellation()
-                guard context == health.watchReferenceContext else { throw APIError.serverError(message: "Your connection or Health settings changed. Read the history again.") }
+                guard health.ownerDataAvailable, context == health.watchReferenceContext else { throw APIError.serverError(message: "Your connection or Health settings changed. Read the history again.") }
                 written += try await writer.write(batch)
                 processed += batch.count
             }
-            guard context == health.watchReferenceContext else { throw APIError.serverError(message: "The import finished after your connection or Health settings changed. Check the original destination.") }
+            guard health.ownerDataAvailable, context == health.watchReferenceContext else { throw APIError.serverError(message: "The import finished after your connection or Health settings changed. Check the original destination.") }
             complete = true
         } catch {
             self.error = "Import incomplete. \(written) new records confirmed. " + error.localizedDescription

@@ -1,8 +1,10 @@
 # Offline reading
 
 Part of approved platform improvement 02. This change implements the installation
-owner's private offline library. Personal-account offline history and publication
-receipts remain a separate household integration task; they never borrow this data.
+owner's private offline library. Personal accounts now have a separate
+[saved-readings implementation](../../docs/PERSONAL_OFFLINE_LIBRARY.md) for their
+own downloaded records and operating week; they never borrow the owner's data or
+report archive. Saved weeks do not constitute publication or alarm receipts.
 
 Sleep and Schedule now remain useful when the controller disconnects. The app saves
 30 days of bed recordings on each side and the complete last-confirmed weekly
@@ -72,4 +74,21 @@ on both forms. Local result bundles are `sleepypod-platform-regression.xcresult`
 and `sleepypod-offline-ipad.xcresult` in `/tmp`.
 
 This change has not yet been distributed through TestFlight. A real disconnected
-phone/iPad walkthrough and personal-account offline history remain pending.
+phone/iPad walkthrough remains pending. Personal-account source validation and
+release evidence are tracked separately in the linked saved-readings document.
+
+### Hosted integrated-suite budget, 12 November 2026
+
+On application revision `655d87a78c14f325727ff76e3a23d36262561755`, hosted iPad
+job `131086958518` reached the combined offline step's 20-minute limit. All four
+owner cases and three personal cases had passed; the fourth personal case was
+still running. The remaining personal case and Health suite were not verified.
+This is incomplete coverage, not a passing run. The initial iPhone attempt failed
+before running a test because the simulator could not initialize Accessibility.
+
+The workflow now gives owner offline, personal offline and Health enrollment
+separate 20-minute steps using the same signed build. All 16 test methods still
+run on each form. Each suite keeps its own result bundle, and the remaining
+suites run after an earlier suite fails if the build succeeded. No assertion,
+signing requirement or failure outcome is weakened. YAML parsing and selector
+checks pass locally; the revised hosted execution remains to be verified.

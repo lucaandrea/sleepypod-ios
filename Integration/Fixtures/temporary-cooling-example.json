@@ -1,0 +1,115 @@
+{
+  "synthetic": true,
+  "sourceCommit": "9baa9ab17b7cfd2d3030a7d51e5e5c67ab80cb45",
+  "cases": {
+    "ready": {
+      "apiVersion": 1,
+      "side": "left",
+      "generatedAt": 1794350000000,
+      "observedAt": 1794350000000,
+      "state": "ready",
+      "reason": "Cool this zone by up to 2°F for up to 20 minutes. Your wake plan stays unchanged.",
+      "proposal": {
+        "scope": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "fromTargetF": 70,
+        "targetF": 68,
+        "expiresAt": 1794351200000
+      },
+      "lease": null,
+      "physicalVerification": "unverified"
+    },
+    "active": {
+      "apiVersion": 1,
+      "side": "left",
+      "generatedAt": 1794350000000,
+      "observedAt": 1794350000000,
+      "state": "cooling",
+      "reason": "Returns to the current prior plan only if no newer manual change or Stop has replaced this request.",
+      "proposal": null,
+      "lease": {
+        "version": 1,
+        "id": "00000000-0000-4000-8000-000000000022",
+        "side": "left",
+        "scope": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "fromTargetF": 70,
+        "targetF": 68,
+        "startedAt": 1794350000000,
+        "expiresAt": 1794351200000,
+        "sessionEndsAt": 1794378800000,
+        "phase": "active"
+      },
+      "physicalVerification": "unverified"
+    },
+    "waiting": {
+      "apiVersion": 1,
+      "side": "left",
+      "generatedAt": 1794350031000,
+      "observedAt": 1794350000000,
+      "state": "waiting",
+      "reason": "Returns to the current prior plan only if no newer manual change or Stop has replaced this request.",
+      "proposal": null,
+      "lease": {
+        "version": 1,
+        "id": "00000000-0000-4000-8000-000000000022",
+        "side": "left",
+        "scope": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "fromTargetF": 70,
+        "targetF": 68,
+        "startedAt": 1794350000000,
+        "expiresAt": 1794351200000,
+        "sessionEndsAt": 1794378800000,
+        "phase": "active"
+      },
+      "physicalVerification": "unverified"
+    },
+    "unknown": {
+      "apiVersion": 1,
+      "side": "left",
+      "generatedAt": 1794350031000,
+      "observedAt": 1794350000000,
+      "state": "unknown",
+      "reason": "The last change is unconfirmed. Read the current target before cancelling or choosing a new temperature.",
+      "proposal": null,
+      "lease": {
+        "version": 1,
+        "id": "00000000-0000-4000-8000-000000000022",
+        "side": "left",
+        "scope": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "fromTargetF": 70,
+        "targetF": 68,
+        "startedAt": 1794350000000,
+        "expiresAt": 1794351200000,
+        "sessionEndsAt": 1794378800000,
+        "phase": "unknown"
+      },
+      "physicalVerification": "unverified"
+    },
+    "cancelled": {
+      "apiVersion": 1,
+      "side": "left",
+      "generatedAt": 1794350031000,
+      "observedAt": 1794350031000,
+      "state": "ready",
+      "reason": "Cool this zone by up to 2°F for up to 20 minutes. Your wake plan stays unchanged.",
+      "proposal": {
+        "scope": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "fromTargetF": 70,
+        "targetF": 68,
+        "expiresAt": 1794351231000
+      },
+      "lease": null,
+      "physicalVerification": "unverified"
+    },
+    "unavailable": {
+      "apiVersion": 1,
+      "side": "right",
+      "generatedAt": 1794350031000,
+      "observedAt": 1794350031000,
+      "state": "unavailable",
+      "reason": "Synthetic fixture; no Pod connected.",
+      "proposal": null,
+      "lease": null,
+      "physicalVerification": "unverified"
+    }
+  }
+}

@@ -240,11 +240,15 @@ final class StageModelStore {
         reload()
     }
 
-    private func auditScope(_ side: Side) -> String {
-        "\(OwnerConnection.revision)|\(side.rawValue)|\(contract.rawValue)"
+    private func auditScope(_ side: Side) -> String? {
+        guard let revision = OwnerDataIdentity.current.revision else { return nil }
+        return "\(revision)|\(side.rawValue)|\(contract.rawValue)"
     }
 
-    func hasCurrentTrainingAudit(side: Side) -> Bool { trainingAuditScope == auditScope(side) }
+    func hasCurrentTrainingAudit(side: Side) -> Bool {
+        guard let scope = auditScope(side) else { return false }
+        return trainingAuditScope == scope
+    }
 
     private func recordAudit(_ dataset: StageDataset, scope: String) {
         if trainingAuditScope != scope { confirmedTrainingNights = [] }
@@ -270,7 +274,10 @@ final class StageModelStore {
     /// Inspect coverage without starting a fit or changing the selected model.
     func checkTrainingData(builder: StageDatasetBuilder) async {
         guard !isTraining else { return }
-        let scope = auditScope(builder.side)
+        guard let scope = auditScope(builder.side) else {
+            trainingError = "Unlock this device and verify its saved connection before reviewing training nights."
+            return
+        }
         isTraining = true
         trainingKind = nil
         trainingError = nil
@@ -295,11 +302,14 @@ final class StageModelStore {
     @discardableResult
     func train(_ kind: StageModelKind, builder: StageDatasetBuilder) async -> Bool {
         guard !isTraining else { return false }
+        guard let scope = auditScope(builder.side) else {
+            trainingError = "Unlock this device and verify its saved connection before training."
+            return false
+        }
         isTraining = true
         trainingKind = kind
         trainingProgress = 0
         trainingError = nil
-        let scope = auditScope(builder.side)
         // A locked phone suspends the app mid-fit; the screen stays on until the run ends.
         UIApplication.shared.isIdleTimerDisabled = true
         defer {

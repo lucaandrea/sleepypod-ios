@@ -1,0 +1,119 @@
+{
+  "synthetic": true,
+  "sourceRevision": "fa443acf",
+  "session": {
+    "apiVersion": 1,
+    "featureVersion": 1,
+    "podId": "00000000-0000-4000-8000-000000000001",
+    "householdId": "00000000-0000-4000-8000-000000000002",
+    "accountId": "00000000-0000-4000-8000-000000000003",
+    "selfSleeperId": "00000000-0000-4000-8000-000000000004",
+    "role": "owner",
+    "membership": "active",
+    "sessionRevision": 1,
+    "householdRevision": 1,
+    "assignmentRevision": 1,
+    "arrangement": {
+      "mode": "solo-anywhere",
+      "effectiveAt": "2026-10-29T22:00:00.000Z"
+    },
+    "self": {
+      "displayName": "Example owner",
+      "zones": [
+        "left",
+        "right"
+      ],
+      "assignment": "solo"
+    },
+    "capabilities": {
+      "manageInvitations": true,
+      "manageOwnDevices": true,
+      "personalPreferences": true,
+      "personalRoutineDrafts": true,
+      "activateArrangement": false,
+      "personalControls": false,
+      "personalLearningArchive": true,
+      "personalHistory": false,
+      "healthImport": false,
+      "cloudAnalysis": false,
+      "personalJournal": true
+    }
+  },
+  "page": {
+    "version": 1,
+    "generatedAt": 1794398400000,
+    "scope": {
+      "podId": "00000000-0000-4000-8000-000000000001",
+      "householdId": "00000000-0000-4000-8000-000000000002",
+      "accountId": "00000000-0000-4000-8000-000000000003",
+      "sessionRevision": 1,
+      "householdRevision": 1,
+      "assignmentRevision": 1,
+      "sleeperId": "00000000-0000-4000-8000-000000000004"
+    },
+    "interpretation": "personal_self_report_not_sleep_measurement",
+    "currentTimeZone": "America/Los_Angeles",
+    "query": {
+      "date": "2026-11-10"
+    },
+    "entries": [
+      {
+        "date": "2026-11-10",
+        "revision": "00000000-0000-4000-8000-000000000010",
+        "timeZone": "America/Los_Angeles",
+        "record": {
+          "date": "2026-11-10",
+          "timeZone": "America/Los_Angeles",
+          "createdAt": 1794398390000,
+          "updatedAt": 1794398399000,
+          "fields": {
+            "restfulness": 4,
+            "comfort": "comfortable",
+            "notes": "Felt comfortable after an earlier bedtime.",
+            "caffeine": false,
+            "alcohol": false,
+            "exercise": false,
+            "context": {
+              "version": 1,
+              "caffeine": {
+                "status": "none",
+                "unit": "milligrams"
+              },
+              "alcohol": {
+                "status": "not_logged",
+                "unit": "usStandardDrinks"
+              },
+              "exercise": {
+                "status": "not_logged",
+                "unit": "minutes"
+              },
+              "stress": "usual"
+            }
+          }
+        }
+      }
+    ]
+  },
+  "receipt": {
+    "version": 1,
+    "generatedAt": 1794398400000,
+    "scope": {
+      "podId": "00000000-0000-4000-8000-000000000001",
+      "householdId": "00000000-0000-4000-8000-000000000002",
+      "accountId": "00000000-0000-4000-8000-000000000003",
+      "sessionRevision": 1,
+      "householdRevision": 1,
+      "assignmentRevision": 1,
+      "sleeperId": "00000000-0000-4000-8000-000000000004"
+    },
+    "interpretation": "personal_self_report_not_sleep_measurement",
+    "receipt": {
+      "requestId": "00000000-0000-4000-8000-000000000011",
+      "date": "2026-11-10",
+      "revision": "00000000-0000-4000-8000-000000000010",
+      "timeZone": "America/Los_Angeles",
+      "savedAt": 1794398399000,
+      "outcome": "saved"
+    }
+  }
+}

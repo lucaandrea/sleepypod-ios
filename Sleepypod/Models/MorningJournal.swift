@@ -18,12 +18,18 @@ struct MorningJournalFields: Codable, Equatable, Sendable {
     var alcohol = false
     var exercise = false
     var notes = ""
+    var context: MorningJournalContext?
     var normalized: Self {
         var result = self; result.notes = notes.trimmingCharacters(in: .whitespacesAndNewlines); return result
     }
     func validate() throws {
         guard (1...5).contains(restfulness), ["cold", "comfortable", "warm"].contains(comfort), normalized.notes.utf16.count <= 500 else {
             throw MorningJournalFailure.unavailable("Choose a restfulness score and comfort level, and keep notes within 500 characters.")
+        }
+        if let context {
+            try context.validate()
+            guard caffeine == (context.caffeine.status == "yes"), alcohol == (context.alcohol.status == "yes"),
+                  exercise == (context.exercise.status == "yes") else { throw MorningJournalFailure.invalid }
         }
     }
 }
@@ -94,6 +100,8 @@ struct MorningJournalPage: Codable, Equatable, Sendable {
     let selected: MorningJournalSelection
     let entries: [MorningJournalSelection]
     let patterns: Patterns
+    var contextVersion: Int?
+    var contextPatterns: MorningJournalContextPatterns?
 
     /// Validate scope, calendar dates and source-separated summaries before showing editable data.
     func validate(side: Side, date: String?, days: Int) throws {
@@ -124,6 +132,11 @@ struct MorningJournalPage: Codable, Equatable, Sendable {
                       association.presenceDifferenceMinutes.isFinite else { throw MorningJournalFailure.invalid }
             }
         }
+        if let contextVersion, contextVersion != 1 { throw MorningJournalFailure.invalid }
+        if let contextPatterns {
+            guard contextVersion == 1 else { throw MorningJournalFailure.invalid }
+            try contextPatterns.validate(side: side, entries: entries)
+        }
     }
 }
 
@@ -132,12 +145,14 @@ struct MorningJournalWrite: Encodable, Sendable {
     let date: String
     let expectedRevision: String?
     let fields: MorningJournalFields?
-    private enum CodingKeys: String, CodingKey { case side, date, expectedRevision, fields }
+    var expectedTimeZone: String?
+    private enum CodingKeys: String, CodingKey { case side, date, expectedRevision, fields, expectedTimeZone }
     /// Explicit nulls carry both the original empty revision and content-only deletion semantics.
     func encode(to encoder: any Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(side, forKey: .side); try container.encode(date, forKey: .date)
         try container.encode(expectedRevision, forKey: .expectedRevision); try container.encode(fields?.normalized, forKey: .fields)
+        try container.encodeIfPresent(expectedTimeZone, forKey: .expectedTimeZone)
     }
 }
 

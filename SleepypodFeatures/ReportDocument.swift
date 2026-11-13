@@ -12,6 +12,28 @@ struct ReportDocument {
     }
     let blocks: [Block]
 
+    private init(blocks: [Block]) { self.blocks = blocks }
+
+    /// Lift only an explicitly named singular proposal; do not infer an experiment from other prose.
+    var experiment: ReportDocument? {
+        let headings = blocks.indices.filter { index in
+            guard case .heading = blocks[index].kind else { return false }
+            let title = String(Self.inline(blocks[index].text).characters)
+                .trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+            return ["one experiment to consider", "one optional experiment"].contains(title)
+        }
+        guard headings.count == 1, let start = headings.first,
+              case .heading(let level) = blocks[start].kind else { return nil }
+        let content = Array(blocks.dropFirst(start + 1).prefix { block in
+            if case .heading(let nextLevel) = block.kind { return nextLevel > level }
+            return true
+        })
+        // An oversized section stays in the full report instead of losing a condition through truncation.
+        guard !content.isEmpty, content.reduce(0, { $0 + $1.text.count }) <= 1_200,
+              content.contains(where: { !$0.text.isEmpty }) else { return nil }
+        return ReportDocument(blocks: content)
+    }
+
     init(text: String, facts: [SleepFact]) {
         let allowed = Set(facts.map(\.id)).intersection(ReportEvidenceLabel.titles.keys)
         var result: [Block] = [], paragraph: [String] = []

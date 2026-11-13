@@ -12,7 +12,7 @@ struct HouseholdHTTPClient: HouseholdTransport {
     static let methods: [String: Set<String>] = [
         "household/session": ["GET"], "household/setup": ["POST"], "household/join": ["POST"],
         "household/invitations": ["GET", "POST", "DELETE"], "household/devices": ["GET", "DELETE"],
-        "me/preferences": ["GET", "PUT"], "me/routines": ["GET", "PUT"]
+        "me/preferences": ["GET", "PUT"], "me/routines": ["GET", "PUT"], "me/alarm/next": ["GET"]
     ]
     static func endpoint(_ address: String) throws -> URL { try UnifiedRuntime.validatedEndpoint(address) }
     func send(path: String, method: String, token: String?, body: Data?) async throws -> Data {

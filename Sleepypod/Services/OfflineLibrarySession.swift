@@ -1,4 +1,3 @@
-import CryptoKit
 import Foundation
 import FreeSleepKit
 import Observation
@@ -25,9 +24,7 @@ import Observation
     static var ownerScope: String? {
         guard !PersonalWorkspaceBoundary.isActive, !APIBackend.current.isDemo,
               !OwnerConnection.displayAddress.isEmpty else { return nil }
-        // Credential revisions and exact origin isolate replacement keys and other Pods.
-        let identity = Array(OwnerConnection.revision.prefix(4)).joined(separator: "|")
-        return SHA256.hash(data: Data(identity.utf8)).map { String(format: "%02x", $0) }.joined()
+        return OwnerDataIdentity.current.offlineLibraryScope
     }
 
     func restore() {

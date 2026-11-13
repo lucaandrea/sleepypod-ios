@@ -62,6 +62,15 @@ actor SyntheticNextAlarmClient: NextAlarmClient {
            let minutes = AlarmDraft.clockMinutes(time), var alarm = fields["alarm"] as? [String: Any], var change = fields["change"] as? [String: Any] {
             var calendar = Calendar(identifier: .gregorian); calendar.timeZone = TimeZone(identifier: original.timeZone) ?? .gmt
             guard let date = calendar.date(bySettingHour: minutes / 60, minute: minutes % 60, second: 0, of: wakeDate) else { throw NextAlarmFailure.invalid }
+            // Translate the source-generated timing together; do not invent another warm-up policy in Demo.
+            if let previousAt = (alarm["at"] as? String).flatMap(NextAlarmState.instant), var warming = fields["warming"] as? [String: Any] {
+                let interval = date.timeIntervalSince(previousAt)
+                for key in ["startsAt", "endsAt", "earliestVibrationAt"] {
+                    guard let timestamp = (warming[key] as? String).flatMap(NextAlarmState.instant) else { throw NextAlarmFailure.invalid }
+                    warming[key] = timestamp.addingTimeInterval(interval).ISO8601Format()
+                }
+                fields["warming"] = warming
+            }
             alarm["time"] = time; alarm["at"] = date.ISO8601Format(); change["at"] = date.ISO8601Format()
             fields["alarm"] = alarm; fields["change"] = change
         }

@@ -144,8 +144,12 @@ struct WatchComparisonTests {
         let record = try JSONDecoder().decode(SleepRecord.self, from: Data(json.utf8))
         let stages: [SleepAnalyzer.SleepStage] = [.wake, .light, .deep, .light, .rem]
         let epochs = (0..<240).map { epoch($0, stages[$0 / 48]) }
-        let vitals = (0..<96).map { VitalsRecord(id: $0, heartRate: 55 + Double($0 % 7), hrv: 40 + Double($0 % 5), breathingRate: 14,
-                                                 date: Date(timeIntervalSince1970: Double($0) * 300)) }
+        let vitals: [VitalsRecord] = (0..<96).map { index in
+            let heartRate = 55.0 + Double(index % 7)
+            let hrv = 40.0 + Double(index % 5)
+            let date = Date(timeIntervalSince1970: Double(index) * 300)
+            return VitalsRecord(id: index, heartRate: heartRate, hrv: hrv, breathingRate: 14, date: date)
+        }
         let a = WatchComparison.demo(record: record, epochs: epochs, vitals: vitals)
         let b = WatchComparison.demo(record: record, epochs: epochs, vitals: vitals)
         #expect(a.watchStages == b.watchStages)

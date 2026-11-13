@@ -19,6 +19,8 @@ import Observation
     private let save: (PersonalRoutineAttempt) throws -> Void
     private let recoveryPending: () -> Bool
     private let revoked: () -> Void
+    private let cacheReview: (PersonalRoutineReview) -> Void
+    private let withdrawCache: () -> Void
     private let now: () -> Date
     private var generation = 0
     private var readGeneration = 0
@@ -30,9 +32,11 @@ import Observation
          permitted: @escaping () -> Bool, ready: @escaping () -> Bool,
          savedDraft: @escaping () -> HouseholdRoutinesResponse?,
          load: @escaping () throws -> [PersonalRoutineAttempt], save: @escaping (PersonalRoutineAttempt) throws -> Void,
-         recoveryPending: @escaping () -> Bool = { false }, revoked: @escaping () -> Void = {}, now: @escaping () -> Date = Date.init) {
+         recoveryPending: @escaping () -> Bool = { false }, revoked: @escaping () -> Void = {},
+         cacheReview: @escaping (PersonalRoutineReview) -> Void = { _ in }, withdrawCache: @escaping () -> Void = {}, now: @escaping () -> Date = Date.init) {
         self.connection = connection; self.client = client; self.permitted = permitted; self.ready = ready
         self.savedDraft = savedDraft; self.load = load; self.save = save; self.recoveryPending = recoveryPending; self.revoked = revoked; self.now = now
+        self.cacheReview = cacheReview; self.withdrawCache = withdrawCache
         reloadAttempts()
     }
     var enabled: Bool { permitted() && connection.session.capabilities.personalRoutinePublication == true }
@@ -96,7 +100,7 @@ import Observation
         do {
             let snapshot = try await verifiedReview(operation)
             guard reading == readGeneration else { return }
-            apply(snapshot); reloadAttempts()
+            apply(snapshot); cacheReview(snapshot); reloadAttempts()
         } catch { if operation == generation, reading == readGeneration { review = nil; fail(error) } }
     }
     /// Revalidate the entire reviewed week, persist the exact request, then POST once.
@@ -146,6 +150,7 @@ import Observation
         } catch { if operation == generation, reading == receiptReads[id] { fail(error) } }
     }
     private func fail(_ failure: Error) {
+        if let failure = failure as? HouseholdFailure, [.authentication, .forbidden, .changedIdentity, .unavailable, .invalid].contains(failure) { withdrawCache() }
         if let failure = failure as? HouseholdFailure, [.authentication, .forbidden, .changedIdentity].contains(failure) {
             invalidate()
             if failure == .authentication { revoked() }

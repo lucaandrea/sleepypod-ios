@@ -16,6 +16,11 @@ permissions:
   contents: read
   id-token: write
 
+# Retain only the newest revision of each PR; superseded runs cannot establish release readiness.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     # Explicit Intel capacity; macos-15 itself now selects the arm64 pool.
@@ -37,8 +42,12 @@ jobs:
           CODE_SIGNING_ALLOWED=NO
           -quiet
 
+      - name: Verify build support scripts
+        run: python3 -m unittest discover -s scripts/tests -p 'test_*.py' -v
+
       # A cold Intel simulator build can take over 17 minutes. Give compilation
       # its own budget so it cannot consume the regression suite's run time.
+      # Keep normal local simulator signing: real Keychain tests require entitlements.
       - name: Build simulator test bundle
         timeout-minutes: 30
         run: |
@@ -53,8 +62,7 @@ jobs:
           xcodebuild build-for-testing -project Sleepypod.xcodeproj -scheme Sleepypod \
             -destination "platform=iOS Simulator,id=$IOS_SIM_ID" \
             -derivedDataPath "$RUNNER_TEMP/SleepypodTestBuild" \
-            -only-testing:SleepypodTests -only-testing:FreeSleepKitTests \
-            CODE_SIGNING_ALLOWED=NO
+            -only-testing:SleepypodTests -only-testing:FreeSleepKitTests
 
       # First boot/data migration on a fresh runner can take several minutes.
       # Wait for readiness before starting the regression execution budget.
@@ -73,7 +81,7 @@ jobs:
             -only-testing:SleepypodTests -only-testing:FreeSleepKitTests \
             -resultBundlePath "$RUNNER_TEMP/SleepypodTests.xcresult" \
             -collect-test-diagnostics never \
-            -parallel-testing-enabled NO CODE_SIGNING_ALLOWED=NO
+            -parallel-testing-enabled NO
 
       - name: Preserve test results
         if: always()
@@ -113,7 +121,7 @@ jobs:
 
       - name: Copy iOS model files into Swift package
         run: |
-          for f in Side DeviceStatus TemperatureControlStatus VitalsRecord SleepRecord JSONValue MovementRecord ServerStatus Settings Schedule CoreScheduleRows Services TemperatureConversion; do
+          for f in Side DeviceStatus TemperatureControlStatus ComfortLimit VitalsRecord SleepRecord JSONValue MovementRecord ServerStatus Settings Schedule CoreScheduleRows Services TemperatureConversion; do
             cp "Sleepypod/Models/${f}.swift" contract-tests/Sources/SleepypodModels/
           done
           cp SleepypodUI/Theme.swift contract-tests/Sources/SleepypodModels/

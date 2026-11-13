@@ -31,7 +31,9 @@ struct HealthHistoryReader {
                 default: continue // Time in bed and awake are never treated as measured sleep.
                 }
                 samples[sample.uuid] = .init(start: sample.startDate, end: sample.endDate,
-                    sourceID: sample.sourceRevision.source.bundleIdentifier, sourceName: sample.sourceRevision.source.name, stage: stage)
+                    sourceID: sample.sourceRevision.source.bundleIdentifier, sourceName: sample.sourceRevision.source.name, stage: stage,
+                    recordedByWatch: WatchRecordingSummary.isWatch(productType: sample.sourceRevision.productType,
+                        model: sample.device?.model, hardwareVersion: sample.device?.hardwareVersion))
             }
             anchor = page.newAnchor
             if page.addedSamples.count + page.deletedObjects.count < 1000 { break }

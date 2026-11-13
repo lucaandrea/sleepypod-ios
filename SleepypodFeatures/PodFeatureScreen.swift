@@ -1,7 +1,7 @@
 import SwiftUI
 
 public enum PodFeature: String, Sendable, CaseIterable {
-    case comfort, journal, history, reports, models, healthHistory, healthSync, home, routines, alarms, coach, preferences, services, base
+    case comfort, journal, history, reports, models, healthHistory, daytimeContext, healthSync, home, routines, alarms, coach, preferences, services, base
 
     public var title: String {
         switch self {
@@ -11,6 +11,7 @@ public enum PodFeature: String, Sendable, CaseIterable {
         case .reports: "Personal reports"
         case .models: "Models"
         case .healthHistory: "Health history"
+        case .daytimeContext: "Daytime context"
         case .healthSync: "Pod Health export"
         case .home: "Home & Shortcuts"
         case .routines: "Routine editor"
@@ -23,7 +24,7 @@ public enum PodFeature: String, Sendable, CaseIterable {
     }
 
     var needsPod: Bool {
-        ![.reports, .models, .healthHistory, .home].contains(self)
+        ![.reports, .models, .healthHistory, .daytimeContext, .home].contains(self)
     }
 }
 
@@ -84,6 +85,7 @@ public struct PodFeatureScreen: View {
         case .reports: PersonalReportsScreen(nativeActions: nativeActions)
         case .models: ModelConnectionScreen()
         case .healthHistory: ImportedHealthScreen()
+        case .daytimeContext: DaytimeContextScreen()
         case .healthSync: FeaturePage(title: feature.title) { HealthConnectionCard() }
         case .home: HomeShortcutsScreen(homeContent: homeContent)
         case .routines: RoutinesView()
