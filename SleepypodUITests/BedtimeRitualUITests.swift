@@ -14,7 +14,8 @@ import XCTest
         label("bedtime.manualStop", "tap Pause", app)
         XCTAssertFalse(app.buttons["bedtime.start"].exists); capture("Audio-real-sheet-unconnected")
         app.navigationBars["Bedtime audio"].buttons["Done"].tap()
-        XCTAssertFalse(app.navigationBars["Bedtime audio"].exists)
+        // Dismissal animates after Done; require the sheet to leave within a bounded wait.
+        XCTAssertTrue(app.navigationBars["Bedtime audio"].waitForNonExistence(timeout: 5))
         reveal(app.buttons["bedtime.open"], app); app.terminate()
     }
     private func launch(_ mode: String = "ready", large: Bool = false) -> XCUIApplication {
