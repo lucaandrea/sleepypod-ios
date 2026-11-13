@@ -59,7 +59,9 @@ jobs:
         timeout-minutes: 15
         run: xcrun simctl bootstatus "$QUIET_SIM_ID" -b
       - name: Verify shared quiet and recovery
-        timeout-minutes: 20
+        # A cold AX failure plus its one permitted reboot consumed eleven
+        # minutes before the hosted iPad began this unchanged five-test suite.
+        timeout-minutes: 30
         run: |
           python3 scripts/run-simulator-ui.py test-without-building -project Sleepypod.xcodeproj -scheme Sleepypod \
             -destination "platform=iOS Simulator,id=$QUIET_SIM_ID" \

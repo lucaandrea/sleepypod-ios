@@ -10,19 +10,27 @@ import XCTest
         return app
     }
     private func reveal(_ element: XCUIElement, in app: XCUIApplication, towardTop: Bool = false) {
-        func visible() -> Bool {
-            guard element.exists else { return false }
+        func visibleFrame() -> CGRect? {
+            guard element.exists else { return nil }
             let frame = element.frame
-            return !frame.isEmpty && frame.midY > app.frame.minY + 110 && frame.midY < app.frame.maxY - 40 && element.isHittable
+            let viewport = app.frame
+            guard !frame.isEmpty, frame.midY > viewport.minY + 110,
+                  frame.midY < viewport.maxY - 40, element.isHittable else { return nil }
+            return frame
         }
         for _ in 0..<40 {
-            if visible() { break }
+            // Rotation can change the next accessibility snapshot. Validate the
+            // visible snapshot once; the following tap still verifies interaction.
+            if let frame = visibleFrame() {
+                XCTAssertGreaterThanOrEqual(frame.minX, app.frame.minX)
+                XCTAssertLessThanOrEqual(frame.maxX, app.frame.maxX)
+                return
+            }
             let upward = element.exists ? element.frame.midY > app.frame.maxY - 40 : !towardTop
             app.coordinate(withNormalizedOffset: CGVector(dx: 0.9, dy: upward ? 0.78 : 0.28))
                 .press(forDuration: 0.05, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.9, dy: upward ? 0.28 : 0.78)))
         }
-        XCTAssertTrue(visible(), "Unreachable \(element.identifier)")
-        XCTAssertGreaterThanOrEqual(element.frame.minX, app.frame.minX); XCTAssertLessThanOrEqual(element.frame.maxX, app.frame.maxX)
+        XCTFail("Unreachable \(element.identifier)")
     }
     private func capture(_ name: String) {
         let attachment = XCTAttachment(screenshot: XCUIScreen.main.screenshot()); attachment.name = name; attachment.lifetime = .keepAlways; add(attachment)
@@ -99,9 +107,15 @@ import XCTest
         let caveat = app.staticTexts["Movement already underway does not stop automatically. Use the base’s Stop control if needed."]
         reveal(caveat, in: app); capture("Quiet-limits-dark-largest-text")
         if UIDevice.current.userInterfaceIdiom == .pad {
+            defer { XCUIDevice.shared.orientation = .portrait }
             XCUIDevice.shared.orientation = .landscapeLeft
+            let landscape = NSPredicate { _, _ in app.frame.width > app.frame.height }
+            expectation(for: landscape, evaluatedWith: app)
+            waitForExpectations(timeout: 10)
             reveal(save, in: app, towardTop: true); capture("Quiet-tablet-landscape")
-            XCUIDevice.shared.orientation = .portrait
+            save.tap()
+            label("quiet.notice", contains: "saved on the Pod", in: app)
+            capture("Quiet-tablet-landscape-saved")
         }
         app.terminate()
     }
