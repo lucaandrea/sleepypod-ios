@@ -67,10 +67,17 @@ public struct PersonalAccountReportsExample: View {
     Keep a brief morning comfort note for a week, then review it alongside the next available recordings. No bed settings have changed.
     """
 
-    private static func evidence(identity: PersonalHealthIdentity, now: Date) -> PersonalReportEvidence {
+    static func evidence(identity: PersonalHealthIdentity, now: Date) -> PersonalReportEvidence {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(identifier: "America/Los_Angeles")!
+        let current = HealthHistoryAnalyzer.bucket(for: now, calendar: calendar)
+        // Completed calendar nights stay inside their noon-to-noon buckets at any launch time, including DST.
         let nights = (1...12).map { day -> HealthHistory.Night in
-            let end = now.addingTimeInterval(Double(-day) * 86_400)
-            return .init(id: "example-\(day)", start: end.addingTimeInterval(-8 * 3600), end: end,
+            let bucket = calendar.date(byAdding: .day, value: -day, to: current)!
+            let start = calendar.date(bySettingHour: 22, minute: 0, second: 0, of: bucket)!
+            let morning = calendar.date(byAdding: .day, value: 1, to: bucket)!
+            let end = calendar.date(bySettingHour: 7, minute: 0, second: 0, of: morning)!
+            return .init(id: "example-\(day)", start: start, end: end,
                 asleepMinutes: day % 3 == 0 ? 420 : 450, deepMinutes: 65, remMinutes: 80)
         }
         let source = HealthHistory.Source(id: "example", name: "Example Watch · synthetic observations", nights: nights)

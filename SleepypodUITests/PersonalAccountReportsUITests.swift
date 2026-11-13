@@ -10,7 +10,11 @@ import XCTest
         generate(app)
         let latest = app.buttons["personalReports.latest"]; reveal(latest, app); latest.tap()
         XCTAssertTrue(app.navigationBars["Your morning brief"].waitForExistence(timeout: 5))
+        let coverage = app.staticTexts["12/14 days"]; reveal(coverage, app)
+        XCTAssertFalse(app.staticTexts["Missing data"].exists)
         capture("Saved-brief")
+        let chart = app.descendants(matching: .any).matching(identifier: "brief.chart").firstMatch
+        reveal(chart, app); capture("Comparison-calendar", settled: true)
         let full = app.buttons["personalReports.fullReport"]; reveal(full, app); full.tap()
         reveal(app.staticTexts["Your recent pattern"].firstMatch, app)
         capture("Rendered-interpretation", settled: true)
